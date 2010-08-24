@@ -24,7 +24,7 @@ class MCError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=100000):
+def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=10000):
     """
     Fit args using MCMC and return samples from the PDF.
     """

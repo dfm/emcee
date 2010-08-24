@@ -17,6 +17,7 @@ class ProposalErr(Exception):
         return repr(self.value)
 
 class MCSampler:
+    """Metropolis-Hastings sampler using simulated annealing"""
     def __init__(self):
         pass
     
