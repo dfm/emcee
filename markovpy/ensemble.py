@@ -7,6 +7,11 @@
 #  Created by Dan F-M on 2010-10-18.
 #  Copyright 2010 Daniel Foreman-Mackey. All rights reserved.
 # 
+#  This is a Markov chain Monte Carlo (MCMC) sampler based on:
+#
+#  Goodman & Weare, Ensemble Samplers With Affine Invariance 
+#    Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80
+#
 
 import numpy as np
 from mcsampler import MCSampler
@@ -63,7 +68,7 @@ class EnsembleSampler(MCSampler):
         acceptfrac = float(nacc)/N/W
         
         if acceptfrac > 0.1:
-            print '''mcfit completed successfully:
+            print '''Ensemble sampling completed successfully:
     Acceptance fraction: %.3f
 '''%(acceptfrac)
         else:

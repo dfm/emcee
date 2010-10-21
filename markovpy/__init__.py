@@ -7,6 +7,8 @@
 # 
 
 from mcfit import *
+from mcsampler import *
+from ensemble import *
 
 VERSION = (1, 0, 0, 'alpha', 0)
 

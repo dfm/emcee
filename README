@@ -1,0 +1,48 @@
+* -------- *
+* MarkovPy *
+* -------- *
+
+INTRODUCTION
+
+MarkovPy is an extensible, pure-Python implementation of Markov chain
+Monte Carlo (MCMC) curve fitting.
+
+
+INSTALLATION
+
+Navigate to this directory and run
+
+% ./setup.py install
+
+on the command line to install a module called markovpy in the default
+Python path.
+
+
+DEPENDENCIES
+
+This package requires NumPy (http://numpy.scipy.org/) and it has been
+tested on Python 2.6.5.
+
+
+USAGE
+
+The sample script "test.py" shows an example of a basic linear fitting
+algorithm (following http://arxiv.org/abs/1008.4686 roughly).
+
+markovpy.mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=1000)
+
+loglike     -   a function loglike(params, *args) that returns the log-
+                likelihood for parameters "params".
+
+bounds      -   a (N,2) array with the hard bounds on the N-dimensional
+                parameter space.
+
+sampler     -   a markovpy.mcsampler object that performs the sampling
+                the default sampler is a (fairly stupid) Metropolis-
+                Hastings sampler with simulated annealing and iterative
+                covariance recalculation.
+                
+                A more sophisticated sampler is also provided in
+                markovpy.ensemble.EnsembleSampler(K) based on
+                Goodman & Weare (2009) with K walkers.
+

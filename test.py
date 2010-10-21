@@ -26,10 +26,19 @@ def main():
     
     # fit the data -- sigma sampled in log
     bounds = [[0.,10.],[0.,10.],[0.,6.]]
-    samps,frac = mcmc.mcfit(loglike,bounds,args=(x,y,err))
+    samps,frac = mcmc.mcfit(loglike,bounds,N=1000,sampler=mcmc.EnsembleSampler(100),args=(x,y,err))
     
     # rescale sigma samples
     samps[:,2] = np.exp(samps[:,2])
+    
+    pl.figure()
+    pl.hist(samps[:,0],100)
+    pl.figure()
+    pl.hist(samps[:,1],100)
+    pl.figure()
+    pl.hist(samps[:,2],100)
+    pl.figure()
+    
     
     # results
     print "m = %.3f +/- %.3f"%(np.mean(samps[:,0]),np.sqrt(np.var(samps[:,0])))
@@ -41,7 +50,28 @@ def main():
     
     # plot this fit
     xt = np.array([min(x),max(x)])
-    pl.plot(xt,model(xt,ptrue),'--r',lw=2.)
+    pl.plot(xt,model(xt,ptrue),'--k',lw=2.)
+    pl.plot(xt,model(xt,[np.mean(samps[:,0]),np.mean(samps[:,1]),np.mean(samps[:,2])]),'--r',lw=2.)
+    
+    # blah
+    
+    # fit the data -- sigma sampled in log
+    samps,frac = mcmc.mcfit(loglike,bounds,args=(x,y,err))
+    
+    # rescale sigma samples
+    samps[:,2] = np.exp(samps[:,2])
+    
+    # results
+    print "m = %.3f +/- %.3f"%(np.mean(samps[:,0]),np.sqrt(np.var(samps[:,0])))
+    print "b = %.3f +/- %.3f"%(np.mean(samps[:,1]),np.sqrt(np.var(samps[:,1])))
+    print "sigma = %.3f +/- %.3f"%(np.mean(samps[:,2]),np.sqrt(np.var(samps[:,2])))
+    
+    # plot this fit
+    xt = np.array([min(x),max(x)])
+    pl.plot(xt,model(xt,[np.mean(samps[:,0]),np.mean(samps[:,1]),np.mean(samps[:,2])]),'--b',lw=2.)
+    
+    
+    #end blah
     
     pl.show()
 
