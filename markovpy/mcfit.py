@@ -5,7 +5,6 @@
 #  markovpy
 #  
 #  Created by Dan F-M on 2010-08-10.
-#  Copyright 2010 Daniel Foreman-Mackey. All rights reserved.
 # 
 
 """

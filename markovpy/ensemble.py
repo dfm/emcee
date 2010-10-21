@@ -5,7 +5,6 @@
 #  markovpy
 #  
 #  Created by Dan F-M on 2010-10-18.
-#  Copyright 2010 Daniel Foreman-Mackey. All rights reserved.
 # 
 #  This is a Markov chain Monte Carlo (MCMC) sampler based on:
 #
