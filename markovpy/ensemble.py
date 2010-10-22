@@ -21,7 +21,7 @@ class EnsembleSampler(MCSampler):
         self.nwalkers = nwalkers
         self.a = a
     
-    def sample_pdf(self,loglike,bounds,proposal,N,args):
+    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args):
         np.random.seed()
         
         W = self.nwalkers # number of walkers
@@ -62,7 +62,8 @@ class EnsembleSampler(MCSampler):
                     old_p[i] = new_p
                     nacc += 1
                 
-                chain.append(old_p[i])
+                if it*W > burnin:
+                    chain.append(old_p[i])
         
         acceptfrac = float(nacc)/N/W
         

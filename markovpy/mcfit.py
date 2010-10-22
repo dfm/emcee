@@ -23,7 +23,7 @@ class MCError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=1000):
+def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=10000,burnin=1000):
     """
     Fit args using MCMC and return samples from the PDF.
     """
@@ -39,6 +39,6 @@ def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=1000):
         if proposal == None:
             proposal = (bounds[:,1]-bounds[:,0])/10.
         
-        return sampler.sample_pdf(loglike,bounds,proposal,N,args)        
+        return sampler.sample_pdf(loglike,bounds,proposal,N,burnin,args)        
     except (MCError,ProposalErr) as e:
         print "MCMC exception raised with message: "+e.value    

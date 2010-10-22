@@ -20,7 +20,7 @@ class MCSampler:
     def __init__(self):
         pass
     
-    def sample_pdf(self,loglike,bounds,proposal,N,args):
+    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args):
         np.random.seed()
         
         npars = np.shape(bounds)[0]
@@ -73,7 +73,8 @@ class MCSampler:
                     old_p = new_p
                     nacc += 1
                 
-                chain.append(old_p)
+                if it > burnin:
+                    chain.append(old_p)
                 
             if warmup:
                 warmup = False

@@ -25,8 +25,8 @@ def main():
     y = model(x,ptrue)+np.random.randn(n)*err
     
     # fit the data -- sigma sampled in log
-    bounds = [[0.,10.],[0.,10.],[0.,6.]]
-    samps,frac = mcmc.mcfit(loglike,bounds,N=1000,sampler=mcmc.EnsembleSampler(100),args=(x,y,err))
+    bounds = [[0.,10.],[0.,10.],[0.,2.]]
+    samps,frac = mcmc.mcfit(loglike,bounds,N=1000,sampler=mcmc.EnsembleSampler(200),args=(x,y,err))
     
     # rescale sigma samples
     samps[:,2] = np.exp(samps[:,2])
