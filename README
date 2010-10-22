@@ -2,9 +2,16 @@
 * MarkovPy *
 * -------- *
 
+NOTE
+
+This is still a young module under active development so please use 
+at your own risk and let me know what bugs you encounter.
+
+
 AUTHOR
 
-Daniel Foreman-Mackey - http://danfm.ca
+Daniel Foreman-Mackey - dfm265 at nyu dot edu
+
 
 INTRODUCTION
 
@@ -33,12 +40,17 @@ USAGE
 The sample script "test.py" shows an example of a basic linear fitting
 algorithm (following http://arxiv.org/abs/1008.4686 roughly).
 
-markovpy.mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=1000)
+The main function call is:
+
+samples,frac = markovpy.mcfit(loglike,bounds,args=None,sampler=None,
+                              proposal=None,N=1000)
+
+Inputs:
 
 loglike     -   a function loglike(params, *args) that returns the log-
                 likelihood for parameters "params".
 
-bounds      -   a (N,2) array with the hard bounds on the N-dimensional
+bounds      -   a (M,2) array with the hard bounds on the M-dimensional
                 parameter space.
 
 sampler     -   a markovpy.mcsampler object that performs the sampling
@@ -50,13 +62,18 @@ sampler     -   a markovpy.mcsampler object that performs the sampling
                 markovpy.ensemble.EnsembleSampler(K) based on
                 Goodman & Weare (2009) with K walkers.
 
+Outputs:
+
+samples     -   (N,M) array of samples from the posterior PDF
+
+frac        -   the acceptance fraction of the chain
+
 
 LICENSE
 
 MarkovPy is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
 MarkovPy is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
