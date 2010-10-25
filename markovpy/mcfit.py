@@ -31,6 +31,7 @@ import sys
 import numpy as np
 
 from mcsampler import *
+from ensemble import EnsembleSampler
 
 class MCError(Exception):
     def __init__(self,value):
@@ -38,13 +39,14 @@ class MCError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def mcfit(loglike,bounds,args=None,sampler=None,proposal=None,N=10000,burnin=1000):
+def mcfit(loglike,bounds,args=(),sampler=None,proposal=None,N=10000,burnin=1000):
     """
     Fit args using MCMC and return samples from the PDF.
     """
     
     if sampler == None:
-        sampler = MCSampler()
+        # sampler = MCSampler()
+        sampler = EnsembleSampler(100)
     
     try:
         bounds = np.array(bounds)

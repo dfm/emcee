@@ -32,77 +32,55 @@ import pylab as pl
 
 import markovpy as mcmc
 
+# define the true variance tensor
+np.random.seed()
+dim     = 20
+vtensor = np.zeros([dim,dim])
+
+# the variance tensor is the sum of outer-products of random vectors
+for i in range(dim+1):
+    v = np.random.rand(dim)/dim
+    vtensor += np.outer(v,v)
+
+# eigenvalues and eigenvectors of vtensor
+# column evecs[:,i] is the eigenvector corresponding 
+# to the eigenvalue eval[i].
+evals,evecs = np.linalg.eig(vtensor)
+
+# sqrt of 2 pi times determinant of vtensor
+vtensor_det = np.sqrt(np.linalg.det(2.0*np.pi*vtensor))
+
+# inverse of vtensor /2
+vtensor_inv = -np.linalg.inv(vtensor)/2.0
+
 def main():
-    """Run a Markov chain Monte Carlo to fit a fake linear dataset"""
-    np.random.seed()
-    
-    ptrue = [1.,5.,3.]  # real slope, intercept and scatter
-    
-    # generate some fake data
-    n = 10
-    x = 10.*np.random.rand(n)
-    err = ptrue[2]*np.random.rand(n)
-    y = model(x,ptrue)+np.random.randn(n)*err
+    """Run a Markov chain Monte Carlo to fit a high-dimensional pdf"""
     
     # fit the data -- sigma sampled in log
-    bounds = [[0.,10.],[0.,10.],[0.,2.]]
-    samps,frac = mcmc.mcfit(loglike,bounds,N=1000,sampler=mcmc.EnsembleSampler(200),args=(x,y,err))
+    bounds = []
+    for i in range(dim):
+        bounds.append([-2.,2.])
+        
+    samps,frac = mcmc.mcfit(loglike,bounds,N=10**4)#,sampler=mcmc.mcsampler.MCSampler())
+    vtens_est = np.cov(samps.T)
+    print np.sum(vtens_est-vtensor)
     
-    # rescale sigma samples
-    samps[:,2] = np.exp(samps[:,2])
-    
-    pl.figure()
-    pl.hist(samps[:,0],100)
-    pl.figure()
-    pl.hist(samps[:,1],100)
-    pl.figure()
-    pl.hist(samps[:,2],100)
-    pl.figure()
-    
-    
-    # results
-    print "m = %.3f +/- %.3f"%(np.mean(samps[:,0]),np.sqrt(np.var(samps[:,0])))
-    print "b = %.3f +/- %.3f"%(np.mean(samps[:,1]),np.sqrt(np.var(samps[:,1])))
-    print "sigma = %.3f +/- %.3f"%(np.mean(samps[:,2]),np.sqrt(np.var(samps[:,2])))
-    
-    # plot the data
-    pl.errorbar(x,y,yerr=err,fmt='.k')
-    
-    # plot this fit
-    xt = np.array([min(x),max(x)])
-    pl.plot(xt,model(xt,ptrue),'--k',lw=2.)
-    pl.plot(xt,model(xt,[np.mean(samps[:,0]),np.mean(samps[:,1]),np.mean(samps[:,2])]),'--r',lw=2.)
-    
-    # blah
-    
-    # fit the data -- sigma sampled in log
-    samps,frac = mcmc.mcfit(loglike,bounds,args=(x,y,err))
-    
-    # rescale sigma samples
-    samps[:,2] = np.exp(samps[:,2])
-    
-    # results
-    print "m = %.3f +/- %.3f"%(np.mean(samps[:,0]),np.sqrt(np.var(samps[:,0])))
-    print "b = %.3f +/- %.3f"%(np.mean(samps[:,1]),np.sqrt(np.var(samps[:,1])))
-    print "sigma = %.3f +/- %.3f"%(np.mean(samps[:,2]),np.sqrt(np.var(samps[:,2])))
-    
-    # plot this fit
-    xt = np.array([min(x),max(x)])
-    pl.plot(xt,model(xt,[np.mean(samps[:,0]),np.mean(samps[:,1]),np.mean(samps[:,2])]),'--b',lw=2.)
-    
-    
-    #end blah
+    for i in range(dim):
+        print evecs[:,i]
+        x = np.dot(samps,evecs[:,i])
+        x = x[x < 3.*np.sqrt(evals[i])]
+        x = x[x > -3.*np.sqrt(evals[i])]
+        pl.figure().add_subplot(111).hist(x,100,normed=True,histtype="step",color="k")
+        
+        xs = np.linspace(min(x),max(x),500)
+        pl.plot(xs,np.exp(-xs**2/evals[i]/2)/np.sqrt(2*np.pi*evals[i]))
+        
+        pl.xlim([-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i])])
     
     pl.show()
 
-def loglike(p,x,y,yerr):
-    """Likelihood of model p given the data (x,y,yerr) assuming Gaussian uncert."""
-    err2 = 2.*(np.exp(p[2])+yerr**2.)
-    return np.sum(-(model(x,p)-y)**2./err2-0.5*np.log(np.pi*err2))
-
-def model(x,p):
-    """Linear model"""
-    return p[0]*x+p[1]
+def loglike(p):
+    return np.dot(p,np.dot(vtensor_inv,p)) - np.log(vtensor_det)
 
 if __name__ == '__main__':
     main()

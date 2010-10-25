@@ -39,8 +39,11 @@ class MCSampler:
     def __init__(self):
         pass
     
-    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args):
-        np.random.seed()
+    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args,seed=None):
+        if seed == None:
+            np.random.seed()
+        else:
+            np.random.seed(seed)
         
         npars = np.shape(bounds)[0]
         jr = np.zeros([npars,npars])
@@ -71,21 +74,21 @@ class MCSampler:
             for it in range(N):
                 new_p = old_p+np.dot(jr,np.random.randn(npars))
                 accept = False
-                if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
-                    new_prob = loglike(new_p,*args)
-                    if np.exp(new_prob) > 0.:
-                        sigma += new_prob
-                        sigma2 += new_prob**2
-                        # print it, new_prob, sigma/it, sigma2/it,np.sqrt(sigma2/it-sigma**2./it**2.)
-                    
-                    diff = (new_prob-old_prob)/temp
-                    
-                    if diff > 0:
+                # if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
+                new_prob = loglike(new_p,*args)
+                if np.exp(new_prob) > 0.:
+                    sigma += new_prob
+                    sigma2 += new_prob**2
+                    # print it, new_prob, sigma/it, sigma2/it,np.sqrt(sigma2/it-sigma**2./it**2.)
+                
+                diff = (new_prob-old_prob)/temp
+                
+                if diff > 0:
+                    accept = True
+                else:
+                    rn = np.random.rand()
+                    if rn < np.exp(diff):
                         accept = True
-                    else:
-                        rn = np.random.rand()
-                        if rn < np.exp(diff):
-                            accept = True
                 
                 if accept:
                     old_prob = new_prob

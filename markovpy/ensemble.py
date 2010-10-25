@@ -40,8 +40,11 @@ class EnsembleSampler(MCSampler):
         self.nwalkers = nwalkers
         self.a = a
     
-    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args):
-        np.random.seed()
+    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args,seed=None):
+        if seed == None:
+            np.random.seed()
+        else:
+            np.random.seed(seed)
         
         W = self.nwalkers # number of walkers
         
@@ -65,16 +68,16 @@ class EnsembleSampler(MCSampler):
                     rint += 1
                 new_p = old_p[rint]+z*(old_p[i]-old_p[rint])
                 accept = False
-                if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
-                    new_prob = loglike(new_p,*args)
-                    diff = (npars-1.)*np.log(z)+new_prob-old_prob[i]
-                
-                    if diff > 0:
+                # if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
+                new_prob = loglike(new_p,*args)
+                diff = (npars-1.)*np.log(z)+new_prob-old_prob[i]
+            
+                if diff > 0:
+                    accept = True
+                else:
+                    rn = np.random.rand()
+                    if rn < np.exp(diff):
                         accept = True
-                    else:
-                        rn = np.random.rand()
-                        if rn < np.exp(diff):
-                            accept = True
                 
                 if accept:
                     old_prob[i] = new_prob

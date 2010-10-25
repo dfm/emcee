@@ -12,11 +12,18 @@ AUTHOR
 
 Daniel Foreman-Mackey - dfm265 at nyu dot edu
 
+If you find this code useful in your research, please let me know and
+consider citing this package. Thanks!
+
 
 INTRODUCTION
 
 MarkovPy is an extensible, pure-Python implementation of Markov chain
-Monte Carlo (MCMC) curve fitting.
+Monte Carlo (MCMC) curve fitting. The calling syntax is designed to be
+like scipy.optimize so that this can be simply a drop in replacement.
+
+There are currently no plans to port the included ensemble sampler to
+PyMC or any other platforms but such ports would (of course) be welcomed.
 
 
 INSTALLATION
@@ -50,17 +57,18 @@ Inputs:
 loglike     -   a function loglike(params, *args) that returns the log-
                 likelihood for parameters "params".
 
-bounds      -   a (M,2) array with the hard bounds on the M-dimensional
-                parameter space.
+bounds      -   a (M,2) array which provides an initial guess of the bounds
+                of the parameter space.
 
-sampler     -   a markovpy.mcsampler object that performs the sampling
-                the default sampler is a (fairly stupid) Metropolis-
+sampler     -   a markovpy.mcsampler object that performs the sampling.
+                The base sampler class is a (fairly stupid) Metropolis-
                 Hastings sampler with simulated annealing and iterative
                 covariance recalculation.
                 
-                A more sophisticated sampler is also provided in
-                markovpy.ensemble.EnsembleSampler(K) based on
-                Goodman & Weare (2009) with K walkers.
+                A more sophisticated sampler is now the default sampler.
+                The implementation is found in 
+                markovpy.ensemble.EnsembleSampler(K)
+                based on Goodman & Weare (2009) with K walkers.
 
 Outputs:
 
