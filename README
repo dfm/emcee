@@ -20,7 +20,7 @@ INTRODUCTION
 
 MarkovPy is an extensible, pure-Python implementation of Markov chain
 Monte Carlo (MCMC) curve fitting. The calling syntax is designed to be
-like scipy.optimize so that this can be simply a drop in replacement.
+like scipy.optimize so that it can (almost) be a drop in replacement.
 
 There are currently no plans to port the included ensemble sampler to
 PyMC or any other platforms but such ports would (of course) be welcomed.
@@ -49,16 +49,22 @@ algorithm (following http://arxiv.org/abs/1008.4686 roughly).
 
 The main function call is:
 
-samples,frac = markovpy.mcfit(loglike,bounds,args=None,sampler=None,
+samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
                               proposal=None,N=1000)
 
 Inputs:
 
-loglike     -   a function loglike(params, *args) that returns the log-
-                likelihood for parameters "params".
+logpost     -   a function logpost(params, *args) that returns the relative
+                log-posterior for parameters "params".
 
-bounds      -   a (M,2) array which provides an initial guess of the bounds
-                of the parameter space.
+p0          -   a (M,2) array which provides an initial guess of the bounds
+                of the parameter space. NOTE: these bounds are not enforced
+                beyond this initial guess. If you would like a hard prior
+                on your parameter space, you must include it in your logpost
+                function.
+                
+                or a (M,K) array providing the initial state of the
+                ensemble --- preferably sampled from your prior distribution
 
 sampler     -   a markovpy.mcsampler object that performs the sampling.
                 The base sampler class is a (fairly stupid) Metropolis-

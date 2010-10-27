@@ -39,7 +39,7 @@ class MCSampler:
     def __init__(self):
         pass
     
-    def sample_pdf(self,loglike,bounds,proposal,N,burnin,args,seed=None):
+    def sample_pdf(self,logpost,bounds,proposal,N,burnin,args,seed=None,output=None):
         if seed == None:
             np.random.seed()
         else:
@@ -61,7 +61,7 @@ class MCSampler:
         temp = 1.0
         
         old_p = (bounds[:,1]-bounds[:,0])*np.random.rand(npars)+bounds[:,0]
-        old_prob = loglike(old_p,*args)
+        old_prob = logpost(old_p,*args)
         
         chain = []
         
@@ -75,7 +75,7 @@ class MCSampler:
                 new_p = old_p+np.dot(jr,np.random.randn(npars))
                 accept = False
                 # if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
-                new_prob = loglike(new_p,*args)
+                new_prob = logpost(new_p,*args)
                 if np.exp(new_prob) > 0.:
                     sigma += new_prob
                     sigma2 += new_prob**2

@@ -39,7 +39,7 @@ class MCError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def mcfit(loglike,bounds,args=(),sampler=None,proposal=None,N=10000,burnin=1000):
+def mcfit(logpost,bounds,args=(),sampler=None,proposal=None,N=10000,burnin=1000,outfile=None):
     """
     Fit args using MCMC and return samples from the PDF.
     """
@@ -51,11 +51,11 @@ def mcfit(loglike,bounds,args=(),sampler=None,proposal=None,N=10000,burnin=1000)
     try:
         bounds = np.array(bounds)
         
-        if np.shape(bounds)[1] != 2:
-            raise MCError("provide bounds on the parameter space")
+        # if np.shape(bounds)[1] != 2:
+        #     raise MCError("provide bounds on the parameter space")
         if proposal == None:
             proposal = (bounds[:,1]-bounds[:,0])/10.
         
-        return sampler.sample_pdf(loglike,bounds,proposal,N,burnin,args)        
+        return sampler.sample_pdf(logpost,bounds,proposal,N,burnin,args,outfile=outfile)
     except (MCError,ProposalErr) as e:
         print "MCMC exception raised with message: "+e.value    

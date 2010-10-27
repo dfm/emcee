@@ -34,11 +34,11 @@ import markovpy as mcmc
 
 # define the true variance tensor
 np.random.seed()
-dim     = 20
+dim     = 10
 vtensor = np.zeros([dim,dim])
 
 # the variance tensor is the sum of outer-products of random vectors
-for i in range(dim+1):
+for i in range(dim+2):
     v = np.random.rand(dim)/dim
     vtensor += np.outer(v,v)
 
@@ -50,37 +50,38 @@ evals,evecs = np.linalg.eig(vtensor)
 # sqrt of 2 pi times determinant of vtensor
 vtensor_det = np.sqrt(np.linalg.det(2.0*np.pi*vtensor))
 
-# inverse of vtensor /2
-vtensor_inv = -np.linalg.inv(vtensor)/2.0
+# inverse of vtensor
+vtensor_inv = np.linalg.inv(vtensor)
 
 def main():
     """Run a Markov chain Monte Carlo to fit a high-dimensional pdf"""
     
     # fit the data -- sigma sampled in log
-    bounds = []
+    np.random.seed()
+    p0 = []
     for i in range(dim):
-        bounds.append([-2.,2.])
+        p0.append([-5.,5.])
         
-    samps,frac = mcmc.mcfit(loglike,bounds,N=10**4)#,sampler=mcmc.mcsampler.MCSampler())
+    samps,frac = mcmc.mcfit(logpost,p0,burnin=500,N=1000,outfile='test.mcmc')
     vtens_est = np.cov(samps.T)
-    print np.sum(vtens_est-vtensor)
+    # print np.sum(vtens_est-vtensor)
     
-    for i in range(dim):
-        print evecs[:,i]
+    for i in range(dim):        
         x = np.dot(samps,evecs[:,i])
         x = x[x < 3.*np.sqrt(evals[i])]
         x = x[x > -3.*np.sqrt(evals[i])]
         pl.figure().add_subplot(111).hist(x,100,normed=True,histtype="step",color="k")
         
-        xs = np.linspace(min(x),max(x),500)
+        xs = np.linspace(-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i]),500)
         pl.plot(xs,np.exp(-xs**2/evals[i]/2)/np.sqrt(2*np.pi*evals[i]))
         
         pl.xlim([-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i])])
+        
     
     pl.show()
 
-def loglike(p):
-    return np.dot(p,np.dot(vtensor_inv,p)) - np.log(vtensor_det)
+def logpost(p):
+    return -np.dot(p,np.dot(vtensor_inv,p))/2 # - np.log(vtensor_det)
 
 if __name__ == '__main__':
     main()

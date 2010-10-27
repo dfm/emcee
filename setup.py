@@ -10,3 +10,4 @@ setup(name='MarkovPy',
         author_email='dan@danfm.ca',
         packages=['markovpy'],
         )
+
