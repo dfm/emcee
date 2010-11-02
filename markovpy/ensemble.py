@@ -41,9 +41,7 @@ class EnsembleSampler(MCSampler):
         self.a = a
     
     def sample_pdf(self,logpost,p0,proposal,N,burnin,args,seed=None,outfile=None):
-        if seed == None:
-            np.random.seed()
-        else:
+        if seed != None:
             np.random.seed(seed)
         
         W = self.nwalkers # number of walkers
@@ -51,6 +49,7 @@ class EnsembleSampler(MCSampler):
         npars = np.shape(p0)[0]
         old_p,old_prob = [],[]
         chain = []
+        posterior = []
         
         # initialize walkers
         s = np.shape(p0)
@@ -112,11 +111,12 @@ class EnsembleSampler(MCSampler):
                     f = open(outfile,'a')
                     for j in range(npars):
                         f.write('%10.8e\t'%(old_p[i][j]))
-                    f.write('\n')
+                    f.write('%10.8e\n'%old_prob[i])
                     f.close()
                 
                 if it*W > burnin:
                     chain.append(old_p[i])
+                    posterior.append(old_prob[i])
         
         acceptfrac = float(nacc)/N/W
         
@@ -127,6 +127,6 @@ class EnsembleSampler(MCSampler):
         else:
             print 'Warning: acceptance fraction < 10\%'
         
-        return np.array(chain),acceptfrac
-            
+        return np.array(chain),np.array(posterior),acceptfrac
+
     

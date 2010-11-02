@@ -44,13 +44,13 @@ tested on Python 2.6.5.
 
 USAGE
 
-The sample script "test.py" shows an example of a basic linear fitting
-algorithm (following http://arxiv.org/abs/1008.4686 roughly).
+The sample script "test.py" shows an example of a high dimensional
+Gaussian PDF.
 
 The main function call is:
 
 samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
-                              proposal=None,N=1000)
+                              proposal=None,N=1000,seed=None,outfile=None)
 
 Inputs:
 
@@ -67,14 +67,17 @@ p0          -   a (M,2) array which provides an initial guess of the bounds
                 ensemble --- preferably sampled from your prior distribution
 
 sampler     -   a markovpy.mcsampler object that performs the sampling.
-                The base sampler class is a (fairly stupid) Metropolis-
-                Hastings sampler with simulated annealing and iterative
-                covariance recalculation.
-                
-                A more sophisticated sampler is now the default sampler.
-                The implementation is found in 
+                The default sampler provided in 
                 markovpy.ensemble.EnsembleSampler(K)
-                based on Goodman & Weare (2009) with K walkers.
+                is based on Goodman & Weare (2009) with K walkers.
+
+seed        -   a seed value for numpy.random.  If you provide nothing,
+                the sampler assumes that you have seeded the random
+                number generator yourself.
+                
+outfile     -   a filename into which the tab-delimited Markov chain
+                results can be written.  This file will be overwritten
+                if it already exists.
 
 Outputs:
 

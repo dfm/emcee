@@ -60,17 +60,26 @@ def main():
     np.random.seed()
     p0 = []
     for i in range(dim):
-        p0.append([-5.,5.])
+        p0.append([-2.,2.])
         
-    samps,frac = mcmc.mcfit(logpost,p0,burnin=500,N=1000,outfile='test.mcmc')
+    samps,post,frac = mcmc.mcfit(logpost,p0,burnin=5000,N=3000,outfile='test.mcmc')
+    
+    # pl.figure()
+    # pl.plot(post)
+    
     vtens_est = np.cov(samps.T)
     # print np.sum(vtens_est-vtensor)
     
-    for i in range(dim):        
-        x = np.dot(samps,evecs[:,i])
+    for i in range(dim):
+        pl.figure().add_subplot(111)
+        
+        # x = np.dot(samps,evecs[:,i])
+        # pl.hist(x,100,normed=True,histtype="step",color="g")
+        
+        x = samps
         x = x[x < 3.*np.sqrt(evals[i])]
         x = x[x > -3.*np.sqrt(evals[i])]
-        pl.figure().add_subplot(111).hist(x,100,normed=True,histtype="step",color="k")
+        pl.hist(x,100,normed=True,histtype="step",color="k")
         
         xs = np.linspace(-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i]),500)
         pl.plot(xs,np.exp(-xs**2/evals[i]/2)/np.sqrt(2*np.pi*evals[i]))
@@ -85,3 +94,4 @@ def logpost(p):
 
 if __name__ == '__main__':
     main()
+

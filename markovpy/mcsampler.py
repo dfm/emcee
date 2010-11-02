@@ -40,9 +40,7 @@ class MCSampler:
         pass
     
     def sample_pdf(self,logpost,bounds,proposal,N,burnin,args,seed=None,output=None):
-        if seed == None:
-            np.random.seed()
-        else:
+        if seed != None:
             np.random.seed(seed)
         
         npars = np.shape(bounds)[0]
@@ -124,6 +122,6 @@ class MCSampler:
         else:
             print 'Warning: acceptance fraction < 10\%'
         
-        return np.array(chain),acceptfrac
-            
+        return np.array(chain),np.array([]),acceptfrac
+
     
