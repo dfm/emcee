@@ -36,7 +36,7 @@ from mcsampler import MCSampler
 
 class EnsembleSampler(MCSampler):
     """Ensemble sampling following Goodman & Weare (2009)"""
-    def __init__(self,npars,nwalkers,lnposteriorfn,postargs=(),a=2.,filehandle=None):
+    def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),a=2.,filehandle=None):
         # Initialize a random number generator that we own
         self.random         = np.random.mtrand.RandomState()
         
@@ -45,7 +45,7 @@ class EnsembleSampler(MCSampler):
         self.postargs       = postargs
         
         # the ensemble sampler parameters
-        assert npars < nwalkers, "You need more walkers than the dimension of the space (%d)."%(npars)
+        assert nwalkers > npars, "You need more walkers than the dimension of the space (%d)."%(npars)
         self.npars          = npars
         self.nwalkers       = nwalkers
         self.a              = a
@@ -64,7 +64,6 @@ class EnsembleSampler(MCSampler):
         for pos,state in self.sample(position,randomstate,iterations=iterations):
             pass
         
-        print 'Acceptance fraction: %.3f'%np.mean(self.acceptance_fraction())
         return pos,state
     
     def sample(self,position,randomstate,*args,**kwargs):
@@ -90,11 +89,16 @@ class EnsembleSampler(MCSampler):
                 rint = self.random.randint(self.nwalkers-1)
                 if rint >= i:
                     rint += 1
+                
+                # propose new walker position and calculate the probability
                 new_pos = position[rint]+z*(position[i]-position[rint])
-                accept = False
                 new_prob = self.lnposteriorfn(new_pos,*(self.postargs))
+                
+                # acceptance probability
                 diff = (self.npars-1.)*np.log(z)+new_prob-lnprob[i]
                 
+                # do we accept it?
+                accept = False
                 if diff > 0:
                     accept = True
                 else:
@@ -110,7 +114,7 @@ class EnsembleSampler(MCSampler):
             self.chain = np.dstack((self.chain, position))
             self.probability = np.concatenate((self.probability.T, [lnprob]),axis=0).T
             self.iterations += 1
-            yield position,self.random.get_state()
+            yield position, self.random.get_state()
     
     def acceptance_fraction(self):
         return self.naccepted/self.iterations
