@@ -36,97 +36,84 @@ from mcsampler import MCSampler
 
 class EnsembleSampler(MCSampler):
     """Ensemble sampling following Goodman & Weare (2009)"""
-    def __init__(self,nwalkers,a=2.):
-        self.nwalkers = nwalkers
-        self.a = a
+    def __init__(self,npars,nwalkers,lnposteriorfn,postargs=(),a=2.,filehandle=None):
+        # Initialize a random number generator that we own
+        self.random         = np.random.mtrand.RandomState()
+        
+        # a function that returns the posterior pdf of interest
+        self.lnposteriorfn  = lnposteriorfn
+        self.postargs       = postargs
+        
+        # the ensemble sampler parameters
+        assert npars < nwalkers, "You need more walkers than the dimension of the space (%d)."%(npars)
+        self.npars          = npars
+        self.nwalkers       = nwalkers
+        self.a              = a
+        
+        # chain
+        self.chain          = np.empty([nwalkers,npars,0],dtype=float)
+        self.probability    = np.empty([nwalkers,0])
+        self.position       = None
+        self.iterations     = 0
+        self.naccepted      = np.zeros(nwalkers)
+        
+        # optional output file
+        self.filehandle     = filehandle
     
-    def sample_pdf(self,logpost,p0,proposal,N,burnin,args,seed=None,outfile=None):
-        if seed != None:
-            np.random.seed(seed)
+    def run_mcmc(self,position,randomstate,iterations):
+        for pos,state in self.sample(position,randomstate,iterations=iterations):
+            pass
         
-        W = self.nwalkers # number of walkers
+        print 'Acceptance fraction: %.3f'%np.mean(self.acceptance_fraction())
+        return pos,state
+    
+    def sample(self,position,randomstate,*args,**kwargs):
+        # calculate the current probability
+        lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs)) for i in range(self.nwalkers)])
         
-        npars = np.shape(p0)[0]
-        old_p,old_prob = [],[]
-        chain = []
-        posterior = []
+        # set the current state of our random number generator
+        try:
+            self.random.set_state(randomstate)
+        except:
+            self.random.seed()
         
-        # initialize walkers
-        s = np.shape(p0)
-        if s[1] != 2 and s[1] < W:
-            raise ProposalErr("wrong number of dimensions in initial ensemble distribution --- must be of dimension either (nParams,nWakers) or (nParams,2).")
+        # how many iterations?  default to 1
+        try:
+            iterations = kwargs['iterations']
+        except:
+            iterations = 1
         
-        # output file?
-        if outfile != None:
-            f = open(outfile,'w')
-        
-        if s[1] == 2:
-            for i in range(W):
-                old_p.append((p0[:,1]-p0[:,0])*np.random.rand(npars)+p0[:,0])
-                chain.append(old_p[-1])
-                old_prob.append(logpost(old_p[-1],*args))
-                if outfile != None:
-                    for j in range(npars):
-                        f.write('%.8e\t'%(old_p[-1][j]))
-                    f.write('\n')
-        else:
-            for i in range(W):
-                old_p.append(p0[:,i])
-                chain.append(old_p[-1])
-                old_prob.append(logpost(old_p[-1],*args))
-                if outfile != None:
-                    for j in range(npars):
-                        f.write('%.8e\t'%(old_p[-1][j]))
-                    f.write('\n')
-        
-        f.close()
-        
-        nacc = 0
-        
-        for it in range(N-1):
-            for i in range(W):
-                z = ((self.a-1.)*np.random.rand()+1)**2./self.a
-                rint = np.random.randint(W-1)
+        # sample chain as an iterator
+        for k in range(iterations):
+            for i in range(self.nwalkers):
+                z = ((self.a-1.)*self.random.rand()+1)**2./self.a
+                rint = self.random.randint(self.nwalkers-1)
                 if rint >= i:
                     rint += 1
-                new_p = old_p[rint]+z*(old_p[i]-old_p[rint])
+                new_pos = position[rint]+z*(position[i]-position[rint])
                 accept = False
-                # if np.all(new_p > bounds[:,0]) and np.all(new_p < bounds[:,1]):
-                new_prob = logpost(new_p,*args)
-                diff = (npars-1.)*np.log(z)+new_prob-old_prob[i]
-            
+                new_prob = self.lnposteriorfn(new_pos,*(self.postargs))
+                diff = (self.npars-1.)*np.log(z)+new_prob-lnprob[i]
+                
                 if diff > 0:
                     accept = True
                 else:
-                    rn = np.random.rand()
+                    rn = self.random.rand()
                     if rn < np.exp(diff):
                         accept = True
                 
                 if accept:
-                    old_prob[i] = new_prob
-                    old_p[i] = new_p
-                    nacc += 1
-                
-                if outfile != None:
-                    f = open(outfile,'a')
-                    for j in range(npars):
-                        f.write('%10.8e\t'%(old_p[i][j]))
-                    f.write('%10.8e\n'%old_prob[i])
-                    f.close()
-                
-                if it*W > burnin:
-                    chain.append(old_p[i])
-                    posterior.append(old_prob[i])
-        
-        acceptfrac = float(nacc)/N/W
-        
-        if acceptfrac > 0.1:
-            print '''Ensemble sampling completed successfully:
-    Acceptance fraction: %.3f
-'''%(acceptfrac)
-        else:
-            print 'Warning: acceptance fraction < 10\%'
-        
-        return np.array(chain),np.array(posterior),acceptfrac
+                    lnprob[i] = new_prob
+                    position[i] = new_pos
+                    self.naccepted[i] += 1
+            
+            self.chain = np.dstack((self.chain, position))
+            self.probability = np.concatenate((self.probability.T, [lnprob]),axis=0).T
+            self.iterations += 1
+            yield position,self.random.get_state()
+    
+    def acceptance_fraction(self):
+        return self.naccepted/self.iterations
+    
 
     
