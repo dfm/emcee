@@ -42,15 +42,12 @@ tested on Python 2.6.5.
 
 ##USAGE
 
-The sample script "test.py" shows an example of a high dimensional
+The sample script `test.py` shows an example of a high dimensional
 Gaussian PDF.
 
 The main function call is:
 
-```python
-samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
-                              proposal=None,N=1000,seed=None,outfile=None)
-```
+`samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,proposal=None,N=1000,seed=None,outfile=None)`
 
 Inputs:
 
@@ -98,4 +95,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with MarkovPy.  If not, see [[http://www.gnu.org/licenses/]].
+along with MarkovPy.  If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/licenses/).
