@@ -42,45 +42,7 @@ tested on Python 2.6.5.
 
 ##USAGE
 
-The sample script `test.py` shows an example of a high dimensional
-Gaussian PDF.
-
-The main function call is:
-
-`samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,proposal=None,N=1000,seed=None,outfile=None)`
-
-Inputs:
-
-logpost     -   a function logpost(params, *args) that returns the relative
-                log-posterior for parameters "params".
-
-p0          -   a (M,2) array which provides an initial guess of the bounds
-                of the parameter space. NOTE: these bounds are not enforced
-                beyond this initial guess. If you would like a hard prior
-                on your parameter space, you must include it in your logpost
-                function.
-                
-                or a (M,K) array providing the initial state of the
-                ensemble --- preferably sampled from your prior distribution
-
-sampler     -   a markovpy.mcsampler object that performs the sampling.
-                The default sampler provided in 
-                markovpy.ensemble.EnsembleSampler(K)
-                is based on Goodman & Weare (2009) with K walkers.
-
-seed        -   a seed value for numpy.random.  If you provide nothing,
-                the sampler assumes that you have seeded the random
-                number generator yourself.
-                
-outfile     -   a filename into which the tab-delimited Markov chain
-                results can be written.  This file will be overwritten
-                if it already exists.
-
-Outputs:
-
-samples     -   (N,M) array of samples from the posterior PDF
-
-frac        -   the acceptance fraction of the chain
+See the [wiki](http://github.com/dfm/MarkovPy/wiki) for information tutorials, documentation and sample code.
 
 
 ##LICENSE
