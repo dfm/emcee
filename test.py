@@ -34,7 +34,7 @@ import markovpy as mcmc
 
 # define the true variance tensor
 np.random.seed()
-dim     = 10
+dim     = 16
 vtensor = np.zeros([dim,dim])
 
 # the variance tensor is the sum of outer-products of random vectors
@@ -55,42 +55,39 @@ vtensor_inv = np.linalg.inv(vtensor)
 
 def main():
     """Run a Markov chain Monte Carlo to fit a high-dimensional pdf"""
+    pl.figure(figsize=(10.,10.))
     
     # fit the data -- sigma sampled in log
     np.random.seed()
     p0 = []
-    for i in range(dim):
-        p0.append([-2.,2.])
-        
-    samps,post,frac = mcmc.mcfit(logpost,p0,burnin=5000,N=3000,outfile='test.mcmc')
+    for k in range(100):
+        tmp = []
+        for i in range(dim):
+            tmp.append(2*np.random.rand()-1)
+        p0.append(tmp)
     
-    # pl.figure()
-    # pl.plot(post)
-    
-    vtens_est = np.cov(samps.T)
-    # print np.sum(vtens_est-vtensor)
+    samps,post,frac = mcmc.mcfit(logpost,p0,N=1000,burnin=400)
     
     for i in range(dim):
-        pl.figure().add_subplot(111)
+        pl.subplot(4,4,i+1)
+        var = vtensor[i,i]
         
-        # x = np.dot(samps,evecs[:,i])
-        # pl.hist(x,100,normed=True,histtype="step",color="g")
+        x = samps[:,i,:].flatten()
+        x = x[x < 3*np.sqrt(var)]
+        x = x[x > -3*np.sqrt(var)]
+        pl.hist(x,50,normed=True,histtype="step",color="k")
         
-        x = samps
-        x = x[x < 3.*np.sqrt(evals[i])]
-        x = x[x > -3.*np.sqrt(evals[i])]
-        pl.hist(x,100,normed=True,histtype="step",color="k")
+        xs = np.linspace(min(x),max(x),500)
+        pl.plot(xs,np.exp(-xs**2/2/var)/np.sqrt(2*np.pi*var),'-g')
+        pl.plot(xs,np.exp(-(xs-np.mean(x))**2/2/np.var(x))/np.sqrt(2*np.pi*np.var(x)),'--r')
         
-        xs = np.linspace(-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i]),500)
-        pl.plot(xs,np.exp(-xs**2/evals[i]/2)/np.sqrt(2*np.pi*evals[i]))
-        
-        pl.xlim([-3.*np.sqrt(evals[i]),3.*np.sqrt(evals[i])])
-        
+        pl.xlim([-3*np.sqrt(var),3*np.sqrt(var)])
+        pl.gca().set_yticklabels([])
     
     pl.show()
 
 def logpost(p):
-    return -np.dot(p,np.dot(vtensor_inv,p))/2 # - np.log(vtensor_det)
+    return -np.dot(p,np.dot(vtensor_inv,p))/2
 
 if __name__ == '__main__':
     main()

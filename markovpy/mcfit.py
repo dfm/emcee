@@ -30,33 +30,41 @@ import sys
 
 import numpy as np
 
-from mcsampler import *
 from ensemble import EnsembleSampler
 
-class MCError(Exception):
-    def __init__(self,value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+# class AcceptanceWarning(Warning):
+#     pass
 
-def mcfit(logpost,bounds,args=(),sampler=None,proposal=None,N=10000,burnin=1000,seed=None,outfile=None):
+def mcfit(lnposteriorfn,p0,args=(),sampler=None,N=1000,burnin=0,outfile=None):
     """
     Fit args using MCMC and return samples from the PDF.
     """
     
-    if sampler == None:
-        # sampler = MCSampler()
-        sampler = EnsembleSampler(100)
+    p0 = np.array(p0)
     
-    try:
-        bounds = np.array(bounds)
-        
-        # if np.shape(bounds)[1] != 2:
-        #     raise MCError("provide bounds on the parameter space")
-        if proposal == None:
-            proposal = (bounds[:,1]-bounds[:,0])/10.
-        
-        return sampler.sample_pdf(logpost,bounds,proposal,N,burnin,args,outfile=outfile,seed=None)
-    except (MCError,ProposalErr): # as e:
-        print "MCMC exception raised with message: "+e.value
+    if sampler == None:
+        sampler = EnsembleSampler(np.shape(p0)[0],np.shape(p0)[1],lnposteriorfn,postargs=args,outfile=outfile)
+    
+    pos = p0
+    state = None
+    
+    if burnin > 0:
+        print "Running: first burn-in pass"
+        pos,prob,state = sampler.run_mcmc(pos,state,burnin/2)
+        pos,prob,state = sampler.clustering(pos,prob,state)
+        print "Running: second burn-in pass"
+        pos,prob,state = sampler.run_mcmc(pos,state,burnin/2)
+        pos,prob,state = sampler.clustering(pos,prob,state)
+    
+    print "Running: final Markov chain (%d links)"%(N)
+    sampler = EnsembleSampler(np.shape(p0)[0],np.shape(p0)[1],lnposteriorfn,postargs=args,outfile=outfile)
+    sampler.run_mcmc(pos,state,N)
+    
+    frac = np.mean(sampler.acceptance_fraction())
+    if frac < 0.1:
+        print "Warning: acceptance fraction < 10%"
+    else:
+        print "Acceptance fraction: %.3f"%frac
+    
+    return sampler.chain,sampler.probability,frac
 

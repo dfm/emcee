@@ -13,7 +13,7 @@ import markovpy
 
 def main():
     f = lambda x: -np.sum((x)**2)/2
-    sampler = markovpy.ensemble.EnsembleSampler(10,15,f)
+    sampler = markovpy.ensemble.EnsembleSampler(15,10,f,outfile='iter.mcmc')
     
     pos = np.random.randn(15*10).reshape([15,10])
     
