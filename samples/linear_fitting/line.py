@@ -28,10 +28,7 @@
 
 
 import numpy as np
-import scipy.interpolate as inter
-
 import pylab as pl
-
 import markovpy as mp
 
 # data from Hogg et al.: http://arxiv.org/abs/1008.4686

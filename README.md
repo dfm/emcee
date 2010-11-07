@@ -36,7 +36,7 @@ Python path.
 
 ##DEPENDENCIES
 
-This package requires [[NumPy|http://numpy.scipy.org/]] and it has been
+This package requires [NumPy](http://numpy.scipy.org/) and it has been
 tested on Python 2.6.5.
 
 
@@ -47,7 +47,7 @@ Gaussian PDF.
 
 The main function call is:
 
-```
+```python
 samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
                               proposal=None,N=1000,seed=None,outfile=None)
 ```
