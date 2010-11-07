@@ -47,8 +47,10 @@ Gaussian PDF.
 
 The main function call is:
 
-`samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
-                              proposal=None,N=1000,seed=None,outfile=None)`
+```
+samples,frac = markovpy.mcfit(logpost,p0,args=None,sampler=None,
+                              proposal=None,N=1000,seed=None,outfile=None)
+```
 
 Inputs:
 
