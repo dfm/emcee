@@ -28,7 +28,7 @@ PyMC or any other platforms but such ports would (of course) be welcomed.
 
 Navigate to this directory and run
 
-`% ./setup.py install`
+`% python setup.py install`
 
 on the command line to install a module called markovpy in the default
 Python path.

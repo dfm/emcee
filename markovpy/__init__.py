@@ -5,10 +5,10 @@
 #  Created by Dan F-M on 2010-08-10.
 # 
 
-from mcfit import *
-from mcsampler import *
-from ensemble import *
-from plotting import *
+import mcfit
+import mcsampler
+import ensemble
+import plotting
 
 VERSION = (1, 0, 0, 'alpha', 0)
 
@@ -22,3 +22,4 @@ def get_version():
         if VERSION[3] != 'final':
             version = '%s %s %s' % (version, VERSION[3], VERSION[4])
     return version
+

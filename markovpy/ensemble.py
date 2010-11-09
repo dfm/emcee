@@ -2,9 +2,9 @@
 # encoding: utf-8
 
 """
- mcsampler.py
- markovpy
- 
+ ensemble.py
+ ensemble
+
  Created by Dan F-M on 2010-10-18.
 
  This is a Markov chain Monte Carlo (MCMC) sampler based on:

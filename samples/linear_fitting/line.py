@@ -79,6 +79,8 @@ p0 = (np.array([10,500,0.5,200,-6])[np.newaxis,:])*np.random.rand(nwalkers*5).re
 # run a Markov chain on our data
 samps,post,frac = mp.mcfit(lnpost,p0,args=([data]),N=2000,burnin=200)
 
+#pl.plot(mp.autocorrelation(samps))
+
 # plot the data
 pl.figure()
 pl.errorbar(data[:,0],data[:,1],yerr=data[:,2],fmt='.k')
@@ -110,3 +112,6 @@ pl.gca().set_yticklabels([])
 pl.xlabel(r'$P_b$',fontsize=16.)
 
 pl.savefig('pb.svg')
+
+pl.show()
+
