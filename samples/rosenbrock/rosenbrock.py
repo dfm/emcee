@@ -28,6 +28,7 @@ import numpy as np
 import pylab as pl
 
 import markovpy as mp
+import markovpy.diagnostics
 
 def lnposterior(p):
     return -(100*(p[1]-p[0]*p[0])**2+(1-p[0])**2)/20.0
@@ -41,8 +42,10 @@ for xx1 in x1:
         tmp.append(np.exp(lnposterior([xx1,xx2])))
     z.append(tmp)
 z = np.array(z)
-pl.contour(x1,x2,z.T)
+pl.contour(x1,x2,z.T,colors='k')
 ax = pl.gca()
+
+pl.savefig('analytic.svg')
 
 pl.figure()
 
@@ -64,15 +67,27 @@ sampler2 = mp.ensemble.EnsembleSampler(nwalkers,2,lnposterior)
 
 for position2,prob2,state2 in sampler.sample(pos0,None,state0,iterations=500):
     pass
-for position2,prob2,state2 in sampler2.sample(position2,prob2,state2,iterations=10000):
+for position2,prob2,state2 in sampler2.sample(position2,prob2,state2,iterations=5000):
     pass
 
 print np.mean(sampler2.acceptance_fraction())
 # print np.sum(np.fabs(sampler.chain-sampler2.chain))
 
-mp.plotting.plot2d(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=100)
+mp.plotting.plot2d(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=200)
 pl.xlim(ax.get_xlim())
 pl.ylim(ax.get_ylim())
+
+pl.savefig('rosenbrock_samples.svg')
+
+pl.figure()
+time = mp.diagnostics.autocorrelation(sampler2.chain)
+for k in range(nwalkers):
+    pl.plot(time[k,0,:])
+
+pl.figure()
+for k in range(nwalkers):
+    pl.plot(time[k,1,:])
+
 
 pl.show()
 

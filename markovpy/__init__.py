@@ -8,7 +8,6 @@
 from mcfit import *
 import mcsampler
 import ensemble
-import plotting
 
 VERSION = (1, 0, 0, 'alpha', 0)
 
