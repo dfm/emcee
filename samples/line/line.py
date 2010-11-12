@@ -63,11 +63,19 @@ def lnpost(p,data):
     model parameters and outlier rejection.
     """
     pb,yb,vb = p[2],p[3],np.exp(p[4])
+    
+    # prior 0 <= P_b <= 1
     if pb < 0 or pb > 1:
         return -np.inf
-    like = (1-pb)*np.exp(-(data[:,1]-line(data[:,0],p))**2/data[:,2]**2/2)
-    varb = vb+data[:,2]**2
-    like += pb/np.sqrt(2*np.pi*varb)*np.exp(-(data[:,1]-yb)**2/2/varb)
+    
+    # Gaussian uncertainties in y
+    var1 = 2 * data[:,2]**2
+    like = (1-pb) * np.exp(-(data[:,1]-line(data[:,0],p))**2/var) / np.sqrt(var*np.pi)
+    
+    # prune outliers
+    varb = 2 * (vb+data[:,2]**2)
+    like += pb * np.exp(-(data[:,1]-yb)**2/varb) / np.sqrt(np.pi*varb)
+    
     return np.sum(np.log(like))
 
 # start with a really bad guess
@@ -77,6 +85,7 @@ p0 = (np.array([10,500,0.5,200,-6])[np.newaxis,:])*np.random.rand(nwalkers*5).re
 
 # run a Markov chain on our data
 samps,post,frac = mp.mcfit(lnpost,p0,args=([data]),N=2000,burnin=200)
+
 
 #pl.plot(mp.autocorrelation(samps))
 
@@ -98,7 +107,10 @@ pl.savefig('data_fit.svg')
 
 # plot slope and intersect contours
 pl.figure()
-mp.plot2d(m,b)
+
+# see https://github.com/dfm/Python-Codebase/wiki/Plotting
+import dfm.plotting
+dfm.plotting.contour(m,b)
 pl.xlabel(r'$m$',fontsize=16.)
 pl.ylabel(r'$b$',fontsize=16.)
 

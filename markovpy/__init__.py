@@ -6,8 +6,9 @@
 # 
 
 from mcfit import *
-import mcsampler
-import ensemble
+from mcsampler import *
+from ensemble import *
+import diagnostics
 
 VERSION = (1, 0, 0, 'alpha', 0)
 

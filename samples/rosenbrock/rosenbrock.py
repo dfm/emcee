@@ -28,7 +28,6 @@ import numpy as np
 import pylab as pl
 
 import markovpy as mp
-import markovpy.diagnostics
 
 def lnposterior(p):
     return -(100*(p[1]-p[0]*p[0])**2+(1-p[0])**2)/20.0
@@ -59,8 +58,8 @@ pos0=np.array(pos0)
 
 state0 = np.random.get_state()
 
-sampler = mp.ensemble.EnsembleSampler(nwalkers,2,lnposterior)
-sampler2 = mp.ensemble.EnsembleSampler(nwalkers,2,lnposterior)
+sampler = mp.EnsembleSampler(nwalkers,2,lnposterior)
+sampler2 = mp.EnsembleSampler(nwalkers,2,lnposterior)
 
 # for position,prob,state in sampler.sample(pos0,None,state0,iterations=2000):
 #     pass
@@ -73,7 +72,9 @@ for position2,prob2,state2 in sampler2.sample(position2,prob2,state2,iterations=
 print np.mean(sampler2.acceptance_fraction())
 # print np.sum(np.fabs(sampler.chain-sampler2.chain))
 
-mp.plotting.plot2d(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=200)
+# see https://github.com/dfm/Python-Codebase/wiki/Plotting
+import dfm.plotting
+dfm.plotting.contour(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=200)
 pl.xlim(ax.get_xlim())
 pl.ylim(ax.get_ylim())
 

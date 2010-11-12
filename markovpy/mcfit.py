@@ -52,6 +52,8 @@ def mcfit(lnposteriorfn,p0,args=(),sampler=None,N=1000,burnin=0,outfile=None):
         print "Running: second burn-in pass"
         pos,prob,state = sampler.run_mcmc(pos,state,burnin/2)
         pos,prob,state = sampler.clustering(pos,prob,state)
+        
+        sampler.clear_chain()
     
     print "Running: final Markov chain (%d links)"%(N)
     sampler = EnsembleSampler(np.shape(p0)[0],np.shape(p0)[1],lnposteriorfn,postargs=args,outfile=outfile)

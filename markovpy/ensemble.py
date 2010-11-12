@@ -50,15 +50,18 @@ class EnsembleSampler(MCSampler):
         self.nwalkers       = nwalkers
         self.a              = a
         
-        # chain
-        self.chain          = np.empty([nwalkers,npars,0],dtype=float)
-        self.probability    = np.empty([nwalkers,0])
-        self.position       = None
-        self.iterations     = 0
-        self.naccepted      = np.zeros(nwalkers)
-        
         # optional output file
         self.outfile        = outfile
+        
+        self.clear_chain()
+    
+    def clear_chain(self):
+        # chain
+        self.chain          = np.empty([self.nwalkers,self.npars,0],dtype=float)
+        self.probability    = np.empty([self.nwalkers,0])
+        self.iterations     = 0
+        self.naccepted      = np.zeros(self.nwalkers)
+        
     
     def run_mcmc(self,position,randomstate,iterations):
         for pos,prob,state in self.sample(position,None,randomstate,iterations=iterations):
