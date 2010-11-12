@@ -3,7 +3,6 @@
 
 """
  ensemble.py
- ensemble
 
  Created by Dan F-M on 2010-10-18.
 
@@ -45,7 +44,8 @@ class EnsembleSampler(MCSampler):
         self.postargs       = postargs
         
         # the ensemble sampler parameters
-        assert nwalkers > npars, "You need more walkers than the dimension of the space (%d)."%(npars)
+        assert (nwalkers > npars,
+                "You need more walkers than the dimension of the space (%d)."%(npars))
         self.npars          = npars
         self.nwalkers       = nwalkers
         self.a              = a
@@ -66,10 +66,14 @@ class EnsembleSampler(MCSampler):
         
         return pos,prob,state
     
-    def sample(self,position,lnprob,randomstate,*args,**kwargs):
+    def sample(self,position0,lnprob,randomstate,*args,**kwargs):
+        # copy the original position so that it doesn't get over-written
+        position = np.array(position0)
+        
         # calculate the current probability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs)) for i in range(self.nwalkers)])
+            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs))
+                               for i in range(self.nwalkers)])
         
         # set the current state of our random number generator
         try:
@@ -139,7 +143,8 @@ class EnsembleSampler(MCSampler):
         """Clustering algorithm (REFERENCE) to avoid getting trapped"""
         # sort the walkers based on probability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs)) for i in range(self.nwalkers)])
+            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs))
+                               for i in range(self.nwalkers)])
         inds = np.argsort(lnprob)[::-1]
         
         for i,ind in enumerate(inds):
@@ -175,4 +180,4 @@ class EnsembleSampler(MCSampler):
         
         return position, lnprob, self.random.get_state()
 
-    
+

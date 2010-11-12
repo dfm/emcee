@@ -32,9 +32,6 @@ import numpy as np
 
 from ensemble import EnsembleSampler
 
-# class AcceptanceWarning(Warning):
-#     pass
-
 def mcfit(lnposteriorfn,p0,args=(),sampler=None,N=1000,burnin=0,outfile=None):
     """
     Fit args using MCMC and return samples from the PDF.

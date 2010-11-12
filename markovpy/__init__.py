@@ -5,7 +5,7 @@
 #  Created by Dan F-M on 2010-08-10.
 # 
 
-import mcfit
+from mcfit import *
 import mcsampler
 import ensemble
 import plotting

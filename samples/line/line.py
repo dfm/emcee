@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
- runmc.py
- markovpy
+ line.py
  
  Created by Dan F-M on 2010-08-10.
 
