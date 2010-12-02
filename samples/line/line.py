@@ -70,10 +70,10 @@ def lnpost(p,data):
     
     # Gaussian uncertainties in y
     var1 = 2 * data[:,2]**2
-    like = (1-pb) * np.exp(-(data[:,1]-line(data[:,0],p))**2/var) / np.sqrt(var*np.pi)
+    like = (1-pb) * np.exp(-(data[:,1]-line(data[:,0],p))**2/var1) / np.sqrt(var1*np.pi)
     
     # prune outliers
-    varb = 2 * (vb+data[:,2]**2)
+    varb = 2*vb + var1
     like += pb * np.exp(-(data[:,1]-yb)**2/varb) / np.sqrt(np.pi*varb)
     
     return np.sum(np.log(like))

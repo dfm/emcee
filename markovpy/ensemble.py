@@ -31,40 +31,43 @@
 """
 
 import numpy as np
+
 from mcsampler import MCSampler
 
 class EnsembleSampler(MCSampler):
     """Ensemble sampling following Goodman & Weare (2009)"""
-    def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),a=2.,outfile=None):
+    def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),a=2.,
+                 outfile=None):
         # Initialize a random number generator that we own
-        self.random         = np.random.mtrand.RandomState()
+        self.random = np.random.mtrand.RandomState()
         
         # a function that returns the posterior pdf of interest
-        self.lnposteriorfn  = lnposteriorfn
-        self.postargs       = postargs
+        self.lnposteriorfn = lnposteriorfn
+        self.postargs      = postargs
         
         # the ensemble sampler parameters
-        assert (nwalkers > npars,
-                "You need more walkers than the dimension of the space (%d)."%(npars))
-        self.npars          = npars
-        self.nwalkers       = nwalkers
-        self.a              = a
+        assert nwalkers > npars, \
+            "You need more walkers than dim = %d"%(npars)
+        self.npars    = npars
+        self.nwalkers = nwalkers
+        self.a        = a
         
         # optional output file
-        self.outfile        = outfile
+        self.outfile = outfile
         
         self.clear_chain()
     
     def clear_chain(self):
         # chain
-        self.chain          = np.empty([self.nwalkers,self.npars,0],dtype=float)
-        self.probability    = np.empty([self.nwalkers,0])
-        self.iterations     = 0
-        self.naccepted      = np.zeros(self.nwalkers)
+        self.chain       = np.empty([self.nwalkers,self.npars,0],dtype=float)
+        self.probability = np.empty([self.nwalkers,0])
+        self.iterations  = 0
+        self.naccepted   = np.zeros(self.nwalkers)
         
     
     def run_mcmc(self,position,randomstate,iterations):
-        for pos,prob,state in self.sample(position,None,randomstate,iterations=iterations):
+        for pos,prob,state in self.sample(position,None,randomstate,
+                                          iterations=iterations):
             pass
         
         return pos,prob,state
@@ -75,7 +78,8 @@ class EnsembleSampler(MCSampler):
         
         # calculate the current probability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs))
+            lnprob = np.array([self.lnposteriorfn(position[i],
+                                                  *(self.postargs))
                                for i in range(self.nwalkers)])
         
         # set the current state of our random number generator
@@ -121,9 +125,11 @@ class EnsembleSampler(MCSampler):
                     position[i] = new_pos
                     self.naccepted[i] += 1
             
-            # append current position and probability (of all walkers) to the chain
+            # append current position and probability (of all walkers)
+            # to the chain
             self.chain = np.dstack((self.chain, position))
-            self.probability = np.concatenate((self.probability.T, [lnprob]),axis=0).T
+            self.probability = np.concatenate((self.probability.T,
+                                               [lnprob]),axis=0).T
             
             # write the current position to disk
             self.write_step(position)
@@ -146,7 +152,8 @@ class EnsembleSampler(MCSampler):
         """Clustering algorithm (REFERENCE) to avoid getting trapped"""
         # sort the walkers based on probability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],*(self.postargs))
+            lnprob = np.array([self.lnposteriorfn(position[i],
+                                                  *(self.postargs))
                                for i in range(self.nwalkers)])
         inds = np.argsort(lnprob)[::-1]
         
