@@ -49,7 +49,6 @@ def mcfit(lnposteriorfn,p0,args=(),sampler=None,N=1000,burnin=0,outfile=None):
         burnin=0
         outfile=None
     
-    s
     """
     
     p0 = np.array(p0)
