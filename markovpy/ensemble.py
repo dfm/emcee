@@ -51,6 +51,10 @@ class EnsembleSampler(MCSampler):
         self.npars    = npars
         self.nwalkers = nwalkers
         self.a        = a
+        self.neff     = npars
+        
+        self.fixedinds = []
+        self.fixedvals = []
         
         # optional output file
         self.outfile = outfile
@@ -95,8 +99,8 @@ class EnsembleSampler(MCSampler):
             iterations = 1
         
         # sample chain as an iterator
-        for k in range(iterations):
-            for i in range(self.nwalkers):
+        for k in xrange(iterations):
+            for i in xrange(self.nwalkers):
                 z = ((self.a-1.)*self.random.rand()+1)**2./self.a
                 rint = self.random.randint(self.nwalkers-1)
                 if rint >= i:
@@ -104,12 +108,13 @@ class EnsembleSampler(MCSampler):
                 
                 # propose new walker position and calculate the probability
                 new_pos = position[rint]+z*(position[i]-position[rint])
+                new_pos[self.fixedinds] = self.fixedvals
                 new_prob = self.lnposteriorfn(new_pos,*(self.postargs))
                 
                 accepted = False
                 if new_prob > -np.inf:
                     # acceptance probability
-                    diff = (self.npars-1.)*np.log(z)+new_prob-lnprob[i]
+                    diff = (self.neff-1.)*np.log(z)+new_prob-lnprob[i]
                     
                     # do we accept it?
                     if diff > 0:
@@ -147,6 +152,13 @@ class EnsembleSampler(MCSampler):
     
     def acceptance_fraction(self):
         return self.naccepted/self.iterations
+    
+    def fix_parameters(self, inds, vals):
+        assert (len(inds) == len(vals)), "len(inds) must equal len(vals)"
+        
+        self.fixedinds = np.array(inds)
+        self.fixedvals = np.array(vals)
+        self.neff = self.npars - len(inds)
     
     def clustering(self,position,lnprob,randomstate):
         """Clustering algorithm (REFERENCE) to avoid getting trapped"""
