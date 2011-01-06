@@ -30,6 +30,7 @@
 
 """
 
+import os
 import numpy as np
 
 from mcsampler import MCSampler
@@ -37,7 +38,7 @@ from mcsampler import MCSampler
 class EnsembleSampler(MCSampler):
     """Ensemble sampling following Goodman & Weare (2009)"""
     def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),a=2.,
-                 outfile=None):
+                 outfile=None,clobber=True):
         # Initialize a random number generator that we own
         self.random = np.random.mtrand.RandomState()
         
@@ -58,6 +59,9 @@ class EnsembleSampler(MCSampler):
         
         # optional output file
         self.outfile = outfile
+        if outfile != None and clobber:
+            if os.path.exists(outfile):
+                os.remove(outfile)
         
         self.clear_chain()
     
