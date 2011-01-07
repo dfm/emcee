@@ -86,8 +86,8 @@ class EnsembleSampler(MCSampler):
         
         # calculate the current probability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],
-                                                  *(self.postargs))
+            lnprob = np.array([float(self.lnposteriorfn(position[i],
+                                                  *(self.postargs)))
                                for i in range(self.nwalkers)])
         
         # set the current state of our random number generator
