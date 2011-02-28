@@ -73,22 +73,24 @@ print np.mean(sampler2.acceptance_fraction())
 # print np.sum(np.fabs(sampler.chain-sampler2.chain))
 
 # see https://github.com/dfm/Python-Codebase/wiki/Plotting
-import dfm.plotting
-dfm.plotting.contour(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=200)
-pl.xlim(ax.get_xlim())
-pl.ylim(ax.get_ylim())
+try:
+    import dfm.plotting
+    dfm.plotting.contour(sampler2.chain[:,0,:].flatten(),sampler2.chain[:,1,:].flatten(),bins=200)
+    pl.xlim(ax.get_xlim())
+    pl.ylim(ax.get_ylim())
 
-pl.savefig('rosenbrock_samples.svg')
+    pl.savefig('rosenbrock_samples.png')
 
-pl.figure()
-time = mp.diagnostics.autocorrelation(sampler2.chain)
-for k in range(nwalkers):
-    pl.plot(time[k,0,:])
+    pl.figure()
+    time = mp.diagnostics.autocorrelation(sampler2.chain)
+    for k in range(nwalkers):
+        pl.plot(time[k,0,:])
 
-pl.figure()
-for k in range(nwalkers):
-    pl.plot(time[k,1,:])
+    pl.figure()
+    for k in range(nwalkers):
+        pl.plot(time[k,1,:])
 
 
-pl.show()
-
+    pl.show()
+except:
+    print 'Take a look at https://github.com/dfm/Python-Codebase/wiki/Plotting'

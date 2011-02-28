@@ -103,26 +103,28 @@ pl.plot(xs,line(xs,[np.mean(m),np.mean(b)]),'k',lw=2.0)
 pl.xlabel(r'$x$',fontsize=16.)
 pl.ylabel(r'$y$',fontsize=16.)
 
-pl.savefig('data_fit.svg')
-
-# plot slope and intersect contours
-pl.figure()
+pl.savefig('data_fit.png')
 
 # see https://github.com/dfm/Python-Codebase/wiki/Plotting
-import dfm.plotting
-dfm.plotting.contour(m,b)
-pl.xlabel(r'$m$',fontsize=16.)
-pl.ylabel(r'$b$',fontsize=16.)
+try:
+    # plot slope and intersect contours
+    pl.figure()
+    
+    import dfm.plotting
+    dfm.plotting.contour(m,b)
+    pl.xlabel(r'$m$',fontsize=16.)
+    pl.ylabel(r'$b$',fontsize=16.)
 
-pl.savefig('m_b.svg')
+    pl.savefig('m_b.png')
 
-# plot the marginalized posterior of the outlier fraction
-pl.figure()
-pl.hist(samps[:,2,:].flatten(),100,histtype='step',color='k',lw=2.,normed=True)
-pl.gca().set_yticklabels([])
-pl.xlabel(r'$P_b$',fontsize=16.)
+    # plot the marginalized posterior of the outlier fraction
+    pl.figure()
+    pl.hist(samps[:,2,:].flatten(),100,histtype='step',color='k',lw=2.,normed=True)
+    pl.gca().set_yticklabels([])
+    pl.xlabel(r'$P_b$',fontsize=16.)
 
-pl.savefig('pb.svg')
+    pl.savefig('pb.png')
 
-pl.show()
-
+    pl.show()
+except:
+    print 'Check out https://github.com/dfm/Python-Codebase/wiki/Plotting for more plotting options'
