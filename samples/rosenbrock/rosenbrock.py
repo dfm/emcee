@@ -44,7 +44,7 @@ z = np.array(z)
 pl.contour(x1,x2,z.T,colors='k')
 ax = pl.gca()
 
-pl.savefig('analytic.svg')
+pl.savefig('analytic.png')
 
 pl.figure()
 
@@ -66,7 +66,7 @@ sampler2 = mp.EnsembleSampler(nwalkers,2,lnposterior)
 
 for position2,prob2,state2 in sampler.sample(pos0,None,state0,iterations=500):
     pass
-for position2,prob2,state2 in sampler2.sample(position2,prob2,state2,iterations=5000):
+for position2,prob2,state2 in sampler2.sample(position2,prob2,state2,iterations=2000):
     pass
 
 print np.mean(sampler2.acceptance_fraction())
