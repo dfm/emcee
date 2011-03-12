@@ -57,7 +57,7 @@ class EnsembleSampler(MCSampler):
         self.fixedinds = []
         self.fixedvals = []
         
-        # optional output file
+        # optional output file, wipe it if it's already there
         self.outfile = outfile
         if outfile != None and clobber:
             if os.path.exists(outfile):
@@ -66,7 +66,15 @@ class EnsembleSampler(MCSampler):
         self.clear_chain()
     
     def clear_chain(self):
-        # chain
+        """
+        Empty/initialize the Markov chain place holders
+        
+        The shape of self.chain is [K,M,N] where
+            - K is the number of walkers,
+            - M is the number of parameters and
+            - N is the number of steps taken
+        """
+        
         self.chain       = np.empty([self.nwalkers,self.npars,0],dtype=float)
         self.probability = np.empty([self.nwalkers,0])
         self.iterations  = 0
@@ -74,6 +82,29 @@ class EnsembleSampler(MCSampler):
         
     
     def run_mcmc(self,position,randomstate,iterations):
+        """
+        Run a given number of MCMC steps
+        
+        Inputs:
+            * "position" is an array with shape [K,M] where
+                - K is the number of walkers and
+                - M is the number of parameters
+            * "randomstate" is the state of an instance of a
+                NumPy random number generator.  You can access
+                it with:
+            
+                    numpy.random.mtrand.RandomState().get_state()
+            * "iterations" is the number of steps to perform
+        
+        Outputs:
+            This function returns a tuple including the current
+            position vector in parameter space, the vector of
+            probabilities for each walker and the random number
+            generator state.  The position and state values can
+            then be fed right back into this function to take
+            more steps.
+        
+        """
         for pos,prob,state in self.sample(position,None,randomstate,
                                           iterations=iterations):
             pass
@@ -81,6 +112,8 @@ class EnsembleSampler(MCSampler):
         return pos,prob,state
     
     def sample(self,position0,lnprob,randomstate,*args,**kwargs):
+        """We do the heavy lifting here"""
+        
         # copy the original position so that it doesn't get over-written
         position = np.array(position0)
         
@@ -146,6 +179,12 @@ class EnsembleSampler(MCSampler):
             yield position, lnprob, self.random.get_state()
     
     def write_step(self,position):
+        """
+        Write the current position vector to an ASCII file...
+        
+        dumb dumb dumb...
+        
+        """
         if self.outfile != None:
             f = open(self.outfile,'a')
             for k in range(self.nwalkers):
