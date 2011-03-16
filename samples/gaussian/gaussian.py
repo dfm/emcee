@@ -26,7 +26,7 @@ means            = 10.0*np.random.rand(ndim)
 variances        = np.random.rand(ndim)
 inv_var          = np.diagflat(1.0/variances)
 
-sampler = markovpy.EnsembleSampler(nwalkers,ndim,lnprob,postargs=(means,inv_var))
+sampler = markovpy.EnsembleSampler(nwalkers,ndim,lnprob,postargs=(means,inv_var),outfile='test.hdf5',outtype='hdf5')
 # burn-in
 pos,prob,state = sampler.run_mcmc(initial_position, None, 500)
 # final chain

@@ -33,10 +33,30 @@
 import os
 import numpy as np
 
+# output file
+# allowed file types:
+#  ascii, hdf5
+
+try:
+    import h5py
+    
+    # names of hdf5 datasets
+    MPHDF5Chain      = 'hdf5_chain'
+    MPHDF5RState     = 'hdf5_rstate'
+    MPHDF5NPars      = 'hdf5_npars'
+    MPHDF5NWalkers   = 'hdf5_nwalkers'
+    MPHDF5AParam     = 'hdf5_a'
+    MPHDF5PostArgs   = 'hdf5_postargs'
+    MPHDF5NAccept    = 'hdf5_naccept'
+    MPHDF5Iterations = 'hdf5_iterations'
+    
+except:
+    h5py = None
+
 class EnsembleSampler:
     """Ensemble sampling following Goodman & Weare (2009)"""
     def __init__(self,nwalkers,npars,lnposteriorfn,manylnposteriorfn=None,
-                 postargs=(),a=2.,outfile=None,clobber=True):
+                 postargs=(),a=2.,outfile=None,clobber=True,outtype='ascii'):
         # Initialize a random number generator that we own
         self.random = np.random.mtrand.RandomState()
         
@@ -59,21 +79,11 @@ class EnsembleSampler:
         self.fixedvals = []
         
         # optional output file, wipe it if it's already there
+        self.outtype = outtype.lower()
         self.outfile = outfile
-        if outfile != None and clobber:
-            if os.path.exists(outfile):
-                os.remove(outfile)
+        self.clobber = clobber
         
         self.clear_chain()
-
-    def ensemble_lnposterior(self, pos):
-        """
-        Returns a vector of ln-posterior values for each walker in the ensemble
-        """
-        if self.manylnposteriorfn is not None:
-            return self.manylnposteriorfn(pos, self.postargs)
-        return np.array([self.lnposteriorfn(pos[i], self.postargs)
-                         for i in range(self.nwalkers)])
     
     def clear_chain(self):
         """
@@ -90,6 +100,47 @@ class EnsembleSampler:
         self.iterations    = 0
         self.naccepted     = np.zeros(self.nwalkers)
         
+        if self.outfile is not None and self.clobber:
+            if os.path.exists(self.outfile):
+                os.remove(self.outfile)
+            if self.outtype == 'hdf5' and h5py is not None:
+                f = h5py.File(self.outfile, 'w')
+                f.create_dataset(MPHDF5Chain, [self.nwalkers,self.npars,1],
+                    self.chain.dtype, maxshape=[self.nwalkers,self.npars,None])
+                f.create_group(MPHDF5RState)
+                for i,r0 in enumerate(self.random.get_state()):
+                    f[MPHDF5RState]['%d'%i] = r0
+                
+                # this is how we'll read the random state back in... todo
+                #
+                # for r in f['hdf5_rstate']:
+                #     print f['hdf5_rstate'][r][...]
+                #
+                
+                f.create_group(MPHDF5PostArgs)
+                if type(self.postargs) is np.ndarray:
+                    f[MPHDF5PostArgs]['0'] = self.postargs
+                else:
+                    for i,r0 in enumerate(self.postargs):
+                        f[MPHDF5PostArgs]['%d'%i] = r0
+                
+                f[MPHDF5NPars]    = self.npars
+                f[MPHDF5NWalkers] = self.nwalkers
+                f[MPHDF5AParam]   = self.a
+                
+                f[MPHDF5NAccept]    = self.naccepted
+                f[MPHDF5Iterations] = self.iterations
+                
+                f.close()
+    
+    def ensemble_lnposterior(self, pos):
+        """
+        Returns a vector of ln-posterior values for each walker in the ensemble
+        """
+        if self.manylnposteriorfn is not None:
+            return self.manylnposteriorfn(pos, self.postargs)
+        return np.array([self.lnposteriorfn(pos[i], self.postargs)
+                         for i in range(self.nwalkers)])
     
     def run_mcmc(self,position,randomstate,iterations,lnprobinit=None):
         """
@@ -150,9 +201,16 @@ class EnsembleSampler:
             iterations = 1
         
         # resize the chain array for speed (Thanks Hogg&Lang)
-        k0 = np.shape(self.chain)[-1]
+        assert(np.shape(self.chain)[-1] == self.iterations)
         self.chain = np.dstack((self.chain,
                             np.zeros([self.nwalkers,self.npars,iterations])))
+        
+        # resize the hdf5 file if needed
+        if self.outtype == 'hdf5' and h5py is not None:
+            f = h5py.File(self.outfile, 'a')
+            f[MPHDF5Chain].resize((self.nwalkers,self.npars,
+                                   self.iterations+iterations))
+            f.close()
         
         # sample chain as an iterator
         for k in xrange(iterations):
@@ -176,28 +234,35 @@ class EnsembleSampler:
             
             # append current position and lnprobability (of all walkers)
             # to the chain
-            self.chain[:,:,k0+k] = position
+            self.chain[:,:,self.iterations] = position
             self.lnprobability = np.concatenate((self.lnprobability.T,
                                                [lnprob]),axis=0).T
             
             # write the current position to disk
-            self.write_step(position)
+            if self.outfile is not None:
+                self.write_step(position)
+            
             self.iterations += 1
             yield position, lnprob, self.random.get_state()
     
     def write_step(self,position):
         """
-        Write the current position vector to an ASCII file...
-        
-        dumb dumb dumb...
+        Write the current position vector to a file...
         
         """
-        if self.outfile != None:
+        if self.outtype == 'ascii':
             f = open(self.outfile,'a')
             for k in range(self.nwalkers):
                 for i in range(self.npars):
                     f.write('%10.8e\t'%(position[k,i]))
                 f.write('\n')
+            f.close()
+        elif self.outtype == 'hdf5':
+            assert(h5py is not None)
+            f = h5py.File(self.outfile, 'a')
+            f[MPHDF5Chain][:,:,self.iterations] = position
+            f[MPHDF5NAccept]    = self.naccepted
+            f[MPHDF5Iterations] = self.iterations
             f.close()
     
     def save_state(self,fn=None):

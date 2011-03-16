@@ -35,7 +35,7 @@ interact directly with the sampler.
 """
 
 from mcfit import *
-from mcsampler import *
+# from mcsampler import *
 from ensemble import *
 import diagnostics
 
