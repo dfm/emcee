@@ -1,14 +1,8 @@
 #MarkovPy
 
-##NOTE
-
-This is still a young module under active development so please use 
-at your own risk and let me know what bugs you encounter.
-
-
 ##AUTHOR
 
-Daniel Foreman-Mackey - dfm265 at nyu dot edu
+Daniel Foreman-Mackey - danfm at nyu dot edu
 
 If you find this code useful in your research, please let me know and
 consider citing this package. Thanks!
@@ -41,6 +35,8 @@ tested on Python 2.6.5.
 
 
 ##USAGE
+
+[Quickstart](https://github.com/dfm/MarkovPy/wiki/Quickstart)
 
 See the [wiki](http://github.com/dfm/MarkovPy/wiki) for information tutorials, documentation and sample code.
 
