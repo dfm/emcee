@@ -33,8 +33,6 @@
 import os
 import numpy as np
 
-# from mcsampler import MCSampler
-
 class EnsembleSampler:
     """Ensemble sampling following Goodman & Weare (2009)"""
     def __init__(self,nwalkers,npars,lnposteriorfn,manylnposteriorfn=None,
@@ -201,6 +199,9 @@ class EnsembleSampler:
                     f.write('%10.8e\t'%(position[k,i]))
                 f.write('\n')
             f.close()
+    
+    def save_state(self,fn=None):
+        pass
     
     def acceptance_fraction(self):
         return self.naccepted/self.iterations
