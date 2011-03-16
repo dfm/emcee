@@ -33,9 +33,9 @@
 import os
 import numpy as np
 
-from mcsampler import MCSampler
+# from mcsampler import MCSampler
 
-class HoggEnsembleSampler(MCSampler):
+class EnsembleSampler:
     """Ensemble sampling following Goodman & Weare (2009)"""
     def __init__(self,nwalkers,npars,lnposteriorfn,manylnposteriorfn=None,
                  postargs=(),a=2.,outfile=None,clobber=True):
@@ -69,9 +69,12 @@ class HoggEnsembleSampler(MCSampler):
         self.clear_chain()
 
     def ensemble_lnposterior(self, pos):
+        """
+        Returns a vector of ln-posterior values for each walker in the ensemble
+        """
         if self.manylnposteriorfn is not None:
             return self.manylnposteriorfn(pos, self.postargs)
-        return np.array([self.lnposteriorfn(pos[i], *self.postargs)
+        return np.array([self.lnposteriorfn(pos[i], self.postargs)
                          for i in range(self.nwalkers)])
     
     def clear_chain(self):
@@ -84,10 +87,10 @@ class HoggEnsembleSampler(MCSampler):
             - N is the number of steps taken
         """
         
-        self.chain       = np.empty([self.nwalkers,self.npars,0],dtype=float)
+        self.chain         = np.empty([self.nwalkers,self.npars,0],dtype=float)
         self.lnprobability = np.empty([self.nwalkers,0])
-        self.iterations  = 0
-        self.naccepted   = np.zeros(self.nwalkers)
+        self.iterations    = 0
+        self.naccepted     = np.zeros(self.nwalkers)
         
     
     def run_mcmc(self,position,randomstate,iterations,lnprobinit=None):
@@ -109,12 +112,15 @@ class HoggEnsembleSampler(MCSampler):
               we'll calculate it
         
         Outputs:
-            This function returns a tuple including the current
+            This function returns a tuple including the
             position vector in parameter space, the vector of
             ln-probabilities for each walker and the random number
-            generator state.  The position and state values can
-            then be fed right back into this function to take
-            more steps.
+            generator state current at the END OF THE RUN.
+            The position and state values can then be fed right back
+            into this function to take more steps.  To access the 
+            values for the whole chain, use the accessor functions:
+                self.get_lnprobability() and
+                self.get_chain()
         
         """
         for pos,lnprob,state in self.sample(position,lnprobinit,randomstate,
@@ -153,8 +159,8 @@ class HoggEnsembleSampler(MCSampler):
         # sample chain as an iterator
         for k in xrange(iterations):
             zz = ((self.a-1.)*self.random.rand(self.nwalkers)+1)**2./self.a
-            rint = self.random.randint(self.nwalkers-1, size=(self.nwalkers,))
             
+            rint = self.random.randint(self.nwalkers-1, size=(self.nwalkers,))
             # if you have to ask you won't understand the answer </evil>
             rint[rint >= np.arange(self.nwalkers)] += 1
             
@@ -199,6 +205,12 @@ class HoggEnsembleSampler(MCSampler):
     def acceptance_fraction(self):
         return self.naccepted/self.iterations
     
+    def get_lnprobability(self):
+        return self.lnprobability
+    
+    def get_chain(self):
+        return self.chain
+    
     def fix_parameters(self, inds, vals):
         assert (len(inds) == len(vals)), "len(inds) must equal len(vals)"
         
@@ -210,8 +222,7 @@ class HoggEnsembleSampler(MCSampler):
         """Clustering algorithm (REFERENCE) to avoid getting trapped"""
         # sort the walkers based on lnprobability
         if lnprob == None:
-            lnprob = np.array([self.lnposteriorfn(position[i],
-                                                  *(self.postargs))
+            lnprob = np.array([self.lnposteriorfn(position[i],self.postargs)
                                for i in range(self.nwalkers)])
         inds = np.argsort(lnprob)[::-1]
         
@@ -244,7 +255,7 @@ class HoggEnsembleSampler(MCSampler):
         for k in badwalkers:
             while big_mean-lnprob[k] > lnprob[k]-small_mean:
                 position[k,:] = mean+std*self.random.randn(self.npars)
-                lnprob[k] = self.lnposteriorfn(position[k],*(self.postargs))
+                lnprob[k] = self.lnposteriorfn(position[k],self.postargs)
         
         return position, lnprob, self.random.get_state()
 
