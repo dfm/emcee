@@ -92,8 +92,8 @@ class EnsembleSampler(MCSampler):
             * "randomstate" is the state of an instance of a
                 NumPy random number generator.  You can access
                 it with:
-            
                     numpy.random.mtrand.RandomState().get_state()
+                or it can be None and the sampler will seed itself
             * "iterations" is the number of steps to perform
         
         Outputs:
