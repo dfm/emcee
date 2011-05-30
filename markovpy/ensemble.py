@@ -138,8 +138,8 @@ class EnsembleSampler:
         Returns a vector of ln-posterior values for each walker in the ensemble
         """
         if self.manylnposteriorfn is not None:
-            return self.manylnposteriorfn(pos, self.postargs)
-        return np.array([self.lnposteriorfn(pos[i], self.postargs)
+            return self.manylnposteriorfn(pos, *self.postargs)
+        return np.array([self.lnposteriorfn(pos[i], *self.postargs)
                          for i in range(self.nwalkers)])
     
     def run_mcmc(self,position,randomstate,iterations,lnprobinit=None):
@@ -261,8 +261,8 @@ class EnsembleSampler:
             assert(h5py is not None)
             f = h5py.File(self.outfile, 'a')
             f[MPHDF5Chain][:,:,self.iterations] = position
-            f[MPHDF5NAccept]    = self.naccepted
-            f[MPHDF5Iterations] = self.iterations
+            f[MPHDF5NAccept][...] = self.naccepted
+            f[MPHDF5Iterations][...] = self.iterations
             f.close()
     
     def save_state(self,fn=None):
