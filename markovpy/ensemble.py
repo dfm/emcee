@@ -53,10 +53,24 @@ try:
 except:
     h5py = None
 
+try:
+    import multiprocessing
+except:
+    multiprocessing = None
+
 class EnsembleSampler:
     """Ensemble sampling following Goodman & Weare (2009)"""
     def __init__(self,nwalkers,npars,lnposteriorfn,manylnposteriorfn=None,
-                 postargs=(),a=2.,outfile=None,clobber=True,outtype='ascii'):
+                 postargs=(),a=2.,outfile=None,clobber=True,outtype='ascii',
+                 threads=1):
+        # multiprocessing
+        self.threads = threads
+        self.pool    = None
+        if threads > 1 and multiprocessing is not None:
+            self.pool = multiprocessing.Pool(threads)
+        elif threads > 1:
+            print "Warning: multiprocessing package isn't loaded"
+
         # Initialize a random number generator that we own
         self.random = np.random.mtrand.RandomState()
         
@@ -137,10 +151,18 @@ class EnsembleSampler:
         """
         Returns a vector of ln-posterior values for each walker in the ensemble
         """
-        if self.manylnposteriorfn is not None:
-            return self.manylnposteriorfn(pos, *self.postargs)
-        return np.array([self.lnposteriorfn(pos[i], *self.postargs)
-                         for i in range(self.nwalkers)])
+        if self.pool is not None:
+            M = self.pool.map
+        else:
+            M = map
+        return np.array(M(self.lnposteriorfn, [pos[i]
+                    for i in range(self.nwalkers)]))
+        
+        #if self.manylnposteriorfn is not None:
+        #    return self.manylnposteriorfn(pos, *self.postargs)
+        #return np.array([self.lnposteriorfn(pos[i], *self.postargs)
+        #                 for i in range(self.nwalkers)])
+
     
     def run_mcmc(self,position,randomstate,iterations,lnprobinit=None):
         """
