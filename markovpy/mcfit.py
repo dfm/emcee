@@ -24,8 +24,6 @@ Created by Dan F-M on 2010-08-10.
 
 """
 
-import sys
-
 import numpy as np
 
 from ensemble import EnsembleSampler
@@ -33,23 +31,24 @@ from ensemble import EnsembleSampler
 def mcfit(lnposteriorfn,p0,args=(),sampler=None,N=1000,burnin=0,outfile=None):
     """
     Performs a (kitchen-sink) MCMC to sampler a provided posterior PDF
-    
-    Required Arguments:
-        `lnposteriorfn`
-            a function that returns the value of posterior PDF
-            at the position `p` when called
-            `lnposteriorfn(p,args)` where `args` is the unpacked
-            optional keyword argument of `mcfit`
-        p0
-    
-    Optional Arguments:
-        args=()
-        sampler=None
-        N=1000
-        burnin=0
-        outfile=None
-    
     """
+
+    #Required Arguments:
+    #    `lnposteriorfn`
+    #        a function that returns the value of posterior PDF
+    #        at the position `p` when called
+    #        `lnposteriorfn(p,args)` where `args` is the unpacked
+    #        optional keyword argument of `mcfit`
+    #    p0
+    #
+    #Optional Arguments:
+    #    args=()
+    #    sampler=None
+    #    N=1000
+    #    burnin=0
+    #    outfile=None
+    #
+    #"""
     
     p0 = np.array(p0)
     

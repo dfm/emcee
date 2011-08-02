@@ -32,7 +32,7 @@ def lnprob(x):
     diff = x-means
     return -np.dot(diff,np.dot(inv_var,diff))/2.0
 
-sampler = markovpy.EnsembleSampler(nwalkers,ndim,lnprob)
+sampler = markovpy.EnsembleSampler(nwalkers,ndim,lnprob,threads=10)
 # burn-in
 pos,prob,state = sampler.run_mcmc(initial_position, None, 500)
 # final chain
