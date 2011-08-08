@@ -13,7 +13,7 @@ def lnprob(x,*args):
     Value at x of a multi-dimensional Gaussian with mean mu
     and inverse variance sig2
     """
-    mu,sig2 = tuple(*args)
+    mu,sig2 = args
     diff = x-mu
     return -np.dot(diff,np.dot(sig2,diff))/2.0
 

@@ -118,6 +118,7 @@ class EnsembleSampler:
         assert(isinstance(postargs,tuple) or postargs is None)
         if postargs is None:
             postargs = ()
+        self.postargs = postargs
 
         # multiprocessing
         self._pool    = None
@@ -182,7 +183,7 @@ class EnsembleSampler:
                 f = h5py.File(self._outfile, 'w')
                 f.create_dataset(MPHDF5Chain, [self.nwalkers,self.npars,1],
                     self._chain.dtype, maxshape=[self.nwalkers,self.npars,None])
-                f.create_dataset(MPHDF5LnProb, [self.nwalkers,self.npars,1],
+                f.create_dataset(MPHDF5LnProb, [self.nwalkers,1],
                     self._lnprobability.dtype, maxshape=[self.nwalkers,None])
                 f.create_group(MPHDF5RState)
                 for i,r0 in enumerate(self._random.get_state()):
