@@ -65,7 +65,6 @@ def _wrap_function(func,args=()):
         func2 = _wrap_class_function
         pickle.dumps(func2,-1) # will raise pickle.PicklingError if not picklable
         return func2
-    return func
 
 class EnsembleSampler:
     """
@@ -85,7 +84,7 @@ class EnsembleSampler:
         multiprocessing, lnposteriorfn *must* be pickleable.
 
     postargs : tuple
-        Tuple of arguments for lnposteriorfn
+        Tuple of arguments for lnposteriorfn. Must be a tuple!
 
     a : float, optional
         The sampler scale (see [1]_)
@@ -123,12 +122,9 @@ class EnsembleSampler:
         # multiprocessing
         self._pool    = None
         if threads > 1 and multiprocessing is not None:
-            # a function that returns the posterior pdf of interest
-            self._lnposteriorfn = _wrap_function(lnposteriorfn,postargs)
-            
             # check and see if lnposteriorfn is pickleable
             try:
-                pickle.dumps(self._lnposteriorfn,-1)
+                self._lnposteriorfn = _wrap_function(lnposteriorfn,postargs)
             except pickle.PicklingError:
                 print "Warning: Can't pickle lnposteriorfn, we'll only use 1 thread"
                 threads = 1
