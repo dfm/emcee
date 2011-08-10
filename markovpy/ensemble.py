@@ -61,7 +61,11 @@ def _wrap_function(func,args=()):
         return func2
     except pickle.PicklingError:
         # it might be a class function
-        _wrapping_params = (func.im_self,func.__name__,args[:])
+        try:
+            # will raise AttributeError if func is not a class method
+            _wrapping_params = (func.im_self,func.__name__,args[:])
+        except AttributeError:
+            raise pickle.PicklingError()
         func2 = _wrap_class_function
         pickle.dumps(func2,-1) # will raise pickle.PicklingError if not picklable
         return func2
