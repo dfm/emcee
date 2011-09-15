@@ -44,31 +44,17 @@ except:
 # try to make them pickleable. This is important if you want to use multiprocessing
 # but your likelihood calls are defined within a class
 _wrapping_params = None
-def _wrap_class_function(x):
-    assert(_wrapping_params is not None and len(_wrapping_params) == 3)
-    return getattr(_wrapping_params[0],_wrapping_params[1])(x,*(_wrapping_params[2]))
 def _wrap_function_args(x):
     assert(_wrapping_params is not None and len(_wrapping_params) == 2)
     return _wrapping_params[0](x,*(_wrapping_params[1]))
 def _wrap_function(func,args=()):
     global _wrapping_params
     # check and see if func is pickleable
-    try:
-        pickle.dumps(func,-1)
-        _wrapping_params = (func,args[:])
-        func2 = _wrap_function_args
-        pickle.dumps(func2,-1)
-        return func2
-    except pickle.PicklingError:
-        # it might be a class function
-        try:
-            # will raise AttributeError if func is not a class method
-            _wrapping_params = (func.im_self,func.__name__,args[:])
-        except AttributeError:
-            raise pickle.PicklingError()
-        func2 = _wrap_class_function
-        pickle.dumps(func2,-1) # will raise pickle.PicklingError if not picklable
-        return func2
+    pickle.dumps(func,-1)
+    _wrapping_params = (func,args[:])
+    func2 = _wrap_function_args
+    pickle.dumps(func2,-1)
+    return func2
 
 class EnsembleSampler:
     """
