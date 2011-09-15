@@ -42,12 +42,11 @@ except:
 
 # Here, you will find some Python MAGIC that wraps functions in such a way to
 # try to make them pickleable. This is important if you want to use multiprocessing
-# but your likelihood calls are defined within a class
 _wrapping_params = None
 def _wrap_function_args(x):
     assert(_wrapping_params is not None and len(_wrapping_params) == 2)
     return _wrapping_params[0](x,*(_wrapping_params[1]))
-def _wrap_function(func,args=()):
+def _wrap_function(func,args):
     global _wrapping_params
     # check and see if func is pickleable
     pickle.dumps(func,-1)
@@ -74,7 +73,8 @@ class EnsembleSampler:
         multiprocessing, lnposteriorfn *must* be pickleable.
 
     postargs : tuple
-        Tuple of arguments for lnposteriorfn. Must be a tuple!
+        Tuple of arguments for lnposteriorfn i.e. ``f(x,*args)``.
+        Must be a tuple!
 
     a : float, optional
         The sampler scale (see [1]_)
@@ -105,7 +105,6 @@ class EnsembleSampler:
     def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),
                  a=2.,outfile=None,clobber=True,outtype='ascii',
                  threads=1):
-        assert(isinstance(postargs,tuple) or postargs is None)
         if postargs is None:
             postargs = ()
         self.postargs = postargs
@@ -402,6 +401,7 @@ class EnsembleSampler:
                 f.write('\n')
             f.close()
 
+    @property
     def acceptance_fraction(self):
         """
         Get a list of acceptance fractions for each walker in the ensemble
@@ -417,6 +417,10 @@ class EnsembleSampler:
 
         """
         return self._naccepted/self._iterations
+
+    @property
+    def lnprobability(self):
+        return self.get_lnprobability()
 
     def get_lnprobability(self):
         """
@@ -438,6 +442,10 @@ class EnsembleSampler:
             f.close()
             return ret
         return self._lnprobability
+
+    @property
+    def chain(self):
+        return self.get_chain()
 
     def get_chain(self):
         """
@@ -530,5 +538,4 @@ class EnsembleSampler:
                 lnprob[k] = self._lnposteriorfn(position[k],self.postargs)
 
         return position, lnprob, self._random.get_state()
-
 
