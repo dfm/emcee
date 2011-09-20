@@ -92,6 +92,9 @@ class EnsembleSampler:
         Number of threads to run. If you wish to run with >1 thread, the
         multiprocessing module must be installed in your Python path.
 
+    pool : multiprocessing.Pool, optional
+        The Pool to use.  If you do not provide one, one will be created for you.
+
     References
     ----------
     .. [1] J. Goodman and J. Weare, "Ensemble Samplers with Affine Invariance",
@@ -104,14 +107,16 @@ class EnsembleSampler:
     """
     def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),
                  a=2.,outfile=None,clobber=True,outtype='ascii',
-                 threads=1):
+                 threads=1,pool=None):
         if postargs is None:
             postargs = ()
         self.postargs = postargs
 
         # multiprocessing
         self._pool    = None
-        if threads > 1 and multiprocessing is not None:
+        if pool is not None:
+            self._pool = pool
+        elif threads > 1 and multiprocessing is not None:
             # check and see if lnposteriorfn is pickleable
             try:
                 self._lnposteriorfn = _wrap_function(lnposteriorfn,postargs)
@@ -123,7 +128,6 @@ class EnsembleSampler:
         elif threads > 1:
             print "Warning: multiprocessing package isn't loaded"
             threads = 1
-        self.threads = threads
         if threads == 1:
             self._lnposteriorfn = lambda x: lnposteriorfn(x,*postargs)
 
@@ -332,10 +336,7 @@ class EnsembleSampler:
             self._random.seed()
 
         # how many iterations?  default to 1
-        if 'iterations' in kwargs:
-            iterations = kwargs['iterations']
-        else:
-            iterations = 1
+        iterations = kwargs.pop('iterations', 1)
 
         # resize the chain array for speed (Thanks Hogg&Lang)
         binaryrep = self._outtype == 'hdf5' and h5py is not None
