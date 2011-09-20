@@ -277,6 +277,18 @@ class EnsembleSampler:
 
         return pos,lnprob,state
 
+    def _propose_position(self,s0,comp):
+        n0,ncomp = len(s0),len(comp)
+
+        zz = ((self.a-1.)*self._random.rand(n0)+1)**2./self.a
+        rint = self._random.randint(ncomp, size=(n0,))
+
+        # propose new walker position and calculate the lnprobability
+        newposition = s0 + \
+                zz[:,np.newaxis]*(s0-comp[rint])
+        newposition[:,self._fixedinds] = self._fixedvals
+        return newposition
+
     def sample(self,position0,lnprob,randomstate,*args,**kwargs):
         """
         Advances the chain N steps as an iterator
@@ -353,23 +365,20 @@ class EnsembleSampler:
 
         # sample chain as an iterator
         for k in xrange(iterations):
-            zz = ((self.a-1.)*self._random.rand(self.nwalkers)+1)**2./self.a
-
-            rint = self._random.randint(self.nwalkers-1, size=(self.nwalkers,))
-            # if you have to ask you won't understand the answer </evil>
-            rint[rint >= np.arange(self.nwalkers)] += 1
-
-            # propose new walker position and calculate the lnprobability
-            newposition = position[rint] + \
-                    zz[:,np.newaxis]*(position-position[rint])
-            newposition[:,self._fixedinds] = self._fixedvals
-            newlnprob = self.ensemble_lnposterior(newposition)
-            lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
-            accept = (lnpdiff > np.log(self._random.rand(self.nwalkers)))
-            if any(accept):
-                lnprob[accept] = newlnprob[accept]
-                position[accept,:] = newposition[accept,:]
-                self._naccepted[accept] += 1
+            inds = self._random.shuffle(np.arange(self.nwalkers))
+            groups = (inds[:self.nwalkers/2],inds[self.nwalkers/2:])
+            for g in range(2):
+                # propose new walker position and calculate the lnprobability
+                newposition = position[rint] + \
+                        zz[:,np.newaxis]*(position-position[rint])
+                newposition[:,self._fixedinds] = self._fixedvals
+                newlnprob = self.ensemble_lnposterior(newposition)
+                lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
+                accept = (lnpdiff > np.log(self._random.rand(self.nwalkers)))
+                if any(accept):
+                    lnprob[accept] = newlnprob[accept]
+                    position[accept,:] = newposition[accept,:]
+                    self._naccepted[accept] += 1
 
             # append current position and lnprobability (of all walkers)
             # to the chain
