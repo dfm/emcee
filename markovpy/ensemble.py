@@ -42,18 +42,22 @@ except:
 
 # Here, you will find some Python MAGIC that wraps functions in such a way to
 # try to make them pickleable. This is important if you want to use multiprocessing
-_wrapping_params = None
-def _wrap_function_args(x):
-    assert(_wrapping_params is not None and len(_wrapping_params) == 2)
-    return _wrapping_params[0](x,*(_wrapping_params[1]))
+
+class _function_wrapper(object):
+    def __init__(self, f, postargs):
+        self.f = f
+        self.postargs = postargs
+    def __call__(self, x):
+        return self.f(x, *self.postargs)
+
 def _wrap_function(func,args):
-    global _wrapping_params
-    # check and see if func is pickleable
+    # check whether func is pickleable
     pickle.dumps(func,-1)
-    _wrapping_params = (func,args[:])
-    func2 = _wrap_function_args
-    pickle.dumps(func2,-1)
-    return func2
+    if args == ():
+        return func
+    fw = _function_wrapper(f, args)
+    pickle.dumps(fw,-1)
+    return fw
 
 class EnsembleSampler:
     """
@@ -114,21 +118,21 @@ class EnsembleSampler:
 
         # multiprocessing
         self._pool    = None
-        if pool is not None:
-            self._pool = pool
-        elif threads > 1 and multiprocessing is not None:
-            # check and see if lnposteriorfn is pickleable
+        if (threads > 1 or pool is not None) and multiprocessing is not None:
+            # check to see if lnposteriorfn is pickleable
             try:
-                self._lnposteriorfn = _wrap_function(lnposteriorfn,postargs)
+                self._lnposteriorfn = _wrap_function(lnposteriorfn, postargs)
             except pickle.PicklingError:
                 print "Warning: Can't pickle lnposteriorfn, we'll only use 1 thread"
                 threads = 1
             else:
-                self._pool = multiprocessing.Pool(threads)
+                if pool is not None:
+                    self._pool = pool
+                else:
+                    self._pool = multiprocessing.Pool(threads)
         elif threads > 1:
             print "Warning: multiprocessing package isn't loaded"
-            threads = 1
-        if threads == 1:
+        if self._pool is None:
             self._lnposteriorfn = lambda x: lnposteriorfn(x,*postargs)
 
         # Initialize a random number generator that we own
