@@ -45,7 +45,6 @@ class Tests:
             flatchain[i,:] = chain[:,i,:].flatten()
 
         maxdiff = 10.**(logprecision)
-        print (np.mean(flatchain,axis=-1)-self.mean)**2
         assert np.all((np.mean(flatchain,axis=-1)-self.mean)**2 < maxdiff)
         assert np.all((np.cov(flatchain)-self.cov)**2 < maxdiff)
 
@@ -63,17 +62,6 @@ if __name__ == '__main__':
         print e
 
     chain = tests.sampler.chain
-<<<<<<< HEAD
-    truth = np.random.multivariate_normal(tests.mean,tests.cov,10*chain.shape[-1])
-    for i in range(tests.ndim):
-        pl.figure()
-        samps = chain[:,i,:].flatten()
-        pl.hist(samps,100,normed=True)
-        pl.hist(truth[:,i],100,normed=True,histtype='step')
-
-    pl.show()
-
-=======
     truth = np.random.multivariate_normal(tests.mean,tests.cov,chain.shape[-1])
     for i in range(tests.ndim):
         pl.figure()
@@ -82,5 +70,4 @@ if __name__ == '__main__':
         pl.hist(truth[:,i],100,normed=True,histtype='step')
 
     pl.show()
->>>>>>> feature/checkerboard
 
