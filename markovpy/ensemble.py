@@ -301,8 +301,8 @@ class EnsembleSampler:
             rint = self._random.randint(ncomp, size=(n0,))
 
         # propose new walker position and calculate the lnprobability
-        newposition = s + \
-                zz[:,np.newaxis]*(s-c[rint])
+        newposition = c[rint] + \
+                zz[:,np.newaxis]*(c[rint]-s)
         newposition[:,self._fixedinds] = self._fixedvals
         newlnprob = self.ensemble_lnposterior(newposition)
 
@@ -382,15 +382,14 @@ class EnsembleSampler:
                             np.zeros([self.nwalkers,iterations])),axis=-1)
 
         # set up "checkerboard" groups
-        inds = np.arange(self.nwalkers)
-        groups = (inds,inds)#(inds[:self.nwalkers/2],inds[self.nwalkers/2:])
+        groups = (np.arange(self.nwalkers/2),np.arange(self.nwalkers/2,self.nwalkers))
 
         # sample chain as an iterator
         for k in xrange(iterations):
-            for g in range(1):
+            for g in range(2):
                 # propose new walker position and calculate the lnprobability
                 newposition, newlnprob, accept = self._propose_position(
-                        position[groups[g%2]],None,#position[groups[(g+1)%2]],
+                        position[groups[g%2]],position[groups[(g+1)%2]],
                         lnprob[groups[g%2]])
                 fullaccept = np.zeros(self.nwalkers,dtype=bool)
                 fullaccept[groups[g%2]] = accept

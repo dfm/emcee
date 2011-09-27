@@ -67,7 +67,7 @@ if __name__ == '__main__':
     for i in range(tests.ndim):
         pl.figure()
         samps = chain[:,i,:].flatten()
-        pl.hist(samps,100,normed=True)
+        pl.hist(samps[1000:],100,normed=True)
         pl.hist(truth[:,i],100,normed=True,histtype='step')
 
     pl.show()
