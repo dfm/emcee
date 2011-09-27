@@ -5,10 +5,6 @@ This is a Markov chain Monte Carlo (MCMC) sampler based on:
 Goodman & Weare, Ensemble Samplers With Affine Invariance
    Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80
 
-History
--------
-2010-10-18 - Created by Dan Foreman-Mackey
-
 """
 
 __all__ = ['EnsembleSampler']
@@ -104,10 +100,6 @@ class EnsembleSampler:
     .. [1] J. Goodman and J. Weare, "Ensemble Samplers with Affine Invariance",
        Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80.
 
-    History
-    -------
-    2011-08-02 - Created by Dan Foreman-Mackey
-
     """
     def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),
                  a=2.,outfile=None,clobber=True,outtype='ascii',
@@ -162,10 +154,6 @@ class EnsembleSampler:
         Clear the chain and some other stats so that the class can be reused
 
         This can be especially useful after a burn-in phase, for example.
-
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
 
         """
         self._chain         = np.empty([self.nwalkers,self.npars,0],dtype=float)
@@ -224,17 +212,13 @@ class EnsembleSampler:
         lnposterior : list (nwalkers)
             A list of the log posterior values for each of the walkers
 
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
-
         """
         if self._pool is not None:
             M = self._pool.map
         else:
             M = map
         return np.array(M(self._lnposteriorfn, [pos[i]
-                    for i in range(self.nwalkers)]))
+                    for i in range(len(pos))]))
 
     def run_mcmc(self,position,randomstate,iterations,lnprob=None,lnprobinit=None):
         """
@@ -274,16 +258,66 @@ class EnsembleSampler:
         state : tuple
             The state of the random number generator at the end of the run.
 
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
-
         """
         for pos,lnprob,state in self.sample(position,lnprob,randomstate,
                                           iterations=iterations):
             pass
 
         return pos,lnprob,state
+
+    def _propose_position(self,s0,comp,lnprob):
+        """
+        Propose a new position given a current position and the complementary set
+
+        Parameters
+        ----------
+        s0 : numpy.ndarray
+            The current positions of the set of walkers that will be advanced
+
+        comp : numpy.ndarray
+            The complementary set of walkers
+
+        lnprob : numpy.ndarray
+            The current ln-probability of the s0 set
+
+        Returns
+        -------
+        newposition : numpy.ndarray
+            The new positions of the walkers (same shape as s0)
+
+        newlnprob : numpy.ndarray
+            The ln-probability of the walkers at newposition
+
+        accept : numpy.ndarray
+            Array of bools indicating whether or not a walker's new position
+            should be accepted
+
+        """
+        s = np.atleast_2d(s0)
+        n0 = len(s)
+        if comp is not None:
+            c = np.atleast_2d(comp)
+        else:
+            c = s
+        ncomp = len(c)
+
+        zz = ((self.a-1.)*self._random.rand(n0)+1)**2./self.a
+        if comp is None:
+            rint = self._random.randint(ncomp-1, size=(n0,))
+            rint[rint >= np.arange(n0)] += 1
+        else:
+            rint = self._random.randint(ncomp, size=(n0,))
+
+        # propose new walker position and calculate the lnprobability
+        newposition = c[rint] + \
+                zz[:,np.newaxis]*(c[rint]-s)
+        newposition[:,self._fixedinds] = self._fixedvals
+        newlnprob = self.ensemble_lnposterior(newposition)
+
+        lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
+        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
+
+        return newposition, newlnprob, accept
 
     def sample(self,position0,lnprob,randomstate,*args,**kwargs):
         """
@@ -321,10 +355,6 @@ class EnsembleSampler:
         state : tuple
             The state of the random number generator at the end of the run.
 
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
-
         """
         # copy the original position so that it doesn't get over-written
         position = np.array(position0)
@@ -356,25 +386,22 @@ class EnsembleSampler:
             self._lnprobability = np.concatenate((self._lnprobability,
                             np.zeros([self.nwalkers,iterations])),axis=-1)
 
+        # set up "checkerboard" groups
+        groups = (np.arange(self.nwalkers/2),np.arange(self.nwalkers/2,self.nwalkers))
+
         # sample chain as an iterator
         for k in xrange(iterations):
-            zz = ((self.a-1.)*self._random.rand(self.nwalkers)+1)**2./self.a
-
-            rint = self._random.randint(self.nwalkers-1, size=(self.nwalkers,))
-            # if you have to ask you won't understand the answer </evil>
-            rint[rint >= np.arange(self.nwalkers)] += 1
-
-            # propose new walker position and calculate the lnprobability
-            newposition = position[rint] + \
-                    zz[:,np.newaxis]*(position-position[rint])
-            newposition[:,self._fixedinds] = self._fixedvals
-            newlnprob = self.ensemble_lnposterior(newposition)
-            lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
-            accept = (lnpdiff > np.log(self._random.rand(self.nwalkers)))
-            if any(accept):
-                lnprob[accept] = newlnprob[accept]
-                position[accept,:] = newposition[accept,:]
-                self._naccepted[accept] += 1
+            for g in range(2):
+                # propose new walker position and calculate the lnprobability
+                newposition, newlnprob, accept = self._propose_position(
+                        position[groups[g%2]],position[groups[(g+1)%2]],
+                        lnprob[groups[g%2]])
+                fullaccept = np.zeros(self.nwalkers,dtype=bool)
+                fullaccept[groups[g%2]] = accept
+                if any(accept):
+                    lnprob[fullaccept] = newlnprob[accept]
+                    position[fullaccept] = newposition[accept]
+                    self._naccepted[fullaccept] += 1
 
             # append current position and lnprobability (of all walkers)
             # to the chain
@@ -416,10 +443,6 @@ class EnsembleSampler:
         acceptance_fractions : list (nwalkers)
             The list of acceptance fractions for the walkers
 
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
-
         """
         return self._naccepted/self._iterations
 
@@ -435,10 +458,6 @@ class EnsembleSampler:
         -------
         lnprob : numpy.ndarray (nwalkers, niterations)
             The ln-probabilities of each walker at each step
-
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
 
         """
         if self._outtype == 'hdf5' and h5py is not None:
@@ -460,10 +479,6 @@ class EnsembleSampler:
         -------
         chain : numpy.ndarray (nwalkers, npars, niterations)
             The set of samples in the MCMC chain
-
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
 
         """
         if self._outtype == 'hdf5' and h5py is not None:
@@ -488,10 +503,6 @@ class EnsembleSampler:
         Raises
         ------
         AssertionError : If len(inds) doesn't equal len(vals)
-
-        History
-        -------
-        2011-08-02 - Created by Dan Foreman-Mackey
 
         """
         assert (len(inds) == len(vals)), "len(inds) must equal len(vals)"
