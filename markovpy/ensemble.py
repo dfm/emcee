@@ -55,7 +55,7 @@ def _wrap_function(func,args):
     pickle.dumps(func,-1)
     if args == ():
         return func
-    fw = _function_wrapper(f, args)
+    fw = _function_wrapper(func, args)
     pickle.dumps(fw,-1)
     return fw
 

@@ -56,7 +56,26 @@ class Tests:
         self.test_gaussian(threads=self.ndim)
 
 if __name__ == '__main__':
+    import pylab as pl
     tests = Tests()
     tests.setUp()
-    tests.test_gaussian()
+
+    tests.test_multi_gaussian()
+
+    # try:
+    #     tests.test_multi_gaussian()
+    # except Exception as e:
+    #     print e
+    #     raise e
+
+    chain = tests.sampler.chain
+    truth = np.random.multivariate_normal(tests.mean,tests.cov,chain.shape[-1])
+    for i in range(tests.ndim):
+        pl.figure()
+        samps = chain[:,i,:].flatten()
+        pl.hist(samps,100,normed=True)
+        pl.hist(truth[:,i],100,normed=True,histtype='step')
+
+    pl.show()
+
 
