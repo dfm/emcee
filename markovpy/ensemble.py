@@ -514,7 +514,7 @@ class EnsembleSampler:
         self._neff = self.npars - len(inds)
 
     @property
-    def acorr(self):
+    def acor(self):
         chain = self.chain
         tau = np.zeros(chain.shape[1])
         for i in range(chain.shape[1]):

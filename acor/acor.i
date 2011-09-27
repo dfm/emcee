@@ -9,7 +9,7 @@ double acor_dfm(double *X, int L);
 %include "numpy.i"
 
 %init %{
-  import_array();
+    import_array();
 %}
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *X, int L)};
