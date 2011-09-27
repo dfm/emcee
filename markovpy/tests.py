@@ -60,16 +60,13 @@ if __name__ == '__main__':
     tests = Tests()
     tests.setUp()
 
-    tests.test_multi_gaussian()
-
-    # try:
-    #     tests.test_multi_gaussian()
-    # except Exception as e:
-    #     print e
-    #     raise e
+    try:
+        tests.test_multi_gaussian()
+    except Exception as e:
+        print e
 
     chain = tests.sampler.chain
-    truth = np.random.multivariate_normal(tests.mean,tests.cov,chain.shape[-1])
+    truth = np.random.multivariate_normal(tests.mean,tests.cov,10*chain.shape[-1])
     for i in range(tests.ndim):
         pl.figure()
         samps = chain[:,i,:].flatten()
