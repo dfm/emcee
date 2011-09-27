@@ -210,7 +210,7 @@ class EnsembleSampler:
         else:
             M = map
         return np.array(M(self._lnposteriorfn, [pos[i]
-                    for i in range(self.nwalkers)]))
+                    for i in range(len(pos))]))
 
     def run_mcmc(self,position,randomstate,iterations,lnprob=None,lnprobinit=None):
         """
@@ -257,7 +257,7 @@ class EnsembleSampler:
 
         return pos,lnprob,state
 
-    def _propose_position(self,s0,comp):
+    def _propose_position(self,s0,comp,lnprob):
         """
         Propose a new position given a current position and the complementary set
 
@@ -269,24 +269,47 @@ class EnsembleSampler:
         comp : numpy.ndarray
             The complementary set of walkers
 
+        lnprob : numpy.ndarray
+            The current ln-probability of the s0 set
+
         Returns
         -------
         newposition : numpy.ndarray
             The new positions of the walkers (same shape as s0)
 
+        newlnprob : numpy.ndarray
+            The ln-probability of the walkers at newposition
+
+        accept : numpy.ndarray
+            Array of bools indicating whether or not a walker's new position
+            should be accepted
+
         """
         s = np.atleast_2d(s0)
-        c = np.atleast_2d(comp)
-        n0,ncomp = len(s),len(comp)
+        n0 = len(s)
+        if comp is not None:
+            c = np.atleast_2d(comp)
+        else:
+            c = s
+        ncomp = len(c)
 
         zz = ((self.a-1.)*self._random.rand(n0)+1)**2./self.a
-        rint = self._random.randint(ncomp, size=(n0,))
+        if comp is None:
+            rint = self._random.randint(ncomp-1, size=(n0,))
+            rint[rint >= np.arange(n0)] += 1
+        else:
+            rint = self._random.randint(ncomp, size=(n0,))
 
         # propose new walker position and calculate the lnprobability
         newposition = s + \
                 zz[:,np.newaxis]*(s-c[rint])
         newposition[:,self._fixedinds] = self._fixedvals
-        return newposition
+        newlnprob = self.ensemble_lnposterior(newposition)
+
+        lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
+        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
+
+        return newposition, newlnprob, accept
 
     def sample(self,position0,lnprob,randomstate,*args,**kwargs):
         """
@@ -358,20 +381,23 @@ class EnsembleSampler:
             self._lnprobability = np.concatenate((self._lnprobability,
                             np.zeros([self.nwalkers,iterations])),axis=-1)
 
+        # set up "checkerboard" groups
+        inds = np.arange(self.nwalkers)
+        groups = (inds,inds)#(inds[:self.nwalkers/2],inds[self.nwalkers/2:])
+
         # sample chain as an iterator
         for k in xrange(iterations):
-            inds = self._random.shuffle(np.arange(self.nwalkers))
-            groups = (inds[:self.nwalkers/2],inds[self.nwalkers/2:])
-            for g in range(2):
+            for g in range(1):
                 # propose new walker position and calculate the lnprobability
-                newposition =
-                newlnprob = self.ensemble_lnposterior(newposition)
-                lnpdiff = (self._neff - 1.) * np.log(zz) + newlnprob - lnprob
-                accept = (lnpdiff > np.log(self._random.rand(self.nwalkers)))
+                newposition, newlnprob, accept = self._propose_position(
+                        position[groups[g%2]],None,#position[groups[(g+1)%2]],
+                        lnprob[groups[g%2]])
+                fullaccept = np.zeros(self.nwalkers,dtype=bool)
+                fullaccept[groups[g%2]] = accept
                 if any(accept):
-                    lnprob[accept] = newlnprob[accept]
-                    position[accept,:] = newposition[accept,:]
-                    self._naccepted[accept] += 1
+                    lnprob[fullaccept] = newlnprob[accept]
+                    position[fullaccept] = newposition[accept]
+                    self._naccepted[fullaccept] += 1
 
             # append current position and lnprobability (of all walkers)
             # to the chain
