@@ -10,8 +10,10 @@ setup(name='MarkovPy',
         description='MarkovPy',
         author='Daniel Foreman-Mackey',
         author_email='dan@danfm.ca',
-        packages=['markovpy'],
-        #ext_modules = [Extension('markovpy._C_diagnostics', ['markovpy/diagnostics.c'])],
-        #include_dirs = numpy.distutils.misc_util.get_numpy_include_dirs()
+        packages=['markovpy','acor'],
+        ext_modules = [Extension('acor._acor',
+                        ['acor/acor.cpp','acor/acc.cpp','acor/acc_dfm.cpp',
+                        ])],
+        include_dirs = numpy.distutils.misc_util.get_numpy_include_dirs()
         )
 

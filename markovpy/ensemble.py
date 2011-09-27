@@ -14,6 +14,8 @@ import pickle
 
 import numpy as np
 
+import acor
+
 try:
     import h5py
 
@@ -510,6 +512,14 @@ class EnsembleSampler:
         self._fixedinds = np.array(inds)
         self._fixedvals = np.array(vals)
         self._neff = self.npars - len(inds)
+
+    @property
+    def acorr(self):
+        chain = self.chain
+        tau = np.zeros(chain.shape[1])
+        for i in range(chain.shape[1]):
+            tau[i] = acor.acor(chain[:,i,:].flatten())
+        return tau
 
     def _clustering(self,position,lnprob,randomstate):
         """

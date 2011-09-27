@@ -37,7 +37,7 @@ class Tests:
     def test_gaussian(self,threads=1):
         self.sampler = EnsembleSampler(self.nwalkers,self.ndim,lnprob_gaussian,
                         postargs=[self.icov],threads=threads)
-        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 3000)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 1000)
 
         chain = self.sampler.chain
         flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
@@ -61,12 +61,15 @@ if __name__ == '__main__':
     except Exception as e:
         print e
 
+    acorr = tests.sampler.acorr
+    pl.plot(acorr,'k')
+
     chain = tests.sampler.chain
     truth = np.random.multivariate_normal(tests.mean,tests.cov,chain.shape[-1])
     for i in range(tests.ndim):
         pl.figure()
         samps = chain[:,i,:].flatten()
-        pl.hist(samps[1000:],100,normed=True)
+        pl.hist(samps,100,normed=True)
         pl.hist(truth[:,i],100,normed=True,histtype='step')
 
     pl.show()
