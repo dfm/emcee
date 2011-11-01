@@ -35,10 +35,10 @@ class Tests:
     def tearDown(self):
         pass
 
-    def test_gaussian(self,threads=1):
+    def test_ensemble_sampler(self,threads=1):
         self.sampler = EnsembleSampler(self.nwalkers,self.ndim,lnprob_gaussian,
                         postargs=[self.icov],threads=threads)
-        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 1000)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 10000)
 
         chain = self.sampler.chain
         flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
@@ -49,13 +49,13 @@ class Tests:
         assert np.all((np.mean(flatchain,axis=-1)-self.mean)**2 < maxdiff)
         assert np.all((np.cov(flatchain)-self.cov)**2 < maxdiff)
 
-    def test_multi_gaussian(self):
-        self.test_gaussian(threads=self.ndim/2)
+    def test_multi_ensemble(self):
+        self.test_ensemble_sampler(threads=self.ndim/2)
 
     def test_gaussian_sampler(self, threads=1):
         self.sampler = GaussianSampler(self.nwalkers,self.ndim,lnprob_gaussian,
                         postargs=[self.icov],threads=threads)
-        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 1000)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 10000)
 
         chain = self.sampler.chain
         flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
@@ -80,12 +80,12 @@ if __name__ == '__main__':
     print acor
 
     chain = tests.sampler.chain
-    truth = np.random.multivariate_normal(tests.mean,tests.cov,chain.shape[-1])
+    truth = np.random.multivariate_normal(tests.mean,tests.cov,100000)
     for i in range(tests.ndim):
         pl.figure()
         samps = chain[:,i,:].flatten()
-        pl.hist(samps,100,normed=True)
-        pl.hist(truth[:,i],100,normed=True,histtype='step')
+        pl.hist(samps,100,normed=True, histtype='step', color='r', lw=2)
+        pl.hist(truth[:,i],100,normed=True,histtype='stepfilled', color='k', alpha=0.4)
 
     pl.show()
 
