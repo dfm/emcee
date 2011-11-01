@@ -4,4 +4,7 @@ build/*
 *.so
 .DS_Store
 *.svg
+*.hdf5
+doc
+docs
 
