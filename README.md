@@ -1,4 +1,6 @@
-#MarkovPy
+#PyEST
+
+##Python Ensemble Sampling Toolkit
 
 ##AUTHOR
 
@@ -24,7 +26,7 @@ Navigate to this directory and run
 
 `% python setup.py install`
 
-on the command line to install a module called markovpy in the default
+on the command line to install a module called pyest in the default
 Python path.
 
 
@@ -36,9 +38,9 @@ tested on Python 2.6.5.
 
 ##USAGE
 
-[Quickstart](https://github.com/dfm/MarkovPy/wiki/Quickstart)
+[Quickstart](https://github.com/dfm/PyEST/wiki/Quickstart)
 
-See the [wiki](http://github.com/dfm/MarkovPy/wiki) for information tutorials, documentation and sample code.
+See the [wiki](http://github.com/dfm/PyEST/wiki) for information tutorials, documentation and sample code.
 
 
 ##LICENSE

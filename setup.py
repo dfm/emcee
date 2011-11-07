@@ -5,12 +5,12 @@ from distutils.core import setup
 from distutils.extension import Extension
 import numpy.distutils.misc_util
 
-setup(name='MarkovPy',
+setup(name='PyEST',
         version='0.1',
-        description='MarkovPy',
+        description='pyest',
         author='Daniel Foreman-Mackey',
         author_email='dan@danfm.ca',
-        packages=['markovpy','acor'],
+        packages=['pyest','acor'],
         ext_modules = [Extension('acor._acor',
                         ['acor/acor.cpp','acor/acc.cpp','acor/acc_dfm.cpp',
                         ])],
