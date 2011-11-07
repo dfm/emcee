@@ -1,0 +1,163 @@
+\documentclass[12pt,preprint]{aastex}
+\usepackage{amssymb,amsmath}
+\newcommand{\project}[1]{\textsl{#1}}
+\newcommand{\this}{\project{PyEST}}
+\newcommand{\foreign}[1]{\emph{#1}}
+\newcommand{\etal}{\foreign{et\,al.}}
+\newcommand{\etc}{\foreign{etc.}}
+
+\newcommand{\fig}[1]{Figure \ref{fig:#1}}
+\newcommand{\figlabel}[1]{\label{fig:#1}}
+\newcommand{\eq}[1]{Equation \ref{eq:#1}}
+\newcommand{\eqlabel}[1]{\label{eq:#1}}
+
+% math symbols
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\like}{\mathscr{L}}
+\newcommand{\bvec}[1]{\boldsymbol{#1}}
+\newcommand{\normal}[3]{\mathcal{N} (#1 | #2, #3)}
+
+% model parameters
+\newcommand{\model}{\paramvector{\Theta}}
+\newcommand{\data}{\paramvector{X}}
+
+% units
+\newcommand{\unit}[1]{\mathrm{#1}}
+
+\begin{document}
+
+\title{PyEST: Python Ensemble Sampling Toolkit}
+\author{Daniel~Foreman-Mackey\altaffilmark{1,2}}
+\altaffiltext{1}{Center for Cosmology and Particle Physics,
+                         Department of Physics, New York University,
+                         4 Washington Place, New York, NY, 10003, USA; danfm@nyu.edu}
+
+\begin{abstract}
+
+    Markov chain Monte Carlo (MCMC) has proven to be a powerful tool for Bayesian
+    parameter estimation in many applications in astronomy and cosmology.
+
+\end{abstract}
+
+\keywords{
+}
+
+\section{Introduction}
+
+\begin{enumerate}
+
+    \item Bayesian inference  --- and with it, MCMC sampling --- is becoming an
+        integral part of the day-to-day routine for many astronomers (tons of
+        citations). and "why you might want to join the ranks of these kool kids;
+        it's not hard, and you don't have to drink the kool-aid to be Bayesian
+        when necessary." Remember, a maximum-likelihood problem can be rephrased
+        as an MCMC problem easily by assuming flat priors.
+
+    \item Traditional sampling methods (M-H) become extremely inefficient as the
+        underlying distribution becomes non-Gaussian or even just highly covariant.
+        There have been various ad-hoc fine-tuning methods proposed to deal with
+        this problem (citations; annealing, proposal covariance estimation, etc.)
+        and various more sophisticated methods (?; e.g.~Nested sampling, etc.;
+        citations) but these modifications are often difficult to implement and
+        require significant fine-tuning of free parameters to obtain an efficient
+        sampling.
+
+    \item Cite Goodman \& Weare and give a quick summary of why it's good.
+
+    \item Cite Hou \etal, Lang \& Hogg and any other applications.
+
+\end{enumerate}
+
+\section{The Algorithm}
+
+\citet{Hou:2011}
+
+At the core of \this , lies the affine invariant ensemble sampler from
+\citep{Goodman:2010}.  In particular, we have implemented the ``stretch move''
+algorithm.  To achieve convergence with standard MCMC samplers, several
+hyperparameters must be fine tuned to account for non-trivial covariances between
+the model parameters of a particular problem \citep[e.g.][]{Dunkley:2005}.
+The performance of an affine invariant sampler, however, is independent of the
+off-diagonal terms in the covariance matrix of any specific distribution.
+
+\begin{enumerate}
+
+    \item Summarize the Goodman \& Weare algorithm here trying to draw attention
+        to what it means to have an affine invariant ensemble and why an astronomer
+        might care. Maybe include a cartoon?
+
+\end{enumerate}
+
+\section{Our Implementation}
+
+\begin{enumerate}
+
+    \item Why Python?
+
+    \item ``Checkerboard'' stepping instead of sequential in order to parallelize
+        (HOGG: we should talk about how to do this\ldots maybe with Goodman present)
+
+    \item Access, license, etc.
+
+\end{enumerate}
+
+\section{Numerical Tests}
+
+\begin{enumerate}
+
+    \item Outline a basic M-H algorithm as the baseline comparison
+
+    \item Introduce autocorrelation time as an analytic for convergence testing.
+
+    \item Tests:
+        \begin{itemize}
+            \item \emph{N}-Gaussian (if proposal distribution isn't chosen properly
+                M-H is slow but it's fine if the proposal distribution is right).
+                \this destroys this problem no matter what!
+
+            \item Rosenbrock density (highly non-Gaussian) --- \emph{epic} failure
+                for M-H but \this does well.
+
+            \item Multimodal distribution?
+
+            \item Fitting a line?
+
+            \item Others?
+        \end{itemize}
+
+\end{enumerate}
+
+\section{Discussion}
+
+\begin{enumerate}
+
+    \item Discuss specific applications of the algorithm in astronomy (Hou \etal;
+        Hogg \& Lang; DFM \& Widrow; \etc)
+
+    \item Convince everybody that they should use it and cite us\ldots
+
+\end{enumerate}
+
+\begin{thebibliography}{70}
+\raggedright
+
+\bibitem[Dunkley \etal(2005)]{Dunkley:2005}
+{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
+2005, \mnras, 356, 925-936
+% http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
+
+\bibitem[Goodman \& Weare~(2010)]{Goodman:2010}
+Goodman,~J., \& Weare,~J.,
+2010, Comm.\ App.\ Math.\ Comp.\ Sci., 5, 65
+
+\bibitem[F. Hou \etal(2011))]{Hou:2011}
+{Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
+2011, arXiv:1104.2612
+% http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
+
+\end{thebibliography}
+
+
+\end{document}
+
+

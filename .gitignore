@@ -4,4 +4,7 @@ build/*
 *.so
 .DS_Store
 *.svg
+document/*.aux
+document/*.log
+document/*.pdf
 
