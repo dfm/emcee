@@ -35,7 +35,14 @@
 \begin{abstract}
 
     Markov chain Monte Carlo (MCMC) has proven to be a powerful tool for Bayesian
-    parameter estimation in many applications in astronomy and cosmology.
+    parameter estimation in many applications in astronomy and cosmology.  Most
+    standard MCMC algorithms require fine-tuning of the proposal distribution
+    through a computationally expensive "burn-in" phase --- especially when the
+    sampled distribution is highly covariant.
+    Affine invariant ensemble samplers don't face this problem and they generally
+    converge with fewer steps in the chain.
+
+    We present
 
 \end{abstract}
 
@@ -95,7 +102,8 @@ off-diagonal terms in the covariance matrix of any specific distribution.
     \item Why Python?
 
     \item ``Checkerboard'' stepping instead of sequential in order to parallelize
-        (HOGG: we should talk about how to do this\ldots maybe with Goodman present)
+
+    \item Sample code
 
     \item Access, license, etc.
 
