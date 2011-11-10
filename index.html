@@ -30,6 +30,9 @@
             ol.install > li {
                 padding-bottom: 5px;
             }
+            .prelude {
+                padding-bottom: 20px;
+            }
         </style>
 
         <!-- Le fav and touch icons -->
@@ -75,11 +78,22 @@
             <!-- Example row of columns -->
             <div class="row">
                 <div class="span16" style="padding-bottom: 20px;">
-                    <h3>
+                    <h3 class="prelude">
+                    Once upon a time, there was
+                    <a href="http://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">an algorithm</a>.
+                    This algorithm became very popular but it turned out that there
+                    were better ones. <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Some folks</a>
+                    came up with a better one and some
+                    other folks implemented it in Python. It's a little crazy how
+                    much it rocks.
+                    </h3>
+                    <h3 class="prelude">
                     PyEST is an extensible, pure-Python implementation of
-                    Markov chain Monte Carlo (MCMC) curve fitting. The calling
-                    syntax is designed to be like scipy.optimize so that it can
-                    (almost) be a drop in replacement.
+                    of Goodman & Weare's
+                    <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Affine
+                    Invariant Markov chain Monte Carlo (MCMC) sampler</a>.
+                    It's designed for Bayesian parameter estimation and it's really
+                    fast.
                     </h3>
                 </div>
             </div>
