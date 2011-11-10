@@ -12,7 +12,7 @@ import pylab as pl
 import numpy as np
 np.random.seed()
 
-import markovpy
+import pyest
 
 # dimensions of space
 nwalkers = 100
@@ -32,17 +32,17 @@ def lnprob(x):
     diff = x-means
     return -np.dot(diff,np.dot(inv_var,diff))/2.0
 
-sampler = markovpy.EnsembleSampler(nwalkers,ndim,lnprob,threads=10)
+sampler = pyest.EnsembleSampler(nwalkers,ndim,lnprob,threads=1)
 # burn-in
 pos,prob,state = sampler.run_mcmc(initial_position, None, 500)
 # final chain
-sampler.clear_chain()
+#sampler.clear_chain()
 start = time.time()
 print '** Starting sampling **'
 sampler.run_mcmc(np.array(pos), state, 1000)
 print '** Finished sampling **'
 print '                Time (s): ',time.time()-start
-print 'Mean acceptance fraction: ',np.mean(sampler.acceptance_fraction())
+print 'Mean acceptance fraction: ',np.mean(sampler.acceptance_fraction)
 
 # plotting
 chain = sampler.get_chain()

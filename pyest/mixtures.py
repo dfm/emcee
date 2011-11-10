@@ -7,9 +7,12 @@ Gaussian mixture models
 
 from __future__ import division
 
-__all__ = ['MixtureModel']
+__all__ = ['MixtureModel', 'EMSingular']
 
 import numpy as np
+
+class EMSingular(Exception):
+    pass
 
 class MixtureModel(object):
     """
@@ -49,7 +52,7 @@ class MixtureModel(object):
     # K-Means Algorithm #
     # ================= #
 
-    def run_kmeans(self, maxiter=200, tol=1e-8, verbose=True):
+    def run_kmeans(self, maxiter=200, tol=1e-8, verbose=False):
         """
         Fit the given data using K-means
 
@@ -89,11 +92,13 @@ class MixtureModel(object):
     # EM Algorithm #
     # ============ #
 
-    def run_em(self, maxiter=400, tol=1e-8, verbose=True):
+    def run_em(self, maxiter=None, tol=1.25e-2, verbose=False):
         """
         Fit the given data using EM
 
         """
+        if maxiter is None:
+            maxiter = 10*self._K
         L = None
         for i in xrange(maxiter):
             newL = self._expectation()
@@ -116,6 +121,8 @@ class MixtureModel(object):
         # self._means.shape == (D,K)
         # self.cov[k].shape == (D,D)
         det = np.linalg.det(self._cov[k])
+        if det < 0:
+            raise EMSingular()
 
         # X1.shape == (P,D)
         X1 = X - self._means[None,:,k]
@@ -136,13 +143,22 @@ class MixtureModel(object):
         # Nk.shape == (K,)
         Nk = np.sum(self._rs, axis=0)
         # self._means.shape == (D,K)
-        self._means = np.sum(self._rs[:,None,:] * self._data[:,:,None], axis=0)
-        self._means /= Nk[None,:]
+        self._means = np.sum(self._rs[:,None,:] * self._data[:,:,None], axis=0)\
+                + np.mean(self._data, axis=0)[:,None]
+        self._means /= (Nk[None,:]+1)
         self._cov = []
+        Cprior = np.cov(self._data,rowvar=0)
         for k in range(self._K):
             # D.shape == (P,D)
             D = self._data - self._means[None,:,k]
-            self._cov.append(np.dot(D.T, self._rs[:,k,None]*D)/Nk[k])
+
+            # FIXME: bogus crap
+            self._cov.append(\
+                    (np.dot(D.T, self._rs[:,k,None]*D) \
+                    + Cprior)/(Nk[k]+1) \
+                    )
+
+            # self._cov.append(np.dot(D.T, self._rs[:,k,None]*D)/Nk[k])
         self._as = Nk/self._data.shape[0]
 
     def _calc_prob(self, x):
@@ -159,6 +175,6 @@ class MixtureModel(object):
     def sample(self,N):
         samples = np.vstack(
                 [np.random.multivariate_normal(self.means[k], self._cov[k],
-                    size=int(self._as[k]*(N+1))) for k in range(self._K)])
+                    size=int(self._as[k]*(N+10))) for k in range(self._K)])
         return samples[:N,:]
 

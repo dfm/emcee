@@ -8,7 +8,7 @@ Defines various nose unit tests
 import numpy as np
 np.random.seed(1)
 from ensemble import EnsembleSampler
-from ml import GaussianSampler
+from ml import *
 
 logprecision = -4
 
@@ -24,6 +24,8 @@ class Tests:
         self.nwalkers = 100
         self.ndim     = 5
 
+        self.N = 1000
+
         self.mean = np.zeros(self.ndim)
         self.cov  = 0.5-np.random.rand(self.ndim*self.ndim).reshape((self.ndim,self.ndim))
         self.cov  = np.triu(self.cov)
@@ -38,7 +40,7 @@ class Tests:
     def test_ensemble_sampler(self,threads=1):
         self.sampler = EnsembleSampler(self.nwalkers,self.ndim,lnprob_gaussian,
                         postargs=[self.icov],threads=threads)
-        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 10000)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, self.N)
 
         chain = self.sampler.chain
         flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
@@ -46,8 +48,8 @@ class Tests:
             flatchain[i,:] = chain[:,i,:].flatten()
 
         maxdiff = 10.**(logprecision)
-        assert np.all((np.mean(flatchain,axis=-1)-self.mean)**2 < maxdiff)
-        assert np.all((np.cov(flatchain)-self.cov)**2 < maxdiff)
+        assert np.all((np.mean(flatchain,axis=-1)-self.mean)**2/self.N**2 < maxdiff)
+        assert np.all((np.cov(flatchain)-self.cov)**2/self.N**2 < maxdiff)
 
     def test_multi_ensemble(self):
         self.test_ensemble_sampler(threads=self.ndim/2)
@@ -55,7 +57,21 @@ class Tests:
     def test_gaussian_sampler(self, threads=1):
         self.sampler = GaussianSampler(self.nwalkers,self.ndim,lnprob_gaussian,
                         postargs=[self.icov],threads=threads)
-        pos,prob,state = self.sampler.run_mcmc(self.p0, None, 10000)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, self.N)
+
+        chain = self.sampler.chain
+        flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
+        for i in range(self.ndim):
+            flatchain[i,:] = chain[:,i,:].flatten()
+
+        maxdiff = 10.**(logprecision)
+        assert np.all((np.mean(flatchain,axis=-1)-self.mean)**2/self.N**2 < maxdiff)
+        assert np.all((np.cov(flatchain)-self.cov)**2/self.N**2 < maxdiff)
+
+    def _dontdo_em_sampler(self, threads=1):
+        self.sampler = EMSampler(self.nwalkers,self.ndim,lnprob_gaussian,
+                        postargs=[self.icov],threads=threads)
+        pos,prob,state = self.sampler.run_mcmc(self.p0, None, self.N)
 
         chain = self.sampler.chain
         flatchain = np.zeros([self.ndim,chain.shape[-1]*self.nwalkers])
@@ -67,12 +83,12 @@ class Tests:
         assert np.all((np.cov(flatchain)-self.cov)**2 < maxdiff)
 
 if __name__ == '__main__':
-    import pylab as pl
+    import matplotlib.pyplot as pl
     tests = Tests()
     tests.setUp()
 
     try:
-        tests.test_gaussian_sampler()
+        tests._dontdo_em_sampler()
     except Exception as e:
         print e
 
@@ -87,5 +103,5 @@ if __name__ == '__main__':
         pl.hist(samps,100,normed=True, histtype='step', color='r', lw=2)
         pl.hist(truth[:,i],100,normed=True,histtype='stepfilled', color='k', alpha=0.4)
 
-    pl.show()
+    #pl.show()
 

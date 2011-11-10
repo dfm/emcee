@@ -7,6 +7,8 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
+from __future__ import division
+
 __all__ = ['EnsembleSampler']
 
 import os
@@ -57,7 +59,7 @@ def _wrap_function(func,args):
     pickle.dumps(fw,-1)
     return fw
 
-class EnsembleSampler:
+class EnsembleSampler(object):
     """
     Ensemble sampling following Goodman & Weare (2010) with optional parallelization.
 
@@ -105,7 +107,7 @@ class EnsembleSampler:
     """
     def __init__(self,nwalkers,npars,lnposteriorfn,postargs=(),
                  a=2.,outfile=None,clobber=True,outtype='ascii',
-                 threads=1,pool=None):
+                 threads=1,pool=None,nensemble=2):
         if postargs is None:
             postargs = ()
         self.postargs = postargs
@@ -138,6 +140,17 @@ class EnsembleSampler:
         self.npars    = npars
         self.nwalkers = nwalkers
         self.a        = a
+
+        self._nensemble = nensemble
+        self._ensembles = []
+        for i in range(self._nensemble-1):
+            self._ensembles.append(np.arange(i*self.nwalkers/self._nensemble,
+                        (i+1)*self.nwalkers/self._nensemble, dtype=int))
+        self._ensembles.append(np.arange(
+                (self._nensemble-1)*self.nwalkers/self._nensemble,self.nwalkers,
+                dtype=int))
+
+        print self._ensembles
 
         # used to fix some parameters to specific values for debugging purposes
         self._neff    = npars
@@ -311,7 +324,7 @@ class EnsembleSampler:
             rint = self._random.randint(ncomp, size=(n0,))
 
         # propose new walker position and calculate the lnprobability
-        newposition = c[rint] + \
+        newposition = c[rint] - \
                 zz[:,np.newaxis]*(c[rint]-s)
         newposition[:,self._fixedinds] = self._fixedvals
         newlnprob = self.ensemble_lnposterior(newposition)
@@ -388,18 +401,18 @@ class EnsembleSampler:
             self._lnprobability = np.concatenate((self._lnprobability,
                             np.zeros([self.nwalkers,iterations])),axis=-1)
 
-        # set up "checkerboard" groups
-        groups = (np.arange(self.nwalkers/2),np.arange(self.nwalkers/2,self.nwalkers))
-
         # sample chain as an iterator
         for k in xrange(iterations):
-            for g in range(2):
+            for g in range(self._nensemble):
                 # propose new walker position and calculate the lnprobability
-                newposition, newlnprob, accept = self._propose_position(
-                        position[groups[g%2]],position[groups[(g+1)%2]],
-                        lnprob[groups[g%2]])
+                ens_in   = self._ensembles[g]
+                ens_comp = self._ensembles[(g+1)%self._nensemble]
+                newposition, newlnprob, accept = \
+                        self._propose_position(position[ens_in],
+                                position[ens_comp],
+                                lnprob[ens_in])
                 fullaccept = np.zeros(self.nwalkers,dtype=bool)
-                fullaccept[groups[g%2]] = accept
+                fullaccept[ens_in] = accept
                 if any(accept):
                     lnprob[fullaccept] = newlnprob[accept]
                     position[fullaccept] = newposition[accept]
