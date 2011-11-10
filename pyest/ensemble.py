@@ -150,8 +150,6 @@ class EnsembleSampler(object):
                 (self._nensemble-1)*self.nwalkers/self._nensemble,self.nwalkers,
                 dtype=int))
 
-        print self._ensembles
-
         # used to fix some parameters to specific values for debugging purposes
         self._neff    = npars
         self._fixedinds = []
