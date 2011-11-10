@@ -26,7 +26,9 @@
                 overflow: hidden;
                 padding: 8px;
                 border: none;
-
+            }
+            ol.install > li {
+                padding-bottom: 5px;
             }
         </style>
 
@@ -48,7 +50,6 @@
                 <div class="container">
                     <a class="brand" href="#">The Python Ensemble Sampling Toolkit</a>
                     <ul class="nav">
-                        <li class="active"><a href="#">Home</a></li>
                         <li><a href="#install">Installation</a></li>
                         <li><a href="#quickstart">Quickstart</a></li>
                     </ul>
@@ -90,19 +91,24 @@
 
                 <div class="row" id="install">
                     <div class="span16">
-                        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-                        <p style="text-align: center;">
-                            <a class="btn primary" href="#">Download <small>(v. 0.1)</small></a>
-                            &nbsp; or &nbsp;
-                            <a class="btn" href="https://github.com/dfm/pyest">Fork on GitHub</a>
-                        </p>
+                        <ol class="install">
+                            <li>Download the module</li>
+                            <li>Unzip and then run <code>python setup.py install</code>.</li>
+                            <li>Yep, that's it.</li>
+                        </ol>
+                            <p style="text-align: center;">
+                                <a class="btn primary" href="https://github.com/dfm/pyest/zipball/master">Download <small>(.zip)</small></a>
+                                &nbsp; or &nbsp;
+                                <a class="btn" href="https://github.com/dfm/pyest">Fork it on GitHub</a>
+                            </p>
+
                     </div>
                 </div>
             </section>
 
             <section id="quickstart">
                 <div class="page-header">
-                    <h1>Quickstart <small>Displaying images and videos</small></h1>
+                    <h1>Quickstart <small>Sample code is not documentation&trade;</small></h1>
                 </div>
 
                 <div class="row">
@@ -135,7 +141,7 @@ def lnprob(x, mu, icov):
 ndim = 10
 means = np.random.rand(ndim)
 cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov  = np.triu(self.cov)
+cov  = np.triu(cov)
 cov += cov.T - np.diag(cov.diagonal())
 cov  = np.dot(cov,cov)
 icov = np.linalg.inv(cov)</pre>
@@ -145,15 +151,71 @@ icov = np.linalg.inv(cov)</pre>
                 <div class="row">
                     <div class="span5">
                         <p>Then we guess some initial positions for <code>100</code>
-                        <a href="#faq-walkers">walkers</a>.</p>
+                        <a href="#faq-walkers">walkers</a> and then initialize a
+                        new <code>EnsembleSampler</code>.</p>
+                        <p>If your <code>lnprob</code> calls are the bottleneck and
+                        you have CPU cycles to spare, you can
+                        <a href="#faq-multi">use multiprocessing</a>.</p>
                     </div>
                     <div class="span11">
                         <pre class="prettyprint">
 nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-</pre>
+
+import pyest
+sampler = pyest.EnsembleSampler(nwalkers, ndim,lnprob,
+                        postargs=[means, icov])</pre>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>Now, let's take 500 steps as a burn-in.</p>
+                        <p><span class="label notice">Note</span> <small>each walker is
+                        advanced 500 times here so lnprob will actually
+                        be called 5x10<sup>4</sup> times here.</small></p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+pos,prob,state = sampler.run_mcmc(p0, None, 500)
+sampler.clear_chain()</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>And then, run <code>2000</code> real steps in the chain
+                        starting from the final position
+                        and random state of the burn-in.</p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+sampler.run_mcmc(pos, state, 2000)</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>The results are stored in a <code>(100, 10, 2000)</code>
+                        NumPy array.</p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+sampler.chain</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span16">
+                        <p>
+                        You can
+                        <a class="btn primary" href="https://github.com/dfm/pyest/blob/master/quickstart.py">
+                            get all this code</a>
+                        from <a href="https://github.com/dfm/pyest">the GitHub repository</a>.
+                        </p>
+                    </div>
+                </div>
+
             </section>
 
             <section id="faq">
