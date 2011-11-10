@@ -1,1 +1,188 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>PyEST - Kick-ass MCMC</title>
+        <meta name="description" content="Kick-ass MCMC">
+        <meta name="author" content="Dan Foreman-Mackey">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <link href="prettify.css" type="text/css" rel="stylesheet" />
+
+        <!-- Le styles -->
+        <link rel="stylesheet" href="bootstrap.min.css">
+        <style type="text/css">
+            body {
+                padding-top: 60px;
+            }
+            section {
+                margin-bottom: 30px;
+            }
+            pre.prettyprint {
+                overflow: hidden;
+                padding: 8px;
+                border: none;
+
+            }
+        </style>
+
+        <!-- Le fav and touch icons -->
+        <!--
+        <link rel="shortcut icon" href="images/favicon.ico">
+        <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+        -->
+
+
+    </head>
+
+    <body>
+
+        <div class="topbar">
+            <div class="fill">
+                <div class="container">
+                    <a class="brand" href="#">The Python Ensemble Sampling Toolkit</a>
+                    <ul class="nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#install">Installation</a></li>
+                        <li><a href="#quickstart">Quickstart</a></li>
+                    </ul>
+                </div>
+        <a href="http://github.com/dfm/PyEST">
+            <img style="position: absolute; top: 0; right: 0; border: 0; z-order: 12000;"
+            src="https://a248.e.akamai.net/assets.github.com/img/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
+            alt="fork me on github">
+        </a>
+
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- Main hero unit for a primary marketing message or call to action -->
+            <div class="hero-unit">
+                <h1>PyEST</h1>
+                <h2>The Python Ensemble Sampling Toolkit</h2>
+                <p>Seriously kick-ass MCMC sampling</p>
+            </div>
+
+            <!-- Example row of columns -->
+            <div class="row">
+                <div class="span16" style="padding-bottom: 20px;">
+                    <h3>
+                    PyEST is an extensible, pure-Python implementation of
+                    Markov chain Monte Carlo (MCMC) curve fitting. The calling
+                    syntax is designed to be like scipy.optimize so that it can
+                    (almost) be a drop in replacement.
+                    </h3>
+                </div>
+            </div>
+
+            <section id="install">
+                <div class="page-header">
+                    <h1>Installation <small></small></h1>
+                </div>
+
+                <div class="row" id="install">
+                    <div class="span16">
+                        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+                        <p style="text-align: center;">
+                            <a class="btn primary" href="#">Download <small>(v. 0.1)</small></a>
+                            &nbsp; or &nbsp;
+                            <a class="btn" href="https://github.com/dfm/pyest">Fork on GitHub</a>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quickstart">
+                <div class="page-header">
+                    <h1>Quickstart <small>Displaying images and videos</small></h1>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>Start by defining the probability distribution that you
+                        would like to sample.</p>
+                        <p>We'll use a
+                        <a href="http://en.wikipedia.org/wiki/Multivariate_normal_distribution">multivariate Gaussian</a>.
+                        </p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+import numpy as np
+
+def lnprob(x, mu, icov):
+    diff = x-mu
+    return -np.dot(diff,np.dot(icov,diff))/2.0</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>Let's use <code>10</code> dimensions with some randomly chosen means
+                        and covariance matrix.</p>
+                        <p><code>cov</code> needs to be positive definite so we make
+                        sure that that happens and the take the inverse.</p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+ndim = 10
+means = np.random.rand(ndim)
+cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
+cov  = np.triu(self.cov)
+cov += cov.T - np.diag(cov.diagonal())
+cov  = np.dot(cov,cov)
+icov = np.linalg.inv(cov)</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                        <p>Then we guess some initial positions for <code>100</code>
+                        <a href="#faq-walkers">walkers</a>.</p>
+                    </div>
+                    <div class="span11">
+                        <pre class="prettyprint">
+nwalkers = 100
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+</pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq">
+                <div class="page-header">
+                    <h1>Frequently asked questions <small></small></h1>
+                </div>
+
+                <div class="row" id="faq-walkers">
+                    <div class="span5">
+                        <p><strong>What are you talking about when you say "walkers"?</strong></p>
+                    </div>
+                    <div class="span11">
+                        Walkers are ...
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+            <p style="text-align: center;"><a href="http://danfm.ca">Dan Foreman-Mackey</a>,
+            Dustin Lang, David W. Hogg, <em>et al.</em></p>
+            </footer>
+
+        </div> <!-- /container -->
+
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        <script type="text/javascript" src="prettify.js"></script>
+        <script>$(function () { prettyPrint() })</script>
+
+
+    </body>
+</html>
+
