@@ -19,8 +19,11 @@
             body {
                 padding-top: 60px;
             }
+            div.row {
+                padding-bottom: 10px;
+            }
             section {
-                padding-top: 40px;
+                padding-top: 45px;
             }
             pre.prettyprint {
                 overflow: hidden;
@@ -31,6 +34,7 @@
                 padding-bottom: 5px;
             }
             .prelude {
+                padding-bottom: 20px;
             }
         </style>
 
@@ -54,6 +58,7 @@
                     <ul class="nav">
                         <li><a href="#install">Installation</a></li>
                         <li><a href="#quickstart">Quickstart</a></li>
+                        <li><a href="#api">API</a></li>
                         <li><a href="#faq">FAQ</a></li>
                     </ul>
                 </div>
@@ -87,7 +92,7 @@
                     other folks implemented it in Python. It's a little crazy how
                     much it rocks.
                     </h3>
-                    <h3 class="prelude">
+                    <h3>
                     PyEST is an extensible, pure-Python implementation of
                     of Goodman & Weare's
                     <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Affine
@@ -106,7 +111,7 @@
                 <div class="row" id="install">
                     <div class="span16">
                         <ol class="install">
-                            <li>Download the module</li>
+                            <li>Download the module.</li>
                             <li>Unzip and then run <code>python setup.py install</code>.</li>
                             <li>Yep, that's it.</li>
                         </ol>
@@ -229,6 +234,422 @@ sampler.chain</pre>
                         </p>
                     </div>
                 </div>
+
+            </section>
+
+            <section id="api">
+                <div class="page-header">
+                    <h1>API <small></small></h1>
+                </div>
+
+<div class="row">
+    <div class="span16">
+    <h3><small>pyest.</small>EnsembleSampler<small>(nwalkers, npars, lnposteriorfn, postargs=(), a=2.0, outfile=None, clobber=True, outtype='ascii', threads=1, pool=None, nensemble=2)</small></h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span13 offset3">
+        <h5>Ensemble sampling following Goodman & Weare (2010) with optional parallelization.</h5>
+        <p>
+
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Parameters</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+            <tr>
+                <th width="100">Parameter</td>
+                <th width="100">Type</td>
+                <th>Description</td>
+            </tr>
+
+        <tr>
+            <td width="100"><code>nwalkers</code></td>
+            <td width="100">int
+        </td>
+            <td>
+        Number of Goodman & Weare "walkers"</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>npars</code></td>
+            <td width="100">int
+        </td>
+            <td>
+        Number of dimensions in parameter space</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnposteriorfn</code></td>
+            <td width="100">function
+        </td>
+            <td>
+        A function that takes a vector in the parameter space as input and
+returns the ln-posterior for that position. If you want to use
+multiprocessing, lnposteriorfn *must* be pickleable.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>postargs</code></td>
+            <td width="100">tuple
+        </td>
+            <td>
+        Tuple of arguments for lnposteriorfn i.e. ``f(x,*args)``.
+Must be a tuple!</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>a</code></td>
+            <td width="100">float
+        </td>
+            <td>
+        <span class="label notice">Optional</span> The sampler scale (see [1]_)</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>outfile</code></td>
+            <td width="100">str
+        </td>
+            <td>
+        <span class="label notice">Optional</span> Filename for output.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>outtype</code></td>
+            <td width="100">str
+        </td>
+            <td>
+        <span class="label notice">Optional</span> Type of output to write (options "ASCII" or "HDF5")</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>clobber</code></td>
+            <td width="100">bool
+        </td>
+            <td>
+        <span class="label notice">Optional</span> Overwrite file if it already exists? Otherwise, append. (default: True)</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>threads</code></td>
+            <td width="100">int
+        </td>
+            <td>
+        <span class="label notice">Optional</span> Number of threads to run. If you wish to run with >1 thread, the
+multiprocessing module must be installed in your Python path.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>pool</code></td>
+            <td width="100">multiprocessing.Pool
+        </td>
+            <td>
+        <span class="label notice">Optional</span> The Pool to use.  If you do not provide one, one will be created for you.</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="span16">
+    <h3><small>pyest.EnsembleSampler.</small>run_mcmc<small>(position, randomstate, iterations, lnprob=None, lnprobinit=None)</small></h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span13 offset3">
+        <h5>Run a given number of MCMC steps</h5>
+        <p>
+If you want to run diagnostics between steps or only advance the chain
+by one step, use the EnsembleSampler.sample function
+
+
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Parameters</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+            <tr>
+                <th width="100">Parameter</td>
+                <th width="100">Type</td>
+                <th>Description</td>
+            </tr>
+
+        <tr>
+            <td width="100"><code>position</code></td>
+            <td width="100">list
+        <br>  (nwalkers, npars)</td>
+            <td>
+        A list of the positions of the walkers in the parameter space</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>randomstate</code></td>
+            <td width="100">tuple
+        </td>
+            <td>
+        Returned by the get_state() function of numpy.random.mtrand.RandomState</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>iterations</code></td>
+            <td width="100">int
+        </td>
+            <td>
+        Number of steps to run in the Markov chain</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnprob</code></td>
+            <td width="100">list
+        <br> (nwalkers)</td>
+            <td>
+        <span class="label notice">Optional</span> The list of log posterior probabilities for the walkers at positions
+given by the position parameter. If lnprobinit is None, the initial
+values are calculated using ensemble_lnposterior(position).</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnprobinit</code></td>
+            <td width="100">list
+        <br>  (nwalkers)</td>
+            <td>
+        Superseded by lnprob.</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Returns</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+
+        <tr>
+            <td width="100"><code>pos</code></td>
+            <td width="100">list
+        <br>  (nwalkers, npars)</td>
+            <td>
+        The list of the _final_ positions of the walkers.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnprob</code></td>
+            <td width="100">list
+        <br>  (nwalkers)</td>
+            <td>
+        A list of all of the log posterior probabilities for the walkers at
+the _final_ position.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>state</code></td>
+            <td width="100">tuple
+        </td>
+            <td>
+        The state of the random number generator at the end of the run.</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="span16">
+    <h3><small>pyest.EnsembleSampler.</small>sample<small>(position0, lnprob, randomstate)</small></h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span13 offset3">
+        <h5>Advances the chain N steps as an iterator</h5>
+        <p>
+By default, it will only advance the chain by one step but if you're
+going to run multiple steps, the EnsembleSampler.run_mcmc or iterator
+version of this function have less overhead.
+
+
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Parameters</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+            <tr>
+                <th width="100">Parameter</td>
+                <th width="100">Type</td>
+                <th>Description</td>
+            </tr>
+
+        <tr>
+            <td width="100"><code>position0</code></td>
+            <td width="100">list
+        <br>  (nwalkers, npars)</td>
+            <td>
+        A list of the initial positions of the walkers in the parameter space</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnprob</code></td>
+            <td width="100">list
+        <br>  (nwalkers)</td>
+            <td>
+        The list of log posterior probabilities for the walkers at positions
+given by the position parameter. If it is None, the initial
+values are calculated using ensemble_lnposterior(position).</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>randomstate</code></td>
+            <td width="100">tuple
+        </td>
+            <td>
+        Returned by the get_state() function of numpy.random.mtrand.RandomState</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>iterations</code></td>
+            <td width="100">int
+        </td>
+            <td>
+        <span class="label notice">Optional</span> Number of steps to run in the Markov chain</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Returns</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+
+        <tr>
+            <td width="100"><code>pos</code></td>
+            <td width="100">list
+        <br>  (nwalkers, npars)</td>
+            <td>
+        The list of the _final_ positions of the walkers.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>lnprob</code></td>
+            <td width="100">list
+        <br>  (nwalkers)</td>
+            <td>
+        A list of all of the log posterior probabilities for the walkers at
+the _final_ position.</td>
+        </tr>
+
+        <tr>
+            <td width="100"><code>state</code></td>
+            <td width="100">tuple
+        </td>
+            <td>
+        The state of the random number generator at the end of the run.</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="span16">
+    <h3><small>pyest.EnsembleSampler.</small>clear_chain<small>()</small></h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span13 offset3">
+        <h5>Clear the chain and some other stats so that the class can be reused</h5>
+        <p>
+This can be especially useful after a burn-in phase, for example.
+
+
+
+        </p>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="span16">
+    <h3><small>pyest.EnsembleSampler.</small>ensemble_lnposterior<small>(pos)</small></h3>
+    </div>
+</div>
+<div class="row">
+    <div class="span13 offset3">
+        <h5>Return the ln-posterior probability for all the walkers</h5>
+        <p>
+This step is run in parallel if the sampler was initialized with > 1 threads.
+
+
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Parameters</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+            <tr>
+                <th width="100">Parameter</td>
+                <th width="100">Type</td>
+                <th>Description</td>
+            </tr>
+
+        <tr>
+            <td width="100"><code>pos</code></td>
+            <td width="100">list
+        <br>  (nwalkers, npars)</td>
+            <td>
+        A list of the positions of the walkers in the parameter space</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span2 offset1">
+        <h4>Returns</h4>
+    </div>
+    <div class="span13">
+        <table class="zebra-striped">
+
+        <tr>
+            <td width="100"><code>lnposterior</code></td>
+            <td width="100">list
+        <br>  (nwalkers)</td>
+            <td>
+        A list of the log posterior values for each of the walkers</td>
+        </tr>
+
+        </table>
+    </div>
+</div>
 
             </section>
 
