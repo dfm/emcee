@@ -256,17 +256,17 @@ class EnsembleSampler(object):
             given by the position parameter. If lnprobinit is None, the initial
             values are calculated using ensemble_lnposterior(position).
 
-        lnprobinit : list (nwalkers), deprecated
+        lnprobinit : list (nwalkers), optional
             Superseded by lnprob.
 
         Returns
         -------
         pos : list (nwalkers, npars)
-            The list of the _final_ positions of the walkers.
+            The list of the final positions of the walkers.
 
         lnprob : list (nwalkers)
             A list of all of the log posterior probabilities for the walkers at
-            the _final_ position.
+            the final position.
 
         state : tuple
             The state of the random number generator at the end of the run.
