@@ -1,2 +1,2 @@
-import _acor.acor as acor
+from _acor import acor
 
