@@ -1,9 +1,9 @@
+/*
+ * This is a very slightly re-factored version of code by Jonathan Goodman
+ * For the original code, see:
+ *  http://www.math.nyu.edu/faculty/goodman/software/acor/index.html
+ * Ported for use in Python with permission from the original author.
+ */
 
-int acor(         // The version of acor that takes the data as an argument. 
-                  // This is the one that does the actual work.
-				  
-   double *mean,    //   A return value -- the mean of X, or possibly a slightly shorter sequence.
-   double *sigma,   //   A return value -- an estimate of the standard devation of the sample mean.
-   double *tau,     //   A return value -- an estimate of the autocorrelation time.
-   double X[],      //   The time series to be analized.
-   int L);          //   The length of the array X[].
+int acor(double *mean, double *sigma, double *tau, double X[], int L);
+

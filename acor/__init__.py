@@ -1,4 +1,2 @@
-#!/usr/bin/env python
-
-from _acor import acor_dfm as acor
+import _acor.acor as acor
 
