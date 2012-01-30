@@ -11,3 +11,6 @@ document/*.pdf
 doc
 docs
 
+*.png
+samples
+rosenbrock.*
