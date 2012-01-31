@@ -1,0 +1,468 @@
+\documentclass[12pt,preprint]{aastex}
+
+% has to be before amssymb it seems
+\usepackage{color,hyperref}
+\definecolor{linkcolor}{rgb}{0,0,0.5}
+\hypersetup{colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,
+            filecolor=linkcolor,urlcolor=linkcolor}
+
+\usepackage{url}
+\usepackage{algorithmic,algorithm}
+\usepackage{amssymb,amsmath}
+
+\newcommand{\project}[1]{\texttt{#1}}
+\newcommand{\this}{\project{PEST}}
+\newcommand{\paper}{\emph{Article}}
+\newcommand{\license}{MIT(?) License}
+
+\newcommand{\foreign}[1]{\emph{#1}}
+\newcommand{\etal}{\foreign{et\,al.}}
+\newcommand{\etc}{\foreign{etc.}}
+
+\newcommand{\Fig}[1]{Figure \ref{fig:#1}}
+\newcommand{\fig}[1]{Figure \ref{fig:#1}}
+\newcommand{\figlabel}[1]{\label{fig:#1}}
+\newcommand{\Tab}[1]{Table \ref{tab:#1}}
+\newcommand{\tab}[1]{Table \ref{tab:#1}}
+\newcommand{\tablabel}[1]{\label{tab:#1}}
+\newcommand{\Eq}[1]{Equation (\ref{eq:#1})}
+\newcommand{\eq}[1]{Equation (\ref{eq:#1})}
+\newcommand{\eqlabel}[1]{\label{eq:#1}}
+\newcommand{\Sect}[1]{\S (\ref{sect:#1})}
+\newcommand{\sect}[1]{\S (\ref{sect:#1})}
+\newcommand{\sectlabel}[1]{\label{sect:#1}}
+\newcommand{\Algo}[1]{Algorithm (\ref{algo:#1})}
+\newcommand{\algo}[1]{Algorithm (\ref{algo:#1})}
+\newcommand{\algolabel}[1]{\label{algo:#1}}
+
+% math symbols
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\like}{\mathscr{L}}
+\newcommand{\bvec}[1]{\boldsymbol{#1}}
+\newcommand{\normal}[3]{\mathcal{N} (#1 | #2, #3)}
+
+% model parameters
+\newcommand{\model}{\paramvector{\Theta}}
+\newcommand{\data}{\paramvector{X}}
+
+% units
+\newcommand{\unit}[1]{\mathrm{#1}}
+
+\begin{document}
+
+\title{\this: The Python Ensemble Sampling Toolkit}
+\author{Daniel~Foreman-Mackey}
+\affil{Center for Cosmology and Particle Physics,
+                         Department of Physics, New York University,
+                         4 Washington Place, New York, NY, 10003, USA; danfm@nyu.edu}
+
+\begin{abstract}
+
+    \this~is a stable, well tested Python implementation of the affine-%
+    invariant ensemble sampler for Markov chain Monte Carlo (MCMC)
+    proposed by Goodman~\&~Weare (2010). The code is open source and has
+    already been used in several published projects in the Astrophysics
+    literature. The algorithm behind \this~has several advantages over
+    traditional MCMC sampling methods and it has excellent performance
+    measured by the sampling autocorrelation time on several test problems.
+    One major advantage of the algorithm is that it requires the hand-%
+    tuning of only 2 parameters compared to the $\sim N^2$ for
+    a traditional algorithm in $N$ dimensions. In this \paper, we describe
+    the Goodman~\&~Weare algorithm and the details of our implementation.
+    \this~takes advantage of the naturally parallel nature of the algorithm
+    allowing \emph{any} user to take advantage of multiple CPUs without any
+    extra effort. We discuss the subtleties associated with this
+    parallelization.
+
+    The code is available online at \url{http://danfm.ca/pest} under the
+    \license.
+
+\end{abstract}
+
+\keywords{
+    methods: data analysis ---
+    methods: numerical ---
+    methods: statistical
+}
+
+\section{Introduction}
+
+Probabilistic data analysis is a common theme in the recent scientific
+literature since. In particular, many problems in astrophysics and cosmology,
+benefit from careful probabilistic inference because most problems of
+interest lie in the regime of very low signal-to-noise date with large
+systematic uncertainties and missing observations. In many scientific
+problems of interest, however, there is a physically motivated,
+generative model of the data or several
+such models that we wish to compare. If we can leverage the physics that we
+understand and the rich prior information from the literature then there is
+a chance --- it has been repeatedly shown --- of solving these problems.
+With the use of more sophisticated models for the data comes an engineering
+challenge that can only be solved with a combination of computing power and
+more efficient algorithms.
+
+The general probabilistic data analysis procedure involves examining either
+the posterior probability distribution function (PDF) of the parameters
+of the model or the likelihood function of the data. In some cases, it is
+sufficient to just find the maximum of this function but it is often of
+interest to (at least approximately) understand the details of the function.
+In particular, if we wish to propagate the effects of measurement
+uncertainties through to the result of the analysis, we must sample the
+PDF on sufficiently small scales. Markov chain Monte Carlo (MCMC)
+methods are designed to approximate this function even in high dimensional
+parameter spaces and the use of MCMC has proved useful in too many research
+applications to list here (e.g. WMAP, etc. DFM: add citations).
+
+Arguably the most important advantage of fully probabilistic data analysis is
+that it is possible to \emph{marginalize} over nuisance parameters. A
+nuisance parameter is a component of the generative model that is of little
+or physical interest but must be specified in order to generate the data.
+Marginalization is the process of integrating over all possible values of
+these parameters and hence propagating the effects of your uncertainty about
+the true value to the final result. This operation is written as the integral
+\begin{equation}
+    \eqlabel{marginalization}
+    p (\mathbf{X} | \boldsymbol{\Theta}) = \int
+        p (\mathbf{X} | \boldsymbol{\Theta},\boldsymbol{\alpha}) \,
+        p (\boldsymbol{\alpha}) \, \dd \boldsymbol{\alpha}
+\end{equation}
+where $p (\mathbf{X} | \boldsymbol{\Theta})$ is the marginalized likelihood
+of the data $\mathbf{X}$ given the model parameters $\boldsymbol{\Theta}$
+and $\boldsymbol{\alpha}$ is vector of nuisance parameters. In some specific
+cases, the integral in \eq{marginalization} is analytically tractable but in
+general, the likelihood function
+$p (\mathbf{X} | \boldsymbol{\Theta},\boldsymbol{\alpha})$ is not a simple
+integrable function. In fact, in many problems, the likelihood
+function is actually the result of an extremely expensive numerical
+simulation. In this regime, the integration must be calculated numerically
+and it is often relatively efficient to approximate \eq{marginalization}
+using MCMC sampling. If the likelihood function is expensive to
+calculate, it is advantageous to use a sampling algorithm that reduces the
+necessary number of likelihood evaluations. This also precludes the use of
+second order methods (such as hybrid/Hamiltonian Monte Carlo) that require
+the calculation of (numerical) gradients of the likelihood function.
+
+Most uses of MCMC in the astrophysics literature are based on slight
+modifications to the Metropolis-Hastings (M-H) method
+\citep[e.g.][]{MacKay:2003}. Each step in a M-H chain is proposed using a
+multivariate Gaussian centered on the current position of the chain. Since
+each term in the covariance matrix of this proposal distribution is an
+unspecified parameter, this method has $D\,[D+1]/2$ tuning parameters (where
+$D$ is the dimension of the parameter space).  To make matters worse, the
+performance of this sampler is very sensitive to the optimality of these
+tuning parameters and there is no fool-proof method for choosing the values
+correctly. As a result, many heuristic methods have been developed to attempt
+to determine the optimal parameters in a data-driven way
+\citep[e.g.][]{Gregory:2005,Dunkley:2005,Widrow:2008}. Unfortunately, these
+methods all require ``burn-in'' phases where shorter Markov chains
+are sampled and the results are used to tune the hyperparameters. This extra
+cost is unacceptable when the likelihood calls are computationally heavy.
+
+The problem with traditional sampling methods can be visualized by studying
+the highly anisotropic density
+\begin{equation}
+    \eqlabel{anisotropic}
+    p(\mathbf{x}) \propto \exp \left (-\frac{(x_1-x_2)^2}{2\,\epsilon}
+                                        - \frac{(x_1+x_2)^2}{2} \right )
+\end{equation}
+which would be considered ``difficult'' by standard MCMC algorithms.
+\Eq{anisotropic} can be transformed into the much easier problem of sampling
+an isotropic Gaussian by an \emph{affine transformation} of the form
+\begin{equation}
+    y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, , \,\,\, y_2 = x_1 + x_2.
+\end{equation}
+Therefore, an algorithm that is \emph{affine invariant} will be insensitive to
+covariances between parameters. An affine invariant algorithm is unaffected by
+any transformation of the density of the form
+\begin{equation}
+    \mathbf{Y} = \mathbf{A}\, \mathbf{X} + \mathbf{b}.
+\end{equation}
+
+Extending earlier work by \citet{Christen:2007},
+\citet[][hereafter GW]{Goodman:2010} proposed an affine invariant sampling
+algorithm with only one hyperparameter that can be tuned for performance.
+This algorithm has since proved effective in several projects
+\citep[e.g.][Foreman-Mackey \& Widrow~2012, in prep.]{Hou:2011, Lang:2011}
+DFM, HOGG: Bovy, Fadely, Lang (PHAT) citations?.
+In what follows, we summarize the GW algorithm and the implementation
+decisions made in \this. In \sect{parallel} we describe the small changes
+that must be made to the algorithm to parallelize it. Finally, in \sect{api},
+we outline the installation, usage and troubleshooting of the package.
+
+\section{The Algorithm}
+
+\subsection{The stretch move}
+
+\citet{Goodman:2010} proposed an affine invariant ensemble sampling algorithm
+informally called the ``stretch move''. For completeness and for clarity of
+notation, we summarize the algorithm here and refer the interested reader to
+the original paper for more details. This method involves simultaneously
+evolving an ensemble of $K$ \emph{walkers}
+$\mathbf{X} = \{ X_j, \forall j=1,\ldots,K \}$ where the proposal
+distribution for one walker $k$ is based on the current positions of the
+$K-1$ walkers in the \emph{complementary ensemble}
+$\mathbf{X}_{[k]} = \{ X_j, \forall j \ne k \}$. In general, each $X_j$ is
+also a vector in $n$ dimensions, where $n$ is the dimension of the parameter
+space.
+
+To update the position of a walker at position $\mathbf{X}_k$,
+another walker $\mathbf{X}_j$ with $j \ne k$ is randomly chosen and then
+a new position is proposed:
+\begin{equation}
+    \eqlabel{proposal}
+    {X}_k (t) \to {Y} = {X}_j + Z \, [{X}_k (t) - {X}_j]
+\end{equation}
+where $Z$ is a random variable drawn from a distribution $g(z)$.  It is clear
+that if $g(z)$ satisfies
+\begin{equation}
+    g(z^{-1}) = z \, g(z),
+\end{equation}
+the proposal of \eq{proposal} is symmetric. In this case, the chain will
+satisfy detailed balance if the proposal is accepted with probability
+\begin{equation}
+    \eqlabel{acceptance}
+    q = \min \left \{ 1, Z^{n-1} \,
+                \frac{p(\mathbf{Y})}{p(\mathbf{X}_k(t))} \right \}
+\end{equation}
+where $n$ is the dimension of the parameter space. This procedure is then
+repeated for each walker in the ensemble \emph{in series} following the
+procedure shown in \algo{goodman}.
+
+\citet{Goodman:2010} advocate for a particular form of $g(z)$, namely
+\begin{equation}
+    \eqlabel{goodmanprop}
+    g(z) \propto \left \{ \begin{array}{ll}
+        \displaystyle\frac{1}{\sqrt{z}} & \mathrm{if}\, z\in
+                        \left [ \displaystyle\frac{1}{a}, a \right ], \\
+        0 & \mathrm{otherwise}
+    \end{array} \right .
+\end{equation}
+where $a$ is an adjustable scale parameter that \citet{Goodman:2010} set
+to 2.
+
+\begin{algorithm}
+\caption{A single stretch move update step from \citet{Goodman:2010} where
+    line \ref{line:hard} is generally the most computationally expensive
+    step. \algolabel{goodman}}
+\begin{algorithmic}[1]
+\FOR{$k = 1, \ldots, K$}
+    \STATE Draw a walker $X_j$ at random from the complementary ensemble %
+        $\mathbf{X}_{[k]}(t)$
+    \STATE $Z \gets z \sim g(z)$, \Eq{goodmanprop}
+    \STATE $Y \gets X_j + Z \, [ X_k (t) - X_j]$
+    \STATE $q \gets Z^{n-1} \, p(Y)/p(X_k(t))$ \label{line:hard}
+    \STATE $R \gets r \sim [0, 1]$
+    \IF{$R \ge q$, \eq{acceptance}}
+        \STATE $X_k(t+1) \gets Y$
+    \ELSE
+        \STATE $X_k(t+1) \gets X_k(t)$
+    \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{The parallel stretch move}
+\sectlabel{parallel}
+
+It is tempting to na\"ively parallelize the stretch move algorithm by
+simultaneously advancing each walker based on the state of the ensemble
+instead of evolving the walkers in series. Unfortunately, this would no
+longer satisfy detailed balance. Instead, if we split the ensemble into two
+ensembles ($\mathbf{X}^{(0)}$ and $\mathbf{X}^{(1)}$) and
+simultaneously update all the blue walkers --- using the stretch move
+procedure --- based on the positions of \emph{only the red walkers} then the
+outcome is a valid step for each of the walkers. Then, the red walkers are
+advanced based only on the positions in the blue ensemble. The pseudocode for
+this procedure is shown in \algo{parallel}. This code looks very similar to
+that in \algo{goodman}, however, now the computationally expensive inner loop
+(starting at line \ref{line:parallelloop} in \algo{parallel}) can be run in
+parallel.
+
+The performance of this method --- quantified by the autocorrelation time ---
+is comparable to the traditional stretch move algorithm but the fact that one
+can now take advantage of generic parallelization makes this generalization
+extremely powerful.
+
+\begin{algorithm}
+\caption{The parallel stretch move update step
+    \algolabel{parallel}}
+\begin{algorithmic}[1]
+\FOR{$i \in \{0, 1\}$}
+    \FOR{$k = 1, \ldots, K/2$} \label{line:parallelloop}
+        \STATE Draw a walker $X_j$ at random from the complementary ensemble %
+            $\mathbf{X}^{(\sim i)} (t)$
+        \STATE $Z \gets z \sim g(z)$, \Eq{goodmanprop}
+        \STATE $Y \gets X_j + Z \, [ X^{(i)}_k (t) - X_j]$
+        \STATE $q \gets Z^{n-1} \, p(Y)/p(X^{(i)}_k(t))$ \label{line:hard}
+        \STATE $R \gets r \sim [0, 1]$
+        \IF{$R \ge q$, \eq{acceptance}}
+            \STATE $X^{(i)}_k(t+\frac{1}{2}) \gets Y$
+        \ELSE
+            \STATE $X^{(i)}_k(t+\frac{1}{2}) \gets X_k(t)$
+        \ENDIF
+    \ENDFOR
+    \STATE $t \gets t+\frac{1}{2}$
+\ENDFOR
+
+\end{algorithmic}
+\end{algorithm}
+
+\section{Benchmarks \& Tests}
+
+\subsection{Measuring the performance}
+
+A standard method of quantifying the performance of an MCMC sampler is to
+estimate the autocorrelation time of the sampler on several densities.
+
+The main goal of running a Markov chain is to measure the expectation value
+(and variance) of a particular value (e.g.~$f$)
+\begin{equation}
+    \left < f(\mathbf{x}) \right > = \int f(\mathbf{x}) \, p (\mathbf{x}) \, \dd \mathbf{x}
+\end{equation}
+which can be approximated as
+\begin{equation}
+    \eqlabel{schainestim}
+    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_s} \sum_{t=1}^{T_s} f(\mathbf{X}(t))
+\end{equation}
+where $T$ is the length of the chain.  The generalization of \eq{schainestim} to
+the case of the ensemble sampler is
+\begin{equation}
+    \eqlabel{echainestim}
+    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_e} \sum_{t=1}^{T_s} \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
+\end{equation}
+where $K$ is the number of walkers.  The autocorrelation function of the chain is
+then given by
+\begin{equation}
+    C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov} \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
+         \sum_{k = 1}^{K} f(\mathbf{X}_k (t^\prime)) \right ]
+\end{equation}
+and the integrated autocorrelation time is given by
+\begin{equation}
+    \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} .
+\end{equation}
+
+For all tests discussed in this paper, I have used the \project{pyacor}\footnote{\url{https://github.com/dfm/acor}}
+module to estimate the autocorrelation time of the chains. I ported \project{pyacor} to \project{Python}
+from the original \project{C++} procedure that is described in \citet{Goodman:2010} and
+is available online\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor/}}.
+
+
+\subsection{Multivariate Gaussian distribution}
+
+The simplest test of an MCMC sampler is its sampling performance on a highly covariant
+multivariate Gaussian density. For the tests in the paper, I randomly generated
+a 50 dimensional positive definite covariance tensor and initial conditions for each
+walker.  Then, each sampler was tested with the same initial conditions for its
+performance on the density
+\begin{equation}
+    \pi (\mathbf{x}) \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \, \Sigma^{-1} \, \mathbf{x} \right )
+\end{equation}
+for the same covariance tensor $\Sigma$ in each trial.
+
+I ran a chain with $10^3$ steps and 100 walkers to measure the performance of the
+samplers on this density. For comparison, I also tested a basic M-H sampler. For
+the mixture-of-Gaussian (MOG) models, I used $K = 1$ Gaussians. The
+results are shown in \tab{gaussian}. As expected, the stretch move performs
+significantly better than M-H and the single Gaussian proposal is slightly better
+than that. Since EM with a single Gaussian finds the maximum likelihood solution
+for the mean and variance, it is unsurprising that the performance is identical
+to the analytic single Gaussian case.
+
+\subsection{The Rosenbrock density}
+
+The Rosenbrock density
+\begin{equation}
+    p(\mathbf{x}) \propto \exp \left ( -\frac{100 \, (x_2 - x_1^2)^2+ (1-x_1)^2}{20} \right )
+\end{equation}
+is plotted in \fig{rosenbrock}. Despite the fact that it is only two-dimensional,
+this density poses severe problems for all MCMC samplers.
+
+I ran a chain with $10^3$ steps and 100 walkers to test the performance
+of the samplers on this difficult density. The performance statistics in this
+case are similar to the results for the Gaussian with the extensions presented in
+this paper performing somewhat better than the stretch move algorithm.
+
+
+
+\begin{thebibliography}{}
+\raggedright
+
+\bibitem[Christen~(2007)]{Christen:2007}
+{Christen}, J., \emph{A general purpose scale-independent MCMC algorithm}, technical report I-07-16,
+CIMAT, Guanajuato, 2007.
+
+\bibitem[Dunkley~\etal~(2005)]{Dunkley:2005}
+{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
+2005, \mnras, 356, 925-936
+% http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
+
+\bibitem[Goodman~\&~Weare~(2010)]{Goodman:2010}
+Goodman,~J., \& Weare,~J.,
+2010, Comm.\ App.\ Math.\ Comp.\ Sci., 5, 65
+
+\bibitem[Gregory~(2005))]{Gregory:2005}
+{Gregory}, P.~C., \emph{Bayesian Logical Data Analysis for the Physical Sciences},
+Cambridge University Press, 2005
+% http://adsabs.harvard.edu/abs/2005blda.book.....G
+
+\bibitem[Hou~\etal~(2011))]{Hou:2011}
+{Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
+2011, arXiv:1104.2612
+% http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
+
+\bibitem[Lang~\& Hogg~(2011))]{Lang:2011}
+{Lang}, D. and {Hogg}, D.~W.,
+2011, arXiv:1103.6038
+% http://adsabs.harvard.edu/abs/2011arXiv1103.6038L
+
+\bibitem[MacKay~(2003))]{MacKay:2003}
+{MacKay}, D., \emph{Information Theory, Inference, and Learning Algorithms},
+Cambridge University Press, 2003
+
+\bibitem[Widrow~\etal~(2008))]{Widrow:2008}
+{Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
+2008, \apj, 679, 1239
+% http://adsabs.harvard.edu/abs/2008ApJ...679.1239W
+
+\end{thebibliography}
+
+\clearpage
+
+
+\begin{deluxetable}{cc}
+    \tablecaption{Benchmark results for the Gaussian density \tablabel{gaussian}}
+    \tablewidth{0pt}
+    \tablehead{
+    \colhead{Sampler} & \colhead{Average autocorrelation time}
+    }
+    \startdata
+
+        Metropolis-Hastings & 140.67 \\
+        Stretch move & 0.95 \\
+        Single Gaussian proposal & 0.68 \\
+        Mixture-of-Gaussians proposal & 0.75 \\
+        Affine invariant MOG proposal & 0.75 \\
+
+    \enddata
+\end{deluxetable}
+
+\begin{deluxetable}{ccc}
+    \tablecaption{Benchmark results for the Rosenbrock density \tablabel{rosenbrock}}
+    \tablewidth{0pt}
+    \tablehead{
+    \colhead{Sampler} & \colhead{$\mathrm{Acor}(x_1)$} & \colhead{$\mathrm{Acor}(x_2)$}
+    }
+    \startdata
+
+        Metropolis-Hastings & 503.69 & 115.08 \\
+        Stretch move & 1.45 & 0.69 \\
+        Single Gaussian proposal & 0.76 & 0.06 \\
+        Mixture-of-Gaussians proposal & 0.66 & 0.49 \\
+        Affine invariant MOG proposal & 0.91 & 0.98 \\
+
+    \enddata
+\end{deluxetable}
+
+\end{document}
+
+
