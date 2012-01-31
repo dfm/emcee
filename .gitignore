@@ -14,3 +14,4 @@ docs
 *.png
 samples
 rosenbrock.*
+*.out

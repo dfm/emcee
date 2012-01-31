@@ -11,7 +11,8 @@
 \usepackage{amssymb,amsmath}
 
 \newcommand{\project}[1]{\texttt{#1}}
-\newcommand{\this}{\project{PEST}}
+\newcommand{\thisplain}{emcee}
+\newcommand{\this}{\project{\thisplain}}
 \newcommand{\paper}{\emph{Article}}
 \newcommand{\license}{MIT(?) License}
 
@@ -50,11 +51,12 @@
 
 \begin{document}
 
-\title{\this: The Python Ensemble Sampling Toolkit}
-\author{Daniel~Foreman-Mackey}
+\title{\this: Ensemble MCMC for the masses}
+\author{Daniel~Foreman-Mackey \etal}
 \affil{Center for Cosmology and Particle Physics,
                          Department of Physics, New York University,
-                         4 Washington Place, New York, NY, 10003, USA; danfm@nyu.edu}
+                         4 Washington Place, New York, NY, 10003, USA;
+                         danfm@nyu.edu}
 
 \begin{abstract}
 
@@ -74,7 +76,7 @@
     extra effort. We discuss the subtleties associated with this
     parallelization.
 
-    The code is available online at \url{http://danfm.ca/pest} under the
+    The code is available online at \url{http://danfm.ca/\thisplain} under the
     \license.
 
 \end{abstract}
@@ -317,40 +319,45 @@ estimate the autocorrelation time of the sampler on several densities.
 The main goal of running a Markov chain is to measure the expectation value
 (and variance) of a particular value (e.g.~$f$)
 \begin{equation}
-    \left < f(\mathbf{x}) \right > = \int f(\mathbf{x}) \, p (\mathbf{x}) \, \dd \mathbf{x}
+    \left < f(\mathbf{x}) \right > = \int f(\mathbf{x}) \, p (\mathbf{x}) \,
+            \dd \mathbf{x}
 \end{equation}
 which can be approximated as
 \begin{equation}
     \eqlabel{schainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_s} \sum_{t=1}^{T_s} f(\mathbf{X}(t))
+    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_s} \sum_{t=1}^{T_s}
+            f(\mathbf{X}(t))
 \end{equation}
-where $T$ is the length of the chain.  The generalization of \eq{schainestim} to
-the case of the ensemble sampler is
+where $T$ is the length of the chain.  The generalization of \eq{schainestim}
+to the case of the ensemble sampler is
 \begin{equation}
     \eqlabel{echainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_e} \sum_{t=1}^{T_s} \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
+    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_e} \sum_{t=1}^{T_s}
+        \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
 \end{equation}
-where $K$ is the number of walkers.  The autocorrelation function of the chain is
-then given by
+where $K$ is the number of walkers.  The autocorrelation function of the chain
+is then given by
 \begin{equation}
-    C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov} \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
-         \sum_{k = 1}^{K} f(\mathbf{X}_k (t^\prime)) \right ]
+    C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov}
+            \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
+            \sum_{k = 1}^{K} f(\mathbf{X}_k (t^\prime)) \right ]
 \end{equation}
 and the integrated autocorrelation time is given by
 \begin{equation}
     \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} .
 \end{equation}
 
-For all tests discussed in this paper, I have used the \project{pyacor}\footnote{\url{https://github.com/dfm/acor}}
-module to estimate the autocorrelation time of the chains. I ported \project{pyacor} to \project{Python}
-from the original \project{C++} procedure that is described in \citet{Goodman:2010} and
-is available online\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor/}}.
-
+\this~depends on the Python module
+\project{acor}\footnote{\url{http://github.com/dfm/acor}} to estimate the
+autocorrelation time. This module is a direct port of the original
+algorithm \citep[described by][]{Goodman:2010} and implemented by those
+authors in
+C++.\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor}}
 
 \subsection{Multivariate Gaussian distribution}
 
 The simplest test of an MCMC sampler is its sampling performance on a highly covariant
-multivariate Gaussian density. For the tests in the paper, I randomly generated
+multivariate Gaussian density. For the tests in the paper, we randomly generated
 a 50 dimensional positive definite covariance tensor and initial conditions for each
 walker.  Then, each sampler was tested with the same initial conditions for its
 performance on the density
@@ -359,29 +366,18 @@ performance on the density
 \end{equation}
 for the same covariance tensor $\Sigma$ in each trial.
 
-I ran a chain with $10^3$ steps and 100 walkers to measure the performance of the
-samplers on this density. For comparison, I also tested a basic M-H sampler. For
-the mixture-of-Gaussian (MOG) models, I used $K = 1$ Gaussians. The
+We ran a chain with $10^3$ steps and 100 walkers to measure the performance of the
+samplers on this density. For comparison, we also tested a basic M-H sampler. For
+the mixture-of-Gaussian (MOG) models, we used $K = 1$ Gaussians. The
 results are shown in \tab{gaussian}. As expected, the stretch move performs
 significantly better than M-H and the single Gaussian proposal is slightly better
 than that. Since EM with a single Gaussian finds the maximum likelihood solution
 for the mean and variance, it is unsurprising that the performance is identical
 to the analytic single Gaussian case.
 
-\subsection{The Rosenbrock density}
+\section{Usage}
 
-The Rosenbrock density
-\begin{equation}
-    p(\mathbf{x}) \propto \exp \left ( -\frac{100 \, (x_2 - x_1^2)^2+ (1-x_1)^2}{20} \right )
-\end{equation}
-is plotted in \fig{rosenbrock}. Despite the fact that it is only two-dimensional,
-this density poses severe problems for all MCMC samplers.
-
-I ran a chain with $10^3$ steps and 100 walkers to test the performance
-of the samplers on this difficult density. The performance statistics in this
-case are similar to the results for the Gaussian with the extensions presented in
-this paper performing somewhat better than the stretch move algorithm.
-
+\subsection{Installation}
 
 
 \begin{thebibliography}{}
