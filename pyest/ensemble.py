@@ -17,10 +17,13 @@ import pickle
 import numpy as np
 
 import acor
+from sampler import Sampler
 
 try:
     import h5py
-
+except:
+    h5py = None
+else:
     # names of hdf5 datasets
     MPHDF5Chain       = 'chain'
     MPHDF5LnProb      = 'lnprob'
@@ -32,13 +35,222 @@ try:
     MPHDF5NAccept     = 'naccept'
     MPHDF5Iterations  = 'iterations'
 
-except:
-    h5py = None
-
 try:
     import multiprocessing
 except:
     multiprocessing = None
+
+
+class Ensemble(object):
+    def __init__(self, sampler):
+        self._sampler = sampler
+
+    def get_lnprob(self, pos=None):
+        if pos is None:
+            p = self.pos
+        else:
+            p = pos
+
+        if self._sampler.pool is not None:
+            M = self._sampler.pool.map
+        else:
+            M = map
+        lnprob = np.array(M(self._sampler.get_lnprob, [p[i]
+                    for i in range(len(p))]))
+
+        return lnprob
+
+    def propose_position(self, ensemble):
+        """
+        Propose a new position for another ensemble given the current positions
+
+        Parameters
+        ----------
+        ensemble : Ensemble
+            The ensemble that will be advanced.
+
+        """
+        s = np.atleast_2d(ensemble.pos)
+        Ns = len(s)
+        c = np.atleast_2d(self.pos)
+        Nc = len(c)
+
+        zz = ((self._sampler.a-1.)*self._sampler._random.rand(Ns)+1)**2./self._sampler.a
+        rint = self._sampler._random.randint(Nc, size=(Ns,))
+
+        # propose new walker position and calculate the lnprobability
+        q = c[rint] - zz[:,np.newaxis]*(c[rint]-s)
+        newlnprob = ensemble.get_lnprob(q)
+
+        lnpdiff = (self._sampler.dim - 1.) * np.log(zz) + newlnprob - ensemble.lnprob
+        accept = (lnpdiff > np.log(self._sampler._random.rand(len(lnpdiff))))
+
+        return q, newlnprob, accept
+
+class EnsembleSampler(Sampler):
+    """
+    A generalized Ensemble sampler that uses 2 ensembles
+
+    Parameters
+    ----------
+    k : int
+        The number of walkers. Must be a multiple of 2.
+
+    dim : int
+        The dimension of the parameter space.
+
+    lnprobfn : callable
+        A function that computes the probability of a particular point in
+        phase space.  Will be called as lnprobfn(p, *args)
+
+    a : float, optional
+        The Goodman & Weare "a" scale parameter. (default: 2.0)
+
+    ensemble_type : callable, optional
+        The constructor for the Ensemble type that will be used. (default:
+        Ensemble)
+
+    ensemble_args : dict, optional
+        Keyword arguments to pass to the ensemble constructor. (default: {})
+
+    args : list, optional
+        A list of arguments for lnprobfn.
+
+    Notes
+    -----
+    The 'chain' member of this object has the shape: (k, nlinks, dim) where
+    'nlinks' is the number of steps taken by the chain and 'k' is the number
+    of walkers.  Use the 'flatchain' property to get the chain flattened to
+    (nlinks, dim). For users of older versions, this shape is different so
+    be careful!
+
+    """
+    def __init__(self, k, *args, **kwargs):
+        self.k = k
+        self.a = kwargs.pop('a', 2.0)
+        self.pool = kwargs.pop('pool', None)
+
+        super(EnsembleSampler, self).__init__(*args, **kwargs)
+        assert self.k%2 == 0
+
+    def do_reset(self):
+        self.ensembles = [self.ensemble_type(self, **self.ensemble_args),
+                self.ensemble_type(self, **self.ensemble_args)]
+        self.naccepted = np.zeros(self.k)
+        self._chain  = np.empty((self.k, 0, self.dim))
+        self._lnprob = np.empty((self.k, 0))
+
+    def sample(self, p0, lnprob=None, randomstate=None, storechain=True, resample=1,
+            iterations=1):
+        self.random_state = randomstate
+
+        p = np.array(p0)
+        halfk = int(self.k/2)
+        self.ensembles[0].pos = p[:halfk]
+        self.ensembles[1].pos = p[halfk:]
+        if lnprob is not None:
+            self.ensembles[0].lnprob = lnprob[:halfk]
+            self.ensembles[1].lnprob = lnprob[halfk:]
+        else:
+            lnprob = np.zeros(self.k)
+            for k, ens in enumerate(self.ensembles):
+                ens.lnprob = ens.get_lnprob()
+                lnprob[halfk*k:halfk*(k+1)] = ens.lnprob
+
+        # resize chain
+        if storechain:
+            N = int(iterations/resample)
+            self._chain = np.concatenate((self._chain,
+                    np.zeros((self.k, N, self.dim))), axis=1)
+            self._lnprob = np.concatenate((self._lnprob, np.zeros((self.k, N))),
+                    axis=1)
+
+        i0 = self.iterations
+        for i in xrange(int(iterations)):
+            self.iterations += 1
+
+            for k, ens in enumerate(self.ensembles):
+                q, newlnprob, accept = self.ensembles[(k+1)%2].propose_position(ens)
+                fullaccept = np.zeros(self.k,dtype=bool)
+                fullaccept[halfk*k:halfk*(k+1)] = accept
+                if np.any(accept):
+                    lnprob[fullaccept] = newlnprob[accept]
+                    p[fullaccept] = q[accept]
+
+                    # update ensemble too
+                    ens.pos[accept] = q[accept]
+                    ens.lnprob[accept] = newlnprob[accept]
+
+                    self.naccepted[fullaccept] += 1
+
+            if storechain and i%resample == 0:
+                ind = i0 + int(i/resample)
+                self._chain[:,ind,:] = p
+                self._lnprob[:,ind]  = lnprob
+
+            # heavy duty iterator action going on right here
+            yield p, lnprob, self.random_state
+
+    def run_mcmc(self,position,randomstate,iterations,lnprob=None,lnprobinit=None):
+        """
+        Run a given number of MCMC steps
+
+        If you want to run diagnostics between steps or only advance the chain
+        by one step, use the `sample` function
+
+        Parameters
+        ----------
+        position : numpy.ndarray
+            A list of the positions of the walkers in the parameter space
+
+        randomstate : tuple
+            Returned by the get_state() function of
+            numpy.random.mtrand.RandomState
+
+        iterations : int
+            Number of steps to run in the Markov chain
+
+        lnprob : numpy.ndarray or float, optional
+            The list of log posterior probabilities for the walkers at
+            positions given by the position parameter. If lnprob is None,
+            the initial values are calculated using
+            ensemble_lnposterior(position).
+
+        Returns
+        -------
+        pos : list (nwalkers, npars)
+            The list of the final positions of the walkers.
+
+        lnprob : list (nwalkers)
+            A list of all of the log posterior probabilities for the walkers at
+            the final position.
+
+        state : tuple
+            The state of the random number generator at the end of the run.
+
+        """
+        for pos,lnprob,state in self.sample(position,lnprob,randomstate,
+                                          iterations=iterations):
+            pass
+        return pos,lnprob,state
+
+    @property
+    def flatchain(self):
+        """
+        Return the chain links flattened along the walker axis
+
+        """
+        s = self.chain.shape
+        return self.chain.reshape(s[0]*s[1], s[2])
+
+    @property
+    def acor(self):
+        s = self.dim
+        t = np.zeros(s)
+        for i in range(s):
+            t[i] = acor.acor(self.chain[:,:,i].T)[0]
+        return t
+
 
 # Here, you will find some Python MAGIC that wraps functions in such a way to
 # try to make them pickleable. This is important if you want to use multiprocessing

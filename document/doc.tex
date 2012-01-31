@@ -10,11 +10,61 @@
 \usepackage{algorithmic,algorithm}
 \usepackage{amssymb,amsmath}
 
-\newcommand{\project}[1]{\texttt{#1}}
+\usepackage{listings}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{language=Python,
+        basicstyle=\footnotesize\sffamily,
+        showspaces=false,
+        showstringspaces=false,
+        tabsize=2,
+        breaklines=false,
+        breakatwhitespace=true,
+        identifierstyle=\ttfamily,
+        keywordstyle=\bfseries\color[rgb]{0.133,0.545,0.133},
+        commentstyle=\color[rgb]{0.133,0.545,0.133},
+        stringstyle=\color[rgb]{0.627,0.126,0.941},
+        }
+
+\newcommand{\project}[1]{{\sffamily #1}}
+\newcommand{\Python}{\project{Python}}
+\newcommand{\numpy}{\project{numpy}}
+\newcommand{\Ubuntu}{\project{Ubuntu}}
+\newcommand{\github}{\project{GitHub}}
+\newcommand{\pip}{\project{pip}}
+\newcommand{\acor}{\project{acor}}
 \newcommand{\thisplain}{emcee}
 \newcommand{\this}{\project{\thisplain}}
 \newcommand{\paper}{\emph{Article}}
-\newcommand{\license}{MIT(?) License}
+\newcommand{\license}{GNU Public License (v2)}
+
+% shortcuts for API layout -- this is some brittle stuff!
+\newlength{\argmarg}
+\setlength{\argmarg}{0.5in}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\class}[3]{\def\curclass{#1}
+                \noindent{\scriptsize\this}\texttt{.}\code{#1{\small (#2)}}
+                \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
+                {\item #3}\end{list}}
+\newcommand{\param}[3]{{\item {\code{#1}} {\footnotesize (\code{#2})}: #3}}
+\newcommand{\exception}[2]{{\item \code{#1}: #2}}
+\newcommand{\property}[3]{\param{#1}{#2}{#3}}
+\newcommand{\method}[4]{{\item
+    \noindent{\scriptsize\this\texttt{.}\code{\curclass}}\texttt{.}{\bf \code{#1}}%
+    {\small\code{(#2)}}
+    \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
+    {\item #3}\end{list} \indent#4}}
+\newenvironment{arglist}[1]{\noindent\hspace{0.5\argmarg}{\bf {#1}}
+    \begin{list}{}{
+        \setlength{\leftmargin}{\argmarg}
+    }}
+    {\end{list}}
+\newenvironment{args}{\begin{arglist}{Arguments}}{\end{arglist}}
+\newenvironment{kwargs}{\begin{arglist}{Keyword Arguments}}{\end{arglist}}
+\newenvironment{errors}{\begin{arglist}{Exceptions}}{\end{arglist}}
+\newenvironment{properties}{\begin{arglist}{Properties}}{\end{arglist}}
+\newenvironment{yields}{\begin{arglist}{Yields}}{\end{arglist}}
+\newenvironment{returns}{\begin{arglist}{Returns}}{\end{arglist}}
+\newenvironment{methods}{\begin{arglist}{Methods}}{\end{arglist}}
 
 \newcommand{\foreign}[1]{\emph{#1}}
 \newcommand{\etal}{\foreign{et\,al.}}
@@ -52,11 +102,11 @@
 \begin{document}
 
 \title{\this: Ensemble MCMC for the masses}
-\author{Daniel~Foreman-Mackey \etal}
+\author{Daniel~Foreman-Mackey\altaffilmark{1}, David~W.~Hogg, \etal}
 \affil{Center for Cosmology and Particle Physics,
                          Department of Physics, New York University,
-                         4 Washington Place, New York, NY, 10003, USA;
-                         danfm@nyu.edu}
+                         4 Washington Place, New York, NY, 10003, USA}
+\altaffiltext{1}{danfm@nyu.edu}
 
 \begin{abstract}
 
@@ -182,16 +232,18 @@ any transformation of the density of the form
 
 Extending earlier work by \citet{Christen:2007},
 \citet[][hereafter GW]{Goodman:2010} proposed an affine invariant sampling
-algorithm with only one hyperparameter that can be tuned for performance.
-This algorithm has since proved effective in several projects
-\citep[e.g.][Foreman-Mackey \& Widrow~2012, in prep.]{Hou:2011, Lang:2011}
-DFM, HOGG: Bovy, Fadely, Lang (PHAT) citations?.
+algorithm (\sect{algo}) with only two hyperparameters that can be tuned for
+performance. \citet{Hou:2011} were the first group to implement this
+algorithm to solve a physics problem. The implementation presented here is
+an independent effort that has already proved effective in several projects
+\citep[][Foreman-Mackey \& Widrow~2012, in prep.]{Lang:2011,
+Bovy:2011, Dorman:2012}.
 In what follows, we summarize the GW algorithm and the implementation
 decisions made in \this. In \sect{parallel} we describe the small changes
 that must be made to the algorithm to parallelize it. Finally, in \sect{api},
 we outline the installation, usage and troubleshooting of the package.
 
-\section{The Algorithm}
+\section{The Algorithm}\sectlabel{algo}
 
 \subsection{The stretch move}
 
@@ -295,7 +347,7 @@ extremely powerful.
             $\mathbf{X}^{(\sim i)} (t)$
         \STATE $Z \gets z \sim g(z)$, \Eq{goodmanprop}
         \STATE $Y \gets X_j + Z \, [ X^{(i)}_k (t) - X_j]$
-        \STATE $q \gets Z^{n-1} \, p(Y)/p(X^{(i)}_k(t))$ \label{line:hard}
+        \STATE $q \gets Z^{n-1} \, p(Y)/p(X^{(i)}_k(t))$
         \STATE $R \gets r \sim [0, 1]$
         \IF{$R \ge q$, \eq{acceptance}}
             \STATE $X^{(i)}_k(t+\frac{1}{2}) \gets Y$
@@ -356,36 +408,223 @@ C++.\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor}}
 
 \subsection{Multivariate Gaussian distribution}
 
-The simplest test of an MCMC sampler is its sampling performance on a highly covariant
-multivariate Gaussian density. For the tests in the paper, we randomly generated
-a 50 dimensional positive definite covariance tensor and initial conditions for each
-walker.  Then, each sampler was tested with the same initial conditions for its
-performance on the density
+The simplest test of an MCMC sampler is its sampling performance on a highly
+covariant multivariate Gaussian density. For the tests in the paper, we
+randomly generated a 50 dimensional positive definite covariance tensor and
+initial conditions for each walker. Then, each sampler was tested with the
+same initial conditions for its performance on the density
 \begin{equation}
-    \pi (\mathbf{x}) \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \, \Sigma^{-1} \, \mathbf{x} \right )
+    \pi (\mathbf{x}) \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \,
+                                \Sigma^{-1} \, \mathbf{x} \right )
 \end{equation}
 for the same covariance tensor $\Sigma$ in each trial.
 
-We ran a chain with $10^3$ steps and 100 walkers to measure the performance of the
-samplers on this density. For comparison, we also tested a basic M-H sampler. For
-the mixture-of-Gaussian (MOG) models, we used $K = 1$ Gaussians. The
-results are shown in \tab{gaussian}. As expected, the stretch move performs
-significantly better than M-H and the single Gaussian proposal is slightly better
-than that. Since EM with a single Gaussian finds the maximum likelihood solution
-for the mean and variance, it is unsurprising that the performance is identical
-to the analytic single Gaussian case.
+DFM: actually do some tests here...
+
 
 \section{Usage}
 
 \subsection{Installation}
 
+The easiest way to install \this~is using
+\pip\footnote{\url{http://pypi.python.org}}. Running the command
+\begin{lstlisting}
+% pip install emcee
+\end{lstlisting}
+at the command line of a UNIX-based system will install the package and its
+\Python~dependencies. If you would like to install for all users, you might
+need to run the above command with superuser permissions. \this~depends on
+\Python~($>2.7$) and \numpy\footnote{\url{http://numpy.scipy.org}} ($>1.6$)
+and the associated \texttt{dev} headers. On some systems, you might need to
+install these packages separately. On \Ubuntu, you can install these
+dependencies using the command:
+\begin{lstlisting}
+% apt-get python python-dev numpy numpy-dev
+\end{lstlisting}
+
+An alternative installation method is to download the source code from
+\url{http://danfm.ca/emcee} and run
+\begin{lstlisting}
+% python setup.py install
+\end{lstlisting}
+in that directory. Make sure that you have \numpy~installed as well.
+
+\subsection{Basic usage}
+\begin{lstlisting}
+import numpy as np
+import emcee
+
+def lnprobfn(x, mu, icov):
+    diff = x-mu
+    return -np.dot(diff,np.dot(icov,diff))/2.0
+
+ndim  = 10
+means = np.random.rand(ndim)
+cov   = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
+cov   = np.triu(cov)
+cov  += cov.T - np.diag(cov.diagonal())
+cov   = np.dot(cov,cov)
+icov  = np.linalg.inv(cov)
+
+nwalkers = 100
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
+                        args=[means, icov])
+
+pos,prob,state = sampler.run_mcmc(p0, None, 500)
+sampler.clear_chain()
+
+sampler.run_mcmc(pos, state, 2000)
+
+print "Mean acceptance fraction:", np.mean(sampler.acceptance_fraction)
+\end{lstlisting}
+
+\subsection{API} \sectlabel{api}
+
+\subsubsection{\code{\thisplain.ensemble}}
+
+\class{EnsembleSampler}{*args, **kwargs}
+    {Ensemble sampling following Goodman \& Weare (2010) with optional
+    parallelization}
+
+\begin{args}
+    \param{k}{int}{The number of Goodman \& Weare ``walkers''.}
+    \param{dim}{int}{Number of dimensions in the parameter space.}
+    \param{lnpostfn}{callable}{%
+        A function that takes a vector in the parameter space as input and
+        returns the natural logarithm of the posterior probability for that
+        position.
+    }
+\end{args}
+
+\begin{kwargs}
+    \param{a}{float}{The proposal scale parameter from \eq{goodmanprop}.
+                     (default: \code{2.0})}
+    \param{args}{list}{%
+        Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn}
+        will be called with the sequence \code{lnpostfn(p, *args)}.
+    }
+    \param{postargs}{list}{Alias of \code{args} for backwards compatibility.}
+    \param{threads}{int}{The number of threads to use for parallelization.
+        If \code{threads == 1}, then the \code{multiprocessing} is not used
+        but if \code{threads > 1}, then a \code{Pool} object
+        is created and calls to \code{lnpostfn} are run in parallel following
+        \algo{parallel}. (default: \code{1})}
+    \param{pool}{multiprocessing.Pool}{An alternative method of using the
+        parallelized algorithm. If \code{pool is not None}, the value of
+        \code{threads} is ignored and the provided \code{Pool} is used for
+        all parallelization. (default: \code{None})}
+\end{kwargs}
+
+\begin{errors}
+    \exception{AssertionError}{If \code{k < 2*dim} or if \code{k} is not even.}
+\end{errors}
+
+\begin{properties}
+    \property{chain}{numpy.ndarray}{A pointer to the Markov chain itself. The
+        shape of this array is \code{(k, dim, iterations/resample)}}
+    \property{flatchain}{numpy.ndarray}{A shortcut for accessing \code{chain}
+        flattened along the zeroth (walker) axis.}
+    \property{lnprobability}{numpy.ndarray}{A pointer to the matrix of the
+        value of \code{lnprobfn} produced at each step for each walker. The
+        shape is \code{(k, iterations/resample)}.}
+    \property{iterations}{int}{The number of steps that have been run in the
+        chain.}
+    \property{acceptance\_fraction}{numpy.ndarray}{An array (length: \code{k})
+        of the fraction of steps accepted for each walker.}
+    \property{acor}{numpy.ndarray}{The autocorrelation time of each parameter
+        in the chain (length: \code{dim}) as estimated by the \code{acor}
+        module.}
+    \property{random\_state}{tuple}{The state of the internal random number
+        generator. In practice, it's the result of calling \code{get\_state()}
+        on a \code{numpy.random.mtrand.RandomState} object. You can try to
+        set this property but be warned that if you do this and it fails, it
+        will do so silently.}
+\end{properties}
+
+\begin{methods}
+    \method{sample}{pos0, lnprob0=None, rstate0=None, iterations=1}
+        {Advances the chain \code{iterations} steps as an iterator}{%
+            \begin{args}
+                \param{pos0}{numpy.ndarray}{
+                    A list of the initial positions of the walkers in the
+                    parameter space. The shape is \code{(k, dim)}.}
+            \end{args}
+            \begin{kwargs}
+                \param{lnprob0}{numpy.ndarray}{
+                    The list of log posterior probabilities for the walkers
+                    at positions given by the \code{p0}. If \code{lnprob is
+                    None}, the initial values are calculated. The shape is
+                    \code{(k, dim)}.}
+                \param{rstate0}{tuple}{The state of the random number
+                    generator. \\
+                    See \code{EnsembleSampler.random\_state} for details.}
+                \param{iterations}{int}{The number of steps to run.
+                    (default: \code{1})}
+            \end{kwargs}
+            \begin{yields}
+                \param{pos}{numpy.ndarray}{
+                    A list of the current positions of the walkers in the
+                    parameter space. The shape is \code{(k, dim)}.}
+                \param{lnprob}{numpy.ndarray}{
+                    The list of log posterior probabilities for the walkers
+                    at positions given by the \code{pos}. The shape is
+                    \code{(k, dim)}.}
+                \param{rstate}{tuple}{The state of the random number
+                    generator.}
+            \end{yields}
+        }
+    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None, **kwargs}
+        {Iterate \code{sample} for \code{N} iterations and return the result.
+        The parameters are passed directly to \code{sample} so see above for
+        details.}{%
+            \begin{returns}
+                \param{pos}{numpy.ndarray}{
+                    A list of the final positions of the walkers in the
+                    parameter space. The shape is \code{(k, dim)}.}
+                \param{lnprob}{numpy.ndarray}{
+                    The list of log posterior probabilities for the walkers
+                    at positions given by the \code{pos}. The shape is
+                    \code{(k, dim)}.}
+                \param{rstate}{tuple}{The final state of the random number
+                    generator.}
+            \end{returns}
+        }
+    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the
+        bookkeeping parameters.}{}
+    \method{clear\_chain}{}{An alias of \code{reset} kept for backwards
+        compatibility.}{}
+
+\end{methods}
+
+\subsection{Issues \& Contributions}
+
+The development of \this~is being coordinated on \github~at
+\url{http://github.com/dfm/emcee} and contributions are welcome. If you
+encounter any problems with the code, please report them at
+\url{http://github.com/dfm/emcee/issues} (DFM: check this url) and consider
+contributing a patch.
+
 
 \begin{thebibliography}{}
 \raggedright
 
+\bibitem[Bovy~\etal~(2011)]{Bovy:2011}
+ Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
+Y.~S., 2011, \apj, submitted, arXiv:1111.1724 [astro-ph.GA]
+% http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1111.1724
+
 \bibitem[Christen~(2007)]{Christen:2007}
-{Christen}, J., \emph{A general purpose scale-independent MCMC algorithm}, technical report I-07-16,
-CIMAT, Guanajuato, 2007.
+{Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
+technical report I-07-16, CIMAT, Guanajuato, 2007.
+
+\bibitem[Dorman~\etal~(2012)]{Dorman:2012}
+{Dorman},~C., {Guhathakurta},~P., {Fardal},~M.~A., {Geha},~M.~C.,
+{Howley},~K.~M., {Kalirai},~J.~S., {Lang},~D., {Cuillandre}, J.,
+{Dalcanton},~J., {Gilbert},~K.~M., {Seth},~A.~C., {Williams},~B.~F.,
+\& {Yniguez},~B., 2012, \apj, submitted
+% http://adsabs.harvard.edu/abs/2012AAS...21934608D
 
 \bibitem[Dunkley~\etal~(2005)]{Dunkley:2005}
 {Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
@@ -421,43 +660,6 @@ Cambridge University Press, 2003
 % http://adsabs.harvard.edu/abs/2008ApJ...679.1239W
 
 \end{thebibliography}
-
-\clearpage
-
-
-\begin{deluxetable}{cc}
-    \tablecaption{Benchmark results for the Gaussian density \tablabel{gaussian}}
-    \tablewidth{0pt}
-    \tablehead{
-    \colhead{Sampler} & \colhead{Average autocorrelation time}
-    }
-    \startdata
-
-        Metropolis-Hastings & 140.67 \\
-        Stretch move & 0.95 \\
-        Single Gaussian proposal & 0.68 \\
-        Mixture-of-Gaussians proposal & 0.75 \\
-        Affine invariant MOG proposal & 0.75 \\
-
-    \enddata
-\end{deluxetable}
-
-\begin{deluxetable}{ccc}
-    \tablecaption{Benchmark results for the Rosenbrock density \tablabel{rosenbrock}}
-    \tablewidth{0pt}
-    \tablehead{
-    \colhead{Sampler} & \colhead{$\mathrm{Acor}(x_1)$} & \colhead{$\mathrm{Acor}(x_2)$}
-    }
-    \startdata
-
-        Metropolis-Hastings & 503.69 & 115.08 \\
-        Stretch move & 1.45 & 0.69 \\
-        Single Gaussian proposal & 0.76 & 0.06 \\
-        Mixture-of-Gaussians proposal & 0.66 & 0.49 \\
-        Affine invariant MOG proposal & 0.91 & 0.98 \\
-
-    \enddata
-\end{deluxetable}
 
 \end{document}
 
