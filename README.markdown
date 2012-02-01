@@ -1,7 +1,6 @@
 emcee
 =====
-The Python ensemble sampling toolkit for affine-invariant MCMC
---------------------------------------------------------------
+**The Python ensemble sampling toolkit for affine-invariant MCMC**
 
 emcee is a stable, well tested Python implementation of the affine-invariant
 ensemble sampler for Markov chain Monte Carlo (MCMC)
@@ -14,17 +13,17 @@ literature.
 emcee was developed by [Daniel Foreman-Mackey](http://danfm.ca) at
 NYU with contributions from Dustin Lang.
 
-## Documentation
+### Documentation
 
 Read the docs at [danfm.ca/emcee](http://danfm.ca/pyest/)
 
-## Atribution
+### Atribution
 
 Please cite Foreman-Mackey, Hogg, et al. (2012) if you find this
 code useful in your research. We also provide support in exchange for
 authorship on a case-by-case basis.
 
-## License
+### License
 
 emcee is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as
