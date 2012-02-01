@@ -3,11 +3,11 @@
 
 from distutils.core import setup
 
-setup(name='PyEST',
-        version='0.1',
-        description='pyest',
+setup(name='emcee',
+        version='1.0',
+        description='Kick ass MCMC sampling',
         author='Daniel Foreman-Mackey',
-        author_email='dan@danfm.ca',
-        packages=['pyest'],
+        author_email='danfm@nyu.edu',
+        packages=['emcee'],
         )
 

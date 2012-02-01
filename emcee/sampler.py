@@ -16,17 +16,17 @@ class Sampler(object):
     """
     The base sampler object that implements various helper functions
 
-    Parameters
-    ----------
-    dim : int
-        The dimension of the parameter space.
+    **Arguments**
 
-    lnprobfn : callable
-        A function that computes the probability of a particular point in phase
-        space.  Will be called as lnprobfn(p, *args)
+    * `dim` (int): Number of dimensions in the parameter space.
+    * `lnpostfn` (callable): A function that takes a vector in the parameter
+      space as input and returns the natural logarithm of the posterior
+      probability for that position.
 
-    args : list, optional
-        A list of arguments for lnprobfn.
+    **Keyword Arguments**
+
+    * `args` (list): Optional list of extra arguments for `lnpostfn`.
+      `lnpostfn` will be called with the sequence `lnpostfn(p, *args)`.
 
     """
     def __init__(self, dim, lnprobfn, args=[]):
@@ -34,24 +34,16 @@ class Sampler(object):
         self.lnprobfn = lnprobfn
         self.args     = args
 
-        # Initialize a random number generator that we own
+        # This is a random number generator that we can easily set the state
+        # of without affecting the numpy-wide generator
         self._random = np.random.mtrand.RandomState()
 
         self.reset()
 
     def reset(self):
-        """
-        Reset the chain parameters (e.g. after the burn-in).
-
-        """
+        """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
         self.iterations = 0
         self.naccepted  = 0
-
-        self.do_reset()
-
-    def do_reset(self):
-        """Implemented by subclasses"""
-        pass
 
     @property
     def random_state(self):
