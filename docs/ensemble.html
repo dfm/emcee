@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>ensemble.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  
+  <div class='section'>
+    <div class='docs'><h1>ensemble.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>This is a Markov chain Monte Carlo (MCMC) sampler based on:</p>
+<p>Goodman &amp; Weare, Ensemble Samplers With Affine Invariance
+   Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;EnsembleSampler&#39;</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">acor</span>
+<span class="kn">from</span> <span class="nn">sampler</span> <span class="kn">import</span> <span class="n">Sampler</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">h5py</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">h5py</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="k">else</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>names of hdf5 datasets</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">MPHDF5Chain</span>       <span class="o">=</span> <span class="s">&#39;chain&#39;</span>
+    <span class="n">MPHDF5LnProb</span>      <span class="o">=</span> <span class="s">&#39;lnprob&#39;</span>
+    <span class="n">MPHDF5RState</span>      <span class="o">=</span> <span class="s">&#39;rstate&#39;</span>
+    <span class="n">MPHDF5NPars</span>       <span class="o">=</span> <span class="s">&#39;npars&#39;</span>
+    <span class="n">MPHDF5NWalkers</span>    <span class="o">=</span> <span class="s">&#39;nwalkers&#39;</span>
+    <span class="n">MPHDF5AParam</span>      <span class="o">=</span> <span class="s">&#39;a&#39;</span>
+    <span class="n">MPHDF5PostArgs</span>    <span class="o">=</span> <span class="s">&#39;postargs&#39;</span>
+    <span class="n">MPHDF5NAccept</span>     <span class="o">=</span> <span class="s">&#39;naccept&#39;</span>
+    <span class="n">MPHDF5Iterations</span>  <span class="o">=</span> <span class="s">&#39;iterations&#39;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">multiprocessing</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span> <span class="o">=</span> <span class="n">sampler</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_lnprob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">pos</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">map</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="nb">map</span>
+        <span class="n">lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">get_lnprob</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">))]))</span>
+
+        <span class="k">return</span> <span class="n">lnprob</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Propose a new position for another ensemble given the current positions</p>
+<h2>Parameters</h2>
+<p>ensemble : Ensemble
+    The ensemble that will be advanced.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">propose_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ensemble</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">Ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">Nc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="n">zz</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">a</span><span class="o">-</span><span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mf">2.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">a</span>
+        <span class="n">rint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">Nc</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">Ns</span><span class="p">,))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>propose new walker position and calculate the lnprobability</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">q</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">rint</span><span class="p">]</span> <span class="o">-</span> <span class="n">zz</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">rint</span><span class="p">]</span><span class="o">-</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">newlnprob</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">get_lnprob</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+
+        <span class="n">lnpdiff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">dim</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">zz</span><span class="p">)</span> <span class="o">+</span> <span class="n">newlnprob</span> <span class="o">-</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">lnprob</span>
+        <span class="n">accept</span> <span class="o">=</span> <span class="p">(</span><span class="n">lnpdiff</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lnpdiff</span><span class="p">))))</span>
+
+        <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">newlnprob</span><span class="p">,</span> <span class="n">accept</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>A generalized Ensemble sampler that uses 2 ensembles</p>
+<h2>Parameters</h2>
+<p>k : int
+    The number of walkers. Must be a multiple of 2.</p>
+<p>dim : int
+    The dimension of the parameter space.</p>
+<p>lnprobfn : callable
+    A function that computes the probability of a particular point in
+    phase space.  Will be called as lnprobfn(p, *args)</p>
+<p>a : float, optional
+    The Goodman &amp; Weare "a" scale parameter. (default: 2.0)</p>
+<p>ensemble_type : callable, optional
+    The constructor for the Ensemble type that will be used. (default:
+    Ensemble)</p>
+<p>ensemble_args : dict, optional
+    Keyword arguments to pass to the ensemble constructor. (default: {})</p>
+<p>args : list, optional
+    A list of arguments for lnprobfn.</p>
+<h2>Notes</h2>
+<p>The 'chain' member of this object has the shape: (k, nlinks, dim) where
+'nlinks' is the number of steps taken by the chain and 'k' is the number
+of walkers.  Use the 'flatchain' property to get the chain flattened to
+(nlinks, dim). For users of older versions, this shape is different so
+be careful!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">EnsembleSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;pool&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">EnsembleSampler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">do_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ensemble_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">ensemble_args</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">ensemble_args</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">naccepted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">lnprob</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">randomstate</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">storechain</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">resample</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">randomstate</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+        <span class="n">halfk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">p</span><span class="p">[:</span><span class="n">halfk</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">halfk</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">lnprob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lnprob</span> <span class="o">=</span> <span class="n">lnprob</span><span class="p">[:</span><span class="n">halfk</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lnprob</span> <span class="o">=</span> <span class="n">lnprob</span><span class="p">[</span><span class="n">halfk</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ens</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">):</span>
+                <span class="n">ens</span><span class="o">.</span><span class="n">lnprob</span> <span class="o">=</span> <span class="n">ens</span><span class="o">.</span><span class="n">get_lnprob</span><span class="p">()</span>
+                <span class="n">lnprob</span><span class="p">[</span><span class="n">halfk</span><span class="o">*</span><span class="n">k</span><span class="p">:</span><span class="n">halfk</span><span class="o">*</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">ens</span><span class="o">.</span><span class="n">lnprob</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>resize chain</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">storechain</span><span class="p">:</span>
+            <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iterations</span><span class="o">/</span><span class="n">resample</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">N</span><span class="p">))),</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">i0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterations</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">iterations</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iterations</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ens</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">):</span>
+                <span class="n">q</span><span class="p">,</span> <span class="n">newlnprob</span><span class="p">,</span> <span class="n">accept</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensembles</span><span class="p">[(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">propose_position</span><span class="p">(</span><span class="n">ens</span><span class="p">)</span>
+                <span class="n">fullaccept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">fullaccept</span><span class="p">[</span><span class="n">halfk</span><span class="o">*</span><span class="n">k</span><span class="p">:</span><span class="n">halfk</span><span class="o">*</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">accept</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">accept</span><span class="p">):</span>
+                    <span class="n">lnprob</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlnprob</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span>
+                    <span class="n">p</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>update ensemble too</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                    <span class="n">ens</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span>
+                    <span class="n">ens</span><span class="o">.</span><span class="n">lnprob</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlnprob</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">naccepted</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">storechain</span> <span class="ow">and</span> <span class="n">i</span><span class="o">%</span><span class="n">resample</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ind</span> <span class="o">=</span> <span class="n">i0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">resample</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">[:,</span><span class="n">ind</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">p</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span><span class="p">[:,</span><span class="n">ind</span><span class="p">]</span>  <span class="o">=</span> <span class="n">lnprob</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>heavy duty iterator action going on right here</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">yield</span> <span class="n">p</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>Run a given number of MCMC steps</p>
+<p>If you want to run diagnostics between steps or only advance the chain
+by one step, use the <code>sample</code> function</p>
+<h2>Parameters</h2>
+<p>position : numpy.ndarray
+    A list of the positions of the walkers in the parameter space</p>
+<p>randomstate : tuple
+    Returned by the get_state() function of
+    numpy.random.mtrand.RandomState</p>
+<p>iterations : int
+    Number of steps to run in the Markov chain</p>
+<p>lnprob : numpy.ndarray or float, optional
+    The list of log posterior probabilities for the walkers at
+    positions given by the position parameter. If lnprob is None,
+    the initial values are calculated using
+    ensemble_lnposterior(position).</p>
+<h2>Returns</h2>
+<p>pos : list (nwalkers, npars)
+    The list of the final positions of the walkers.</p>
+<p>lnprob : list (nwalkers)
+    A list of all of the log posterior probabilities for the walkers at
+    the final position.</p>
+<p>state : tuple
+    The state of the random number generator at the end of the run.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">run_mcmc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span><span class="n">iterations</span><span class="p">,</span><span class="n">lnprob</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">lnprobinit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">position</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span>
+                                          <span class="n">iterations</span><span class="o">=</span><span class="n">iterations</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Return the chain links flattened along the walker axis</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flatchain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">acor</span><span class="o">.</span><span class="n">acor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">t</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>Here, you will find some Python MAGIC that wraps functions in such a way to
+try to make them pickleable. This is important if you want to use multiprocessing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">_function_wrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">postargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postargs</span> <span class="o">=</span> <span class="n">postargs</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">postargs</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">_wrap_function</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="n">args</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>check whether func is pickleable</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span> <span class="o">==</span> <span class="p">():</span>
+        <span class="k">return</span> <span class="n">func</span>
+    <span class="n">fw</span> <span class="o">=</span> <span class="n">_function_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">fw</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fw</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>Ensemble sampling following Goodman &amp; Weare (2010) with optional parallelization.</p>
+<h2>Parameters</h2>
+<p>nwalkers : int
+    Number of Goodman &amp; Weare "walkers"</p>
+<p>npars : int
+    Number of dimensions in parameter space</p>
+<p>lnposteriorfn : function
+    A function that takes a vector in the parameter space as input and
+    returns the ln-posterior for that position. If you want to use
+    multiprocessing, lnposteriorfn <em>must</em> be pickleable.</p>
+<p>postargs : tuple
+    Tuple of arguments for lnposteriorfn i.e. <code>f(x,*args)</code>.
+    Must be a tuple!</p>
+<p>a : float, optional
+    The sampler scale (see [1]_)</p>
+<p>outfile : str, optional
+    Filename for output.</p>
+<p>outtype : str, optional
+    Type of output to write (options "ASCII" or "HDF5")</p>
+<p>clobber : bool, optional
+    Overwrite file if it already exists? Otherwise, append. (default: True)</p>
+<p>threads : int, optional
+    Number of threads to run. If you wish to run with &gt;1 thread, the
+    multiprocessing module must be installed in your Python path.</p>
+<p>pool : multiprocessing.Pool, optional
+    The Pool to use.  If you do not provide one, one will be created for you.</p>
+<h2>References</h2>
+<p>.. [1] J. Goodman and J. Weare, "Ensemble Samplers with Affine Invariance",
+   Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">EnsembleSampler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nwalkers</span><span class="p">,</span><span class="n">npars</span><span class="p">,</span><span class="n">lnposteriorfn</span><span class="p">,</span><span class="n">postargs</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">a</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">outfile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">clobber</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">outtype</span><span class="o">=</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span>
+                 <span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">pool</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">nensemble</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">postargs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">postargs</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postargs</span> <span class="o">=</span> <span class="n">postargs</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>multiprocessing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span>    <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">threads</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">multiprocessing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>check to see if lnposteriorfn is pickleable</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lnposteriorfn</span> <span class="o">=</span> <span class="n">_wrap_function</span><span class="p">(</span><span class="n">lnposteriorfn</span><span class="p">,</span> <span class="n">postargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">PicklingError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Warning: Can&#39;t pickle lnposteriorfn, we&#39;ll only use 1 thread&quot;</span>
+                <span class="n">threads</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">pool</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">threads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Warning: multiprocessing package isn&#39;t loaded&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lnposteriorfn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">lnposteriorfn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="o">*</span><span class="n">postargs</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>Initialize a random number generator that we own</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">_random</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">mtrand</span><span class="o">.</span><span class="n">RandomState</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>the ensemble sampler parameters</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">assert</span> <span class="n">nwalkers</span> <span class="o">&gt;</span> <span class="n">npars</span><span class="p">,</span> \
+            <span class="s">&quot;You need more walkers than dim = </span><span class="si">%d</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">npars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npars</span>    <span class="o">=</span> <span class="n">npars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span> <span class="o">=</span> <span class="n">nwalkers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span>        <span class="o">=</span> <span class="n">a</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span> <span class="o">=</span> <span class="n">nensemble</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensembles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ensembles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="p">,</span>
+                        <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensembles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>used to fix some parameters to specific values for debugging purposes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">_neff</span>    <span class="o">=</span> <span class="n">npars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fixedinds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fixedvals</span> <span class="o">=</span> <span class="p">[]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>optional output file, wipe it if it's already there</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">=</span> <span class="n">outtype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="o">=</span> <span class="n">outfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clobber</span> <span class="o">=</span> <span class="n">clobber</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_chain</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>Clear the chain and some other stats so that the class can be reused</p>
+<p>This can be especially useful after a burn-in phase, for example.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">clear_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span>    <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_naccepted</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clobber</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;hdf5&#39;</span> <span class="ow">and</span> <span class="n">h5py</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">MPHDF5Chain</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">,</span><span class="bp">None</span><span class="p">])</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">MPHDF5LnProb</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">maxshape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">None</span><span class="p">])</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">MPHDF5RState</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">r0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">get_state</span><span class="p">()):</span>
+                    <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5RState</span><span class="p">][</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span><span class="o">%</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>this is how we'll read the random state back in... todo</p>
+<p>for r in f['rstate']:
+    print f['rstate'][r][...]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">f</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">MPHDF5PostArgs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postargs</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+                    <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5PostArgs</span><span class="p">][</span><span class="s">&#39;0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postargs</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">r0</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postargs</span><span class="p">):</span>
+                        <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5PostArgs</span><span class="p">][</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span><span class="o">%</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r0</span>
+
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5NPars</span><span class="p">]</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npars</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5NWalkers</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5AParam</span><span class="p">]</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
+
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5NAccept</span><span class="p">]</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_naccepted</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5Iterations</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>Return the ln-posterior probability for all the walkers</p>
+<p>This step is run in parallel if the sampler was initialized with &gt; 1 threads.</p>
+<h2>Parameters</h2>
+<p>pos : list (nwalkers, npars)
+    A list of the positions of the walkers in the parameter space</p>
+<h2>Returns</h2>
+<p>lnposterior : list (nwalkers)
+    A list of the log posterior values for each of the walkers</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">ensemble_lnposterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool</span><span class="o">.</span><span class="n">map</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="nb">map</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lnposteriorfn</span><span class="p">,</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">))]))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>Run a given number of MCMC steps</p>
+<p>If you want to run diagnostics between steps or only advance the chain
+by one step, use the EnsembleSampler.sample function</p>
+<h2>Parameters</h2>
+<p>position : list (nwalkers, npars)
+    A list of the positions of the walkers in the parameter space</p>
+<p>randomstate : tuple
+    Returned by the get_state() function of numpy.random.mtrand.RandomState</p>
+<p>iterations : int
+    Number of steps to run in the Markov chain</p>
+<p>lnprob : list (nwalkers), optional
+    The list of log posterior probabilities for the walkers at positions
+    given by the position parameter. If lnprobinit is None, the initial
+    values are calculated using ensemble_lnposterior(position).</p>
+<p>lnprobinit : list (nwalkers), optional
+    Superseded by lnprob.</p>
+<h2>Returns</h2>
+<p>pos : list (nwalkers, npars)
+    The list of the final positions of the walkers.</p>
+<p>lnprob : list (nwalkers)
+    A list of all of the log posterior probabilities for the walkers at
+    the final position.</p>
+<p>state : tuple
+    The state of the random number generator at the end of the run.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">run_mcmc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span><span class="n">iterations</span><span class="p">,</span><span class="n">lnprob</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">lnprobinit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">position</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span>
+                                          <span class="n">iterations</span><span class="o">=</span><span class="n">iterations</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>Propose a new position given a current position and the complementary set</p>
+<h2>Parameters</h2>
+<p>s0 : numpy.ndarray
+    The current positions of the set of walkers that will be advanced</p>
+<p>comp : numpy.ndarray
+    The complementary set of walkers</p>
+<p>lnprob : numpy.ndarray
+    The current ln-probability of the s0 set</p>
+<h2>Returns</h2>
+<p>newposition : numpy.ndarray
+    The new positions of the walkers (same shape as s0)</p>
+<p>newlnprob : numpy.ndarray
+    The ln-probability of the walkers at newposition</p>
+<p>accept : numpy.ndarray
+    Array of bools indicating whether or not a walker's new position
+    should be accepted</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">_propose_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">s0</span><span class="p">,</span><span class="n">comp</span><span class="p">,</span><span class="n">lnprob</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">s0</span><span class="p">)</span>
+        <span class="n">n0</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">comp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="n">ncomp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="n">zz</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">-</span><span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n0</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mf">2.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span>
+        <span class="k">if</span> <span class="n">comp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">rint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">ncomp</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n0</span><span class="p">,))</span>
+            <span class="n">rint</span><span class="p">[</span><span class="n">rint</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n0</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">ncomp</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n0</span><span class="p">,))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>propose new walker position and calculate the lnprobability</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">newposition</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">rint</span><span class="p">]</span> <span class="o">-</span> \
+                <span class="n">zz</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">rint</span><span class="p">]</span><span class="o">-</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">newposition</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_fixedinds</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixedvals</span>
+        <span class="n">newlnprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_lnposterior</span><span class="p">(</span><span class="n">newposition</span><span class="p">)</span>
+
+        <span class="n">lnpdiff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_neff</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">zz</span><span class="p">)</span> <span class="o">+</span> <span class="n">newlnprob</span> <span class="o">-</span> <span class="n">lnprob</span>
+        <span class="n">accept</span> <span class="o">=</span> <span class="p">(</span><span class="n">lnpdiff</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lnpdiff</span><span class="p">))))</span>
+
+        <span class="k">return</span> <span class="n">newposition</span><span class="p">,</span> <span class="n">newlnprob</span><span class="p">,</span> <span class="n">accept</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>Advances the chain N steps as an iterator</p>
+<p>By default, it will only advance the chain by one step but if you're
+going to run multiple steps, the EnsembleSampler.run_mcmc or iterator
+version of this function have less overhead.</p>
+<h2>Parameters</h2>
+<p>position0 : list (nwalkers, npars)
+    A list of the initial positions of the walkers in the parameter space</p>
+<p>lnprob : list (nwalkers)
+    The list of log posterior probabilities for the walkers at positions
+    given by the position parameter. If it is None, the initial
+    values are calculated using ensemble_lnposterior(position).</p>
+<p>randomstate : tuple
+    Returned by the get_state() function of numpy.random.mtrand.RandomState</p>
+<p>iterations : int, optional
+    Number of steps to run in the Markov chain</p>
+<h2>Returns</h2>
+<p>pos : list (nwalkers, npars)
+    The list of the <em>final</em> positions of the walkers.</p>
+<p>lnprob : list (nwalkers)
+    A list of all of the log posterior probabilities for the walkers at
+    the <em>final</em> position.</p>
+<p>state : tuple
+    The state of the random number generator at the end of the run.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position0</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <p>copy the original position so that it doesn't get over-written</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">position0</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>calculate the current probability</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">lnprob</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lnprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensemble_lnposterior</span><span class="p">(</span><span class="n">position</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      <p>set the current state of our random number generator</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">randomstate</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">seed</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      <p>how many iterations?  default to 1</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">iterations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;iterations&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>resize the chain array for speed (Thanks Hogg&amp;Lang)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">binaryrep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;hdf5&#39;</span> <span class="ow">and</span> <span class="n">h5py</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">binaryrep</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5Chain</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span><span class="o">+</span><span class="n">iterations</span><span class="p">))</span>
+            <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5LnProb</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span><span class="o">+</span><span class="n">iterations</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">,</span><span class="n">iterations</span><span class="p">])))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="n">iterations</span><span class="p">])),</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>sample chain as an iterator</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>propose new walker position and calculate the lnprobability</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">ens_in</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensembles</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+                <span class="n">ens_comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensembles</span><span class="p">[(</span><span class="n">g</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">_nensemble</span><span class="p">]</span>
+                <span class="n">newposition</span><span class="p">,</span> <span class="n">newlnprob</span><span class="p">,</span> <span class="n">accept</span> <span class="o">=</span> \
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_propose_position</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">ens_in</span><span class="p">],</span>
+                                <span class="n">position</span><span class="p">[</span><span class="n">ens_comp</span><span class="p">],</span>
+                                <span class="n">lnprob</span><span class="p">[</span><span class="n">ens_in</span><span class="p">])</span>
+                <span class="n">fullaccept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">fullaccept</span><span class="p">[</span><span class="n">ens_in</span><span class="p">]</span> <span class="o">=</span> <span class="n">accept</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">accept</span><span class="p">):</span>
+                    <span class="n">lnprob</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlnprob</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span>
+                    <span class="n">position</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">=</span> <span class="n">newposition</span><span class="p">[</span><span class="n">accept</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_naccepted</span><span class="p">[</span><span class="n">fullaccept</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-52'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      <p>append current position and lnprobability (of all walkers)
+to the chain</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">if</span> <span class="n">binaryrep</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5Chain</span><span class="p">][:,:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span><span class="p">]</span> <span class="o">=</span> <span class="n">position</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5LnProb</span><span class="p">][:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span><span class="p">]</span> <span class="o">=</span> <span class="n">lnprob</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5NAccept</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_naccepted</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5Iterations</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">[:,:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span><span class="p">]</span> <span class="o">=</span> <span class="n">position</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                                               <span class="p">[</span><span class="n">lnprob</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>write the current position to disk</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;ascii&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_step</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">yield</span> <span class="n">position</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">_write_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;ascii&#39;</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">,</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">):</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%10.8e</span><span class="se">\t</span><span class="s">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
+      </div>
+      <p>Get a list of acceptance fractions for each walker in the ensemble</p>
+<h2>Returns</h2>
+<p>acceptance_fractions : list (nwalkers)
+    The list of acceptance fractions for the walkers</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acceptance_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-56'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_naccepted</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterations</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p>Get the set of ln-probabilities after running a MCMC</p>
+<h2>Returns</h2>
+<p>lnprob : numpy.ndarray (nwalkers, niterations)
+    The ln-probabilities of each walker at each step</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lnprobability</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lnprobability</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_lnprobability</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-58'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;hdf5&#39;</span> <span class="ow">and</span> <span class="n">h5py</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5LnProb</span><span class="p">][</span><span class="o">...</span><span class="p">]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lnprobability</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>Get the MCMC samples</p>
+<h2>Returns</h2>
+<p>chain : numpy.ndarray (nwalkers, npars, niterations)
+    The set of samples in the MCMC chain</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_chain</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-60'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-60'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outtype</span> <span class="o">==</span> <span class="s">&#39;hdf5&#39;</span> <span class="ow">and</span> <span class="n">h5py</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">MPHDF5Chain</span><span class="p">][</span><span class="o">...</span><span class="p">]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-61'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-61'>#</a>
+      </div>
+      <p>Fix a set of parameters to specific values</p>
+<h2>Parameters</h2>
+<p>inds : list
+    List of the indices of the parameters that will be fixed</p>
+<p>vals : list
+    List of the values to fix the parameters given by inds</p>
+<h2>Raises</h2>
+<p>AssertionError : If len(inds) doesn't equal len(vals)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">fix_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inds</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-62'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-62'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)),</span> <span class="s">&quot;len(inds) must equal len(vals)&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fixedinds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fixedvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_neff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npars</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-63'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-63'>#</a>
+      </div>
+      <p>Clustering algorithm (REFERENCE) to avoid getting trapped</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">acor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span>
+        <span class="n">tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">tau</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">acor</span><span class="o">.</span><span class="n">acor</span><span class="p">(</span><span class="n">chain</span><span class="p">[:,</span><span class="n">i</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">tau</span>
+
+    <span class="k">def</span> <span class="nf">_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">position</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">randomstate</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-64'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-64'>#</a>
+      </div>
+      <p>sort the walkers based on lnprobability</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">lnprob</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_lnposteriorfn</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">postargs</span><span class="p">)</span>
+                               <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">)])</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">lnprob</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inds</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lnprob</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">big_mean</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lnprob</span><span class="p">[</span><span class="n">inds</span><span class="p">[:</span><span class="n">i</span><span class="p">]])</span>
+                <span class="n">small_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lnprob</span><span class="p">[</span><span class="n">inds</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]])</span>
+                <span class="k">if</span> <span class="n">big_mean</span><span class="o">-</span><span class="n">lnprob</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">lnprob</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">-</span><span class="n">small_mean</span><span class="p">:</span>
+                    <span class="k">break</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-65'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-65'>#</a>
+      </div>
+      <p>which walkers are in the right place</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">goodwalkers</span> <span class="o">=</span> <span class="n">inds</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">badwalkers</span>  <span class="o">=</span> <span class="n">inds</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">badwalkers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Clustering: </span><span class="si">%d</span><span class="s"> walkers rejected&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">badwalkers</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">badwalkers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Clustering: 1 walker rejected&quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-66'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-66'>#</a>
+      </div>
+      <p>reasample the positions of the bad walkers
+assuming that the right ones form a Gaussian</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">randomstate</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">goodwalkers</span><span class="p">,:],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">std</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">goodwalkers</span><span class="p">,:],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">badwalkers</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">big_mean</span><span class="o">-</span><span class="n">lnprob</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">lnprob</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">-</span><span class="n">small_mean</span><span class="p">:</span>
+                <span class="n">position</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">mean</span><span class="o">+</span><span class="n">std</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npars</span><span class="p">)</span>
+                <span class="n">lnprob</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lnposteriorfn</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">postargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">position</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
