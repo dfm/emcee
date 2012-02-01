@@ -10,10 +10,15 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 __all__ = ['EnsembleSampler']
 
 import multiprocessing
+import pickle
 
 import numpy as np
 
-import acor
+try:
+    import acor
+except ImportError:
+    acor = None
+
 from sampler import Sampler
 
 class EnsembleSampler(Sampler):
@@ -23,15 +28,15 @@ class EnsembleSampler(Sampler):
     This is a subclass of the `Sampler` object. See [sampler.py](sampler.html)
     for more details about the inherited properties.
 
-    **Arguments**
+    #### Arguments
 
-    * `k` (int): The number of Goodman & Weare “walkers”.
+    * `k` (int): The number of Goodman & Weare "walkers".
     * `dim` (int): Number of dimensions in the parameter space.
     * `lnpostfn` (callable): A function that takes a vector in the parameter
       space as input and returns the natural logarithm of the posterior
       probability for that position.
 
-    **Keyword Arguments**
+    #### Keyword Arguments
 
     * `a` (float): The proposal scale parameter. (default: `2.0`)
     * `args` (list): Optional list of extra arguments for `lnpostfn`.
@@ -46,26 +51,38 @@ class EnsembleSampler(Sampler):
       is ignored and the provided `Pool` is used for all parallelization.
       (default: `None`)
 
-    **Exceptions**
+    #### Exceptions
 
     * `AssertionError`: If `k < 2*dim` or if `k` is not even.
 
-    FIXME
-    -----
-    The 'chain' member of this object has the shape: (k, nlinks, dim) where
-    'nlinks' is the number of steps taken by the chain and 'k' is the number
-    of walkers.  Use the 'flatchain' property to get the chain flattened to
-    (nlinks, dim). For users of older versions, this shape is different so
+    #### Warning
+
+    The `chain` member of this object has the shape: `(k, nlinks, dim)` where
+    `nlinks` is the number of steps taken by the chain and `k` is the number
+    of walkers.  Use the `flatchain` property to get the chain flattened to
+    `(nlinks, dim)`. For users of older versions, this shape is different so
     be careful!
 
     """
     def __init__(self, k, *args, **kwargs):
-        self.k = k
-        self.a = kwargs.pop('a', 2.0)
-        self.pool = kwargs.pop('pool', None)
+        self.k       = k
+        self.a       = kwargs.pop("a", 2.0)
+        self.threads = int(kwargs.pop("threads", 1))
+        self.pool    = kwargs.pop("pool", None)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
-        assert self.k%2 == 0
+        assert self.k%2 == 0 and self.k >= 2*self.dim
+
+        if self.threads > 1 and self.pool is None:
+            self.pool = multiprocessing.Pool(self.threads)
+        if self.pool is not None:
+            if len(self.args) > 0:
+                self.lnprobfn = _function_wrapper(self.lnprobfn, self.args)
+            try:
+                pickle.dumps(self.lnprobfn)
+            except pickle.PicklingError:
+                print "Warning: lnprobfn is not picklable. "\
+                        "Parallelization probably won't work"
 
     def reset(self):
         """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
@@ -80,12 +97,12 @@ class EnsembleSampler(Sampler):
         """
         Advances the chain iterations steps as an iterator
 
-        **Arguments**
+        #### Arguments
 
         * `pos0` (numpy.ndarray): A list of the initial positions of the
           walkers in the parameter space. The shape is `(k, dim)`.
 
-        **Keyword Arguments**
+        #### Keyword Arguments
 
         * `lnprob0` (numpy.ndarray): The list of log posterior probabilities
           for the walkers at positions given by `p0`. If `lnprob is None`,
@@ -94,7 +111,7 @@ class EnsembleSampler(Sampler):
           See the `Sampler.random_state` property for details.
         * `iterations` (int): The number of steps to run. (default: 1)
 
-        **Yields**
+        #### Yields
 
         * `pos` (numpy.ndarray): A list of the current positions of the
           walkers in the parameter space. The shape is `(k, dim)`.
@@ -152,26 +169,6 @@ class EnsembleSampler(Sampler):
 
             yield p, lnprob, self.random_state
 
-    def run_mcmc(self, pos0, N, rstate0=None,):
-        """
-        Iterate sample for N iterations and return the result. The parameters
-        are passed directly to `sample` so see the parameter details given in
-        `sample`.
-
-        **Returns**
-
-        * `pos` (numpy.ndarray): A list of the final positions of the walkers
-          in the parameter space. The shape is `(k, dim)`.
-        * `lnprob` (numpy.ndarray): The list of log posterior probabilities
-          for the walkers at positions given by `pos`. The shape is `(k, dim)`.
-        * `rstate` (tuple): The final state of the random number generator.
-
-        """
-        for pos,lnprob,state in self.sample(pos0,lnprob,randomstate,
-                                          iterations=iterations):
-            pass
-        return pos,lnprob,state
-
     @property
     def flatchain(self):
         """
@@ -189,11 +186,25 @@ class EnsembleSampler(Sampler):
         as estimated by the `acor` module.
 
         """
+        if acor is None:
+            raise ImportError("acor")
         s = self.dim
         t = np.zeros(s)
         for i in range(s):
             t[i] = acor.acor(self.chain[:,:,i].T)[0]
         return t
+
+class _function_wrapper(object):
+    """
+    This is a hack to make the likelihood function pickleable when `args` are
+    also included
+
+    """
+    def __init__(self, f, args):
+        self.f = f
+        self.args = args
+    def __call__(self, x):
+        return self.f(x, *self.args)
 
 class Ensemble(object):
     def __init__(self, sampler):
@@ -218,7 +229,7 @@ class Ensemble(object):
         """
         Propose a new position for another ensemble given the current positions
 
-        **Parameters**
+        #### Parameters
 
         * `ensemble` (Ensemble): The ensemble to be advanced.
 

@@ -10,20 +10,24 @@ __all__ = ['Sampler']
 
 import numpy as np
 
-import acor
+# import acor if it's available
+try:
+    import acor
+except ImportError:
+    acor = None
 
 class Sampler(object):
     """
-    The base sampler object that implements various helper functions
+    An abstract sampler object that implements various helper functions
 
-    **Arguments**
+    #### Arguments
 
     * `dim` (int): Number of dimensions in the parameter space.
     * `lnpostfn` (callable): A function that takes a vector in the parameter
       space as input and returns the natural logarithm of the posterior
       probability for that position.
 
-    **Keyword Arguments**
+    #### Keyword Arguments
 
     * `args` (list): Optional list of extra arguments for `lnpostfn`.
       `lnpostfn` will be called with the sequence `lnpostfn(p, *args)`.
@@ -39,11 +43,6 @@ class Sampler(object):
         self._random = np.random.mtrand.RandomState()
 
         self.reset()
-
-    def reset(self):
-        """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
-        self.iterations = 0
-        self.naccepted  = 0
 
     @property
     def random_state(self):
@@ -74,8 +73,36 @@ class Sampler(object):
 
     @property
     def acor(self):
+        if acor is None:
+            raise ImportError("acor")
         return acor.acor(self._chain.T)[0]
 
     def get_lnprob(self, p):
         return self.lnprobfn(p, *self.args)
+
+    def reset(self):
+        """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
+        self.iterations = 0
+        self.naccepted  = 0
+
+    def sample(self, *args, **kwargs):
+        raise NotImplementedError("The sampling routine must be implemented "\
+                "by subclasses")
+
+    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None):
+        """
+        Iterate sample for `N` iterations and return the result. The arguments
+        are passed directly to `sample` so see the parameter details given in
+        `sample`.
+
+        #### Returns
+
+        The `(position, lnprob, state)` tuple after `N` iterations.
+
+        """
+        for pos,lnprob,state in self.sample(pos0, lnprob0, rstate0,
+                                          iterations=N):
+            pass
+        return pos,lnprob,state
+
 

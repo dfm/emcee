@@ -21,9 +21,7 @@
       <p>A vanilla Metropolis-Hastings sampler</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;MHSampler&#39;</span><span class="p">]</span>
+      <div class="highlight"><pre><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;MHSampler&#39;</span><span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
@@ -35,18 +33,22 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      <p>The most basic possible Metropolis-Hastings style MCMC sampler for comparison</p>
-<h2>Parameters</h2>
-<p>cov : numpy.ndarray (dim, dim)
-    The covariance matrix to use for the proposal distribution.</p>
-<p>dim : int
-    The dimension of the parameter space.</p>
-<p>lnprobfn : callable
-    A function that computes the probability of a particular point in phase
-    space.  Will be called as lnprobfn(p, *args)</p>
-<p>args : list, optional
-    A list of arguments for lnprobfn.</p>
-<h2>Notes</h2>
+      <p>The most basic possible Metropolis-Hastings style MCMC sampler</p>
+<h4>Arguments</h4>
+<ul>
+<li><code>cov</code> (numpy.ndarray): The covariance matrix to use for the proposal
+  distribution.</li>
+<li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
+<li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter
+  space as input and returns the natural logarithm of the posterior
+  probability for that position.</li>
+</ul>
+<h4>Keyword Arguments</h4>
+<ul>
+<li><code>args</code> (list): Optional list of extra arguments for <code>lnpostfn</code>.
+  <code>lnpostfn</code> will be called with the sequence <code>lnpostfn(p, *args)</code>.</li>
+</ul>
+<h4>Notes</h4>
 <p>The 'chain' member of this object has the shape: (nlinks, dim) where 'nlinks'
 is the number of steps taken by the chain.</p>
     </div>
@@ -75,7 +77,8 @@ is the number of steps taken by the chain.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">do_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MHSampler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></pre></div>
     </div>
@@ -85,22 +88,50 @@ is the number of steps taken by the chain.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      
+      <p>Advances the chain iterations steps as an iterator</p>
+<h4>Arguments</h4>
+<ul>
+<li><code>pos0</code> (numpy.ndarray): The initial position vector.</li>
+</ul>
+<h4>Keyword Arguments</h4>
+<ul>
+<li><code>lnprob0</code> (float): The log posterior probability at position <code>p0</code>.
+  If <code>lnprob is None</code>, the initial value is calculated.</li>
+<li><code>rstate0</code> (tuple): The state of the random number generator.
+  See the <code>Sampler.random_state</code> property for details.</li>
+<li><code>iterations</code> (int): The number of steps to run. (default: 1)</li>
+</ul>
+<h4>Yields</h4>
+<ul>
+<li><code>pos</code> (numpy.ndarray): The final position vector.</li>
+<li><code>lnprob</code> (float): The log-probability at <code>pos</code>.</li>
+<li><code>rstate</code> (tuple): The state of the random number generator.</li>
+</ul>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p0</span><span class="p">,</span> <span class="n">lnprob</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">randomstate</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">storechain</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">resample</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">randomstate</span>
-
-        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">lnprob</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">lnprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lnprob</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></pre></div>
+            <span class="n">iterations</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-5'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">randomstate</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lnprob</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lnprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lnprob</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
       </div>
       <p>resize chain</p>
     </div>
@@ -116,10 +147,10 @@ is the number of steps taken by the chain.</p>
             <span class="bp">self</span><span class="o">.</span><span class="n">iterations</span> <span class="o">+=</span> <span class="mi">1</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-6'>
+  <div class='clearall'></div><div class='section' id='section-7'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>proposal</p>
     </div>
@@ -129,10 +160,10 @@ is the number of steps taken by the chain.</p>
             <span class="n">diff</span> <span class="o">=</span> <span class="n">newlnprob</span><span class="o">-</span><span class="n">lnprob</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-7'>
+  <div class='clearall'></div><div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       <p>M-H acceptance ratio</p>
     </div>
@@ -151,10 +182,10 @@ is the number of steps taken by the chain.</p>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_lnprob</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>  <span class="o">=</span> <span class="n">lnprob</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-8'>
+  <div class='clearall'></div><div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>heavy duty iterator action going on right here</p>
     </div>

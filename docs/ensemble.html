@@ -26,10 +26,15 @@
       <div class="highlight"><pre><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;EnsembleSampler&#39;</span><span class="p">]</span>
 
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">acor</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">acor</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">acor</span> <span class="o">=</span> <span class="bp">None</span>
+
 <span class="kn">from</span> <span class="nn">sampler</span> <span class="kn">import</span> <span class="n">Sampler</span></pre></div>
     </div>
   </div>
@@ -41,15 +46,15 @@
       <p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.</p>
 <p>This is a subclass of the <code>Sampler</code> object. See <a href="sampler.html">sampler.py</a>
 for more details about the inherited properties.</p>
-<p><strong>Arguments</strong></p>
+<h4>Arguments</h4>
 <ul>
-<li><code>k</code> (int): The number of Goodman &amp; Weare “walkers”.</li>
+<li><code>k</code> (int): The number of Goodman &amp; Weare "walkers".</li>
 <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
 <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter
   space as input and returns the natural logarithm of the posterior
   probability for that position.</li>
 </ul>
-<p><strong>Keyword Arguments</strong></p>
+<h4>Keyword Arguments</h4>
 <ul>
 <li><code>a</code> (float): The proposal scale parameter. (default: <code>2.0</code>)</li>
 <li><code>args</code> (list): Optional list of extra arguments for <code>lnpostfn</code>.
@@ -64,15 +69,15 @@ for more details about the inherited properties.</p>
   is ignored and the provided <code>Pool</code> is used for all parallelization.
   (default: <code>None</code>)</li>
 </ul>
-<p><strong>Exceptions</strong></p>
+<h4>Exceptions</h4>
 <ul>
 <li><code>AssertionError</code>: If <code>k &lt; 2*dim</code> or if <code>k</code> is not even.</li>
 </ul>
-<h2>FIXME</h2>
-<p>The 'chain' member of this object has the shape: (k, nlinks, dim) where
-'nlinks' is the number of steps taken by the chain and 'k' is the number
-of walkers.  Use the 'flatchain' property to get the chain flattened to
-(nlinks, dim). For users of older versions, this shape is different so
+<h4>Warning</h4>
+<p>The <code>chain</code> member of this object has the shape: <code>(k, nlinks, dim)</code> where
+<code>nlinks</code> is the number of steps taken by the chain and <code>k</code> is the number
+of walkers.  Use the <code>flatchain</code> property to get the chain flattened to
+<code>(nlinks, dim)</code>. For users of older versions, this shape is different so
 be careful!</p>
     </div>
     <div class='code'>
@@ -88,12 +93,24 @@ be careful!</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;pool&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span>       <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;threads&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;pool&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">EnsembleSampler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span></pre></div>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threads</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lnprobfn</span> <span class="o">=</span> <span class="n">_function_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lnprobfn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lnprobfn</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">PicklingError</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Warning: lnprobfn is not picklable. &quot;</span>\
+                        <span class="s">&quot;Parallelization probably won&#39;t work&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-3'>
@@ -128,12 +145,12 @@ be careful!</p>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
       <p>Advances the chain iterations steps as an iterator</p>
-<p><strong>Arguments</strong></p>
+<h4>Arguments</h4>
 <ul>
 <li><code>pos0</code> (numpy.ndarray): A list of the initial positions of the
   walkers in the parameter space. The shape is <code>(k, dim)</code>.</li>
 </ul>
-<p><strong>Keyword Arguments</strong></p>
+<h4>Keyword Arguments</h4>
 <ul>
 <li><code>lnprob0</code> (numpy.ndarray): The list of log posterior probabilities
   for the walkers at positions given by <code>p0</code>. If <code>lnprob is None</code>,
@@ -142,7 +159,7 @@ be careful!</p>
   See the <code>Sampler.random_state</code> property for details.</li>
 <li><code>iterations</code> (int): The number of steps to run. (default: 1)</li>
 </ul>
-<p><strong>Yields</strong></p>
+<h4>Yields</h4>
 <ul>
 <li><code>pos</code> (numpy.ndarray): A list of the current positions of the
   walkers in the parameter space. The shape is <code>(k, dim)</code>.</li>
@@ -227,20 +244,12 @@ be careful!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      <p>Iterate sample for N iterations and return the result. The parameters
-are passed directly to <code>sample</code> so see the parameter details given in
-<code>sample</code>.</p>
-<p><strong>Returns</strong></p>
-<ul>
-<li><code>pos</code> (numpy.ndarray): A list of the final positions of the walkers
-  in the parameter space. The shape is <code>(k, dim)</code>.</li>
-<li><code>lnprob</code> (numpy.ndarray): The list of log posterior probabilities
-  for the walkers at positions given by <code>pos</code>. The shape is <code>(k, dim)</code>.</li>
-<li><code>rstate</code> (tuple): The final state of the random number generator.</li>
-</ul>
+      <p>A shortcut for accessing chain flattened along the zeroth (walker)
+axis.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">run_mcmc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">rstate0</span><span class="o">=</span><span class="bp">None</span><span class="p">,):</span></pre></div>
+      <div class="highlight"><pre>    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flatchain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-9'>
@@ -251,10 +260,8 @@ are passed directly to <code>sample</code> so see the parameter details given in
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">pos0</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">randomstate</span><span class="p">,</span>
-                                          <span class="n">iterations</span><span class="o">=</span><span class="n">iterations</span><span class="p">):</span>
-            <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">pos</span><span class="p">,</span><span class="n">lnprob</span><span class="p">,</span><span class="n">state</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-10'>
@@ -262,12 +269,12 @@ are passed directly to <code>sample</code> so see the parameter details given in
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      <p>A shortcut for accessing chain flattened along the zeroth (walker)
-axis.</p>
+      <p>The autocorrelation time of each parameter in the chain (length: <code>dim</code>)
+as estimated by the <code>acor</code> module.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">flatchain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">acor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-11'>
@@ -278,8 +285,13 @@ axis.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">acor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&quot;acor&quot;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">acor</span><span class="o">.</span><span class="n">acor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">t</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-12'>
@@ -287,12 +299,11 @@ axis.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <p>The autocorrelation time of each parameter in the chain (length: <code>dim</code>)
-as estimated by the <code>acor</code> module.</p>
+      <p>This is a hack to make the likelihood function pickleable when <code>args</code> are
+also included</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">acor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">_function_wrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-13'>
@@ -303,11 +314,9 @@ as estimated by the <code>acor</code> module.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-            <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">acor</span><span class="o">.</span><span class="n">acor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">t</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-14'>
@@ -318,7 +327,8 @@ as estimated by the <code>acor</code> module.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-15'>
@@ -329,14 +339,25 @@ as estimated by the <code>acor</code> module.</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span> <span class="o">=</span> <span class="n">sampler</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span> <span class="o">=</span> <span class="n">sampler</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       
     </div>
@@ -357,13 +378,13 @@ as estimated by the <code>acor</code> module.</p>
         <span class="k">return</span> <span class="n">lnprob</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-17'>
+  <div class='clearall'></div><div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>Propose a new position for another ensemble given the current positions</p>
-<p><strong>Parameters</strong></p>
+<h4>Parameters</h4>
 <ul>
 <li><code>ensemble</code> (Ensemble): The ensemble to be advanced.</li>
 </ul>
@@ -372,10 +393,10 @@ as estimated by the <code>acor</code> module.</p>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">propose_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ensemble</span><span class="p">):</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-18'>
+  <div class='clearall'></div><div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       
     </div>
@@ -389,10 +410,10 @@ as estimated by the <code>acor</code> module.</p>
         <span class="n">rint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampler</span><span class="o">.</span><span class="n">_random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">Nc</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">Ns</span><span class="p">,))</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-19'>
+  <div class='clearall'></div><div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>propose new walker position and calculate the lnprobability</p>
     </div>
