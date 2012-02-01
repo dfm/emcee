@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>PyEST - Kick-ass MCMC</title>
+        <title>emcee - Kick-ass MCMC</title>
         <meta name="description" content="Kick-ass MCMC">
         <meta name="author" content="Dan Foreman-Mackey">
 
@@ -55,7 +55,7 @@
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
-                    <a class="brand" href="#">PyEST</a>
+                    <a class="brand" href="#">emcee</a>
                     <ul class="nav">
                         <li><a href="#install">Installation</a></li>
                         <li><a href="#quickstart">Quickstart</a></li>
@@ -63,7 +63,7 @@
                         <li><a href="#faq">FAQ</a></li>
                     </ul>
                 </div>
-        <a href="http://github.com/dfm/pyest">
+        <a href="http://github.com/dfm/emcee">
             <img style="position: absolute; top: 0; right: 0; border: 0; z-order: 12000;"
             src="https://a248.e.akamai.net/assets.github.com/img/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
             alt="fork me on github">
@@ -76,7 +76,7 @@
 
             <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="hero-unit">
-                <h1>PyEST</h1>
+                <h1>emcee</h1>
                 <h2>The Python ensemble sampling toolkit for affine-invariant MCMC</h2>
                 <p>Seriously kick-ass MCMC sampling</p>
             </div>
@@ -94,7 +94,7 @@
                     much it rocks.
                     </h3>
                     <h3>
-                    PyEST is an extensible, pure-Python implementation of
+                    emcee is an extensible, pure-Python implementation of
                     of Goodman & Weare's
                     <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Affine
                     Invariant Markov chain Monte Carlo (MCMC) sampler</a>.
@@ -117,9 +117,9 @@
                             <li>Yep, that's it.</li>
                         </ol>
                             <p style="text-align: center;">
-                                <a class="btn primary" href="https://github.com/dfm/pyest/zipball/master">Download <small>(.zip)</small></a>
+                                <a class="btn primary" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
                                 &nbsp; or &nbsp;
-                                <a class="btn" href="https://github.com/dfm/pyest">Fork it on GitHub</a>
+                                <a class="btn" href="https://github.com/dfm/emcee">Fork it on GitHub</a>
                             </p>
 
                     </div>
@@ -182,8 +182,8 @@ icov = np.linalg.inv(cov)</pre>
 nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 
-import pyest
-sampler = pyest.EnsembleSampler(nwalkers, ndim,lnprob,
+import emcee
+sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
                         postargs=[means, icov])</pre>
                     </div>
                 </div>
@@ -229,9 +229,9 @@ sampler.chain</pre>
                     <div class="span12">
                         <p>
                         You can
-                        <a class="btn primary" href="https://github.com/dfm/pyest/blob/master/quickstart.py">
+                        <a class="btn primary" href="https://github.com/dfm/emcee/blob/master/quickstart.py">
                             get all this code</a>
-                        from <a href="https://github.com/dfm/pyest">the GitHub repository</a>.
+                        from <a href="https://github.com/dfm/emcee">the GitHub repository</a>.
                         </p>
                     </div>
                 </div>
