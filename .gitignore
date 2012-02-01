@@ -9,7 +9,6 @@ document/*.log
 document/*.pdf
 *.hdf5
 doc
-docs
 acor/acor.cpp
 acor/acor.py
 
