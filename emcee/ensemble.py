@@ -25,7 +25,7 @@ class EnsembleSampler(Sampler):
     """
     A generalized Ensemble sampler that uses 2 ensembles for parallelization.
 
-    This is a subclass of the `Sampler` object. See [sampler.py](sampler.html)
+    This is a subclass of the `Sampler` object. See [[sampler.py]]
     for more details about the inherited properties.
 
     #### Arguments

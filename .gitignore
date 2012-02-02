@@ -6,12 +6,9 @@ build/*
 *.svg
 document/*.aux
 document/*.log
-document/*.pdf
 *.hdf5
-doc
-docs
-
 *.png
 samples
 rosenbrock.*
 *.out
+dist
