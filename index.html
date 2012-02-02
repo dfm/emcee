@@ -36,16 +36,17 @@
             .prelude {
                 padding-bottom: 20px;
             }
+            .dl .btn {
+                font-size: 18px;
+                padding: 12px 20px;
+                font-weight: normal;
+            }
+            .dl .btn span {
+                font-weight: bold;
+            }
         </style>
         <link rel="stylesheet" href="assets/bootstrap-responsive.css">
-
-        <!-- Le fav and touch icons -->
-        <!--
-        <link rel="shortcut icon" href="images/favicon.ico">
-        <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-        <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
-        <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
-        -->
+        <link rel="shortcut icon" href="/favicon.png">
 
 
     </head>
@@ -58,7 +59,8 @@
                     <ul class="nav">
                         <li><a class="brand" href="#">emcee</a></li>
                         <li><a href="#install">Installation</a></li>
-                        <li><a href="#quickstart">Quickstart</a></li>
+                        <li><a href="#quickstart">Basic Usage</a></li>
+                        <li><a href="#advanced">Advanced Usage</a></li>
                         <li><a href="#api">API</a></li>
                         <li><a href="#faq">FAQ</a></li>
                     </ul>
@@ -86,8 +88,8 @@
                     <a href="http://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">an algorithm</a>.
                     This algorithm became very popular but it turned out that there
                     were better ones. <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Some folks</a>
-                    came up with a better one and some
-                    other folks implemented it in Python. It's a little crazy how
+                    came up with a better one and <a href="http://danfm.ca">some</a>
+                    <a href="http://www.astro.princeton.edu/~dstn/">other</a> <a href="http://cosmo.nyu.edu/hogg/">folks</a> implemented it in Python. It's a little crazy how
                     much it rocks.
                     </h3>
                     <h3>
@@ -96,7 +98,7 @@
                     <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Affine
                     Invariant Markov chain Monte Carlo (MCMC) sampler</a>.
                     It's designed for Bayesian parameter estimation and it's really
-                    fast.
+                    sweet!
                     </h3>
                 </div>
             </div>
@@ -108,16 +110,36 @@
 
                 <div class="row" id="install">
                     <div class="span12">
+                        <h3>Standard</h3>
                         <ol class="install">
-                            <li>Download the module.</li>
-                            <li>Unzip and then run <code>python setup.py install</code>.</li>
-                            <li>Yep, that's it.</li>
+                            <li>Make sure that you have <a href="http://numpy.scipy.org">numpy</a>
+                                and <a href="http://www.pip-installer.org/">pip</a> installed.</li>
+                            <li>Type <code>pip install emcee</code> at the command line
+                                of your favorite UNIXish computer.
+                                <p style="padding-top: 6px;"><span class="label notice">Note</span><small>
+                                    You might need to <code style="font-size: 9px;">sudo</code> this to install
+                                    system-wide. If you want to just install in your
+                                    home directory, include the <code style="font-size: 9px;">--user</code>
+                                    command-line option.</p></small></li>
                         </ol>
-                            <p style="text-align: center;">
-                                <a class="btn btn-primary" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
-                                &nbsp; or &nbsp;
-                                <a class="btn" href="https://github.com/dfm/emcee">Fork it on GitHub</a>
-                            </p>
+
+                        <h3>Alternative</h3>
+                        <ol class="install">
+                            <li>Download <a href="https://github.com/dfm/emcee/zipball/master">the source</a>.</li>
+                            <li>Unzip and then run <code>python setup.py install</code>.</li>
+                        </ol>
+
+                        <h3>Nerdiest</h3>
+                        <ol class="install">
+                            <li>Fork <a href="https://github.com/dfm/emcee">the project on GitHub</a>.</li>
+                            <li>You know what to do now...</li>
+                        </ol>
+
+                        <p class="dl" style="text-align: center;">
+                            <a class="btn btn-primary btn-large" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
+                            &nbsp; or &nbsp;
+                            <a class="btn btn-large" href="https://github.com/dfm/emcee">Fork <span>emcee</span> on GitHub</a>
+                        </p>
 
                     </div>
                 </div>
@@ -125,7 +147,19 @@
 
             <section id="quickstart">
                 <div class="page-header">
-                    <h1>Quickstart <small>Sample code is not documentation&trade;</small></h1>
+                    <h1>Basic Usage <small>Sample code is not documentation&trade;</small></h1>
+                </div>
+
+                <div class="row">
+                    <div class="span12">
+                        <div class="alert">
+                            <strong>Warning:</strong>
+                            If you used a previous version of this code, you'll find that
+                            the <code>chain</code> property is a different shape
+                            <code>(nwalkers, nsteps, ndim)</code> instead of
+                            <code>(nwalkers, ndim, nsteps)</code>.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row">
@@ -194,7 +228,7 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
-pos,prob,state = sampler.run_mcmc(p0, None, 500)
+pos, prob, state = sampler.run_mcmc(p0, 500)
 sampler.clear_chain()</pre>
                     </div>
                 </div>
@@ -207,7 +241,7 @@ sampler.clear_chain()</pre>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
-sampler.run_mcmc(pos, state, 2000)</pre>
+sampler.run_mcmc(pos, 2000, rstate0=state)</pre>
                     </div>
                 </div>
 
@@ -215,17 +249,26 @@ sampler.run_mcmc(pos, state, 2000)</pre>
                     <div class="span4">
                         <p>The results are stored in a <code>(100, 2000, 10)</code>
                         NumPy array.</p>
-                        <p><span class="label label-warning">Warning</span>
-                        <small>
-                        In previous versions of this code, this shape would have
-                        been (100, 10, 2000) but, for various
-                        reasons, this has be permanently switched.
-                        </small>
-                        </p>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
 sampler.chain</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span4">
+                        <p>To plot the histogram that approximates the marginal
+                        distribution of parameter <code>1</code>, we use the
+                        <code>flatchain</code> property. <code>flatchain</code>
+                        is flattened along the walker axis and it, therefore,
+                        has the shape <code>(200000, 10)</code>.</p>
+                    </div>
+                    <div class="span8">
+                        <pre class="prettyprint">
+import matplotlib.pyplot as pl
+pl.hist(sampler.flatchain[:,0], 100)
+pl.show()</pre>
                     </div>
                 </div>
 
@@ -239,10 +282,62 @@ sampler.chain</pre>
                         </p>
                     </div>
                 </div>
+            </section>
 
-                </section>
+            <section id="advanced">
+                <div class="page-header">
+                    <h1>Advanced Usage</h1>
+                </div>
 
-                <section id="api">
+                <div class="row">
+                    <div class="span12">
+                        <h3>Parallelization</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span4">
+                        <p>In principle, adding <code>multiprocessing</code>
+                        support is as simple as instantiating the sampler
+                        object with the <code>threads</code> argument set to
+                        an integer greater than 1.</p>
+                        <p>In practice, this only works when your likelihood
+                        function is pickleable.</p>
+                    </div>
+                    <div class="span8">
+                        <pre class="prettyprint">
+sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
+                        postargs=[means, icov], threads=15)</pre>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span12">
+                        <h3>Object-oriented approach</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span4">
+                        <p>Start by defining the probability distribution that you
+                        would like to sample.</p>
+                        <p>We'll use a
+                        <a href="http://en.wikipedia.org/wiki/Multivariate_normal_distribution">multivariate Gaussian</a>.
+                        </p>
+                    </div>
+                    <div class="span8">
+                        <pre class="prettyprint">
+import numpy as np
+
+def lnprob(x, mu, icov):
+    diff = x-mu
+    return -np.dot(diff,np.dot(icov,diff))/2.0</pre>
+                    </div>
+                </div>
+
+            </section>
+
+            <section id="api">
                 <div class="page-header">
                     <h1>API <small></small></h1>
                 </div>
@@ -256,7 +351,7 @@ sampler.chain</pre>
 
                 <section id="faq">
                 <div class="page-header">
-                    <h1>Frequently asked questions <small></small></h1>
+                    <h1>FAQ <small>The not-so-frequently asked questions that still have useful answers</small></h1>
                 </div>
 
                 <div class="row" id="faq-walkers">
@@ -291,8 +386,7 @@ sampler.chain</pre>
                 </section>
 
                 <footer>
-                <p style="text-align: center;"><a href="http://danfm.ca">Dan Foreman-Mackey</a>,
-                Dustin Lang, David W. Hogg, <em>et al.</em></p>
+                <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., MIT License</em></p>
                 </footer>
 
             </div> <!-- /container -->
