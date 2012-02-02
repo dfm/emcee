@@ -55,33 +55,30 @@
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
-                    <a class="brand" href="#">emcee</a>
                     <ul class="nav">
+                        <li><a class="brand" href="#">emcee</a></li>
                         <li><a href="#install">Installation</a></li>
                         <li><a href="#quickstart">Quickstart</a></li>
                         <li><a href="#api">API</a></li>
                         <li><a href="#faq">FAQ</a></li>
                     </ul>
                 </div>
-        <a href="http://github.com/dfm/emcee">
-            <img style="position: absolute; top: 0; right: 0; border: 0; z-order: 12000;"
-            src="https://a248.e.akamai.net/assets.github.com/img/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
-            alt="fork me on github">
-        </a>
-
+                <a href="http://github.com/dfm/emcee">
+                    <img style="position: absolute; top: 0; right: 0; border: 0; z-order: 12000;"
+                    src="https://a248.e.akamai.net/assets.github.com/img/e6bef7a091f5f3138b8cd40bc3e114258dd68ddf/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
+                    alt="fork me on github">
+                </a>
             </div>
         </div>
 
         <div class="container">
 
-            <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="hero-unit">
                 <h1>emcee</h1>
                 <h2>The Python ensemble sampling toolkit for affine-invariant MCMC</h2>
                 <p>Seriously kick-ass MCMC sampling</p>
             </div>
 
-            <!-- Example row of columns -->
             <div class="row">
                 <div class="span12" style="padding-bottom: 20px;">
                     <h3 class="prelude">
@@ -117,7 +114,7 @@
                             <li>Yep, that's it.</li>
                         </ol>
                             <p style="text-align: center;">
-                                <a class="btn primary" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
+                                <a class="btn btn-primary" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
                                 &nbsp; or &nbsp;
                                 <a class="btn" href="https://github.com/dfm/emcee">Fork it on GitHub</a>
                             </p>
@@ -216,8 +213,15 @@ sampler.run_mcmc(pos, state, 2000)</pre>
 
                 <div class="row">
                     <div class="span4">
-                        <p>The results are stored in a <code>(100, 10, 2000)</code>
+                        <p>The results are stored in a <code>(100, 2000, 10)</code>
                         NumPy array.</p>
+                        <p><span class="label label-warning">Warning</span>
+                        <small>
+                        In previous versions of this code, this shape would have
+                        been (100, 10, 2000) but, for various
+                        reasons, this has be permanently switched.
+                        </small>
+                        </p>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
@@ -229,16 +233,16 @@ sampler.chain</pre>
                     <div class="span12">
                         <p>
                         You can
-                        <a class="btn primary" href="https://github.com/dfm/emcee/blob/master/quickstart.py">
+                        <a class="btn btn-primary" href="https://github.com/dfm/emcee/blob/master/quickstart.py">
                             get all this code</a>
                         from <a href="https://github.com/dfm/emcee">the GitHub repository</a>.
                         </p>
                     </div>
                 </div>
 
-            </section>
+                </section>
 
-            <section id="api">
+                <section id="api">
                 <div class="page-header">
                     <h1>API <small></small></h1>
                 </div>
@@ -248,9 +252,9 @@ sampler.chain</pre>
                     </div>
                 </div>
 
-            </section>
+                </section>
 
-            <section id="faq">
+                <section id="faq">
                 <div class="page-header">
                     <h1>Frequently asked questions <small></small></h1>
                 </div>
@@ -267,8 +271,8 @@ sampler.chain</pre>
                         <h4>I'm getting weird spikes in my data/I have low acceptance
                             fractions/both... what should I do?</h4>
                         <p>Double the number of walkers. If that doesn't work,
-                            double it again. And again. Until you run out of RAM.
-                            At that point, I don't know!</p>
+                        double it again. And again. Until you run out of RAM.
+                        At that point, I don't know!</p>
                     </div>
                 </div>
 
@@ -277,36 +281,36 @@ sampler.chain</pre>
                         <h4>The walkers are getting stuck in "islands" of low
                             likelihood. How can I fix that?</h4>
                         <p>Try increasing the number of walkers. If that doesn't
-                            work, you can try pruning using a clustering algorithm
-                            like the one found in
-                            <a href="http://arxiv.org/abs/1104.2612">arxiv:1104.2612</a>.
-                            </p>
+                        work, you can try pruning using a clustering algorithm
+                        like the one found in
+                        <a href="http://arxiv.org/abs/1104.2612">arxiv:1104.2612</a>.
+                        </p>
                     </div>
                 </div>
 
-            </section>
+                </section>
 
-            <footer>
-            <p style="text-align: center;"><a href="http://danfm.ca">Dan Foreman-Mackey</a>,
-            Dustin Lang, David W. Hogg, <em>et al.</em></p>
-            </footer>
+                <footer>
+                <p style="text-align: center;"><a href="http://danfm.ca">Dan Foreman-Mackey</a>,
+                Dustin Lang, David W. Hogg, <em>et al.</em></p>
+                </footer>
 
-        </div> <!-- /container -->
+            </div> <!-- /container -->
 
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-        <script type="text/javascript" src="assets/prettify.js"></script>
-        <script>$(function () { prettyPrint() })</script>
+            <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+            <script type="text/javascript" src="assets/prettify.js"></script>
+            <script>$(function () { prettyPrint() })</script>
 
-        <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-22909046-1']);
-            _gaq.push(['_trackPageview']);
-            (function() {
-             var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-             ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-             })();
-         </script>
+            <script type="text/javascript">
+                var _gaq = _gaq || [];
+                _gaq.push(['_setAccount', 'UA-22909046-1']);
+                _gaq.push(['_trackPageview']);
+                (function() {
+                 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                 })();
+</script>
 
     </body>
 </html>
