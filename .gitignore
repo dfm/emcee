@@ -1,0 +1,14 @@
+*.pyc
+*.swp
+build/*
+*.so
+.DS_Store
+*.svg
+document/*.aux
+document/*.log
+document/*.pdf
+*.hdf5
+doc
+acor/acor.cpp
+acor/acor.py
+
