@@ -15,7 +15,7 @@ NYU with contributions from Dustin Lang.
 
 ### Documentation
 
-Read the docs at [danfm.ca/emcee](http://danfm.ca/pyest/)
+Read the docs at [danfm.ca/emcee](http://danfm.ca/emcee/).
 
 ### Atribution
 
