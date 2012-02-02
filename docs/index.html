@@ -6,6 +6,8 @@
         <meta name="description" content="Kick-ass MCMC">
         <meta name="author" content="Dan Foreman-Mackey">
 
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
         <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
         <!--[if lt IE 9]>
         <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -37,9 +39,10 @@
                 padding-bottom: 20px;
             }
             .dl .btn {
-                font-size: 18px;
+                font-size: 16px;
                 padding: 12px 20px;
                 font-weight: normal;
+                margin-top: 15px;
             }
             .dl .btn span {
                 font-weight: bold;
@@ -109,40 +112,37 @@
                 </div>
 
                 <div class="row" id="install">
-                    <div class="span12">
-                        <h3>Standard</h3>
-                        <ol class="install">
-                            <li>Make sure that you have <a href="http://numpy.scipy.org">numpy</a>
-                                and <a href="http://www.pip-installer.org/">pip</a> installed.</li>
-                            <li>Type <code>pip install emcee</code> at the command line
-                                of your favorite UNIXish computer.
-                                <p style="padding-top: 6px;"><span class="label notice">Note</span><small>
-                                    You might need to <code style="font-size: 9px;">sudo</code> this to install
-                                    system-wide. If you want to just install in your
-                                    home directory, include the <code style="font-size: 9px;">--user</code>
-                                    command-line option.</p></small></li>
+                    <div class="span4">
+                        <h3>Prerequisites</h3>
+                        <ul class="unstyled">
+                            <li><strong><a href="http://numpy.scipy.org">numpy</a></strong>: Numerical Python
+                                <span style="font-size: 11px;color: #999;">(you can use <strong>pip</strong> to install this)</span></li>
+                            <li><strong><a href="http://www.pip-installer.org/en/latest/installing.html">pip</a></strong>
+                            (optional): The Python package manager</li>
+                        </ul>
+                    </div>
+                    <div class="span4">
+                        <h3>Standard Install</h3>
+                        <p>Do one of the following:</p>
+                        <ol>
+                            <li style="padding-bottom: 10px;"><code>sudo pip install emcee</code> or</li>
+                            <li>Download <a href="https://github.com/dfm/emcee/zipball/master">the source</a> and run
+                            <p style="margin-bottom: 0;"><code>sudo python setup.py install</code></p>
+                            <p>in the unzipped directory.</p></li>
                         </ol>
-
-                        <h3>Alternative</h3>
-                        <ol class="install">
-                            <li>Download <a href="https://github.com/dfm/emcee/zipball/master">the source</a>.</li>
-                            <li>Unzip and then run <code>python setup.py install</code>.</li>
-                        </ol>
-
-                        <h3>Nerdiest</h3>
-                        <ol class="install">
-                            <li>Fork <a href="https://github.com/dfm/emcee">the project on GitHub</a>.</li>
-                            <li>You know what to do now...</li>
-                        </ol>
-
+                        <p>Then run the tests to make sure that all went as planned:</p>
+                        <p style="text-align: center;"><code>python -c 'import emcee; emcee.test()'</code></p>
+                    </div>
+                    <div class="span4">
+                        <h3>Bleeding edge</h3>
+                        <p>For all the hackers in the house...
+                        <em>you know what to do!</em></p>
                         <p class="dl" style="text-align: center;">
-                            <a class="btn btn-primary btn-large" href="https://github.com/dfm/emcee/zipball/master">Download <small>(.zip)</small></a>
-                            &nbsp; or &nbsp;
-                            <a class="btn btn-large" href="https://github.com/dfm/emcee">Fork <span>emcee</span> on GitHub</a>
+                        <a class="btn btn-large" href="https://github.com/dfm/emcee">Fork <span>emcee</span> on GitHub</a>
                         </p>
-
                     </div>
                 </div>
+
             </section>
 
             <section id="quickstart">
@@ -214,15 +214,14 @@ nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 
 import emcee
-sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
-                        postargs=[means, icov])</pre>
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])</pre>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="span4">
                         <p>Now, let's take 500 steps as a burn-in.</p>
-                        <p><span class="label notice">Note</span> <small>each walker is
+                        <p><span class="label label-info">Note</span> <small>each walker is
                         advanced 500 times here so lnprob will actually
                         be called 5x10<sup>4</sup> times here.</small></p>
                     </div>
@@ -306,8 +305,7 @@ pl.show()</pre>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
-sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
-                        postargs=[means, icov], threads=15)</pre>
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov], threads=15)</pre>
                     </div>
                 </div>
 
@@ -319,19 +317,44 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
 
                 <div class="row">
                     <div class="span4">
-                        <p>Start by defining the probability distribution that you
-                        would like to sample.</p>
-                        <p>We'll use a
-                        <a href="http://en.wikipedia.org/wiki/Multivariate_normal_distribution">multivariate Gaussian</a>.
-                        </p>
+                        <p>To emulate the above multivariate Gaussian example,
+                        we create a class with the mean vector and covariance
+                        tensor (generated as above) as properties of the object.</p>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
-import numpy as np
+class MultivariateGaussian(object):
+    def __init__(self, ndim):
+        self.mu = np.random.rand(ndim)
+        cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
+        cov  = np.triu(cov)
+        cov += cov.T - np.diag(cov.diagonal())
+        cov  = np.dot(cov,cov)
+        self.icov = np.linalg.inv(cov)</pre>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span4">
+                        <p>Then, you can overload the magic <code>__call__</code>
+                        method of the class with the log-posterior function.</p>
+                    </div>
+                    <div class="span8">
+                        <pre class="prettyprint">
+    def __call__(self, x):
+        diff = x-self.mu
+        return -np.dot(diff,np.dot(self.icov,diff))/2.0</pre>
+                    </div>
+                </div>
 
-def lnprob(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0</pre>
+                <div class="row">
+                    <div class="span4">
+                        <p>Finally, you instantiate the sampler as follows and
+                        finish the analysis as before.</p>
+                    </div>
+                    <div class="span8">
+                        <pre class="prettyprint">
+mygaussian = MultivariateGaussian(ndim)
+sampler = emcee.EnsembleSampler(nwalkers, ndim, mygaussian)</pre>
                     </div>
                 </div>
 
@@ -344,16 +367,16 @@ def lnprob(x, mu, icov):
                 <div class="row" id="faq-walkers">
                     <div class="span12">
                         <p>Most of the core functionality is in the
-                        <a href="1.0.0/ensemble.html#ensemblesampler"><code>EnsembleSampler</code></a>
+                        <a href="1.0.0/ensemble.html#ensemblesampler">EnsembleSampler</a>
                         object that inherits from the
-                        <a href="1.0.0/sampler.html#sampler"><code>Sampler</code></a>
+                        <a href="1.0.0/sampler.html#sampler">Sampler</a>
                         abstract base class.
                     </div>
                 </div>
 
-                </section>
+            </section>
 
-                <section id="faq">
+            <section id="faq">
                 <div class="page-header">
                     <h1>FAQ <small>The not-so-frequently asked questions that still have useful answers</small></h1>
                 </div>
@@ -387,28 +410,28 @@ def lnprob(x, mu, icov):
                     </div>
                 </div>
 
-                </section>
+            </section>
 
-                <footer>
+            <footer>
                 <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., GPLv2 License</em></p>
-                </footer>
+            </footer>
 
-            </div> <!-- /container -->
+        </div> <!-- /container -->
 
-            <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-            <script type="text/javascript" src="assets/prettify.js"></script>
-            <script>$(function () { prettyPrint() })</script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        <script type="text/javascript" src="assets/prettify.js"></script>
+        <script>$(function () { prettyPrint() })</script>
 
-            <script type="text/javascript">
-                var _gaq = _gaq || [];
-                _gaq.push(['_setAccount', 'UA-22909046-1']);
-                _gaq.push(['_trackPageview']);
-                (function() {
-                 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-                 })();
-</script>
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-22909046-1']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                })();
+        </script>
 
     </body>
 </html>
