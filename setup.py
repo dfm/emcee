@@ -10,9 +10,6 @@ setup(
     license="GPL",
     description="Kick ass affine-invariant ensemble MCMC sampling",
     long_description="Read the docs at http://danfm.ca/emcee/",
-    install_requires=[
-        "numpy"
-    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
