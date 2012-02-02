@@ -21,6 +21,7 @@ except ImportError:
 
 from sampler import Sampler
 
+# === EnsembleSampler ===
 class EnsembleSampler(Sampler):
     """
     A generalized Ensemble sampler that uses 2 ensembles for parallelization.

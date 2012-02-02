@@ -43,6 +43,17 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
+      <h3><span id="ensemblesampler" href="ensemblesampler"> EnsembleSampler </span></h3>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">EnsembleSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
       <p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.</p>
 <p>This is a subclass of the <code>Sampler</code> object. See <a href="sampler.html">sampler.py</a>
 for more details about the inherited properties.</p>
@@ -79,17 +90,6 @@ for more details about the inherited properties.</p>
 of walkers.  Use the <code>flatchain</code> property to get the chain flattened to
 <code>(nlinks, dim)</code>. For users of older versions, this shape is different so
 be careful!</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">EnsembleSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div><div class='section' id='section-2'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-2'>#</a>
-      </div>
-      
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
