@@ -10,6 +10,7 @@ import numpy as np
 
 from sampler import Sampler
 
+# === MHSampler ===
 class MHSampler(Sampler):
     """
     The most basic possible Metropolis-Hastings style MCMC sampler

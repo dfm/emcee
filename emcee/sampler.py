@@ -16,6 +16,7 @@ try:
 except ImportError:
     acor = None
 
+# === Sampler ===
 class Sampler(object):
     """
     An abstract sampler object that implements various helper functions

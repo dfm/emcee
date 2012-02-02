@@ -21,6 +21,7 @@ except ImportError:
 
 from sampler import Sampler
 
+# === EnsembleSampler ===
 class EnsembleSampler(Sampler):
     """
     A generalized Ensemble sampler that uses 2 ensembles for parallelization.
@@ -206,6 +207,7 @@ class _function_wrapper(object):
     def __call__(self, x):
         return self.f(x, *self.args)
 
+# === Ensemble ===
 class Ensemble(object):
     def __init__(self, sampler):
         self._sampler = sampler
