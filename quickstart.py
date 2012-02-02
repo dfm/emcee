@@ -1,7 +1,7 @@
-# Take a look at: http://danfm.ca/pyest/#quickstart
+# Take a look at: http://danfm.ca/emcee/#quickstart
 
 import numpy as np
-import pyest
+import emcee
 
 def lnprob(x, mu, icov):
     diff = x-mu
@@ -18,7 +18,7 @@ icov = np.linalg.inv(cov)
 nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 
-sampler = pyest.EnsembleSampler(nwalkers, ndim,lnprob,
+sampler = emcee.EnsembleSampler(nwalkers, ndim,lnprob,
                         postargs=[means, icov])
 
 pos,prob,state = sampler.run_mcmc(p0, None, 500)
