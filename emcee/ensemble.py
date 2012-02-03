@@ -10,8 +10,6 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 __all__ = ['EnsembleSampler']
 
 import multiprocessing
-import pickle
-
 import numpy as np
 
 try:
@@ -76,14 +74,6 @@ class EnsembleSampler(Sampler):
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
-        if self.pool is not None:
-            if len(self.args) > 0:
-                self.lnprobfn = _function_wrapper(self.lnprobfn, self.args)
-            try:
-                pickle.dumps(self.lnprobfn)
-            except pickle.PicklingError:
-                print "Warning: lnprobfn is not picklable. "\
-                        "Parallelization probably won't work"
 
     def reset(self):
         """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
@@ -96,7 +86,7 @@ class EnsembleSampler(Sampler):
     def sample(self, p0, lnprob0=None, rstate0=None, storechain=True,
             resample=1, iterations=1):
         """
-        Advances the chain iterations steps as an iterator
+        Advance the chain iterations steps as an iterator.
 
         #### Arguments
 
@@ -122,13 +112,22 @@ class EnsembleSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+        # Try to set the initial value of the random number generator. This
+        # fails silently if it doesn't work but that's what we want because
+        # we'll just interpret any garbage as letting the generator stay in
+        # it's current state.
         self.random_state = rstate0
 
+        # Split the ensemble in half and assign the positions to the two
+        # `Ensemble`s.
         p = np.array(p0)
         halfk = int(self.k/2)
-        lnprob = lnprob0
         self.ensembles[0].pos = p[:halfk]
         self.ensembles[1].pos = p[halfk:]
+
+        # If the initial log-probabilities were not provided, calculate them
+        # now.
+        lnprob = lnprob0
         if lnprob is not None:
             self.ensembles[0].lnprob = lnprob[:halfk]
             self.ensembles[1].lnprob = lnprob[halfk:]
@@ -138,22 +137,27 @@ class EnsembleSampler(Sampler):
                 ens.lnprob = ens.get_lnprob()
                 lnprob[halfk*k:halfk*(k+1)] = ens.lnprob
 
-        # resize chain
+        # Here, we resize chain in advance for performance. This actually
+        # makes a pretty big difference.
         if storechain:
             N = int(iterations/resample)
             self._chain = np.concatenate((self._chain,
                     np.zeros((self.k, N, self.dim))), axis=1)
-            self._lnprob = np.concatenate((self._lnprob, np.zeros((self.k, N))),
-                    axis=1)
+            self._lnprob = np.concatenate((self._lnprob,
+                                           np.zeros((self.k, N))), axis=1)
 
         i0 = self.iterations
         for i in xrange(int(iterations)):
             self.iterations += 1
 
+            # Loop over the two ensembles, calculating the proposed positions.
             for k, ens in enumerate(self.ensembles):
-                q, newlnprob, accept = self.ensembles[(k+1)%2].propose_position(ens)
+                q, newlnprob, accept = \
+                        self.ensembles[(k+1)%2].propose_position(ens)
                 fullaccept = np.zeros(self.k,dtype=bool)
                 fullaccept[halfk*k:halfk*(k+1)] = accept
+
+                # Update the `Ensemble`'s walker positions.
                 if np.any(accept):
                     lnprob[fullaccept] = newlnprob[accept]
                     p[fullaccept] = q[accept]
@@ -168,6 +172,8 @@ class EnsembleSampler(Sampler):
                 self._chain[:,ind,:] = p
                 self._lnprob[:,ind]  = lnprob
 
+            # Yield the result as an iterator so that the user can do all
+            # sorts of fun stuff with the results so far.
             yield p, lnprob, self.random_state
 
     @property
@@ -183,8 +189,8 @@ class EnsembleSampler(Sampler):
     @property
     def acor(self):
         """
-        The autocorrelation time of each parameter in the chain (length: `dim`)
-        as estimated by the `acor` module.
+        The autocorrelation time of each parameter in the chain (length:
+        `dim`) as estimated by the `acor` module.
 
         """
         if acor is None:
@@ -198,7 +204,7 @@ class EnsembleSampler(Sampler):
 class _function_wrapper(object):
     """
     This is a hack to make the likelihood function pickleable when `args` are
-    also included
+    also included.
 
     """
     def __init__(self, f, args):
@@ -210,19 +216,28 @@ class _function_wrapper(object):
 # === Ensemble ===
 class Ensemble(object):
     def __init__(self, sampler):
-        self._sampler = sampler
+        self.sampler = sampler
+        # Do a little bit of _magic_ to make the likelihood call with
+        # `args` pickleable.
+        self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
 
     def get_lnprob(self, pos=None):
+        """Calculate the vector of log-probability for the walkers."""
         if pos is None:
             p = self.pos
         else:
             p = pos
 
-        if self._sampler.pool is not None:
-            M = self._sampler.pool.map
+        # If the `pool` property of the sampler has been set (i.e. we want
+        # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
+        # just use the built-in `map` function.
+        if self.sampler.pool is not None:
+            M = self.sampler.pool.map
         else:
             M = map
-        lnprob = np.array(M(self._sampler.get_lnprob, [p[i]
+
+        # Calculate the probabilities.
+        lnprob = np.array(M(self.lnprobfn, [p[i]
                     for i in range(len(p))]))
 
         return lnprob
@@ -235,21 +250,35 @@ class Ensemble(object):
 
         * `ensemble` (Ensemble): The ensemble to be advanced.
 
+        #### Returns
+
+        * `q` (numpy.array): The new proposed positions for the walkers in
+          `ensemble`.
+        * `newlnprob` (numpy.ndarray): The vector of log-probabilities at
+          the positions given by `q`.
+        * `accept` (numpy.ndarray): A vector of `bool`s indicating whether or
+          not the proposed position for each walker should be accepted.
+
         """
         s = np.atleast_2d(ensemble.pos)
         Ns = len(s)
         c = np.atleast_2d(self.pos)
         Nc = len(c)
 
-        zz = ((self._sampler.a-1.)*self._sampler._random.rand(Ns)+1)**2./self._sampler.a
-        rint = self._sampler._random.randint(Nc, size=(Ns,))
+        # Generate the vectors of random numbers that will produce the
+        # proposal.
+        zz = ((self.sampler.a - 1.) * self.sampler._random.rand(Ns) + 1)**2.\
+                / self.sampler.a
+        rint = self.sampler._random.randint(Nc, size=(Ns,))
 
-        # propose new walker position and calculate the lnprobability
+        # Calculate the proposed positions and the log-probability there.
         q = c[rint] - zz[:,np.newaxis]*(c[rint]-s)
         newlnprob = ensemble.get_lnprob(q)
 
-        lnpdiff = (self._sampler.dim - 1.) * np.log(zz) + newlnprob - ensemble.lnprob
-        accept = (lnpdiff > np.log(self._sampler._random.rand(len(lnpdiff))))
+        # Decide whether or not the proposals should be accepted.
+        lnpdiff = (self.sampler.dim - 1.) * np.log(zz) \
+                + newlnprob - ensemble.lnprob
+        accept = (lnpdiff > np.log(self.sampler._random.rand(len(lnpdiff))))
 
         return q, newlnprob, accept
 

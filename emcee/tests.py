@@ -15,10 +15,6 @@ from ensemble import EnsembleSampler
 logprecision = -4
 
 def lnprob_gaussian(x, icov):
-    """
-    Value at x of a multi-dimensional Gaussian with mean mu
-    and inverse cov icov
-    """
     return -np.dot(x,np.dot(icov,x))/2.0
 
 class Tests:
@@ -38,16 +34,12 @@ class Tests:
 
         self.truth = np.random.multivariate_normal(self.mean,self.cov,100000)
 
-    def tearDown(self):
-        pass
-
     def check_sampler(self, N=None, p0=None):
         if N is None:
             N = self.N
         if p0 is None:
             p0 = self.p0
 
-        strt = time.time()
         for i in self.sampler.sample(p0, iterations=N):
             pass
 

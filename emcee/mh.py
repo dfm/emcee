@@ -74,7 +74,7 @@ class MHSampler(Sampler):
         if lnprob is None:
             lnprob = self.get_lnprob(p)
 
-        # resize chain
+        # Resize the chain in advance.
         if storechain:
             N = int(iterations/resample)
             self._chain = np.concatenate((self._chain,
@@ -85,7 +85,7 @@ class MHSampler(Sampler):
         for i in xrange(int(iterations)):
             self.iterations += 1
 
-            # proposal
+            # Calculate the proposal distribution.
             q = self._random.multivariate_normal(p, self.cov)
             newlnprob = self.get_lnprob(q)
             diff = newlnprob-lnprob
@@ -104,6 +104,6 @@ class MHSampler(Sampler):
                 self._chain[ind,:] = p
                 self._lnprob[ind]  = lnprob
 
-            # heavy duty iterator action going on right here
+            # Heavy duty iterator action going on right here...
             yield p, lnprob, self.random_state
 

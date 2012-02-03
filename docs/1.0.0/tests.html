@@ -36,11 +36,11 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      <p>Value at x of a multi-dimensional Gaussian with mean mu
-and inverse cov icov</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">lnprob_gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">icov</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">lnprob_gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">icov</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">icov</span><span class="p">,</span><span class="n">x</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-2'>
@@ -51,7 +51,7 @@ and inverse cov icov</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">icov</span><span class="p">,</span><span class="n">x</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Tests</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-3'>
@@ -62,22 +62,11 @@ and inverse cov icov</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Tests</span><span class="p">:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div><div class='section' id='section-4'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-4'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">100</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span>     <span class="o">=</span> <span class="mi">5</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="mi">3000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="mi">1000</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cov</span>  <span class="o">=</span> <span class="mf">0.5</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
@@ -90,22 +79,10 @@ and inverse cov icov</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span><span class="mi">100000</span><span class="p">)</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div><div class='section' id='section-5'>
+  <div class='clearall'></div><div class='section' id='section-4'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-5'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div><div class='section' id='section-6'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-4'>#</a>
       </div>
       
     </div>
@@ -116,16 +93,40 @@ and inverse cov icov</p>
         <span class="k">if</span> <span class="n">p0</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">p0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p0</span>
 
-        <span class="n">strt</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="n">N</span><span class="p">):</span>
             <span class="k">pass</span>
-        <span class="k">print</span> <span class="s">&quot;Sampling took {:.3f} seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">strt</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">acceptance_fraction</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.25</span>
         <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">flatchain</span>
         <span class="n">maxdiff</span> <span class="o">=</span> <span class="mf">10.</span><span class="o">**</span><span class="p">(</span><span class="n">logprecision</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">maxdiff</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">maxdiff</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_mh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">MHSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob_gaussian</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">icov</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">EnsembleSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob_gaussian</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">icov</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div><div class='section' id='section-7'>
@@ -136,56 +137,9 @@ and inverse cov icov</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_mh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">MHSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob_gaussian</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">icov</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div><div class='section' id='section-8'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">EnsembleSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob_gaussian</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">icov</span><span class="p">])</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">test_parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">EnsembleSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob_gaussian</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">icov</span><span class="p">],</span> <span class="n">threads</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pl</span>
-    <span class="n">tests</span> <span class="o">=</span> <span class="n">Tests</span><span class="p">()</span>
-    <span class="n">tests</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
-
-    <span class="n">chains</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">tests</span><span class="o">.</span><span class="n">test_aimog</span><span class="p">,</span> <span class="n">tests</span><span class="o">.</span><span class="n">test_mog</span><span class="p">,</span> <span class="n">tests</span><span class="o">.</span><span class="n">test_dual2</span><span class="p">,</span> <span class="n">tests</span><span class="o">.</span><span class="n">test_dual</span><span class="p">,</span> <span class="n">tests</span><span class="o">.</span><span class="n">test_ensemble</span><span class="p">,</span> <span class="n">tests</span><span class="o">.</span><span class="n">test_mh</span><span class="p">]:</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-        <span class="n">tests</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
-        <span class="k">print</span> <span class="n">t</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">t</span><span class="p">()</span>
-            <span class="k">print</span> <span class="s">&quot;Mean autocorrelation time(s):</span><span class="se">\n\t</span><span class="s">&quot;</span><span class="p">,</span>
-            <span class="k">print</span> <span class="n">tests</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">acor</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span> <span class="n">e</span>
-            <span class="k">print</span> <span class="s">&quot;failed!&quot;</span>
-        <span class="k">print</span> <span class="s">&quot;Mean acceptance fraction: {:.3f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">acceptance_fraction</span><span class="p">))</span>
-        <span class="n">chains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">flatchain</span><span class="p">)</span>
-
-    <span class="n">truth</span> <span class="o">=</span> <span class="n">tests</span><span class="o">.</span><span class="n">truth</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
-        <span class="n">pl</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">pl</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">truth</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span><span class="mi">100</span><span class="p">,</span><span class="n">normed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">histtype</span><span class="o">=</span><span class="s">&#39;stepfilled&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">chains</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tests</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
-            <span class="n">pl</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">samps</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-            <span class="n">pl</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samps</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">normed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s">&#39;step&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-
-    <span class="n">pl</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
 </pre></div>
     </div>

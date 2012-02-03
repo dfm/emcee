@@ -10,7 +10,6 @@ __all__ = ['Sampler']
 
 import numpy as np
 
-# import acor if it's available
 try:
     import acor
 except ImportError:
@@ -47,10 +46,23 @@ class Sampler(object):
 
     @property
     def random_state(self):
+        """
+        The state of the internal random number generator. In practice, it’s
+        the result of calling `get_state()` on a
+        `numpy.random.mtrand.RandomState` object. You can try to set this
+        property but be warned that if you do this and it fails, it will do
+        so silently.
+
+        """
         return self._random.get_state()
 
     @random_state.setter
     def random_state(self, state):
+        """
+        Try to set the state of the random number generator but fail silently
+        if it doesn't work. Don't say I didn't warn you...
+
+        """
         try:
             self._random.set_state(state)
         except:
@@ -58,27 +70,53 @@ class Sampler(object):
 
     @property
     def acceptance_fraction(self):
+        """
+        An array (length: `k`) of the fraction of steps accepted for each
+        walker.
+
+        """
         return self.naccepted/self.iterations
 
     @property
     def chain(self):
+        """
+        A pointer to the Markov chain itself. The shape of this array is
+        `(k, dim, iterations/resample)`.
+
+        """
         return self._chain
 
     @property
     def flatchain(self):
+        """
+        A shortcut for accessing chain flattened along the zeroth (walker)
+        axis.
+
+        """
         return self._chain
 
     @property
     def lnprobability(self):
+        """
+        A pointer to the matrix of the value of `lnprobfn` produced at each
+        step for each walker. The shape is `(k, iterations/resample)`.
+
+        """
         return self._lnprob
 
     @property
     def acor(self):
+        """
+        The autocorrelation time of each parameter in the chain (length:
+        `dim`) as estimated by the `acor` module.
+
+        """
         if acor is None:
             raise ImportError("acor")
         return acor.acor(self._chain.T)[0]
 
     def get_lnprob(self, p):
+        """Return the log-probability at the given position."""
         return self.lnprobfn(p, *self.args)
 
     def reset(self):
