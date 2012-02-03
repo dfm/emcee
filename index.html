@@ -366,11 +366,17 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, mygaussian)</pre>
                 </div>
                 <div class="row" id="faq-walkers">
                     <div class="span12">
-                        <p>Most of the core functionality is in the
+                        <h3>Annotated source code</h3>
+                        <p>The annotated source code is an excellent place to
+                        get information about how this code works.
+                        Most of the core functionality is in the
                         <a href="1.0.0/ensemble.html#ensemblesampler">EnsembleSampler</a>
                         object that inherits from the
                         <a href="1.0.0/sampler.html#sampler">Sampler</a>
-                        abstract base class.
+                        abstract base class. There is also a simple
+                        <a href="1.0.0/mh.html#mhsampler">Metropolis-Hastings</a>
+                        sampler for comparison. You can also take a look at the
+                        <a href="1.0.0/tests.html">unit tests</a>.
                     </div>
                 </div>
 
