@@ -65,3 +65,7 @@ class Tests:
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim, lnprob_gaussian, args=[self.icov])
         self.check_sampler()
 
+    def test_parallel(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim, lnprob_gaussian, args=[self.icov], threads=2)
+        self.check_sampler()
+

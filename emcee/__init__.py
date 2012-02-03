@@ -5,8 +5,11 @@ from ensemble import *
 def test():
     from tests import Tests
 
-    test_names = [("Metropolis-Hastings", "test_mh"),
-                  ("Ensemble Sampler",    "test_ensemble")]
+    test_names = [
+                  ("Parallel Sampler",    "test_parallel"),
+                  ("Ensemble Sampler",    "test_ensemble"),
+                  ("Metropolis-Hastings", "test_mh"),
+                 ]
 
     print "Starting tests..."
 
