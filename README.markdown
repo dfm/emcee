@@ -15,7 +15,12 @@ NYU with contributions from Dustin Lang.
 
 ### Documentation
 
-Read the docs at [danfm.ca/emcee](http://danfm.ca/emcee/).
+Read the docs at [danfm.ca/emcee](http://danfm.ca/emcee/). You can also look
+at these docs after you've cloned the repository by running
+
+    python -m SimpleHTTPServer 5000
+
+in the `docs` directory and navigating to [localhost](http://localhost:5000).
 
 ### Atribution
 
