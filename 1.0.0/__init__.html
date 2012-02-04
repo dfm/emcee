@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>__init__.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  
+  <div class='section'>
+    <div class='docs'><h1>__init__.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">sampler</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">mh</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ensemble</span> <span class="kn">import</span> <span class="o">*</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div><div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">tests</span> <span class="kn">import</span> <span class="n">Tests</span>
+
+    <span class="n">test_names</span> <span class="o">=</span> <span class="p">[</span>
+                  <span class="p">(</span><span class="s">&quot;Parallel Sampler&quot;</span><span class="p">,</span>    <span class="s">&quot;test_parallel&quot;</span><span class="p">),</span>
+                  <span class="p">(</span><span class="s">&quot;Ensemble Sampler&quot;</span><span class="p">,</span>    <span class="s">&quot;test_ensemble&quot;</span><span class="p">),</span>
+                  <span class="p">(</span><span class="s">&quot;Metropolis-Hastings&quot;</span><span class="p">,</span> <span class="s">&quot;test_mh&quot;</span><span class="p">),</span>
+                 <span class="p">]</span>
+
+    <span class="k">print</span> <span class="s">&quot;Starting tests...&quot;</span>
+
+    <span class="n">failures</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">tests</span> <span class="o">=</span> <span class="n">Tests</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">test_names</span><span class="p">:</span>
+        <span class="n">tests</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">tests</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Test: </span><span class="si">%s</span><span class="s"> failed with error:&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">print</span> <span class="s">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="n">failures</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Test: </span><span class="si">%s</span><span class="s"> passed.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">print</span> <span class="s">&quot;</span><span class="si">%d</span><span class="s"> tests passed&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_names</span><span class="p">)</span><span class="o">-</span><span class="n">failures</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;</span><span class="si">%d</span><span class="s"> tests failed&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">failures</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
