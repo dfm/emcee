@@ -34,7 +34,9 @@
                 padding-bottom: 5px;
             }
             .prelude {
+                font-weight: normal;
                 padding-bottom: 20px;
+                text-align: right;
             }
             .dl .btn {
                 font-size: 18px;
@@ -81,9 +83,9 @@
                 <p>Seriously kick-ass MCMC sampling</p>
             </div>
 
-            <div class="row">
-                <div class="span12" style="padding-bottom: 20px;">
-                    <h3 class="prelude">
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="span4">
+                    <p class="prelude">
                     Once upon a time, there was
                     <a href="http://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">an algorithm</a>.
                     This algorithm became very popular but it turned out that there
@@ -91,15 +93,17 @@
                     came up with a better one and <a href="http://danfm.ca">some</a>
                     <a href="http://www.astro.princeton.edu/~dstn/">other</a> <a href="http://cosmo.nyu.edu/hogg/">folks</a> implemented it in Python. It's a little crazy how
                     much it rocks.
-                    </h3>
-                    <h3>
+                    </p>
+                </div>
+                <div class="span8">
+                    <blockquote><h3>
                     emcee is an extensible, pure-Python implementation of
                     of Goodman & Weare's
                     <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Affine
-                    Invariant Markov chain Monte Carlo (MCMC) sampler</a>.
+                    Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
                     It's designed for Bayesian parameter estimation and it's really
-                    sweet!
-                    </h3>
+                    sweet!</h3>
+                    </blockquote>
                 </div>
             </div>
 
@@ -343,7 +347,11 @@ def lnprob(x, mu, icov):
                 </div>
                 <div class="row" id="faq-walkers">
                     <div class="span12">
-                        <h3>Coming soon...</h3>
+                        <p>Most of the core functionality is in the
+                        <a href="docs/1.0.0/ensemble.html#EnsembleSampler"><code>EnsembleSampler</code></a>
+                        object that inherits from the
+                        <a href="docs/1.0.0/sampler.html#Sampler"><code>Sampler</code></a>
+                        abstract base class.
                     </div>
                 </div>
 
@@ -357,7 +365,21 @@ def lnprob(x, mu, icov):
                 <div class="row" id="faq-walkers">
                     <div class="span12">
                         <h4>What are you talking about when you say "walkers"?</h4>
-                        <p>Walkers are ...</p>
+                        <p>Walkers are the members of the ensemble. They are almost like
+                        separate Metropolis-Hastings chains but, of course, the proposal
+                        distribution for a given walker depends on the positions of
+                        all the other walkers in the ensemble. See
+                        <a href="http://cims.nyu.edu/~weare/papers/d13.pdf">Goodman &amp; Weare (2010)</a>
+                        for more details.</p>
+                    </div>
+                </div>
+
+                <div class="row" id="faq-init">
+                    <div class="span12">
+                        <h4>How should I initialize the walkers?</h4>
+                        <p>The best technique seems to be to start in a small ball
+                        around the <em>a priori</em> preferred position. Don't worry,
+                        the walkers quickly branch out and explore the rest of the space.</p>
                     </div>
                 </div>
 
@@ -386,7 +408,7 @@ def lnprob(x, mu, icov):
                 </section>
 
                 <footer>
-                <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., MIT License</em></p>
+                <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., GPLv2 License</em></p>
                 </footer>
 
             </div> <!-- /container -->
