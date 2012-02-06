@@ -13,7 +13,7 @@
 \usepackage{listings}
 \definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
 \lstset{language=Python,
-        basicstyle=\footnotesize\sffamily,
+        basicstyle=\footnotesize\ttfamily,
         showspaces=false,
         showstringspaces=false,
         tabsize=2,
@@ -34,8 +34,8 @@
 \newcommand{\acor}{\project{acor}}
 \newcommand{\thisplain}{emcee}
 \newcommand{\this}{\project{\thisplain}}
-\newcommand{\paper}{\emph{Article}}
-\newcommand{\license}{GNU Public License (v2)}
+\newcommand{\paper}{document}
+\newcommand{\license}{GNU General Public License (v2)}
 
 % shortcuts for API layout -- this is some brittle stuff!
 \newlength{\argmarg}
@@ -79,8 +79,8 @@
 \newcommand{\Eq}[1]{Equation (\ref{eq:#1})}
 \newcommand{\eq}[1]{Equation (\ref{eq:#1})}
 \newcommand{\eqlabel}[1]{\label{eq:#1}}
-\newcommand{\Sect}[1]{\S (\ref{sect:#1})}
-\newcommand{\sect}[1]{\S (\ref{sect:#1})}
+\newcommand{\Sect}[1]{\S\ref{sect:#1}}
+\newcommand{\sect}[1]{\S\ref{sect:#1}}
 \newcommand{\sectlabel}[1]{\label{sect:#1}}
 \newcommand{\Algo}[1]{Algorithm (\ref{algo:#1})}
 \newcommand{\algo}[1]{Algorithm (\ref{algo:#1})}
@@ -90,18 +90,31 @@
 \newcommand{\dd}{\mathrm{d}}
 \newcommand{\like}{\mathscr{L}}
 \newcommand{\bvec}[1]{\boldsymbol{#1}}
-\newcommand{\normal}[3]{\mathcal{N} (#1 | #2, #3)}
+\newcommand{\paramvector}[1]{\bvec{#1}}
+\newcommand{\normal}[2]{\mathcal{N} (#1, #2)}
+\newcommand{\ensemble}{S}
+\newcommand{\colorens}[1]{\ensemble^{(#1)}}
+\newcommand{\red}{\colorens{0}}
+\newcommand{\blue}{\colorens{1}}
+\renewcommand{\vector}[1]{#1}
+\renewcommand{\matrix}[1]{#1}
+\newcommand{\pr}{p}
 
 % model parameters
 \newcommand{\model}{\paramvector{\Theta}}
-\newcommand{\data}{\paramvector{X}}
+\newcommand{\data}{\paramvector{D}}
+\newcommand{\nuisance}{\paramvector{\alpha}}
+\newcommand{\link}{X}
 
 % units
 \newcommand{\unit}[1]{\mathrm{#1}}
 
+% Citation alias
+\defcitealias{Goodman:2010}{GW10}
+
 \begin{document}
 
-\title{\this: Ensemble MCMC for the masses}
+\title{\this: The MCMC Hammer}
 \author{Daniel~Foreman-Mackey\altaffilmark{1}, David~W.~Hogg, \etal}
 \affil{Center for Cosmology and Particle Physics,
                          Department of Physics, New York University,
@@ -110,7 +123,7 @@
 
 \begin{abstract}
 
-    \this~is a stable, well tested Python implementation of the affine-%
+    We introduce a stable, well tested Python implementation of the affine-%
     invariant ensemble sampler for Markov chain Monte Carlo (MCMC)
     proposed by Goodman~\&~Weare (2010). The code is open source and has
     already been used in several published projects in the Astrophysics
@@ -119,12 +132,12 @@
     measured by the sampling autocorrelation time on several test problems.
     One major advantage of the algorithm is that it requires the hand-%
     tuning of only 2 parameters compared to the $\sim N^2$ for
-    a traditional algorithm in $N$ dimensions. In this \paper, we describe
-    the Goodman~\&~Weare algorithm and the details of our implementation.
-    \this~takes advantage of the naturally parallel nature of the algorithm
-    allowing \emph{any} user to take advantage of multiple CPUs without any
-    extra effort. We discuss the subtleties associated with this
-    parallelization.
+    a traditional algorithm in an $N$ dimensional parameter space. In this
+    \paper, we describe the Goodman~\&~Weare algorithm and the details of our
+    implementation. \this~takes advantage of the naturally parallel nature of
+    the algorithm allowing \emph{any} user to take advantage of multiple CPUs
+    without significant extra effort. We discuss the subtleties associated
+    with this parallelization.
 
     The code is available online at \url{http://danfm.ca/\thisplain} under the
     \license.
@@ -139,51 +152,50 @@
 
 \section{Introduction}
 
-Probabilistic data analysis is a common theme in the recent scientific
-literature since. In particular, many problems in astrophysics and cosmology,
-benefit from careful probabilistic inference because most problems of
-interest lie in the regime of very low signal-to-noise date with large
-systematic uncertainties and missing observations. In many scientific
-problems of interest, however, there is a physically motivated,
-generative model of the data or several
-such models that we wish to compare. If we can leverage the physics that we
-understand and the rich prior information from the literature then there is
-a chance --- it has been repeatedly shown --- of solving these problems.
-With the use of more sophisticated models for the data comes an engineering
-challenge that can only be solved with a combination of computing power and
-more efficient algorithms.
+Probabilistic data analysis --- including Bayesian methods --- has
+transformed scientific research in the past decade. The most significant
+gains have been due to numerical methods of approximate inference;
+especially Markov chain Monte Carlo (MCMC) methods. In particular, many
+problems in cosmology and astrophysics benefit from these advances because
+they lie in the low signal-to-noise regime with incomplete
+observations. In these fields, it is often possible to exploit a physically
+justified generative model of the data, making these research questions
+tractable. In principle, there is no limit to the complexity of this
+generative process but many interesting research questions can only be solved
+with a combination of more computing power and more efficient algorithms.
 
 The general probabilistic data analysis procedure involves examining either
-the posterior probability distribution function (PDF) of the parameters
+the posterior probability density function (PDF) of the parameters
 of the model or the likelihood function of the data. In some cases, it is
 sufficient to just find the maximum of this function but it is often of
-interest to (at least approximately) understand the details of the function.
+interest to (at least approximately) measure this distribution in more detail.
 In particular, if we wish to propagate the effects of measurement
-uncertainties through to the result of the analysis, we must sample the
-PDF on sufficiently small scales. Markov chain Monte Carlo (MCMC)
-methods are designed to approximate this function even in high dimensional
-parameter spaces and the use of MCMC has proved useful in too many research
-applications to list here (e.g. WMAP, etc. DFM: add citations).
+uncertainties through the analysis to the conclusions, we must sample the
+PDF on sufficiently small scales. MCMC methods are designed to efficiently
+sample and approximate the PDF even in high dimensional
+parameter spaces. This has proved useful in too many research
+applications to list here (e.g. WMAP, etc. DFM/Hogg: add citations).
 
-Arguably the most important advantage of fully probabilistic data analysis is
+Arguably the most important advantage of Bayesian data analysis is
 that it is possible to \emph{marginalize} over nuisance parameters. A
 nuisance parameter is a component of the generative model that is of little
-or physical interest but must be specified in order to generate the data.
+physical interest who's value must be known in order to produce data.
 Marginalization is the process of integrating over all possible values of
 these parameters and hence propagating the effects of your uncertainty about
-the true value to the final result. This operation is written as the integral
+the ``true'' value to the final result. The exact result of marginalization
+is the marginalized likelihood function $p(\mathbf{D}|\boldsymbol{\Theta})$
+of the data $\mathbf{D}$ given the physical model parameters
+$\boldsymbol{\Theta}$
 \begin{equation}
     \eqlabel{marginalization}
-    p (\mathbf{X} | \boldsymbol{\Theta}) = \int
-        p (\mathbf{X} | \boldsymbol{\Theta},\boldsymbol{\alpha}) \,
-        p (\boldsymbol{\alpha}) \, \dd \boldsymbol{\alpha}
+    p (\data | \model) = \int
+        p (\data | \model, \nuisance) \,
+        p ( \nuisance) \, \dd  \nuisance
 \end{equation}
-where $p (\mathbf{X} | \boldsymbol{\Theta})$ is the marginalized likelihood
-of the data $\mathbf{X}$ given the model parameters $\boldsymbol{\Theta}$
-and $\boldsymbol{\alpha}$ is vector of nuisance parameters. In some specific
+where $ \nuisance$ is vector of nuisance parameters. In some specific
 cases, the integral in \eq{marginalization} is analytically tractable but in
 general, the likelihood function
-$p (\mathbf{X} | \boldsymbol{\Theta},\boldsymbol{\alpha})$ is not a simple
+$p (\data | \model, \nuisance)$ is not a simple
 integrable function. In fact, in many problems, the likelihood
 function is actually the result of an extremely expensive numerical
 simulation. In this regime, the integration must be calculated numerically
@@ -199,8 +211,8 @@ modifications to the Metropolis-Hastings (M-H) method
 \citep[e.g.][]{MacKay:2003}. Each step in a M-H chain is proposed using a
 multivariate Gaussian centered on the current position of the chain. Since
 each term in the covariance matrix of this proposal distribution is an
-unspecified parameter, this method has $D\,[D+1]/2$ tuning parameters (where
-$D$ is the dimension of the parameter space).  To make matters worse, the
+unspecified parameter, this method has $N\,[N+1]/2$ tuning parameters (where
+$N$ is the dimension of the parameter space).  To make matters worse, the
 performance of this sampler is very sensitive to the optimality of these
 tuning parameters and there is no fool-proof method for choosing the values
 correctly. As a result, many heuristic methods have been developed to attempt
@@ -210,18 +222,24 @@ methods all require ``burn-in'' phases where shorter Markov chains
 are sampled and the results are used to tune the hyperparameters. This extra
 cost is unacceptable when the likelihood calls are computationally heavy.
 
-The problem with traditional sampling methods can be visualized by studying
-the highly anisotropic density
+The problem with traditional sampling methods can be visualized by looking
+at the simple but highly anisotropic density
 \begin{equation}
     \eqlabel{anisotropic}
     p(\mathbf{x}) \propto \exp \left (-\frac{(x_1-x_2)^2}{2\,\epsilon}
                                         - \frac{(x_1+x_2)^2}{2} \right )
 \end{equation}
-which would be considered ``difficult'' by standard MCMC algorithms.
-\Eq{anisotropic} can be transformed into the much easier problem of sampling
-an isotropic Gaussian by an \emph{affine transformation} of the form
+which would be considered ``difficult'' (in the low-$\epsilon$ regime) by
+standard MCMC algorithms. In principle, it is possible to tune the
+hyperparameters of a M-H sampler but if calculating the density in
+\eq{anisotropic} is computationally expensive and the covariance is not
+known \foreign{a priori} then the tuning procedure gets quickly intractable.
+Also, since the number of parameters scales as $\sim N^2$, this problem gets
+mush worse in higher dimensions.
+\Eq{anisotropic} can, however, be transformed into the much easier problem of
+sampling an isotropic Gaussian by an \emph{affine transformation} of the form
 \begin{equation}
-    y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, , \,\,\, y_2 = x_1 + x_2.
+    y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, , \hspace{1cm} y_2 = x_1 + x_2.
 \end{equation}
 Therefore, an algorithm that is \emph{affine invariant} will be insensitive to
 covariances between parameters. An affine invariant algorithm is unaffected by
@@ -231,7 +249,8 @@ any transformation of the density of the form
 \end{equation}
 
 Extending earlier work by \citet{Christen:2007},
-\citet[][hereafter GW]{Goodman:2010} proposed an affine invariant sampling
+\citet[][hereafter \citetalias{Goodman:2010}]{Goodman:2010} proposed an
+affine invariant sampling
 algorithm (\sect{algo}) with only two hyperparameters that can be tuned for
 performance. \citet{Hou:2011} were the first group to implement this
 algorithm to solve a physics problem. The implementation presented here is
@@ -239,35 +258,117 @@ an independent effort that has already proved effective in several projects
 \citep[][Foreman-Mackey \& Widrow~2012, in prep.]{Lang:2011,
 Bovy:2011, Dorman:2012}.
 In what follows, we summarize the GW algorithm and the implementation
-decisions made in \this. In \sect{parallel} we describe the small changes
+decisions made in \this. We also describe the small changes
 that must be made to the algorithm to parallelize it. Finally, in \sect{api},
 we outline the installation, usage and troubleshooting of the package.
 
 \section{The Algorithm}\sectlabel{algo}
 
-\subsection{The stretch move}
+A complete discussion of MCMC methods is beyond the scope of this \paper.
+Instead, the interested reader is directed to a classic reference like
+\citet{MacKay:2003} and we will summarize some key concepts below.
 
-\citet{Goodman:2010} proposed an affine invariant ensemble sampling algorithm
-informally called the ``stretch move''. For completeness and for clarity of
-notation, we summarize the algorithm here and refer the interested reader to
-the original paper for more details. This method involves simultaneously
-evolving an ensemble of $K$ \emph{walkers}
-$\mathbf{X} = \{ X_j, \forall j=1,\ldots,K \}$ where the proposal
+The general goal of MCMC algorithms is to draw samples
+$\{ \model_i \, \forall i=1, \ldots, M \}$ from
+the joint probability distribution
+\begin{equation}
+    \pr (\model, \nuisance, \data) = \pr (\model, \nuisance)
+            \, \pr (\data | \model, \nuisance)
+\end{equation}
+where the prior distribution $\pr (\model, \nuisance)$ and the likelihood
+function $\pr (\data|\model,\nuisance)$ can be relatively easily (but not
+necessarily quickly) computed for a particular value of
+$(\model_i, \nuisance_i)$. Since the normalization $\pr (\data)$ is
+independent of $\model$ and $\nuisance$, the joint distribution above is
+proportional to the posterior probability $\pr (\model, \nuisance | \data)$
+given any one choice of generative model. Therefore, once the samples
+produced by MCMC are available, the marginalized constraints on $\model$
+(\eq{marginalization}) can be approximated by the histogram of the samples
+projected into the subspace spanned by $\model$. In particular, the
+expectation value of a particular parameter $\phi \in \model$ given the
+samples $\{ \phi_i \}$ is
+\begin{equation}
+    E[\phi] = \int \phi \, \pr ( \model, \nuisance | \data )
+            \, \dd \model \, \dd \nuisance
+            \approx \frac{1}{M} \sum_{i=1} ^M \phi_i .
+\end{equation}
+Generating the samples $\model_i$ is a non-trivial process unless
+$\pr (\model, \nuisance, \data)$ is a very specific analytic distribution
+(e.g.~Gaussian). MCMC is a procedure for generating a random walk in the
+parameter space the relatively efficiently draws a representative set of
+samples from the distribution. Each point in a Markov chain
+$\link (t) = [\model(t), \nuisance(t)]$
+depends only on the position of the previous link $\link (t-1)$.
+
+\paragraph{The Metropolis-Hastings (M-H) Algorithm}
+
+The simplest and most commonly used MCMC algorithm is the M-H method
+(\algo{mh}). The iterative procedure is as follows: (1) given a position
+$X(t)$ sample a proposal position $Y$ from the transition distribution
+$Q(Y; X(t))$, (2) accept this proposal with probability
+\begin{equation}
+    \mathrm{min} \left \{ 1,
+            \frac{\pr(\vector{Y} | \data)}{\pr(\vector{X}(t) | \data)} \,
+            \frac{Q(X(t); Y)}{ Q(Y;X(t))}  \right \}.
+\end{equation}
+It is worth emphasizing that if this step is accepted $X(t+1) = Y$; Otherwise,
+the new position is set to the previous one $X(t+1) \gets X(t)$ (i.e.~the
+position $X(t)$ is \emph{double counted}).
+
+The M-H algorithm converges (as $t \to \infty$) to a stationary set of
+samples from the distribution but there are many algorithms with faster
+convergence and varying levels of implementation difficulty (CITECITECITE).
+Faster convergence is preferred because of the reduction of computational
+cost due to the smaller number of likelihood computations necessary to obtain
+the equivalent level of accuracy. The efficiency of an algorithm can be
+measured by the autocorrelation function and more specifically, the integrated
+autocorrelation time (see \sect{tests}). This quantity is an estimate of the
+number of steps needed in the chain in order to draw independent samples from
+the target density. Therefore, a more efficient chain will have a shorter
+autocorrelation time.
+
+\begin{algorithm}
+\caption{The procedure for a single Metropolis-Hastings MCMC step.
+    \algolabel{mh}}
+\begin{algorithmic}[1]
+
+\STATE Draw a sample $Y \sim Q (Y; X(t))$
+\STATE $q \gets [\pr(\vector{Y}) \, Q(X(t); Y)]
+        / [\pr(\vector{X}(t)) \, Q(Y;X(t))]$
+\STATE $r \gets R \sim [0, 1]$
+\IF{$r \ge q$}
+    \STATE $\vector{X}(t+1) \gets \vector{Y}$
+\ELSE
+    \STATE $\vector{X}(t+1) \gets \vector{X}(t)$
+\ENDIF
+
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{The stretch move}
+
+\citetalias{Goodman:2010} proposed an affine invariant ensemble sampling
+algorithm informally called the ``stretch move''. For completeness and for
+clarity of notation, we summarize the algorithm here and refer the interested
+reader to the original paper for more details. This method involves
+simultaneously evolving an ensemble of $K$ \emph{walkers}
+$\ensemble = \{ \vector{X_j}, \forall j=1,\ldots,K \}$ where the proposal
 distribution for one walker $k$ is based on the current positions of the
 $K-1$ walkers in the \emph{complementary ensemble}
-$\mathbf{X}_{[k]} = \{ X_j, \forall j \ne k \}$. In general, each $X_j$ is
-also a vector in $n$ dimensions, where $n$ is the dimension of the parameter
-space.
+$\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$. In general, each
+$\vector{X_j}$ is also a vector in $N$ dimensions (the dimension
+of the parameter space).
 
-To update the position of a walker at position $\mathbf{X}_k$,
-another walker $\mathbf{X}_j$ with $j \ne k$ is randomly chosen and then
+To update the position of a walker at position $\vector{X_k}$,
+another walker $\vector{X_j}$ with $j \ne k$ is randomly chosen and then
 a new position is proposed:
 \begin{equation}
     \eqlabel{proposal}
-    {X}_k (t) \to {Y} = {X}_j + Z \, [{X}_k (t) - {X}_j]
+    \vector{X_k} (t) \to \vector{Y} = \vector{X_j}
+            + Z \, [\vector{X_k} (t) - \vector{X_j}]
 \end{equation}
-where $Z$ is a random variable drawn from a distribution $g(z)$.  It is clear
-that if $g(z)$ satisfies
+where $Z$ is a random variable drawn from a distribution $g(Z = z)$.
+It is clear that if $g$ satisfies
 \begin{equation}
     g(z^{-1}) = z \, g(z),
 \end{equation}
@@ -276,13 +377,13 @@ satisfy detailed balance if the proposal is accepted with probability
 \begin{equation}
     \eqlabel{acceptance}
     q = \min \left \{ 1, Z^{n-1} \,
-                \frac{p(\mathbf{Y})}{p(\mathbf{X}_k(t))} \right \}
+                \frac{\pr(\vector{Y})}{\pr(\vector{X_k} (t))} \right \}
 \end{equation}
 where $n$ is the dimension of the parameter space. This procedure is then
 repeated for each walker in the ensemble \emph{in series} following the
 procedure shown in \algo{goodman}.
 
-\citet{Goodman:2010} advocate for a particular form of $g(z)$, namely
+\citetalias{Goodman:2010} advocate for a particular form of $g(z)$, namely
 \begin{equation}
     \eqlabel{goodmanprop}
     g(z) \propto \left \{ \begin{array}{ll}
@@ -291,21 +392,22 @@ procedure shown in \algo{goodman}.
         0 & \mathrm{otherwise}
     \end{array} \right .
 \end{equation}
-where $a$ is an adjustable scale parameter that \citet{Goodman:2010} set
+where $a$ is an adjustable scale parameter that \citetalias{Goodman:2010} set
 to 2.
 
 \begin{algorithm}
-\caption{A single stretch move update step from \citet{Goodman:2010} where
+\caption{A single stretch move update step from \citetalias{Goodman:2010} where
     line \ref{line:hard} is generally the most computationally expensive
     step. \algolabel{goodman}}
 \begin{algorithmic}[1]
 \FOR{$k = 1, \ldots, K$}
     \STATE Draw a walker $X_j$ at random from the complementary ensemble %
-        $\mathbf{X}_{[k]}(t)$
-    \STATE $Z \gets z \sim g(z)$, \Eq{goodmanprop}
-    \STATE $Y \gets X_j + Z \, [ X_k (t) - X_j]$
-    \STATE $q \gets Z^{n-1} \, p(Y)/p(X_k(t))$ \label{line:hard}
-    \STATE $R \gets r \sim [0, 1]$
+        $\ensemble_{[k]}(t)$
+    \STATE $z \gets Z \sim g(z)$, \Eq{goodmanprop}
+    \STATE $\vector{Y} \gets \vector{X_j} %
+                + z \, [ \vector{X_k} (t) - \vector{X_j}]$
+    \STATE $q \gets z^{n-1} \, p(Y)/p(X_k(t))$ \label{line:hard}
+    \STATE $r \gets R \sim [0, 1]$
     \IF{$R \ge q$, \eq{acceptance}}
         \STATE $X_k(t+1) \gets Y$
     \ELSE
@@ -315,20 +417,23 @@ to 2.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{The parallel stretch move}
-\sectlabel{parallel}
+\paragraph{The parallel stretch move}
 
 It is tempting to na\"ively parallelize the stretch move algorithm by
 simultaneously advancing each walker based on the state of the ensemble
 instead of evolving the walkers in series. Unfortunately, this would no
-longer satisfy detailed balance. Instead, if we split the ensemble into two
-ensembles ($\mathbf{X}^{(0)}$ and $\mathbf{X}^{(1)}$) and
-simultaneously update all the blue walkers --- using the stretch move
-procedure --- based on the positions of \emph{only the red walkers} then the
-outcome is a valid step for each of the walkers. Then, the red walkers are
-advanced based only on the positions in the blue ensemble. The pseudocode for
-this procedure is shown in \algo{parallel}. This code looks very similar to
-that in \algo{goodman}, however, now the computationally expensive inner loop
+longer satisfy detailed balance. Instead, we must split the full ensemble
+into two subsets
+($\red = \{ \vector{X_k} \, \forall k = 1, \ldots, K/2 \}$ and
+$\blue = \{ \vector{X_k} \, \forall k = K/2+1, \ldots, K \}$) and
+simultaneously update all the walkers in $\red$
+--- using the stretch move procedure from \algo{goodman} ---
+based \emph{only} on the positions of the walkers in the other set
+($\blue$). Then, using the new positions $\red$,
+we can update $\blue$. In this case, the outcome is a valid step
+for all of the walkers. The pseudocode for
+this procedure is shown in \algo{parallel}. This code appears similar to
+\algo{goodman} but now the computationally expensive inner loop
 (starting at line \ref{line:parallelloop} in \algo{parallel}) can be run in
 parallel.
 
@@ -343,16 +448,18 @@ extremely powerful.
 \begin{algorithmic}[1]
 \FOR{$i \in \{0, 1\}$}
     \FOR{$k = 1, \ldots, K/2$} \label{line:parallelloop}
-        \STATE Draw a walker $X_j$ at random from the complementary ensemble %
-            $\mathbf{X}^{(\sim i)} (t)$
-        \STATE $Z \gets z \sim g(z)$, \Eq{goodmanprop}
-        \STATE $Y \gets X_j + Z \, [ X^{(i)}_k (t) - X_j]$
-        \STATE $q \gets Z^{n-1} \, p(Y)/p(X^{(i)}_k(t))$
-        \STATE $R \gets r \sim [0, 1]$
-        \IF{$R \ge q$, \eq{acceptance}}
-            \STATE $X^{(i)}_k(t+\frac{1}{2}) \gets Y$
+        \STATE Draw a walker $\vector{X_j}$ at random from the complementary %
+            ensemble $\colorens{\sim i} (t)$
+        \STATE $\vector{X_k} \gets \colorens{i}_k$
+        \STATE $z \gets Z \sim g(z)$, \Eq{goodmanprop}
+        \STATE $\vector{Y} \gets \vector{X_j}
+                + z \, [ \vector{X_k} (t) - \vector{X_j}]$
+        \STATE $q \gets z^{n-1} \, p(\vector{Y})/p(\vector{X}_k(t))$
+        \STATE $r \gets R \sim [0, 1]$
+        \IF{$r \ge q$, \eq{acceptance}}
+            \STATE $\vector{X_k} (t+\frac{1}{2}) \gets \vector{Y}$
         \ELSE
-            \STATE $X^{(i)}_k(t+\frac{1}{2}) \gets X_k(t)$
+            \STATE $\vector{X_k} (t+\frac{1}{2}) \gets \vector{X_k}(t)$
         \ENDIF
     \ENDFOR
     \STATE $t \gets t+\frac{1}{2}$
@@ -361,9 +468,9 @@ extremely powerful.
 \end{algorithmic}
 \end{algorithm}
 
-\section{Benchmarks \& Tests}
+\section{Benchmarks \& Tests} \sectlabel{tests}
 
-\subsection{Measuring the performance}
+\paragraph{Measuring the performance}
 
 A standard method of quantifying the performance of an MCMC sampler is to
 estimate the autocorrelation time of the sampler on several densities.
@@ -399,14 +506,14 @@ and the integrated autocorrelation time is given by
     \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} .
 \end{equation}
 
-\this~depends on the Python module
-\project{acor}\footnote{\url{http://github.com/dfm/acor}} to estimate the
-autocorrelation time. This module is a direct port of the original
-algorithm \citep[described by][]{Goodman:2010} and implemented by those
+\this~can optionally calculate the autocorrelation time using the Python
+module \project{acor}\footnote{\url{http://github.com/dfm/acor}} to estimate
+the autocorrelation time. This module is a direct port of the original
+algorithm \citepalias[described by][]{Goodman:2010} and implemented by those
 authors in
 C++.\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor}}
 
-\subsection{Multivariate Gaussian distribution}
+\paragraph{Multivariate Gaussian distribution}
 
 The simplest test of an MCMC sampler is its sampling performance on a highly
 covariant multivariate Gaussian density. For the tests in the paper, we
@@ -421,13 +528,72 @@ for the same covariance tensor $\Sigma$ in each trial.
 
 DFM: actually do some tests here...
 
+\paragraph{Rosenbrock density}
 
-\section{Usage}
+\section{Discussion \& Tips}
 
-\subsection{Installation}
+\begin{thebibliography}{}
+\raggedright
+
+\bibitem[Bovy~\etal(2011)]{Bovy:2011}
+ Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
+Y.~S., 2011, \apj, submitted, arXiv:1111.1724 [astro-ph.GA]
+% http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1111.1724
+
+\bibitem[Christen(2007)]{Christen:2007}
+{Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
+technical report I-07-16, CIMAT, Guanajuato, 2007.
+
+\bibitem[Dorman~\etal(2012)]{Dorman:2012}
+{Dorman},~C., {Guhathakurta},~P., {Fardal},~M.~A., {Geha},~M.~C.,
+{Howley},~K.~M., {Kalirai},~J.~S., {Lang},~D., {Cuillandre}, J.,
+{Dalcanton},~J., {Gilbert},~K.~M., {Seth},~A.~C., {Williams},~B.~F.,
+\& {Yniguez},~B., 2012, \apj, submitted
+% http://adsabs.harvard.edu/abs/2012AAS...21934608D
+
+\bibitem[Dunkley~\etal(2005)]{Dunkley:2005}
+{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
+2005, \mnras, 356, 925-936
+% http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
+
+\bibitem[Goodman~\&~Weare(2010)]{Goodman:2010}
+Goodman,~J., \& Weare,~J.,
+2010, Comm.\ App.\ Math.\ Comp.\ Sci., 5, 65
+
+\bibitem[Gregory(2005))]{Gregory:2005}
+{Gregory}, P.~C., \emph{Bayesian Logical Data Analysis for the Physical Sciences},
+Cambridge University Press, 2005
+% http://adsabs.harvard.edu/abs/2005blda.book.....G
+
+\bibitem[Hou~\etal(2011))]{Hou:2011}
+{Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
+2011, arXiv:1104.2612
+% http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
+
+\bibitem[Lang~\& Hogg(2011))]{Lang:2011}
+{Lang}, D. and {Hogg}, D.~W.,
+2011, arXiv:1103.6038
+% http://adsabs.harvard.edu/abs/2011arXiv1103.6038L
+
+\bibitem[MacKay(2003))]{MacKay:2003}
+{MacKay}, D., \emph{Information Theory, Inference, and Learning Algorithms},
+Cambridge University Press, 2003
+
+\bibitem[Widrow~\etal(2008))]{Widrow:2008}
+{Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
+2008, \apj, 679, 1239
+% http://adsabs.harvard.edu/abs/2008ApJ...679.1239W
+
+\end{thebibliography}
+
+\appendix
+
+\section{Usage}\sectlabel{api}
+
+\paragraph{Installation}
 
 The easiest way to install \this~is using
-\pip\footnote{\url{http://pypi.python.org}}. Running the command
+\pip\footnote{\url{http://pypi.python.org/pypi/pip/}}. Running the command
 \begin{lstlisting}
 % pip install emcee
 \end{lstlisting}
@@ -449,7 +615,15 @@ An alternative installation method is to download the source code from
 \end{lstlisting}
 in that directory. Make sure that you have \numpy~installed as well.
 
-\subsection{Basic usage}
+\paragraph{Issues \& Contributions}
+
+The development of \this~is being coordinated on \github~at
+\url{http://github.com/dfm/emcee} and contributions are welcome. If you
+encounter any problems with the code, please report them at
+\url{http://github.com/dfm/emcee/issues} (DFM: check this url) and consider
+contributing a patch.
+
+\paragraph{Basic usage}
 \begin{lstlisting}
 import numpy as np
 import emcee
@@ -480,9 +654,9 @@ sampler.run_mcmc(pos, state, 2000)
 print "Mean acceptance fraction:", np.mean(sampler.acceptance_fraction)
 \end{lstlisting}
 
-\subsection{API} \sectlabel{api}
+\section{API}
 
-\subsubsection{\code{\thisplain.ensemble}}
+\paragraph{\code{\thisplain.ensemble}}
 
 \class{EnsembleSampler}{*args, **kwargs}
     {Ensemble sampling following Goodman \& Weare (2010) with optional
@@ -598,68 +772,6 @@ print "Mean acceptance fraction:", np.mean(sampler.acceptance_fraction)
 
 \end{methods}
 
-\subsection{Issues \& Contributions}
-
-The development of \this~is being coordinated on \github~at
-\url{http://github.com/dfm/emcee} and contributions are welcome. If you
-encounter any problems with the code, please report them at
-\url{http://github.com/dfm/emcee/issues} (DFM: check this url) and consider
-contributing a patch.
-
-
-\begin{thebibliography}{}
-\raggedright
-
-\bibitem[Bovy~\etal~(2011)]{Bovy:2011}
- Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
-Y.~S., 2011, \apj, submitted, arXiv:1111.1724 [astro-ph.GA]
-% http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1111.1724
-
-\bibitem[Christen~(2007)]{Christen:2007}
-{Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
-technical report I-07-16, CIMAT, Guanajuato, 2007.
-
-\bibitem[Dorman~\etal~(2012)]{Dorman:2012}
-{Dorman},~C., {Guhathakurta},~P., {Fardal},~M.~A., {Geha},~M.~C.,
-{Howley},~K.~M., {Kalirai},~J.~S., {Lang},~D., {Cuillandre}, J.,
-{Dalcanton},~J., {Gilbert},~K.~M., {Seth},~A.~C., {Williams},~B.~F.,
-\& {Yniguez},~B., 2012, \apj, submitted
-% http://adsabs.harvard.edu/abs/2012AAS...21934608D
-
-\bibitem[Dunkley~\etal~(2005)]{Dunkley:2005}
-{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
-2005, \mnras, 356, 925-936
-% http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
-
-\bibitem[Goodman~\&~Weare~(2010)]{Goodman:2010}
-Goodman,~J., \& Weare,~J.,
-2010, Comm.\ App.\ Math.\ Comp.\ Sci., 5, 65
-
-\bibitem[Gregory~(2005))]{Gregory:2005}
-{Gregory}, P.~C., \emph{Bayesian Logical Data Analysis for the Physical Sciences},
-Cambridge University Press, 2005
-% http://adsabs.harvard.edu/abs/2005blda.book.....G
-
-\bibitem[Hou~\etal~(2011))]{Hou:2011}
-{Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
-2011, arXiv:1104.2612
-% http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
-
-\bibitem[Lang~\& Hogg~(2011))]{Lang:2011}
-{Lang}, D. and {Hogg}, D.~W.,
-2011, arXiv:1103.6038
-% http://adsabs.harvard.edu/abs/2011arXiv1103.6038L
-
-\bibitem[MacKay~(2003))]{MacKay:2003}
-{MacKay}, D., \emph{Information Theory, Inference, and Learning Algorithms},
-Cambridge University Press, 2003
-
-\bibitem[Widrow~\etal~(2008))]{Widrow:2008}
-{Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
-2008, \apj, 679, 1239
-% http://adsabs.harvard.edu/abs/2008ApJ...679.1239W
-
-\end{thebibliography}
 
 \end{document}
 
