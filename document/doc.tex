@@ -638,9 +638,21 @@ the mode--mode migration time can be long.  See above on low
 acceptance ratio; in general when your acceptance ratio gets low your
 autocorrelation time is very, very long.
 
-\acknowledgments It is a pleasure to thank Jo Bovy and Dustin Lang for
-many helpful contributions to the ideas and code presented here.  This
-work makes use of the open-source Python \numpy\ package.
+One significant limitation to the stretch move and moves like it is
+that they implicitly assumes that the parameters can be assembled into
+a vector-like object on which linear operations can be performed.
+This is not (trivially) true for parameters that have non-trivial
+constraints, like parameters that must be integer-valued or
+equivalent, or parameters that are subject to deterministic non-linear
+constraints.  Sometimes these issues can be avoided by
+reparameterization, but in some cases, samplers like \this\ will not
+be useful, or might require clever or interesting improvements.  The
+\this\ package is open-source software; please push us changes!
+
+\acknowledgments It is a pleasure to thank Jo Bovy (IAS), Dustin Lang
+(Princeton), and Larry Widrow (Queens) for many helpful contributions
+to the ideas and code presented here.  This work makes use of the
+open-source Python \numpy\ package.
 
 \begin{thebibliography}{}
 \raggedright
