@@ -23,7 +23,11 @@
         keywordstyle=\bfseries\color[rgb]{0.133,0.545,0.133},
         commentstyle=\color[rgb]{0.133,0.545,0.133},
         stringstyle=\color[rgb]{0.627,0.126,0.941},
-        }
+        % numbers=left,
+        % numberstyle=\tiny,
+        % stepnumber=5,
+        % numbersep=5pt,
+    }
 
 \newcommand{\project}[1]{{\sffamily #1}}
 \newcommand{\Python}{\project{Python}}
@@ -35,7 +39,7 @@
 \newcommand{\thisplain}{emcee}
 \newcommand{\this}{\project{\thisplain}}
 \newcommand{\paper}{document}
-\newcommand{\license}{GNU General Public License (v2)}
+\newcommand{\license}{GNU General Public License v2}
 
 % shortcuts for API layout -- this is some brittle stuff!
 \newlength{\argmarg}
@@ -49,8 +53,8 @@
 \newcommand{\exception}[2]{{\item \code{#1}: #2}}
 \newcommand{\property}[3]{\param{#1}{#2}{#3}}
 \newcommand{\method}[4]{{\item
-    \noindent{\scriptsize\this\texttt{.}\code{\curclass}}\texttt{.}{\bf \code{#1}}%
-    {\small\code{(#2)}}
+    \noindent{\scriptsize\this\texttt{.}\code{\curclass}}%
+    \texttt{.}{\bf \code{#1}}{\small\code{(#2)}}
     \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
     {\item #3}\end{list} \indent#4}}
 \newenvironment{arglist}[1]{\noindent\hspace{0.5\argmarg}{\bf {#1}}
@@ -82,8 +86,8 @@
 \newcommand{\Sect}[1]{\S\ref{sect:#1}}
 \newcommand{\sect}[1]{\S\ref{sect:#1}}
 \newcommand{\sectlabel}[1]{\label{sect:#1}}
-\newcommand{\Algo}[1]{Algorithm (\ref{algo:#1})}
-\newcommand{\algo}[1]{Algorithm (\ref{algo:#1})}
+\newcommand{\Algo}[1]{Algorithm \ref{algo:#1}}
+\newcommand{\algo}[1]{Algorithm \ref{algo:#1}}
 \newcommand{\algolabel}[1]{\label{algo:#1}}
 
 % math symbols
@@ -98,13 +102,13 @@
 \newcommand{\blue}{\colorens{1}}
 \renewcommand{\vector}[1]{#1}
 \renewcommand{\matrix}[1]{#1}
-\newcommand{\pr}{p}
+\newcommand{\pr}[1]{\ensuremath{p(#1)}}
 
 % model parameters
-\newcommand{\model}{\paramvector{\Theta}}
-\newcommand{\data}{\paramvector{D}}
-\newcommand{\nuisance}{\paramvector{\alpha}}
-\newcommand{\link}{X}
+\newcommand{\model}{\ensuremath{\vector{\Theta}}}
+\newcommand{\data}{\ensuremath{\vector{D}}}
+\newcommand{\nuisance}{\ensuremath{\vector{\alpha}}}
+\newcommand{\link}{\ensuremath{X}}
 
 % units
 \newcommand{\unit}[1]{\mathrm{#1}}
@@ -115,11 +119,22 @@
 \begin{document}
 
 \title{\this: The MCMC Hammer}
-\author{Daniel~Foreman-Mackey\altaffilmark{1}, David~W.~Hogg, \etal}
-\affil{Center for Cosmology and Particle Physics,
-                         Department of Physics, New York University,
-                         4 Washington Place, New York, NY, 10003, USA}
-\altaffiltext{1}{danfm@nyu.edu}
+
+\newcommand{\nyu}{2}
+\newcommand{\mpia}{3}
+\newcommand{\courant}{4}
+\author{Daniel~Foreman-Mackey\altaffilmark{1,\nyu},
+    David~W.~Hogg\altaffilmark{\nyu,\mpia},
+    Jonathan Goodman\altaffilmark{\courant}, \etal}
+\altaffiltext{1}{To whom correspondence should be addressed:
+                        \url{danfm@nyu.edu}}
+\altaffiltext{\nyu}{Center for Cosmology and Particle Physics,
+                        Department of Physics, New York University,
+                        4 Washington Place, New York, NY, 10003, USA}
+\altaffiltext{\mpia}{Max-Planck-Institut f\"ur Astronomie,
+                        K\"onigstuhl 17, D-69117 Heidelberg, Germany}
+\altaffiltext{\courant}{Courant Institute, New York University,
+                        251 Mercer St., New York, NY 10012, United States}
 
 \begin{abstract}
 
@@ -128,16 +143,17 @@
     proposed by Goodman~\&~Weare (2010). The code is open source and has
     already been used in several published projects in the Astrophysics
     literature. The algorithm behind \this~has several advantages over
-    traditional MCMC sampling methods and it has excellent performance
-    measured by the sampling autocorrelation time on several test problems.
-    One major advantage of the algorithm is that it requires the hand-%
-    tuning of only 2 parameters compared to the $\sim N^2$ for
-    a traditional algorithm in an $N$ dimensional parameter space. In this
-    \paper, we describe the Goodman~\&~Weare algorithm and the details of our
-    implementation. \this~takes advantage of the naturally parallel nature of
-    the algorithm allowing \emph{any} user to take advantage of multiple CPUs
-    without significant extra effort. We discuss the subtleties associated
-    with this parallelization.
+    traditional MCMC sampling methods and it has excellent performance as
+    measured by the autocorrelation time.
+    One major advantage of the algorithm is that it requires hand-tuning of
+    only 2 parameters compared to $\sim N^2$ for
+    a traditional algorithm in an $N$-dimensional parameter space. In this
+    \paper, we describe the algorithm and the details of our implementation
+    and API. Taking advantage of the naturally parallel nature of
+    the algorithm, \this~permits \emph{any} user to take advantage of
+    multiple CPUs without extra effort. This is a huge advantage over a
+    na\"ive implementation of the published algorithm when applied to
+    computationally expensive problems.
 
     The code is available online at \url{http://danfm.ca/\thisplain} under the
     \license.
@@ -153,20 +169,15 @@
 \section{Introduction}
 
 Probabilistic data analysis --- including Bayesian methods --- has
-transformed scientific research in the past decade. The most significant
-gains have been due to numerical methods of approximate inference;
-especially Markov chain Monte Carlo (MCMC) methods. In particular, many
+transformed scientific research in the past decade. Many of the most
+significant gains have been due to numerical methods for approximate
+inference; especially Markov chain Monte Carlo (MCMC). Many
 problems in cosmology and astrophysics benefit from these advances because
-they lie in the low signal-to-noise regime with incomplete
-observations. In these fields, it is often possible to exploit a physically
-justified generative model of the data, making these research questions
-tractable. In principle, there is no limit to the complexity of this
-generative process but many interesting research questions can only be solved
-with a combination of more computing power and more efficient algorithms.
+the observations tend to have low signal-to-noise and be incomplete.
 
-The general probabilistic data analysis procedure involves examining either
-the posterior probability density function (PDF) of the parameters
-of the model or the likelihood function of the data. In some cases, it is
+Probabilistic data analysis procedures involve examining and operating on
+either the posterior probability density function (PDF) of the parameters
+of the model or the likelihood function. In some cases it is
 sufficient to just find the maximum of this function but it is often of
 interest to (at least approximately) measure this distribution in more detail.
 In particular, if we wish to propagate the effects of measurement
@@ -174,7 +185,9 @@ uncertainties through the analysis to the conclusions, we must sample the
 PDF on sufficiently small scales. MCMC methods are designed to efficiently
 sample and approximate the PDF even in high dimensional
 parameter spaces. This has proved useful in too many research
-applications to list here (e.g. WMAP, etc. DFM/Hogg: add citations).
+applications to list here but the results from the Wilkinson Microwave
+Anisotropy Probe (WMAP) mission provide a dramatic example
+\citep[e.g.][]{Dunkley:2005}.
 
 Arguably the most important advantage of Bayesian data analysis is
 that it is possible to \emph{marginalize} over nuisance parameters. A
@@ -183,16 +196,17 @@ physical interest who's value must be known in order to produce data.
 Marginalization is the process of integrating over all possible values of
 these parameters and hence propagating the effects of your uncertainty about
 the ``true'' value to the final result. The exact result of marginalization
-is the marginalized likelihood function $p(\mathbf{D}|\boldsymbol{\Theta})$
-of the data $\mathbf{D}$ given the physical model parameters
-$\boldsymbol{\Theta}$
+is the marginalized likelihood function \pr{\data|\model}
+of the set of observations \data given the physical model parameters
+\model
 \begin{equation}
     \eqlabel{marginalization}
-    p (\data | \model) = \int
-        p (\data | \model, \nuisance) \,
-        p ( \nuisance) \, \dd  \nuisance
+    \pr{\data | \model} = \int
+        \pr{\data | \model, \nuisance} \,
+        \pr{\nuisance} \, \dd  \nuisance
 \end{equation}
-where $ \nuisance$ is vector of nuisance parameters. In some specific
+where \nuisance is the set of of nuisance parameters. In general, \data,
+\model and \nuisance will all be lists of vectors. In some specific
 cases, the integral in \eq{marginalization} is analytically tractable but in
 general, the likelihood function
 $p (\data | \model, \nuisance)$ is not a simple
@@ -552,7 +566,8 @@ technical report I-07-16, CIMAT, Guanajuato, 2007.
 % http://adsabs.harvard.edu/abs/2012AAS...21934608D
 
 \bibitem[Dunkley~\etal(2005)]{Dunkley:2005}
-{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K., \& {Skordis}, C.,
+{Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K.,
+\& {Skordis}, C.,
 2005, \mnras, 356, 925-936
 % http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
 
@@ -561,7 +576,8 @@ Goodman,~J., \& Weare,~J.,
 2010, Comm.\ App.\ Math.\ Comp.\ Sci., 5, 65
 
 \bibitem[Gregory(2005))]{Gregory:2005}
-{Gregory}, P.~C., \emph{Bayesian Logical Data Analysis for the Physical Sciences},
+{Gregory}, P.~C.,
+\emph{Bayesian Logical Data Analysis for the Physical Sciences},
 Cambridge University Press, 2005
 % http://adsabs.harvard.edu/abs/2005blda.book.....G
 
@@ -602,8 +618,9 @@ at the command line of a UNIX-based system will install the package and its
 need to run the above command with superuser permissions. \this~depends on
 \Python~($>2.7$) and \numpy\footnote{\url{http://numpy.scipy.org}} ($>1.6$)
 and the associated \texttt{dev} headers. On some systems, you might need to
-install these packages separately. On \Ubuntu, you can install these
-dependencies using the command:
+install these packages separately. On most systems where \Python~has already
+been installed, this won't be necessary but if it is, you can install
+dependencies (on \Ubuntu, for example) with the command:
 \begin{lstlisting}
 % apt-get python python-dev numpy numpy-dev
 \end{lstlisting}
@@ -613,7 +630,8 @@ An alternative installation method is to download the source code from
 \begin{lstlisting}
 % python setup.py install
 \end{lstlisting}
-in that directory. Make sure that you have \numpy~installed as well.
+in the unzipped directory. Make sure that you have \numpy~installed in this
+case as well.
 
 \paragraph{Issues \& Contributions}
 
@@ -624,6 +642,19 @@ encounter any problems with the code, please report them at
 contributing a patch.
 
 \paragraph{Basic usage}
+
+A very simple sample problem and a common unit test for sampling code is
+the performance of the code on a high dimensional Gaussian density
+\begin{equation}\eqlabel{mgauss}
+    \pr (\mathbf{x}) \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \,
+                                \Sigma^{-1} \, \mathbf{x} \right ).
+\end{equation}
+We will incrementally work through this example here and the source code
+is available online.%
+\footnote{\url{https://github.com/dfm/emcee/blob/master/quickstart.py}}
+
+First, import the necessary packages and define the function that calculates
+the logarithm of \eq{mgauss}.
 \begin{lstlisting}
 import numpy as np
 import emcee
@@ -631,7 +662,11 @@ import emcee
 def lnprobfn(x, mu, icov):
     diff = x-mu
     return -np.dot(diff,np.dot(icov,diff))/2.0
-
+\end{lstlisting}
+Next, choose the number of dimensions to use and generate the mean vector
+\code{means} and the positive definite covariance matrix \code{cov} and its
+inverse \code{icov}.
+\begin{lstlisting}
 ndim  = 10
 means = np.random.rand(ndim)
 cov   = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
@@ -639,19 +674,31 @@ cov   = np.triu(cov)
 cov  += cov.T - np.diag(cov.diagonal())
 cov   = np.dot(cov,cov)
 icov  = np.linalg.inv(cov)
-
+\end{lstlisting}
+The number of walkers to use is one of the tuning parameters of this sampler
+and we'll come back to some discussion of how to choose this shortly. For
+now, use 100 walkers and generate an initial guess for the position of each
+of the walkers (in a small ball centered at zero mean).
+\begin{lstlisting}
 nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-
+\end{lstlisting}
+Initialize the sampler object passing the chosen hyperparameters and the
+generated likelihood function and it's arguments.
+\begin{lstlisting}
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
                         args=[means, icov])
-
-pos,prob,state = sampler.run_mcmc(p0, None, 500)
-sampler.clear_chain()
-
-sampler.run_mcmc(pos, state, 2000)
-
-print "Mean acceptance fraction:", np.mean(sampler.acceptance_fraction)
+\end{lstlisting}
+Now, run a ``burn-in'' chain of 500 steps. Note that each walker is advanced
+500 times here so \code{lnprobfn} is actually be called $5\times10^4$ times.
+\begin{lstlisting}
+pos, prob, state = sampler.run_mcmc(p0, 500)
+\end{lstlisting}
+Finally, reset the chain and sample 2000 steps starting from the final state
+of the burn-in chain.
+\begin{lstlisting}
+sampler.reset()
+sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{lstlisting}
 
 \section{API}
