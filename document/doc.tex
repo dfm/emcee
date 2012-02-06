@@ -546,6 +546,102 @@ DFM: actually do some tests here...
 
 \section{Discussion \& Tips}
 
+% DFM: In this section, I put the key advice from each paragraph in \emph{}.  Hogg
+
+The goal of this project has been to make a sampler that is a useful
+tool for a large class of data analysis problems---a ``hammer'' if you
+will.  If development of statistical and data-analysis understanding
+is the key goal, a user who is new to MCMC benefits enormously by
+writing her or his own Metropolis--Hastings code (\algo{mh}) from
+scratch before downloading \this.  For typical problems, the
+\this\ package will perform better than any home-built M--H code (for
+all the reasons given above), but the intuitions developed by writing
+and tuning a self-built MCMC code cannot be replaced by reading this
+document and running this pre-built package.  That said, once those
+intiuitions are developed, it makes sense to switch to \this\ or a
+similarly well engineered piece of code for performance on large
+problems.
+
+Ensemble samplers like \this\ require some thought for
+initialization.  One general approach is to start the walkers at a
+sampling of the prior or spread out over a reasonable range in
+parameter space.  Another general approach is to start the walkers in
+a very tight $N$-dimensional ball in parameter space around one point
+that is expected to be close to the maximum probability point.  The
+first is more objective but, in practice, we find that the latter is
+much more effective if there is any chance of walkers getting stuck in
+low probability modes of a multi-modal probability landscape.  A third
+approach would be to start from a sampling of the prior, and go
+through a ``burn-in'' phase in which the prior is transformed
+continuously into the posterior by increasing the ``temperature''.
+Discussion of this kind of annealing is beyond the scope of this
+document.
+
+The acceptance ratio (DFM: Is there a function to display this and
+have you defined this concept above?  If not, please do.)  should be
+in the 0.2 to 0.5 range (there are theorems about this for specific
+problems; RTFL).  In principle, if the acceptance ratio is too low,
+you can raise it by decreasing the $a$ parameter; and if it is too
+high, you can reduce it by increasing the $a$ parameter.  However, in
+practice, we find that $a=2$ is good in essentially all situations.
+That means that \emph{if the acceptance ratio is getting very low,
+  something is going very wrong}.  Typically a low acceptance ratio
+means that the posterior probability is multi-modal, with the modes
+separated by wide, low probability ``valleys''.  In situations like
+these, the best idea (though expensive of human time) is to split the
+space into disjoint single-mode regions and sample each one
+independently, combining the independently sampled regions
+``properly'' (also expensive, and beyond the scope of this document)
+at the end.  In previous work, we have advocated clustering methods to
+remove multiple modes \citep{Hou:2011} which work well, but only when
+the different modes have \emph{very} different posterior
+probabilities.
+
+In general, you want to \emph{run with large numbers of walkers}, like
+hundreds.  In principle, there is no reason not to go large when it
+comes to walker number, until you hit performance issues.  Although
+each step takes twice as much compute time if you double the number of
+walkers, it also returns to you twice as many independent samples per
+autocorrelation time.  So go large.  DFM: A list of problems solved by
+increasing the number of walkers.
+
+One mistake many users of MCMC methods make is to take \emph{too many}
+samples!  If all you want your MCMC to do is produce one- or
+two-dimensional error bars on two or three parameters, then you only
+need dozens of independent samples.  With the ensemble sampling, you
+get this from a \emph{single snapshot} or single timestep, provided
+that you are using dozens of walkers (and we would recommend that you
+use hundreds in most applications).  The key point is that \emph{you
+  should run the sampler for a few (say 10) autocorrelation times.}
+Once you have run that long, no matter how you initialized the
+walkers, the set of walkers you obtain at the end should be an
+independent set of samples from the distribution, of which you rarely
+need many.
+
+Another common mistake, of course, is to run the sampler for \emph{too
+  few} steps.  You can identify that you haven't run for enough steps
+in a couple of ways: If you plot the parameter values in the ensemble
+as a function of step number, you will see large-scale variations over
+the full run length if you have gone less than an autocorrelation
+time.  You will also see that if you try to measure the
+autocorrelation time (with, say, \acor), it will give you a time that
+is always a significant fraction of your run time; it is only when the
+correlation time is much shorter (say by a factor of 10) than your run
+time that you are sure to have run long enough.  The danger of both of
+these methods---an unavoidable danger at present---is that you can
+have a huge dynamic range in contributions to the autocorrelation
+time; you might think it is 30 when in fact it is 30\,000, but you
+don't ``see'' the 30\,000 in a run that is only 300 steps long.  There
+is not much you can do about this; it is generic when the posterior is
+multimodal: The autocorrelation time within each mode can be short but
+the mode--mode migration time can be long.  See above on low
+acceptance ratio; in general when your acceptance ratio gets low your
+autocorrelation time is very, very long.
+
+\acknowledgments It is a pleasure to thank Jo Bovy and Dustin Lang for
+many helpful contributions to the ideas and code presented here.  This
+work makes use of the open-source Python \numpy\ package.
+
 \begin{thebibliography}{}
 \raggedright
 
