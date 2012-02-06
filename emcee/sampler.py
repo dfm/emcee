@@ -124,6 +124,10 @@ class Sampler(object):
         self.iterations = 0
         self.naccepted  = 0
 
+    def clear_chain(self):
+        """An alias for `reset` kept for backwards compatibility."""
+        return self.reset()
+
     def sample(self, *args, **kwargs):
         raise NotImplementedError("The sampling routine must be implemented "\
                 "by subclasses")
