@@ -5,6 +5,7 @@ build/*
 *.so
 .DS_Store
 *.svg
+document/doc.pdf
 document/*.aux
 document/*.brf
 document/*.log
