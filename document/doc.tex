@@ -225,8 +225,8 @@ second order methods (such as hybrid/Hamiltonian Monte Carlo) that require
 the calculation of (numerical) gradients of the likelihood function.
 
 Most uses of MCMC in the astrophysics literature are based on slight
-modifications to the Metropolis-Hastings (M-H) method
-\citep[for example][]{MacKay:2003}. Each step in a M-H chain is proposed
+modifications to the Metropolis-Hastings (M--H) method
+\citep[for example][]{MacKay:2003}. Each step in a M--H chain is proposed
 using a
 multivariate Gaussian centered on the current position of the chain. Since
 each term in the covariance matrix of this proposal distribution is an
@@ -250,7 +250,7 @@ at the simple but highly anisotropic density
 \end{equation}
 which would be considered ``difficult'' (in the low-$\epsilon$ regime) by
 standard MCMC algorithms. In principle, it is possible to tune the
-hyperparameters of a M-H sampler but if calculating the density in
+hyperparameters of a M--H sampler but if calculating the density in
 \eq{anisotropic} is computationally expensive and the covariance is not
 known \foreign{a priori} then the tuning procedure gets quickly intractable.
 Also, since the number of parameters scales as $\sim N^2$, this problem gets
@@ -319,9 +319,9 @@ of samples from the distribution. Each point in a Markov chain
 $\link (t) = [\model(t), \nuisance(t)]$
 depends only on the position of the previous link $\link (t-1)$.
 
-\paragraph{The Metropolis-Hastings (M-H) Algorithm}
+\paragraph{The Metropolis-Hastings (M--H) Algorithm}
 
-The simplest and most commonly used MCMC algorithm is the M-H method
+The simplest and most commonly used MCMC algorithm is the M--H method
 (\algo{mh}). The iterative procedure is as follows: (1) given a position
 $X(t)$ sample a proposal position $Y$ from the transition distribution
 $Q(Y; X(t))$, (2) accept this proposal with probability
@@ -334,7 +334,7 @@ It is worth emphasizing that if this step is accepted $X(t+1) = Y$; Otherwise,
 the new position is set to the previous one $X(t+1) \gets X(t)$ (in other
 words, the position $X(t)$ is \emph{double counted}).
 
-The M-H algorithm converges (as $t \to \infty$) to a stationary set of
+The M--H algorithm converges (as $t \to \infty$) to a stationary set of
 samples from the distribution but there are many algorithms with faster
 convergence and varying levels of implementation difficulty (CITECITECITE).
 Faster convergence is preferred because of the reduction of computational
@@ -564,7 +564,7 @@ scratch before downloading \this.  For typical problems, the
 all the reasons given above), but the intuitions developed by writing
 and tuning a self-built MCMC code cannot be replaced by reading this
 document and running this pre-built package.  That said, once those
-intiuitions are developed, it makes sense to switch to \this\ or a
+intuitions are developed, it makes sense to switch to \this\ or a
 similarly well engineered piece of code for performance on large
 problems.
 
