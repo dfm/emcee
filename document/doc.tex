@@ -507,12 +507,12 @@ extremely powerful.
 
 \section{Tests} \sectlabel{tests}
 
-Judging the convergence and performance of an algorithm is a non-trival
-problem and there is a huge associated literature
+Judging the convergence and performance of an algorithm is a
+non-trival problem and there is a huge associated literature
 \citep[see, for example,][for a review]{Cowles:1996}. In astrophysics,
-spectral methods have been used extensively
-\citep[for example][]{Dunkley:2005}. Below, we describe two alternative
-diagnostics: mean-squared jump distance and autocorrelation time.
+spectral methods have been used extensively \citep[for
+  example][]{Dunkley:2005}. Below, we describe one---an
+affine-invariant measure of performance---the autocorrelation time.
 
 First,
 however, we should take note of another extremely important measurement:
@@ -643,7 +643,7 @@ disjoint single-mode regions and sample each one independently,
 combining the independently sampled regions ``properly'' (also
 expensive, and beyond the scope of this document) at the end.  In
 previous work, we have advocated clustering methods to remove multiple
-modes \citep{Hou:2011} which work well, but only when the different
+modes \citep{Hou:2011}.  These work well when the different
 modes have \emph{very} different posterior probabilities.
 
 Another proxy for short autocorrelation time is large expected or mean
