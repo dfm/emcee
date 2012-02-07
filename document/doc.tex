@@ -85,6 +85,8 @@
 \newcommand{\eqlabel}[1]{\label{eq:#1}}
 \newcommand{\Sect}[1]{\S\ref{sect:#1}}
 \newcommand{\sect}[1]{\S\ref{sect:#1}}
+\newcommand{\App}[1]{Appendix \ref{sect:#1}}
+\newcommand{\app}[1]{Appendix \ref{sect:#1}}
 \newcommand{\sectlabel}[1]{\label{sect:#1}}
 \newcommand{\Algo}[1]{Algorithm \ref{algo:#1}}
 \newcommand{\algo}[1]{Algorithm \ref{algo:#1}}
@@ -103,6 +105,7 @@
 \renewcommand{\vector}[1]{#1}
 \renewcommand{\matrix}[1]{#1}
 \newcommand{\pr}[1]{\ensuremath{p(#1)}}
+\newcommand{\af}{\ensuremath{a_f}}
 
 % model parameters
 \newcommand{\model}{\ensuremath{\vector{\Theta}}}
@@ -209,26 +212,27 @@ of the set of observations \data given the physical model parameters
         \pr{\data | \model, \nuisance} \,
         \pr{\nuisance} \, \dd  \nuisance
 \end{equation}
-where \nuisance is the set of of nuisance parameters. In general, \data,
-\model and \nuisance will all be lists of vectors. In some specific
+where \nuisance is the set of of nuisance parameters. In general, \data\ is
+a list of vectors in the observed space and \model\ and \nuisance\ are lists
+of parameters in model space. It is often useful, however, to view
+$(\model, \nuisance)$ as a vector in a Euclidean parameter space.
+In some specific
 cases, the integral in \eq{marginalization} is analytically tractable but in
 general, the likelihood function
 $p (\data | \model, \nuisance)$ is not a simple
 integrable function. In fact, in many problems, the likelihood
-function is actually the result of an extremely expensive numerical
-simulation. In this regime, the integration must be calculated numerically
+function is actually the result of an extremely expensive simulation or
+computation. In this regime, the integration must be calculated numerically
 and it is often relatively efficient to approximate \eq{marginalization}
 using MCMC sampling. If the likelihood function is expensive to
 calculate, it is advantageous to use a sampling algorithm that reduces the
-necessary number of likelihood evaluations. This also precludes the use of
-second order methods (such as hybrid/Hamiltonian Monte Carlo) that require
-the calculation of (numerical) gradients of the likelihood function.
+necessary number of likelihood evaluations.
 
 Most uses of MCMC in the astrophysics literature are based on slight
 modifications to the Metropolis-Hastings (M--H) method
 \citep[for example][]{MacKay:2003}. Each step in a M--H chain is proposed
-using a
-multivariate Gaussian centered on the current position of the chain. Since
+using a compact proposal distribution centered on the current position of the
+chain (normally a multivariate Gaussian). Since
 each term in the covariance matrix of this proposal distribution is an
 unspecified parameter, this method has $N\,[N+1]/2$ tuning parameters (where
 $N$ is the dimension of the parameter space).  To make matters worse, the
@@ -237,48 +241,47 @@ tuning parameters and there is no fool-proof method for choosing the values
 correctly. As a result, many heuristic methods have been developed to attempt
 to determine the optimal parameters in a data-driven way
 \citep[for example][]{Gregory:2005,Dunkley:2005,Widrow:2008}. Unfortunately,
-these methods all require ``burn-in'' phases where shorter Markov chains
-are sampled and the results are used to tune the hyperparameters. This extra
-cost is unacceptable when the likelihood calls are computationally heavy.
+these methods all require a lengthy ``burn-in'' phases where shorter Markov
+chains are sampled and the results are used to tune the hyperparameters. This
+extra cost is unacceptable when the likelihood calls are computationally
+expensive.
 
 The problem with traditional sampling methods can be visualized by looking
 at the simple but highly anisotropic density
 \begin{equation}
     \eqlabel{anisotropic}
-    p(\mathbf{x}) \propto \exp \left (-\frac{(x_1-x_2)^2}{2\,\epsilon}
+    p(\mathbf{x}) \propto f \left (-\frac{(x_1-x_2)^2}{2\,\epsilon}
                                         - \frac{(x_1+x_2)^2}{2} \right )
 \end{equation}
 which would be considered ``difficult'' (in the low-$\epsilon$ regime) by
 standard MCMC algorithms. In principle, it is possible to tune the
-hyperparameters of a M--H sampler but if calculating the density in
-\eq{anisotropic} is computationally expensive and the covariance is not
-known \foreign{a priori} then the tuning procedure gets quickly intractable.
+hyperparameters of a M--H sampler to make this sampling converge quickly,
+but if the dimension is large and calculating the density
+is computationally expensive the tuning procedure becomes intractable.
 Also, since the number of parameters scales as $\sim N^2$, this problem gets
 mush worse in higher dimensions.
 \Eq{anisotropic} can, however, be transformed into the much easier problem of
-sampling an isotropic Gaussian by an \emph{affine transformation} of the form
+sampling an isotropic density by an \emph{affine transformation} of the form
 \begin{equation}
     y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, , \hspace{1cm} y_2 = x_1 + x_2.
 \end{equation}
-Therefore, an algorithm that is \emph{affine invariant} will be insensitive to
-covariances between parameters. An affine invariant algorithm is unaffected by
-any transformation of the density of the form
-\begin{equation}
-    \mathbf{Y} = \mathbf{A}\, \mathbf{X} + \mathbf{b}.
-\end{equation}
+This motivates affine invariance: an algorithm that is \emph{affine invariant}
+performs equally well under all linear transformations; it will therefore be
+insensitive to
+covariances among parameters.
 
 Extending earlier work by \citet{Christen:2007},
 \citet[][hereafter \citetalias{Goodman:2010}]{Goodman:2010} proposed an
 affine invariant sampling
-algorithm (\sect{algo}) with only two hyperparameters that can be tuned for
+algorithm (\sect{algo}) with only two hyperparameters to be tuned for
 performance. \citet{Hou:2011} were the first group to implement this
-algorithm to solve a physics problem. The implementation presented here is
+algorithm in astrophysics. The implementation presented here is
 an independent effort that has already proved effective in several projects
 \citep[][Foreman-Mackey \& Widrow\ 2012, in prep.]{Lang:2011,
 Bovy:2011, Dorman:2012}.
 In what follows, we summarize the GW algorithm and the implementation
 decisions made in \this. We also describe the small changes
-that must be made to the algorithm to parallelize it. Finally, in \sect{api},
+that must be made to the algorithm to parallelize it. Finally, in \app{api},
 we outline the installation, usage and troubleshooting of the package.
 
 \section{The Algorithm}\sectlabel{algo}
@@ -289,32 +292,45 @@ Instead, the interested reader is directed to a classic reference like
 
 The general goal of MCMC algorithms is to draw samples
 $\{ \model_i \, \forall i=1, \ldots, M \}$ from
-the joint probability distribution
+the posterior probability density
 \begin{equation}
-    \pr{\model, \nuisance, \data} = \pr{\model, \nuisance}
-            \, \pr (\data | \model, \nuisance)
+    \pr{\model, \nuisance | \data} = \frac{1}{Z}\,\pr{\model, \nuisance}
+            \, \pr{\data | \model, \nuisance}
 \end{equation}
 where the prior distribution $\pr{\model, \nuisance}$ and the likelihood
 function $\pr{\data|\model,\nuisance}$ can be relatively easily (but not
-necessarily quickly) computed for a particular value of
-$(\model_i, \nuisance_i)$. Since the normalization $\pr{\data}$ is
-independent of $\model$ and $\nuisance$, the joint distribution above is
-proportional to the posterior probability $\pr{\model, \nuisance | \data}$
-given any one choice of generative model. Therefore, once the samples
+necessarily quickly) computed for any particular value of
+$(\model_i, \nuisance_i)$. Since the normalization $Z=\pr{\data}$ is
+independent of $\model$ and $\nuisance$, it will be a constant
+given any one choice of generative model. This means that it is possible
+to sample from \pr{\model, \nuisance | \data} without computing $Z$ ---
+unless one would like to compare the validity of two different generative
+models. This is important because $Z$ is generally very expensive to
+compute.
+
+Once the samples
 produced by MCMC are available, the marginalized constraints on $\model$
-(\eq{marginalization}) can be approximated by the histogram of the samples
-projected into the subspace spanned by $\model$. In particular, the
-expectation value of a particular parameter $\phi \in \model$ given the
-samples $\{ \phi_i \}$ is
+can be approximated by
 \begin{equation}
-    E[\phi] = \int \phi \, \pr{\model, \nuisance | \data}
-            \, \dd \model \, \dd \nuisance
-            \approx \frac{1}{M} \sum_{i=1} ^M \phi_i .
+    \pr{\model | \data} = \int \pr{\model | \data, \nuisance} \,
+        \pr{\nuisance} \, \dd  \nuisance
+    \approx \frac{1}{M}\sum_{i=1}^M \pr{\model | \data, \nuisance_i}
+        \, \pr{\nuisance_i},
+\end{equation}
+(HOGG: this is hideous and wrong. What would be clearer?)
+the histogram of the samples projected into the parameter subspace spanned
+by $\model$. In particular, this implies that the
+expectation value of a function of the model parameters $\phi(\model)$ is
+\begin{equation}
+    E[\phi(\model)] = \int
+            \left [ \int \pr{\model, \nuisance | \data}
+            \, \dd \nuisance \right ] \, \phi (\model) \, \dd\model
+            \approx \frac{1}{M} \sum_{i=1} ^M \phi(\model_i) .
 \end{equation}
 Generating the samples $\model_i$ is a non-trivial process unless
 $\pr{\model, \nuisance, \data}$ is a very specific analytic distribution
 (for example, a Gaussian). MCMC is a procedure for generating a random walk
-in the parameter space the relatively efficiently draws a representative set
+in the parameter space that, over time, draws a representative set
 of samples from the distribution. Each point in a Markov chain
 $\link (t) = [\model(t), \nuisance(t)]$
 depends only on the position of the previous link $\link (t-1)$.
@@ -322,7 +338,8 @@ depends only on the position of the previous link $\link (t-1)$.
 \paragraph{The Metropolis-Hastings (M--H) Algorithm}
 
 The simplest and most commonly used MCMC algorithm is the M--H method
-(\algo{mh}). The iterative procedure is as follows: (1) given a position
+\citep[\algo{mh};][]{MacKay:2003,Gregory:2005,Press:2007,Hogg:2010}.
+The iterative procedure is as follows: (1) given a position
 $X(t)$ sample a proposal position $Y$ from the transition distribution
 $Q(Y; X(t))$, (2) accept this proposal with probability
 \begin{equation}
@@ -332,18 +349,18 @@ $Q(Y; X(t))$, (2) accept this proposal with probability
 \end{equation}
 It is worth emphasizing that if this step is accepted $X(t+1) = Y$; Otherwise,
 the new position is set to the previous one $X(t+1) \gets X(t)$ (in other
-words, the position $X(t)$ is \emph{double counted}).
+words, the position $X(t)$ is \emph{repeated in the chain}).
 
 The M--H algorithm converges (as $t \to \infty$) to a stationary set of
 samples from the distribution but there are many algorithms with faster
-convergence and varying levels of implementation difficulty (CITECITECITE).
+convergence and varying levels of implementation difficulty.
 Faster convergence is preferred because of the reduction of computational
 cost due to the smaller number of likelihood computations necessary to obtain
-the equivalent level of accuracy. The efficiency of an algorithm can be
+the equivalent level of accuracy. The inverse convergence rate can be
 measured by the autocorrelation function and more specifically, the integrated
 autocorrelation time (see \sect{tests}). This quantity is an estimate of the
 number of steps needed in the chain in order to draw independent samples from
-the target density. Therefore, a more efficient chain will have a shorter
+the target density. A more efficient chain has a shorter
 autocorrelation time.
 
 \begin{algorithm}
@@ -351,9 +368,10 @@ autocorrelation time.
     \algolabel{mh}}
 \begin{algorithmic}[1]
 
-\STATE Draw a sample $Y \sim Q (Y; X(t))$
+\STATE Draw a proposal $Y \sim Q (Y; X(t))$
 \STATE $q \gets [\pr{\vector{Y}} \, Q(X(t); Y)]
-        / [\pr{\vector{X}(t)} \, Q(Y;X(t))]$
+        / [\pr{\vector{X}(t)} \, Q(Y;X(t))]$%
+            \hspace{1cm}{\footnotesize\it // This line is generally expensive}
 \STATE $r \gets R \sim [0, 1]$
 \IF{$r \ge q$}
     \STATE $\vector{X}(t+1) \gets \vector{Y}$
@@ -366,7 +384,7 @@ autocorrelation time.
 
 \paragraph{The stretch move}
 
-\citetalias{Goodman:2010} proposed an affine invariant ensemble sampling
+\citetalias{Goodman:2010} proposed an affine-invariant ensemble sampling
 algorithm informally called the ``stretch move''. For completeness and for
 clarity of notation, we summarize the algorithm here and refer the interested
 reader to the original paper for more details. This method involves
@@ -395,10 +413,10 @@ the proposal of \eq{proposal} is symmetric. In this case, the chain will
 satisfy detailed balance if the proposal is accepted with probability
 \begin{equation}
     \eqlabel{acceptance}
-    q = \min \left \{ 1, Z^{n-1} \,
+    q = \min \left \{ 1, Z^{N-1} \,
                 \frac{\pr{\vector{Y}}}{\pr{\vector{X_k} (t)}} \right \}
 \end{equation}
-where $n$ is the dimension of the parameter space. This procedure is then
+where $N$ is the dimension of the parameter space. This procedure is then
 repeated for each walker in the ensemble \emph{in series} following the
 procedure shown in \algo{goodman}.
 
@@ -415,9 +433,8 @@ where $a$ is an adjustable scale parameter that \citetalias{Goodman:2010} set
 to 2.
 
 \begin{algorithm}
-\caption{A single stretch move update step from \citetalias{Goodman:2010} where
-    line \ref{line:hard} is generally the most computationally expensive
-    step. \algolabel{goodman}}
+\caption{A single stretch move update step from \citetalias{Goodman:2010}
+    \algolabel{goodman}}
 \begin{algorithmic}[1]
 \FOR{$k = 1, \ldots, K$}
     \STATE Draw a walker $X_j$ at random from the complementary ensemble %
@@ -425,9 +442,10 @@ to 2.
     \STATE $z \gets Z \sim g(z)$, \Eq{goodmanprop}
     \STATE $\vector{Y} \gets \vector{X_j} %
                 + z \, [ \vector{X_k} (t) - \vector{X_j}]$
-    \STATE $q \gets z^{n-1} \, p(Y)/p(X_k(t))$ \label{line:hard}
+    \STATE $q \gets z^{N-1} \, p(Y)/p(X_k(t))$ \label{line:hard}%
+        \hspace{1cm}{\footnotesize\it // This line is generally expensive}
     \STATE $r \gets R \sim [0, 1]$
-    \IF{$R \ge q$, \eq{acceptance}}
+    \IF{$r \ge q$, \eq{acceptance}}
         \STATE $X_k(t+1) \gets Y$
     \ELSE
         \STATE $X_k(t+1) \gets X_k(t)$
@@ -440,8 +458,8 @@ to 2.
 
 It is tempting to na\"ively parallelize the stretch move algorithm by
 simultaneously advancing each walker based on the state of the ensemble
-instead of evolving the walkers in series. Unfortunately, this would no
-longer satisfy detailed balance. Instead, we must split the full ensemble
+instead of evolving the walkers in series. Unfortunately, this subtly
+violates detailed balance. Instead, we must split the full ensemble
 into two subsets
 ($\red = \{ \vector{X_k} \, \forall k = 1, \ldots, K/2 \}$ and
 $\blue = \{ \vector{X_k} \, \forall k = K/2+1, \ldots, K \}$) and
@@ -458,7 +476,7 @@ parallel.
 
 The performance of this method --- quantified by the autocorrelation time ---
 is comparable to the traditional stretch move algorithm but the fact that one
-can now take advantage of generic parallelization makes this generalization
+can now take advantage of generic parallelization makes it
 extremely powerful.
 
 \begin{algorithm}
@@ -487,9 +505,35 @@ extremely powerful.
 \end{algorithmic}
 \end{algorithm}
 
-\section{Benchmarks \& Tests} \sectlabel{tests}
+\section{Tests} \sectlabel{tests}
 
-\paragraph{Measuring the performance}
+Judging the convergence and performance of an algorithm is a non-trival
+problem and there is a huge associated literature
+\citep[see, for example,][for a review]{Cowles:1996}. In astrophysics,
+spectral methods have been used extensively
+\citep[for example][]{Dunkley:2005}. Below, we describe two alternative
+diagnostics: mean-squared jump distance and autocorrelation time.
+
+First,
+however, we should take note of another extremely important measurement:
+the acceptance fraction \af. This is the fraction of proposed steps that were
+accepted. There appears to be no agreement on the optimal acceptance rate
+but it is clear that both extrema are unacceptable. If $\af \to 0$, then
+the chain has very few independent samples and the sampling will not be
+representative of the target density. Conversely, if $\af \to 1$ then the
+chain is performing a random walk with no notice of the target density so
+this will also not produce representative samples. As a rule of thumb, the
+acceptance fraction should be between 0.2 and 0.5. For the M--H algorithm,
+these effects can generally be counterbalanced by decreasing (or increasing,
+respectively) the eigenvalues of the proposal distribution covariance. For
+the stretch move, the parameter $a$ effectively controls the step size so
+it can be used to similar effect. In our tests, it has not been
+necessary to use a value $a \ne 2$ but there is no guarantee that this
+is the optimal value.
+
+\paragraph{Mean-squared jump distance}
+
+\paragraph{Autocorrelation time}
 
 A standard method of quantifying the performance of an MCMC sampler is to
 estimate the autocorrelation time of the sampler on several densities.
@@ -656,7 +700,7 @@ be useful, or might require clever or interesting improvements.  The
 \this\ package is open-source software; please push us changes!
 
 \acknowledgments It is a pleasure to thank Jo Bovy (IAS) and Larry
-Widrow (Queens) for many helpful contributions to the ideas and code
+Widrow (Queen's) for many helpful contributions to the ideas and code
 presented here.  This work makes use of the open-source Python
 \numpy\ package.
 
@@ -671,6 +715,10 @@ Y.~S., 2011, \apj, submitted, arXiv:1111.1724 [astro-ph.GA]
 \bibitem[Christen(2007)]{Christen:2007}
 {Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
 technical report I-07-16, CIMAT, Guanajuato, 2007.
+
+\bibitem[Cowles \& Carlin(1996))]{Cowles:1996}
+Cowles, M.~K. \& Carlin, B.~P.,
+1996, Journal of the American Statistical Association, 91, 883
 
 \bibitem[Dorman\ \etal(2012)]{Dorman:2012}
 {Dorman},~C., {Guhathakurta},~P., {Fardal},~M.~A., {Geha},~M.~C.,
@@ -695,6 +743,11 @@ Goodman,~J., \& Weare,\ J.,
 Cambridge University Press, 2005
 % http://adsabs.harvard.edu/abs/2005blda.book.....G
 
+\bibitem[Hogg, Bovy \& Lang(2010))]{Hogg:2010}
+{Hogg}, D.~W., {Bovy}, J., \& {Lang}, D.,
+2010, arXiv:1008.4686 [astro-ph.IM]
+% http://adsabs.harvard.edu/abs/2010arXiv1008.4686H
+
 \bibitem[Hou\ \etal(2011))]{Hou:2011}
 {Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
 2011, arXiv:1104.2612
@@ -709,6 +762,11 @@ Cambridge University Press, 2005
 {MacKay}, D., \emph{Information Theory, Inference, and Learning Algorithms},
 Cambridge University Press, 2003
 
+\bibitem[Press \etal(2007))]{Press:2007}
+{Press}, W.~H., {Teukolsky}, S.~A., {Vetterling}, W.~T., \& {Flannery}, B.~P.,
+\emph{Numerical Recipes: The Art of Scientific Computing},
+Cambridge University Press, 2007
+
 \bibitem[Widrow\ \etal(2008))]{Widrow:2008}
 {Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
 2008, \apj, 679, 1239
@@ -716,6 +774,7 @@ Cambridge University Press, 2003
 
 \end{thebibliography}
 
+\clearpage
 \appendix
 
 \section{Usage}\sectlabel{api}
