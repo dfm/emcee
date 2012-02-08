@@ -523,7 +523,8 @@ the chain has very few independent samples and the sampling will not be
 representative of the target density. Conversely, if $\af \to 1$ then the
 chain is performing a random walk with no notice of the target density so
 this will also not produce representative samples. As a rule of thumb, the
-acceptance fraction should be between 0.2 and 0.5. For the M--H algorithm,
+acceptance fraction should be between 0.2 and 0.5
+\citep[for example][]{Gelman:1996}. For the M--H algorithm,
 these effects can generally be counterbalanced by decreasing (or increasing,
 respectively) the eigenvalues of the proposal distribution covariance. For
 the stretch move, the parameter $a$ effectively controls the step size so
@@ -628,9 +629,8 @@ It is our present view that autocorrelation time is the best indicator
 of MCMC performance (the shorter the better), but there are several
 proxies.  The easiest and simplest indicator that things are going
 well is the acceptance fraction; it should be in the 0.2 to 0.5 range
-(there are theorems about this for specific problems; RTFL; DFM:
-Please replace the ``RTFL'' with a citation for that 0.26 number that
-is out there, with a ``for example'' in front of it).  In principle,
+\citep[there are theorems about this for specific problems;
+for example][]{Gelman:1996}.  In principle,
 if the acceptance fraction is too low, you can raise it by decreasing
 the $a$ parameter; and if it is too high, you can reduce it by
 increasing the $a$ parameter.  However, in practice, we find that
@@ -650,7 +650,7 @@ different modes have \emph{very} different posterior probabilities.
 Another proxy for short autocorrelation time is large expected or mean
 squared jump distance (ESJD; \citealt{Pasarica:2010}).  The higher the
 ESJD the better; if walkers move (in the mean) a large distance per
-chain step (DFM: do you call them steps or links?) then the
+chain step then the
 autocorrelation time will tend to be shorter.  The ESJD is not an
 affine-invariant measure of performance, and it doesn't have an a
 trivial interpretation in terms of independent samples, so we prefer
@@ -664,7 +664,8 @@ reason not to go large when it comes to walker number, until you hit
 performance issues.  Although each step takes twice as much compute
 time if you double the number of walkers, it also returns to you twice
 as many independent samples per autocorrelation time.  So go large.
-DFM: A list of problems solved by increasing the number of walkers.
+In particular, we have found that increasing the number of walkers
+improves the acceptance fraction of any chain where it falls too low.
 
 One mistake many users of MCMC methods make is to take \emph{too many}
 samples!  If all you want your MCMC to do is produce one- or
@@ -741,8 +742,13 @@ Cowles, M.~K. \& Carlin, B.~P.,
 \bibitem[Dunkley\ \etal(2005)]{Dunkley:2005}
 {Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K.,
 \& {Skordis}, C.,
-2005, \mnras, 356, 925-936
+2005, \mnras, 356, 925--936
 % http://adsabs.harvard.edu/abs/2005MNRAS.356..925D
+
+\bibitem[{Gelman}, {Roberts}, \& {Gilks}(1996)]{Gelman:1996}
+{Gelman}, A., {Roberts}, G.~O., \& {Gilks}, W.~R.,
+in {\em Bayesian Statistics 5}, ed.\ J. Bernardo et al.,
+Oxford University Press, 599--607
 
 \bibitem[Goodman~\&\ Weare(2010)]{Goodman:2010}
 Goodman,~J. \& Weare,\ J.,
@@ -826,7 +832,7 @@ case as well.
 The development of \this\ is being coordinated on \github\ at
 \url{http://github.com/dfm/emcee} and contributions are welcome. If you
 encounter any problems with the code, please report them at
-\url{http://github.com/dfm/emcee/issues} (DFM: check this url) and consider
+\url{http://github.com/dfm/emcee/issues} and consider
 contributing a patch.
 
 \paragraph{Basic usage}
