@@ -593,9 +593,6 @@ DFM: actually do some tests here...
 
 \section{Discussion \& Tips}
 
-% DFM: In this section, I put the key advice from each paragraph in
-% \emph{}.  Hogg
-
 The goal of this project has been to make a sampler that is a useful
 tool for a large class of data analysis problems---a ``hammer'' if you
 will.  If development of statistical and data-analysis understanding
@@ -610,51 +607,56 @@ intuitions are developed, it makes sense to switch to \this\ or a
 similarly well engineered piece of code for performance on large
 problems.
 
-Ensemble samplers like \this\ require some thought for
-initialization.  One general approach is to start the walkers at a
-sampling of the prior or spread out over a reasonable range in
-parameter space.  Another general approach is to start the walkers in
-a very tight $N$-dimensional ball in parameter space around one point
-that is expected to be close to the maximum probability point.  The
-first is more objective but, in practice, we find that the latter is
-much more effective if there is any chance of walkers getting stuck in
-low probability modes of a multi-modal probability landscape.  A third
+Ensemble samplers like \this\ require some thought for initialization.
+One general approach is to start the walkers at a sampling of the
+prior or spread out over a reasonable range in parameter space.
+Another general approach is to start the walkers in a very tight
+$N$-dimensional ball in parameter space around one point that is
+expected to be close to the maximum probability point.  The first is
+more objective but, in practice, we find that the latter is much more
+effective if there is any chance of walkers getting stuck in low
+probability modes of a multi-modal probability landscape.  The walkers
+initialized in the small ball will expand out to fill the relevant
+parts of parameter space in just a few autocorrelation times.  A third
 approach would be to start from a sampling of the prior, and go
 through a ``burn-in'' phase in which the prior is transformed
 continuously into the posterior by increasing the ``temperature''.
 Discussion of this kind of annealing is beyond the scope of this
 document.
 
-It is our view that autocorrelation time is the best indicator of MCMC
-performance (the shorter the better), but there are several proxies.
-The easiest and simplest indicator that things are going well is the
-acceptance fraction; it should be in the 0.2 to 0.5 range (there are
-theorems about this for specific problems; RTFL).  In principle, if
-the acceptance fraction is too low, you can raise it by decreasing the
-$a$ parameter; and if it is too high, you can reduce it by increasing
-the $a$ parameter.  However, in practice, we find that $a=2$ is good
-in essentially all situations.  That means that \emph{if the
-  acceptance fraction is getting very low, something is going very
-  wrong}.  Typically a low acceptance fraction means that the
-posterior probability is multi-modal, with the modes separated by
-wide, low probability ``valleys''.  In situations like these, the best
-idea (though expensive of human time) is to split the space into
-disjoint single-mode regions and sample each one independently,
-combining the independently sampled regions ``properly'' (also
-expensive, and beyond the scope of this document) at the end.  In
-previous work, we have advocated clustering methods to remove multiple
-modes \citep{Hou:2011}.  These work well when the different
-modes have \emph{very} different posterior probabilities.
+It is our present view that autocorrelation time is the best indicator
+of MCMC performance (the shorter the better), but there are several
+proxies.  The easiest and simplest indicator that things are going
+well is the acceptance fraction; it should be in the 0.2 to 0.5 range
+(there are theorems about this for specific problems; RTFL; DFM:
+Please replace the ``RTFL'' with a citation for that 0.26 number that
+is out there, with a ``for example'' in front of it).  In principle,
+if the acceptance fraction is too low, you can raise it by decreasing
+the $a$ parameter; and if it is too high, you can reduce it by
+increasing the $a$ parameter.  However, in practice, we find that
+$a=2$ is good in essentially all situations.  That means that when
+using \this\ \emph{if the acceptance fraction is getting very low,
+  something is going very wrong}.  Typically a low acceptance fraction
+means that the posterior probability is multi-modal, with the modes
+separated by wide, low probability ``valleys''.  In situations like
+these, the best idea (though expensive of human time) is to split the
+space into disjoint single-mode regions and sample each one
+independently, combining the independently sampled regions
+``properly'' (also expensive, and beyond the scope of this document)
+at the end.  In previous work, we have advocated clustering methods to
+remove multiple modes \citep{Hou:2011}.  These work well when the
+different modes have \emph{very} different posterior probabilities.
 
 Another proxy for short autocorrelation time is large expected or mean
 squared jump distance (ESJD; \citealt{Pasarica:2010}).  The higher the
 ESJD the better; if walkers move (in the mean) a large distance per
 chain step (DFM: do you call them steps or links?) then the
-autocorrelation time will tend to be shorter.  Since the
-autocorrelation time is reasonable to estimate and the ESJD is not an
-affine-invariant measure of performance, we prefer the autocorrelation
-time, but in some contexts it makes sense to measure or monitor the
-ESJD instead.
+autocorrelation time will tend to be shorter.  The ESJD is not an
+affine-invariant measure of performance, and it doesn't have an a
+trivial interpretation in terms of independent samples, so we prefer
+the autocorrelation time in principle.  In practice, however, because
+the ESJD is a simple expectation value it can be more robustly
+evaluated with small amounts of data (that is, in short chains).
 
 With this ensemble sampler you want (in general) to \emph{run with
   large numbers of walkers}, like hundreds.  In principle, there is no
@@ -708,10 +710,10 @@ reparameterization, but in some cases, samplers like \this\ will not
 be useful, or might require clever or interesting improvements.  The
 \this\ package is open-source software; please push us changes!
 
-\acknowledgments It is a pleasure to thank Jo Bovy (IAS) and Larry
-Widrow (Queen's) for many helpful contributions to the ideas and code
-presented here.  This work makes use of the open-source Python
-\numpy\ package.
+\acknowledgments It is a pleasure to thank Jo Bovy (IAS), Andrew
+Gelman (Columbia), Fengji Hou (NYU), and Larry Widrow (Queen's) for
+helpful contributions to the ideas and code presented here.
+\this\ makes use of the open-source Python \numpy\ package.
 
 \begin{thebibliography}{}
 \raggedright
