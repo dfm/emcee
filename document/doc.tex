@@ -650,19 +650,31 @@ the autocorrelation time in principle.  In practice, however, because
 the ESJD is a simple expectation value it can be more robustly
 evaluated with small amounts of data (that is, in short chains).
 
-With this ensemble sampler you want (in general) to \emph{run with
-  large numbers of walkers}, like hundreds.  In principle, there is no
+With this ensemble sampler you usually want to \emph{run with large
+  numbers of walkers}, like hundreds.  In principle, there is no
 reason not to go large when it comes to walker number, until you hit
 performance issues.  Although each step takes twice as much compute
 time if you double the number of walkers, it also returns to you twice
 as many independent samples per autocorrelation time.  So go large.
-In particular, we have found that increasing the number of walkers
-improves the acceptance fraction of any chain where it falls too low.
+In particular, we have found that---in almost all cases of low
+acceptance fraction---increasing the number of walkers improves the
+acceptance fraction.  The one disadvantage of having large numbers of
+walkers is that the burn-in phase (from initial conditions to
+reasonable sampling) can be slow; burn-in time is a few
+autocorrelation times; the total run time for burn-in scales with the
+number of walkers.  These considerations, all taken together, suggest
+using the smallest number of walkers for which the acceptance fraction
+during burn-in is good, or the number of samples you want out at the
+end (see below), whichever is \emph{greater}.  A more ambitious
+project would be to increase the number of walkers after burn-in; this
+requires thought beyond the scope of this document; it can be
+accomplished by burning in a set of small ensembles and then merging
+them into a big ensemble for the final run.
 
 One mistake many users of MCMC methods make is to take \emph{too many}
 samples!  If all you want your MCMC to do is produce one- or
 two-dimensional error bars on two or three parameters, then you only
-need dozens of independent samples.  With the ensemble sampling, you
+need dozens of independent samples.  With ensemble sampling, you
 get this from a \emph{single snapshot} or single timestep, provided
 that you are using dozens of walkers (and we would recommend that you
 use hundreds in most applications).  The key point is that \emph{you
