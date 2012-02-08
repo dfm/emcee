@@ -536,39 +536,36 @@ is the optimal value.
 
 \paragraph{Autocorrelation time}
 
-A standard method of quantifying the performance of an MCMC sampler is to
-estimate the autocorrelation time of the sampler on several densities.
+The autocovariance function of a time series $\vector{X} (t)$ is
+\begin{equation}
+    C_f (T) = \lim_{t \to \infty} \mathrm{cov}
+        \left [ f\left (\vector{X}(t+T) \right ),
+            f\left (\vector{X}(t) \right ) \right ].
+\end{equation}
+This measures the covariances between samples at a time lag $T$. The
+value of $T$ where $C_f(T) \to 0$ measures the number of samples that
+must be taken in order to ensure independence. In particular, the
+relevant measure of sampler efficiency is the integrated autocorrelation
+time
+\begin{equation}
+    \tau_f = \sum_{T=-\infty} ^{\infty} \frac{C_f(T)}{C_f(0)}
+        = 1+2\sum_{T=1} ^{\infty} \frac{C_f(T)}{C_f(0)}.
+\end{equation}
+In practice, one can estimate $C_f (T)$ for a Markov chain of $M$ samples as
+\begin{equation}
+    C_f (T) \approx \frac{1}{M-T} \sum_{m=1}^{M-T}
+        \left [ f(X(T+m)) - E[f] \right ] \,
+        \left [ f(X(m)) - E[f] \right ].
+\end{equation}
 
-The main goal of running a Markov chain is to measure the expectation value
-(and variance) of a particular value (e.g.~$f$)
-\begin{equation}
-    \left < f(\mathbf{x}) \right > = \int f(\mathbf{x}) \, p (\mathbf{x}) \,
-            \dd \mathbf{x}
-\end{equation}
-which can be approximated as
-\begin{equation}
-    \eqlabel{schainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_s} \sum_{t=1}^{T_s}
-            f(\mathbf{X}(t))
-\end{equation}
-where $T$ is the length of the chain.  The generalization of \eq{schainestim}
-to the case of the ensemble sampler is
-\begin{equation}
-    \eqlabel{echainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_e} \sum_{t=1}^{T_s}
-        \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
-\end{equation}
-where $K$ is the number of walkers.  The autocorrelation function of the chain
-is then given by
-\begin{equation}
-    C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov}
-            \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
-            \sum_{k = 1}^{K} f(\mathbf{X}_k (t^\prime)) \right ]
-\end{equation}
-and the integrated autocorrelation time is given by
-\begin{equation}
-    \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} .
-\end{equation}
+We advocate for the autocorrelation time as a measure of sampler
+performance for two main reasons. First, it measures a quantity
+that \emph{we are actually interested in} when sampling in practice.
+The longer the autocorrelation time, the more samples that we must
+generate to produce a representative sampling of the target
+density. Second, the autocorrelation time is affine invariant. Therefore,
+it is reasonable to measure the performance and diagnose the convergence
+of the sampler on densities with different levels of anisotropy.
 
 \this\ can optionally calculate the autocorrelation time using the Python
 module \project{acor}\footnote{\url{http://github.com/dfm/acor}} to estimate
