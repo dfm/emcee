@@ -333,7 +333,7 @@ $\pr{\model, \nuisance, \data}$ is a very specific analytic distribution
 in the parameter space that, over time, draws a representative set
 of samples from the distribution. Each point in a Markov chain
 $\link (t) = [\model(t), \nuisance(t)]$
-depends only on the position of the previous link $\link (t-1)$.
+depends only on the position of the previous step $\link (t-1)$.
 
 \paragraph{The Metropolis-Hastings (M--H) Algorithm}
 
@@ -485,6 +485,7 @@ extremely powerful.
 \begin{algorithmic}[1]
 \FOR{$i \in \{0, 1\}$}
     \FOR{$k = 1, \ldots, K/2$} \label{line:parallelloop}
+        \STATE {\footnotesize\it // This loop can now be done in parallel for all $k$}
         \STATE Draw a walker $\vector{X_j}$ at random from the complementary %
             ensemble $\colorens{\sim i} (t)$
         \STATE $\vector{X_k} \gets \colorens{i}_k$
