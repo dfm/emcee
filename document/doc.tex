@@ -310,13 +310,6 @@ compute.
 Once the samples
 produced by MCMC are available, the marginalized constraints on $\model$
 can be approximated by
-\begin{equation}
-    \pr{\model | \data} = \int \pr{\model | \data, \nuisance} \,
-        \pr{\nuisance} \, \dd  \nuisance
-    \approx \frac{1}{M}\sum_{i=1}^M \pr{\model | \data, \nuisance_i}
-        \, \pr{\nuisance_i},
-\end{equation}
-(HOGG: this is hideous and wrong. What would be clearer?)
 the histogram of the samples projected into the parameter subspace spanned
 by $\model$. In particular, this implies that the
 expectation value of a function of the model parameters $\phi(\model)$ is
