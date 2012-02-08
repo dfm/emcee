@@ -23,10 +23,6 @@
         keywordstyle=\bfseries\color[rgb]{0.133,0.545,0.133},
         commentstyle=\color[rgb]{0.133,0.545,0.133},
         stringstyle=\color[rgb]{0.627,0.126,0.941},
-        % numbers=left,
-        % numberstyle=\tiny,
-        % stepnumber=5,
-        % numbersep=5pt,
     }
 
 \newcommand{\project}[1]{{\sffamily #1}}
@@ -179,8 +175,11 @@ Probabilistic data analysis --- including Bayesian inference --- has
 transformed scientific research in the past decade. Many of the most
 significant gains have been due to numerical methods for approximate
 inference; especially Markov chain Monte Carlo (MCMC). Many
-problems in cosmology and astrophysics benefit from these advances because
-the observations tend to have low signal-to-noise and be incomplete.
+problems in cosmology and astrophysics have directly benefited from these
+advances because the observations tend to have low signal-to-noise and be
+incomplete. In fact, while the discussions in this \paper\ have a more
+general applicability, we will mostly present examples from astrophysics
+and cosmology, the fields with which we have the most experience.
 
 Probabilistic data analysis procedures involve examining and operating on
 either the posterior probability density function (PDF) of the parameters
@@ -199,7 +198,7 @@ Anisotropy Probe (WMAP) mission provide a dramatic example
 Arguably the most important advantage of Bayesian data analysis is
 that it is possible to \emph{marginalize} over nuisance parameters. A
 nuisance parameter is a component of the generative model that is of little
-physical interest who's value must be known in order to produce data.
+physical interest whose value must be known in order to produce data.
 Marginalization is the process of integrating over all possible values of
 these parameters and hence propagating the effects of your uncertainty about
 the ``true'' value to the final result. The exact result of marginalization
@@ -212,7 +211,7 @@ of the set of observations \data given the physical model parameters
         \pr{\data | \model, \nuisance} \,
         \pr{\nuisance} \, \dd  \nuisance
 \end{equation}
-where \nuisance is the set of of nuisance parameters. In general, \data\ is
+where \nuisance\ is the set of of nuisance parameters. In general, \data\ is
 a list of vectors in the observed space and \model\ and \nuisance\ are lists
 of parameters in model space. It is often useful, however, to view
 $(\model, \nuisance)$ as a vector in a Euclidean parameter space.
@@ -290,8 +289,8 @@ A complete discussion of MCMC methods is beyond the scope of this \paper.
 Instead, the interested reader is directed to a classic reference like
 \citet{MacKay:2003} and we will summarize some key concepts below.
 
-The general goal of MCMC algorithms is to draw samples
-$\{ \model_i \, \forall i=1, \ldots, M \}$ from
+The general goal of MCMC algorithms is to draw $M$ samples
+$\{ \model_i \}$ from
 the posterior probability density
 \begin{equation}
     \pr{\model, \nuisance | \data} = \frac{1}{Z}\,\pr{\model, \nuisance}
@@ -389,7 +388,7 @@ algorithm informally called the ``stretch move''. For completeness and for
 clarity of notation, we summarize the algorithm here and refer the interested
 reader to the original paper for more details. This method involves
 simultaneously evolving an ensemble of $K$ \emph{walkers}
-$\ensemble = \{ \vector{X_j}, \forall j=1,\ldots,K \}$ where the proposal
+$\ensemble = \{ \vector{X_j} \}$ where the proposal
 distribution for one walker $k$ is based on the current positions of the
 $K-1$ walkers in the \emph{complementary ensemble}
 $\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$. In general, each
@@ -485,7 +484,8 @@ extremely powerful.
 \begin{algorithmic}[1]
 \FOR{$i \in \{0, 1\}$}
     \FOR{$k = 1, \ldots, K/2$} \label{line:parallelloop}
-        \STATE {\footnotesize\it // This loop can now be done in parallel for all $k$}
+        \STATE {\footnotesize\it // This loop can now be done in parallel %
+            for all $k$}
         \STATE Draw a walker $\vector{X_j}$ at random from the complementary %
             ensemble $\colorens{\sim i} (t)$
         \STATE $\vector{X_k} \gets \colorens{i}_k$
@@ -512,8 +512,9 @@ Judging the convergence and performance of an algorithm is a
 non-trival problem and there is a huge associated literature
 \citep[see, for example,][for a review]{Cowles:1996}. In astrophysics,
 spectral methods have been used extensively \citep[for
-  example][]{Dunkley:2005}. Below, we describe one---an
-affine-invariant measure of performance---the autocorrelation time.
+example][]{Dunkley:2005}. Below, we advocate for one such method: the
+autocorrelation time. The autocorrelation time is especially applicable
+because it is an affine invariant measure of the performance.
 
 First,
 however, we should take note of another extremely important measurement:
@@ -702,7 +703,7 @@ acceptance ratio; in general when your acceptance ratio gets low your
 autocorrelation time is very, very long.
 
 One significant limitation to the stretch move and moves like it is
-that they implicitly assumes that the parameters can be assembled into
+that they implicitly assume that the parameters can be assembled into
 a vector-like object on which linear operations can be performed.
 This is not (trivially) true for parameters that have non-trivial
 constraints, like parameters that must be integer-valued or
