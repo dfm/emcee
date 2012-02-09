@@ -148,7 +148,7 @@
     We introduce a stable, well tested Python implementation of the affine-%
     invariant ensemble sampler for Markov chain Monte Carlo (MCMC)
     proposed by Goodman \& Weare (2010). The code is open source and has
-    already been used in several published projects in the Astrophysics
+    already been used in several published projects in the astrophysics
     literature. The algorithm behind \this\ has several advantages over
     traditional MCMC sampling methods and it has excellent performance as
     measured by the autocorrelation time.
@@ -158,8 +158,8 @@
     \paper, we describe the algorithm and the details of our implementation
     and API. Taking advantage of the naturally parallel nature of
     the algorithm, \this\ permits \emph{any} user to take advantage of
-    multiple CPUs without extra effort. This is a huge advantage over a
-    na\"ive implementation of the published algorithm when applied to
+    multiple CPU cores without extra effort. This is a huge advantage over a
+    na\"ive implementation when applied to
     computationally expensive problems.
 
     The code is available online at \url{http://danfm.ca/\thisplain} under the
@@ -185,26 +185,26 @@ the observations tend to have low signal-to-noise and be incomplete.
 Probabilistic data analysis procedures involve examining and operating on
 either the posterior probability density function (PDF) of the parameters
 of the model or the likelihood function. In some cases it is
-sufficient to just find the maximum of this function but it is often of
+sufficient to find the maximum of this function but it is often of
 interest to (at least approximately) measure this distribution in more detail.
 In particular, if we wish to propagate the effects of measurement
 uncertainties through the analysis to the conclusions, we must sample the
-PDF on sufficiently small scales. MCMC methods are designed to efficiently
-sample and approximate the PDF even in high dimensional
+PDF on sufficiently small scales. MCMC methods are designed to 
+sample and approximate the PDF efficiently even in high dimensional
 parameter spaces. This has proved useful in too many research
 applications to list here but the results from the Wilkinson Microwave
 Anisotropy Probe (WMAP) mission provide a dramatic example
-\citep[for example][]{Dunkley:2005}.
+\citep[for example,][]{Dunkley:2005}.
 
 Arguably the most important advantage of Bayesian data analysis is
 that it is possible to \emph{marginalize} over nuisance parameters. A
-nuisance parameter is a component of the generative model that is of little
-physical interest who's value must be known in order to produce data.
+\emph{nuisance parameter} is one that is required in order to model the
+process that generates the data, but is otherwise of little interest.
 Marginalization is the process of integrating over all possible values of
-these parameters and hence propagating the effects of your uncertainty about
-the ``true'' value to the final result. The exact result of marginalization
+a parameter and hence propagating the effects of uncertainty about
+its value to the final result. The exact result of marginalization
 is the marginalized likelihood function \pr{\data|\model}
-of the set of observations \data given the physical model parameters
+of the set of observations \data\ given the physical model parameters
 \model
 \begin{equation}
     \eqlabel{marginalization}
@@ -212,7 +212,7 @@ of the set of observations \data given the physical model parameters
         \pr{\data | \model, \nuisance} \,
         \pr{\nuisance} \, \dd  \nuisance
 \end{equation}
-where \nuisance is the set of of nuisance parameters. In general, \data\ is
+where \nuisance\ is the set of of nuisance parameters. In general, \data\ is
 a list of vectors in the observed space and \model\ and \nuisance\ are lists
 of parameters in model space. It is often useful, however, to view
 $(\model, \nuisance)$ as a vector in a Euclidean parameter space.
