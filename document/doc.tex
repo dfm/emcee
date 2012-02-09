@@ -21,6 +21,8 @@
 \usepackage{algorithmic,algorithm}
 \usepackage{amssymb,amsmath}
 
+\newcommand{\arxiv}[1]{\href{http://arxiv.org/abs/#1}{arXiv:#1}}
+
 \usepackage{listings}
 \definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
 \lstset{language=Python,
@@ -117,6 +119,7 @@
 \renewcommand{\matrix}[1]{#1}
 \newcommand{\pr}[1]{\ensuremath{p(#1)}}
 \newcommand{\af}{\ensuremath{a_f}}
+\newcommand{\expect}[1]{\left<#1\right>}
 
 % model parameters
 \newcommand{\model}{\ensuremath{\vector{\Theta}}}
@@ -332,20 +335,20 @@ can be approximated by
 \begin{equation}
     \pr{\model | \data} = \int \pr{\model | \data, \nuisance} \,
         \pr{\nuisance} \, \dd  \nuisance
-    \,\approx\, \frac{1}{M}\sum_{i=1}^M \pr{\model | \data, \nuisance_i}
+    \,\approx\, \frac{1}{T}\sum_{i=1}^T \pr{\model | \data, \nuisance_i}
         \, \pr{\nuisance_i} \quad,
 \end{equation}
 (HOGG: this is hideous and wrong. What would be clearer?)
 the histogram of the samples projected into the parameter subspace spanned
 by $\model$. In particular, this implies that the
-expectation value of a function of the model parameters $\phi(\model)$ is
+expectation value of a function of the model parameters $f(\model)$ is
 \begin{equation}
-    E[\phi(\model)] = \int
+    \expect{f(\model)} = \int
             %\left [ \int \pr{\model, \nuisance | \data}
             %\, \dd \nuisance \right ]
     \pr{\model|\data}
-    \, \phi (\model) \, \dd\model
-    \,\approx\, \frac{1}{M} \sum_{i=1} ^M \phi(\model_i) \quad.
+    \, f(\model) \, \dd\model
+    \,\approx\, \frac{1}{T} \sum_{i=1} ^T f(\model_i) \quad.
 \end{equation}
 Generating the samples $\model_i$ is a non-trivial process unless
 $\pr{\model, \nuisance, \data}$ is a very specific analytic distribution
@@ -557,7 +560,7 @@ all steps are accepted and the
 chain is performing a random walk with no regard for the target density so
 this will also not produce representative samples. As a rule of thumb, the
 acceptance fraction should be between $0.2$ and $0.5$
-\citep[for example][]{Gelman:1996}. For the M--H algorithm,
+\citep[for example,][]{Gelman:1996}. For the M--H algorithm,
 these effects can generally be counterbalanced by decreasing (or increasing,
 respectively) the eigenvalues of the proposal distribution covariance. For
 the stretch move, the parameter $a$ effectively controls the step size so
@@ -571,26 +574,28 @@ A standard method of quantifying the performance of an MCMC sampler is to
 estimate the autocorrelation time of the sampler on several densities.
 
 The main goal of running a Markov chain is to measure the expectation value
-(and variance) of a particular value (e.g.~$f$)
+(and variance) of a function $f$ integrated over the sample space:
 \begin{equation}
-    \left < f(\mathbf{x}) \right > = \int f(\mathbf{x}) \, p (\mathbf{x}) \,
+  \expect{f(\mathbf{x}} = \int f(\mathbf{x}) \, p (\mathbf{x}) \,
             \dd \mathbf{x}
 \end{equation}
 which can be approximated as
 \begin{equation}
     \eqlabel{schainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_s} \sum_{t=1}^{T_s}
+    \expect{ f(\mathbf{x}) } \approx \frac{1}{T} \sum_{t=1}^{T}
             f(\mathbf{X}(t))
 \end{equation}
 where $T$ is the length of the chain.  The generalization of \eq{schainestim}
 to the case of the ensemble sampler is
 \begin{equation}
     \eqlabel{echainestim}
-    \left < f(\mathbf{x}) \right > \approx \frac{1}{T_e} \sum_{t=1}^{T_s}
-        \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
+    \expect{ f(\mathbf{x}) } \approx \frac{1}{T} \sum_{t=1}^{T}
+    \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
 \end{equation}
-where $K$ is the number of walkers.  The autocorrelation function of the chain
-is then given by
+where $K$ is the number of walkers.
+
+The autocorrelation function of the chain
+is
 \begin{equation}
     C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov}
             \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
@@ -598,7 +603,7 @@ is then given by
 \end{equation}
 and the integrated autocorrelation time is given by
 \begin{equation}
-    \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} .
+    \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} \quad.
 \end{equation}
 
 \this\ can optionally calculate the autocorrelation time using the Python
@@ -654,7 +659,7 @@ initialized in the small ball will expand out to fill the relevant
 parts of parameter space in just a few autocorrelation times.  A third
 approach would be to start from a sampling of the prior, and go
 through a ``burn-in'' phase in which the prior is transformed
-continuously into the posterior by increasing the ``temperature''.
+continuously into the posterior by increasing the ``temperature.''
 Discussion of this kind of annealing is beyond the scope of this
 document.
 
@@ -671,7 +676,7 @@ $a=2$ is good in essentially all situations.  That means that when
 using \this\ \emph{if the acceptance fraction is getting very low,
   something is going very wrong}.  Typically a low acceptance fraction
 means that the posterior probability is multi-modal, with the modes
-separated by wide, low probability ``valleys''.  In situations like
+separated by wide, low probability ``valleys.''  In situations like
 these, the best idea (though expensive of human time) is to split the
 space into disjoint single-mode regions and sample each one
 independently, combining the independently sampled regions
@@ -685,13 +690,13 @@ squared jump distance (ESJD; \citealt{Pasarica:2010}).  The higher the
 ESJD the better; if walkers move (in the mean) a large distance per
 chain step then the
 autocorrelation time will tend to be shorter.  The ESJD is not an
-affine-invariant measure of performance, and it doesn't have an a
+affine-invariant measure of performance, and it doesn't have a
 trivial interpretation in terms of independent samples, so we prefer
 the autocorrelation time in principle.  In practice, however, because
 the ESJD is a simple expectation value it can be more robustly
-evaluated with small amounts of data (that is, in short chains).
+evaluated on short chains.
 
-With this ensemble sampler you want (in general) to \emph{run with
+With \this\  you want (in general) to \emph{run with
   large numbers of walkers}, like hundreds.  In principle, there is no
 reason not to go large when it comes to walker number, until you hit
 performance issues.  Although each step takes twice as much compute
@@ -756,12 +761,12 @@ helpful contributions to the ideas and code presented here.
 
 \bibitem[Bovy\ \etal(2011)]{Bovy:2011}
  Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
-Y.~S., 2011, \apj, submitted, arXiv:1111.1724 [astro-ph.GA]
+Y.~S., 2011, \apj, submitted, \arxiv{1111.1724} [astro-ph.GA]
 % http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1111.1724
 
 \bibitem[Christen(2007)]{Christen:2007}
 {Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
-technical report I-07-16, CIMAT, Guanajuato, 2007.
+technical report I-07-16, CIMAT, Guanajuato, 2007
 
 \bibitem[Cowles \& Carlin(1996))]{Cowles:1996}
 Cowles, M.~K. \& Carlin, B.~P.,
@@ -797,17 +802,17 @@ Cambridge University Press, 2005
 
 \bibitem[Hogg, Bovy \& Lang(2010))]{Hogg:2010}
 {Hogg}, D.~W., {Bovy}, J., \& {Lang}, D.,
-2010, arXiv:1008.4686 [astro-ph.IM]
+2010, \arxiv{1008.4686} [astro-ph.IM]
 % http://adsabs.harvard.edu/abs/2010arXiv1008.4686H
 
 \bibitem[Hou\ \etal(2011))]{Hou:2011}
 {Hou}, F., {Goodman}, J., {Hogg}, D.~W., {Weare}, J., \& {Schwab}, C.,
-2011, arXiv:1104.2612
+2011, \arxiv{1104.2612}
 % http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
 
 \bibitem[Lang\ \& Hogg(2011))]{Lang:2011}
 {Lang}, D. and {Hogg}, D.~W.,
-2011, arXiv:1103.6038
+2011, AJ, submitted, \arxiv{1103.6038}
 % http://adsabs.harvard.edu/abs/2011arXiv1103.6038L
 
 \bibitem[MacKay(2003))]{MacKay:2003}
@@ -913,7 +918,7 @@ nwalkers = 100
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 \end{lstlisting}
 Initialize the sampler object passing the chosen hyperparameters and the
-generated likelihood function and it's arguments.
+generated likelihood function and its arguments.
 \begin{lstlisting}
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
                         args=[means, icov])
