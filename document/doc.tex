@@ -6,6 +6,17 @@
 \hypersetup{colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,
             filecolor=linkcolor,urlcolor=linkcolor}
 
+
+% dstn -- put paragraph numbers in the margins
+\usepackage{mparhack}
+\usepackage{numberparagraphs}
+% Small margins
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[1]{\-\oldmarginpar{\footnotesize #1}}
+% Put the margin notes on the left-hand margin.
+\reversemarginpar
+
+
 \usepackage{url}
 \usepackage{algorithmic,algorithm}
 \usepackage{amssymb,amsmath}
@@ -142,6 +153,9 @@
                         Princeton, NJ, 08544, USA}
 \altaffiltext{\courant}{Courant Institute, New York University,
                         251 Mercer St., New York, NY 10012, United States}
+
+\numberparagraphs
+
 
 \begin{abstract}
 
@@ -363,6 +377,8 @@ number of steps needed in the chain in order to draw independent samples from
 the target density. A more efficient chain has a shorter
 autocorrelation time.
 
+\nonumberparagraphs
+
 \begin{algorithm}
 \caption{The procedure for a single Metropolis-Hastings MCMC step.
     \algolabel{mh}}
@@ -381,6 +397,8 @@ autocorrelation time.
 
 \end{algorithmic}
 \end{algorithm}
+
+\numberparagraphs
 
 \paragraph{The stretch move}
 
@@ -432,6 +450,8 @@ procedure shown in \algo{goodman}.
 where $a$ is an adjustable scale parameter that \citetalias{Goodman:2010} set
 to 2.
 
+\nonumberparagraphs
+
 \begin{algorithm}
 \caption{A single stretch move update step from \citetalias{Goodman:2010}
     \algolabel{goodman}}
@@ -453,6 +473,8 @@ to 2.
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
+
+\numberparagraphs
 
 \paragraph{The parallel stretch move}
 
@@ -479,6 +501,8 @@ is comparable to the traditional stretch move algorithm but the fact that one
 can now take advantage of generic parallelization makes it
 extremely powerful.
 
+\nonumberparagraphs
+
 \begin{algorithm}
 \caption{The parallel stretch move update step
     \algolabel{parallel}}
@@ -502,6 +526,8 @@ extremely powerful.
     \ENDFOR
     \STATE $t \gets t+\frac{1}{2}$
 \ENDFOR
+
+\numberparagraphs
 
 \end{algorithmic}
 \end{algorithm}
@@ -716,6 +742,8 @@ be useful, or might require clever or interesting improvements.  The
 Gelman (Columbia), Fengji Hou (NYU), and Larry Widrow (Queen's) for
 helpful contributions to the ideas and code presented here.
 \this\ makes use of the open-source Python \numpy\ package.
+
+\nonumberparagraphs
 
 \begin{thebibliography}{}
 \raggedright
