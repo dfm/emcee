@@ -1,0 +1,216 @@
+
+% http://www.tex.ac.uk/cgi-bin/texfaq2html?label=subverttoks
+\let\mypkg@@everypar\everypar
+\newtoks\mypkg@everypar
+\mypkg@everypar\expandafter{\the\everypar}
+% my redefinition of ``everypar'':
+%   -if ``donumberparagraphs'' is on, run ``mypkgs@ownstuff''
+%   -run old ``everypar''.
+\mypkg@@everypar{\ifdonumberparagraphs\mypkgs@ownstuff\fi\the\mypkg@everypar}
+\let\everypar\mypkg@everypar
+
+
+% Controlling paragraph numbering, within your document:
+%   \numberparagraphs        --- turn it on
+%   \nonumberparagraphs      --- turn it off
+%
+% These are used internally
+%   \savenumberparagraphs    --- remember current state
+%   \restorenumberparagraphs --- restore old state
+\newif\ifdonumberparagraphs
+\donumberparagraphsfalse
+\newcommand{\numberparagraphs}{\global\donumberparagraphstrue}
+\newcommand{\nonumberparagraphs}{\global\donumberparagraphsfalse}
+\newif\ifsavednumberparagraphs
+% It seems that \footnote{} somehow expands 
+\newif\ifsaveddnumberparagraphs
+%\savednumberparagraphsfalse
+\newcommand{\savenumberparagraphs}{%
+  % HACK - size-2 stack
+  \ifsavednumberparagraphs%
+  \global\saveddnumberparagraphstrue%
+  \else%
+  \global\saveddnumberparagraphsfalse%
+  \fi%
+  %
+  \ifdonumberparagraphs%
+  \global\savednumberparagraphstrue%
+  \else%
+  \global\savednumberparagraphsfalse%
+  \fi%
+}
+\newcommand{\restorenumberparagraphs}{%
+  \ifsavednumberparagraphs%
+  \global\donumberparagraphstrue%
+  \else%
+  \global\donumberparagraphsfalse%
+  \fi%
+  % HACK - size-2 stack
+  \ifsaveddnumberparagraphs%
+  \global\savednumberparagraphstrue%
+  \else%
+  \global\savednumberparagraphsfalse%
+  \fi%
+}
+
+
+%% Here's what we actually do when a paragraph starts:
+%  Put a chapter.paragraph counter in the margin.
+\newcounter{parcounter}
+\newcommand\thepara{\@arabic\c@parcounter}
+
+\def\mypkgs@ownstuff{%
+  % Must turn off paragraph numbering because \marginpar starts a new paragraph!
+  % This function only gets called when \donumberparagraphs is true, so we don't
+  % need to remember the state: we can turn it back on unconditionally.
+  \donumberparagraphsfalse%
+  \refstepcounter{parcounter}%
+  \marginpar{\thepara}%
+  \donumberparagraphstrue%
+}
+
+
+% Now, annoyingly, we have to override everything that creates a paragraph
+% but isn't really a normal paragraph.  This list of commands I've done this for
+% is not complete.
+
+\renewenvironment{figure}{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \@float{figure}}{%
+  \end@float%
+  \restorenumberparagraphs%
+}
+
+\renewenvironment{table}{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \@float{table}}{%
+  \end@float%
+  \restorenumberparagraphs%
+}
+
+\let\mypkg@@footnote\footnote
+\def\footnote#1{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@footnote{#1}%
+  \restorenumberparagraphs%
+}
+
+%% Since chapter (and friends) can be starred and can have an optional
+%% short name, wrapping it is non-trivial, as far as I can figure out.
+
+% This of course doesn't work because you need ``\mypkg@@chapter'' to eat
+% the arguments that follow *before* restorenumberparagraphs runs.
+% \expandafter seems promising but I couldn't figure out how.
+%
+%\def\chapter{%
+%  \savenumberparagraphs%
+%  \nonumberparagraphs%
+%  \mypkg@@chapter%
+%  \expandafter%   ??
+%  \restorenumberparagraphs%
+%}
+
+
+%%% chapter
+
+\let\mypkg@@chapter\chapter
+
+\def\chapter{\secdef\@mychapternostar\@mychapterstar}
+
+\def\@mychapterstar#1{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@chapter*{#1}%
+  \restorenumberparagraphs%
+}
+
+\def\@mychapternostar[#1]#2{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@chapter[#1]{#2}%
+  \restorenumberparagraphs%
+}
+
+%%% section
+
+\let\mypkg@@section\section
+
+\def\section{\secdef\@mysectionnostar\@mysectionstar}
+
+\def\@mysectionstar#1{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@section*{#1}%
+  \restorenumberparagraphs%
+}
+
+\def\@mysectionnostar[#1]#2{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@section[#1]{#2}%
+  \restorenumberparagraphs%
+}
+
+%%% subsection
+
+\let\mypkg@@subsection\subsection
+
+\def\subsection{\secdef\@mysubsectionnostar\@mysubsectionstar}
+
+\def\@mysubsectionstar#1{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@subsection*{#1}%
+  \restorenumberparagraphs%
+}
+
+\def\@mysubsectionnostar[#1]#2{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@subsection[#1]{#2}%
+  \restorenumberparagraphs%
+}
+
+%%% subsubsection
+
+\let\mypkg@@subsubsection\subsubsection
+
+\def\subsubsection{\secdef\@mysubsubsectionnostar\@mysubsubsectionstar}
+
+\def\@mysubsubsectionstar#1{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@subsubsection*{#1}%
+  \restorenumberparagraphs%
+}
+
+\def\@mysubsubsectionnostar[#1]#2{%
+  \savenumberparagraphs%
+  \nonumberparagraphs%
+  \mypkg@@subsubsection[#1]{#2}%
+  \restorenumberparagraphs%
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

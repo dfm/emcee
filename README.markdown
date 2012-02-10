@@ -22,7 +22,7 @@ at these docs after you've cloned the repository by running
 
 in the `docs` directory and navigating to [localhost](http://localhost:5000).
 
-### Atribution
+### Attribution
 
 Please cite Foreman-Mackey, Hogg, et al. (2012) if you find this
 code useful in your research. We also provide support in exchange for
