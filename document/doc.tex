@@ -36,10 +36,6 @@
         keywordstyle=\bfseries\color[rgb]{0.133,0.545,0.133},
         commentstyle=\color[rgb]{0.133,0.545,0.133},
         stringstyle=\color[rgb]{0.627,0.126,0.941},
-        % numbers=left,
-        % numberstyle=\tiny,
-        % stepnumber=5,
-        % numbersep=5pt,
     }
 
 \newcommand{\project}[1]{{\sffamily #1}}
@@ -196,8 +192,11 @@ Probabilistic data analysis --- including Bayesian inference --- has
 transformed scientific research in the past decade. Many of the most
 significant gains have been due to numerical methods for approximate
 inference; especially Markov chain Monte Carlo (MCMC). Many
-problems in cosmology and astrophysics benefit from these advances because
-the observations tend to have low signal-to-noise and be incomplete.
+problems in cosmology and astrophysics have directly benefited from these
+advances because the observations tend to have low signal-to-noise and be
+incomplete. In fact, while the discussions in this \paper\ have a more
+general applicability, we will mostly present examples from astrophysics
+and cosmology, the fields with which we have the most experience.
 
 Probabilistic data analysis procedures involve examining and operating on
 either the posterior probability density function (PDF) of the parameters
@@ -309,10 +308,8 @@ A complete discussion of MCMC methods is beyond the scope of this \paper.
 Instead, the interested reader is directed to a classic reference like
 \citet{MacKay:2003} and we will summarize some key concepts below.
 
-The general goal of MCMC algorithms is to draw samples
-$\{ \model_i \}$
-%, $i=1, \ldots, M$
-from
+The general goal of MCMC algorithms is to draw $M$ samples
+$\{ \model_i \}$ from
 the posterior probability density
 \begin{equation}
     \pr{\model, \nuisance | \data} = \frac{1}{Z}\,\pr{\model, \nuisance}
@@ -332,13 +329,6 @@ compute.
 Once the samples
 produced by MCMC are available, the marginalized constraints on $\model$
 can be approximated by
-\begin{equation}
-    \pr{\model | \data} = \int \pr{\model | \data, \nuisance} \,
-        \pr{\nuisance} \, \dd  \nuisance
-    \,\approx\, \frac{1}{T}\sum_{i=1}^T \pr{\model | \data, \nuisance_i}
-        \, \pr{\nuisance_i} \quad,
-\end{equation}
-(HOGG: this is hideous and wrong. What would be clearer?)
 the histogram of the samples projected into the parameter subspace spanned
 by $\model$. In particular, this implies that the
 expectation value of a function of the model parameters $f(\model)$ is
@@ -516,7 +506,8 @@ extremely powerful.
 \begin{algorithmic}[1]
 \FOR{$i \in \{0, 1\}$}
     \FOR{$k = 1, \ldots, K/2$} \label{line:parallelloop}
-        \STATE {\footnotesize\it // This loop can now be done in parallel for all $k$}
+        \STATE {\footnotesize\it // This loop can now be done in parallel %
+            for all $k$}
         \STATE Draw a walker $\vector{X_j}$ at random from the complementary %
             ensemble $\colorens{\sim i} (t)$
         \STATE $\vector{X_k} \gets \colorens{i}_k$
@@ -545,8 +536,9 @@ Judging the convergence and performance of an algorithm is a
 non-trival problem and there is a huge associated literature
 \citep[see, for example,][for a review]{Cowles:1996}. In astrophysics,
 spectral methods have been used extensively \citep[for
-  example][]{Dunkley:2005}. Below, we describe one---an
-affine-invariant measure of performance---the autocorrelation time.
+example][]{Dunkley:2005}. Below, we advocate for one such method: the
+autocorrelation time. The autocorrelation time is especially applicable
+because it is an affine invariant measure of the performance.
 
 First,
 however, we should take note of another extremely important measurement:
@@ -570,41 +562,36 @@ is the optimal value.
 
 \paragraph{Autocorrelation time}
 
-A standard method of quantifying the performance of an MCMC sampler is to
-estimate the autocorrelation time of the sampler on several densities.
+The autocovariance function of a time series $\vector{X} (t)$ is
+\begin{equation}
+    C_f (T) = \lim_{t \to \infty} \mathrm{cov}
+        \left [ f\left (\vector{X}(t+T) \right ),
+            f\left (\vector{X}(t) \right ) \right ].
+\end{equation}
+This measures the covariances between samples at a time lag $T$. The
+value of $T$ where $C_f(T) \to 0$ measures the number of samples that
+must be taken in order to ensure independence. In particular, the
+relevant measure of sampler efficiency is the integrated autocorrelation
+time
+\begin{equation}
+    \tau_f = \sum_{T=-\infty} ^{\infty} \frac{C_f(T)}{C_f(0)}
+        = 1+2\sum_{T=1} ^{\infty} \frac{C_f(T)}{C_f(0)}.
+\end{equation}
+In practice, one can estimate $C_f (T)$ for a Markov chain of $M$ samples as
+\begin{equation}
+    C_f (T) \approx \frac{1}{M-T} \sum_{m=1}^{M-T}
+        \left [ f(X(T+m)) - E[f] \right ] \,
+        \left [ f(X(m)) - E[f] \right ].
+\end{equation}
 
-The main goal of running a Markov chain is to measure the expectation value
-(and variance) of a function $f$ integrated over the sample space:
-\begin{equation}
-  \expect{f(\mathbf{x}} = \int f(\mathbf{x}) \, p (\mathbf{x}) \,
-            \dd \mathbf{x}
-\end{equation}
-which can be approximated as
-\begin{equation}
-    \eqlabel{schainestim}
-    \expect{ f(\mathbf{x}) } \approx \frac{1}{T} \sum_{t=1}^{T}
-            f(\mathbf{X}(t))
-\end{equation}
-where $T$ is the length of the chain.  The generalization of \eq{schainestim}
-to the case of the ensemble sampler is
-\begin{equation}
-    \eqlabel{echainestim}
-    \expect{ f(\mathbf{x}) } \approx \frac{1}{T} \sum_{t=1}^{T}
-    \left [ \frac{1}{K} \sum_{k = 1}^{K} f(\mathbf{X}_k(t)) \right ]
-\end{equation}
-where $K$ is the number of walkers.
-
-The autocorrelation function of the chain
-is
-\begin{equation}
-    C (t) = \frac{1}{K^2} \lim_{t^\prime \to \infty} \mathrm{cov}
-            \left [ \sum_{k = 1}^{K} f(\mathbf{X}_k (t+t^\prime)),
-            \sum_{k = 1}^{K} f(\mathbf{X}_k (t^\prime)) \right ]
-\end{equation}
-and the integrated autocorrelation time is given by
-\begin{equation}
-    \tau = \sum_{t= -\infty} ^{\infty} \frac{C(t)}{C(0)} \quad.
-\end{equation}
+We advocate for the autocorrelation time as a measure of sampler
+performance for two main reasons. First, it measures a quantity
+that \emph{we are actually interested in} when sampling in practice.
+The longer the autocorrelation time, the more samples that we must
+generate to produce a representative sampling of the target
+density. Second, the autocorrelation time is affine invariant. Therefore,
+it is reasonable to measure the performance and diagnose the convergence
+of the sampler on densities with different levels of anisotropy.
 
 \this\ can optionally calculate the autocorrelation time using the Python
 module \project{acor}\footnote{\url{http://github.com/dfm/acor}} to estimate
@@ -696,19 +683,31 @@ the autocorrelation time in principle.  In practice, however, because
 the ESJD is a simple expectation value it can be more robustly
 evaluated on short chains.
 
-With \this\  you want (in general) to \emph{run with
-  large numbers of walkers}, like hundreds.  In principle, there is no
+With \this\  you want (in general) to \emph{run with a
+  large number of walkers}, like hundreds.  In principle, there is no
 reason not to go large when it comes to walker number, until you hit
 performance issues.  Although each step takes twice as much compute
 time if you double the number of walkers, it also returns to you twice
 as many independent samples per autocorrelation time.  So go large.
-In particular, we have found that increasing the number of walkers
-improves the acceptance fraction of any chain where it falls too low.
+In particular, we have found that---in almost all cases of low
+acceptance fraction---increasing the number of walkers improves the
+acceptance fraction.  The one disadvantage of having large numbers of
+walkers is that the burn-in phase (from initial conditions to
+reasonable sampling) can be slow; burn-in time is a few
+autocorrelation times; the total run time for burn-in scales with the
+number of walkers.  These considerations, all taken together, suggest
+using the smallest number of walkers for which the acceptance fraction
+during burn-in is good, or the number of samples you want out at the
+end (see below), whichever is \emph{greater}.  A more ambitious
+project would be to increase the number of walkers after burn-in; this
+requires thought beyond the scope of this document; it can be
+accomplished by burning in a set of small ensembles and then merging
+them into a big ensemble for the final run.
 
 One mistake many users of MCMC methods make is to take \emph{too many}
 samples!  If all you want your MCMC to do is produce one- or
 two-dimensional error bars on two or three parameters, then you only
-need dozens of independent samples.  With the ensemble sampling, you
+need dozens of independent samples.  With ensemble sampling, you
 get this from a \emph{single snapshot} or single timestep, provided
 that you are using dozens of walkers (and we would recommend that you
 use hundreds in most applications).  The key point is that \emph{you
@@ -739,7 +738,7 @@ acceptance ratio; in general when your acceptance ratio gets low your
 autocorrelation time is very, very long.
 
 One significant limitation to the stretch move and moves like it is
-that they implicitly assumes that the parameters can be assembled into
+that they implicitly assume that the parameters can be assembled into
 a vector-like object on which linear operations can be performed.
 This is not (trivially) true for parameters that have non-trivial
 constraints, like parameters that must be integer-valued or
