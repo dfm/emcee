@@ -10,7 +10,8 @@ docs:
 	pycco -d ${OUT_DIR} emcee/*.py
 
 examples:
-	$(foreach e, ${EXAMPLES}, python docs/gen_example.py examples/${e}.py docs/${e}/index.html;)
+	$(foreach e, ${EXAMPLES}, \
+		python docs/gen_example.py examples/${e}.py docs/${e}/index.html;)
 
 .PHONY: docs examples
 
