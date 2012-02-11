@@ -865,7 +865,7 @@ in the abstract base \code{Sampler} object (defined in
 \code{emcee/sampler.py}). Each \code{EnsembleSampler} instance has two
 \code{Ensemble} members that provide the proposal steps following
 \algo{parallel}. The detailed structure of the code is shown in
-\app{api} or online at \url{http://danfm.ca/emcee/}.
+\app{api} or online at \url{http://danfm.ca/emcee}.
 
 \section{Examples}
 
@@ -885,7 +885,7 @@ the performance of the code on a high-dimensional Gaussian density
 \end{equation}
 We will incrementally work through this example here and the source code
 is available online.%
-\footnote{\url{https://github.com/dfm/emcee/blob/master/quickstart.py}}
+\footnote{\url{http://danfm.ca/emcee/quickstart.html}}
 
 First, import the necessary packages and define the function that calculates
 the logarithm of \eq{mgauss}.
@@ -949,7 +949,10 @@ advanced techniques. First, we will use an object oriented approach for
 defining the likelihood function. This seems slightly artificial in this
 context but in more complicated problems where the likelihood calculation
 requires significant amounts of structured data, this approach can be
-quite beneficial. First, define the density.
+quite beneficial. Again, the full source code is available online.%
+\footnote{\url{http://danfm.ca/emcee/rosenbrock.html}}
+
+First, define the density.
 \begin{lstlisting}
 import numpy as np
 import emcee
