@@ -12,7 +12,6 @@ document/*.log
 *.hdf5
 *.png
 samples
-rosenbrock.*
 *.out
 dist
 docs/.gitignore
