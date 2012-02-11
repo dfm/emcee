@@ -83,8 +83,7 @@ class EnsembleSampler(Sampler):
         self._chain  = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
 
-    def sample(self, p0, lnprob0=None, rstate0=None, storechain=True,
-            resample=1, iterations=1):
+    def sample(self, p0, lnprob0=None, rstate0=None, iterations=1, **kwargs):
         """
         Advance the chain iterations steps as an iterator.
 
@@ -112,6 +111,9 @@ class EnsembleSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+        storechain = kwargs.pop("storechain", True)
+        thin = kwargs.pop("thin", 1)
+
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
         # we'll just interpret any garbage as letting the generator stay in
@@ -140,7 +142,7 @@ class EnsembleSampler(Sampler):
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
-            N = int(iterations/resample)
+            N = int(iterations/thin)
             self._chain = np.concatenate((self._chain,
                     np.zeros((self.k, N, self.dim))), axis=1)
             self._lnprob = np.concatenate((self._lnprob,
@@ -167,8 +169,8 @@ class EnsembleSampler(Sampler):
 
                     self.naccepted[fullaccept] += 1
 
-            if storechain and i%resample == 0:
-                ind = i0 + int(i/resample)
+            if storechain and i%thin== 0:
+                ind = i0 + int(i/thin)
                 self._chain[:,ind,:] = p
                 self._lnprob[:,ind]  = lnprob
 
@@ -215,6 +217,17 @@ class _function_wrapper(object):
 
 # === Ensemble ===
 class Ensemble(object):
+    """
+    A sub-ensemble object that actually does the heavy lifting of the
+    likelihood calculations and proposals of a new position.
+
+    #### Arguments
+
+    * `sampler` (Sampler): The sampler object that this sub-ensemble should
+      be connected to.
+
+    """
+
     def __init__(self, sampler):
         self.sampler = sampler
         # Do a little bit of _magic_ to make the likelihood call with
@@ -222,7 +235,21 @@ class Ensemble(object):
         self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
 
     def get_lnprob(self, pos=None):
-        """Calculate the vector of log-probability for the walkers."""
+        """
+        Calculate the vector of log-probability for the walkers.
+
+        #### Keyword Arguments
+
+        * `pos` (numpy.ndarray): The position vector in parameter space where
+          the probability should be calculated. This defaults to the current
+          position unless a different one is provided.
+
+        #### Returns
+
+        * `lnprob` (numpy.ndarray): A vector of log-probabilities with one
+          entry for each walker in this sub-ensemble.
+
+        """
         if pos is None:
             p = self.pos
         else:
@@ -246,7 +273,7 @@ class Ensemble(object):
         """
         Propose a new position for another ensemble given the current positions
 
-        #### Parameters
+        #### Arguments
 
         * `ensemble` (Ensemble): The ensemble to be advanced.
 

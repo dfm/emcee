@@ -1,0 +1,43 @@
+{{=<% %>=}}
+\class{<%& name %>}{<%& init_args %>}{<%& desc %>}
+
+<%# has_args %>
+\begin{args}
+    <%# args %>
+    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
+    <%/ args %>
+\end{args}
+
+<%/ has_args %>
+<%# has_kwargs %>
+\begin{kwargs}
+    <%# kwargs %>
+    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
+    <%/ kwargs %>
+\end{kwargs}
+
+<%/ has_kwargs %>
+<%# has_errors %>
+\begin{errors}
+    <%# errors %>
+    \exception{<%& name %>}{<%& desc %>}
+    <%/ errors %>
+\end{errors}
+
+<%/ has_errors %>
+<%# has_properties %>
+\begin{properties}
+    <%# properties %>
+    \property{<%& name %>}{<%& desc %>}
+    <%/ properties %>
+\end{properties}
+
+<%/ has_properties %>
+<%# has_methods %>
+\begin{methods}
+    <%# methods %>
+    <%& render %>
+    <%/ methods %>
+\end{methods}
+
+<%/ has_methods %>

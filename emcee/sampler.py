@@ -47,7 +47,7 @@ class Sampler(object):
     @property
     def random_state(self):
         """
-        The state of the internal random number generator. In practice, it’s
+        The state of the internal random number generator. In practice, it's
         the result of calling `get_state()` on a
         `numpy.random.mtrand.RandomState` object. You can try to set this
         property but be warned that if you do this and it fails, it will do
@@ -81,7 +81,7 @@ class Sampler(object):
     def chain(self):
         """
         A pointer to the Markov chain itself. The shape of this array is
-        `(k, dim, iterations/resample)`.
+        `(k, dim, iterations)`.
 
         """
         return self._chain
@@ -99,7 +99,7 @@ class Sampler(object):
     def lnprobability(self):
         """
         A pointer to the matrix of the value of `lnprobfn` produced at each
-        step for each walker. The shape is `(k, iterations/resample)`.
+        step for each walker. The shape is `(k, iterations)`.
 
         """
         return self._lnprob

@@ -53,17 +53,17 @@
 % shortcuts for API layout -- this is some brittle stuff!
 \newlength{\argmarg}
 \setlength{\argmarg}{0.5in}
-\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\code}[1]{{\sffamily #1}}
 \newcommand{\class}[3]{\def\curclass{#1}
-                \noindent{\scriptsize\this}\texttt{.}\code{#1{\small (#2)}}
+                \noindent{\small\this}\texttt{.}\code{{\large #1}{\small (#2)}}
                 \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
                 {\item #3}\end{list}}
-\newcommand{\param}[3]{{\item {\code{#1}} {\footnotesize (\code{#2})}: #3}}
+\newcommand{\param}[3]{{\item {\code{#1}} {\scriptsize (\code{#2})}: #3}}
 \newcommand{\exception}[2]{{\item \code{#1}: #2}}
-\newcommand{\property}[3]{\param{#1}{#2}{#3}}
+\newcommand{\property}[2]{{\item {\code{#1}}: #2}}
 \newcommand{\method}[4]{{\item
     \noindent{\scriptsize\this\texttt{.}\code{\curclass}}%
-    \texttt{.}{\bf \code{#1}}{\small\code{(#2)}}
+    \texttt{.}{\bf \code{#1}}{\scriptsize\code{(#2)}}
     \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
     {\item #3}\end{list} \indent#4}}
 \newenvironment{arglist}[1]{\noindent\hspace{0.5\argmarg}{\bf {#1}}
@@ -193,8 +193,8 @@ transformed scientific research in the past decade. Many of the most
 significant gains have been due to numerical methods for approximate
 inference; especially Markov chain Monte Carlo (MCMC). Many
 problems in cosmology and astrophysics have directly benefited from these
-advances because the observations tend to have low signal-to-noise and be
-incomplete. In fact, while the discussions in this \paper\ have a more
+advances because the observations tend to have low signal-to-noise and
+missing data. In fact, while the discussions in this \paper\ have a more
 general applicability, we will mostly present examples from astrophysics
 and cosmology, the fields with which we have the most experience.
 
@@ -205,7 +205,7 @@ sufficient to find the maximum of this function but it is often of
 interest to (at least approximately) measure this distribution in more detail.
 In particular, if we wish to propagate the effects of measurement
 uncertainties through the analysis to the conclusions, we must sample the
-PDF on sufficiently small scales. MCMC methods are designed to 
+PDF on sufficiently small scales. MCMC methods are designed to
 sample and approximate the PDF efficiently even in high dimensional
 parameter spaces. This has proved useful in too many research
 applications to list here but the results from the Wilkinson Microwave
@@ -220,17 +220,18 @@ Marginalization is the process of integrating over all possible values of
 a parameter and hence propagating the effects of uncertainty about
 its value to the final result.  Often we wish to marginalize over all
 nuisance parameters in a model.  The exact result of marginalization
-is the marginalized likelihood function \pr{\data|\model}
-of the set of observations \data\ given the physical model parameters
-\model
+is the marginalized probability function \pr{\model | \data}
+of the set model parameters
+\model\ given the observations \data
 \begin{equation}
     \eqlabel{marginalization}
-    \pr{\data | \model} = \int
-        \pr{\data | \model, \nuisance} \,
-        \pr{\nuisance} \, \dd  \nuisance \quad,
+    \pr{\model | \data} = \int
+        \pr{ \model, \nuisance | \data} \,
+        \dd  \nuisance \quad,
 \end{equation}
 where \nuisance\ is the set of of nuisance parameters. In general, \data\ is
-a list of vectors in the observed space and \model\ and \nuisance\ are lists
+a list of objects (for example, scalars, vectors, images or strings) in some
+observed space and \model\ and \nuisance\ are lists
 of parameters in model space. It is often useful, however, to view
 $(\model, \nuisance)$ as a vector in a Euclidean parameter space.
 In some specific
@@ -280,7 +281,8 @@ much worse in higher dimensions.
 \Eq{anisotropic} can, however, be transformed into the much easier problem of
 sampling an isotropic density by an \emph{affine transformation} of the form
 \begin{equation}
-    y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, , \hspace{1cm} y_2 = x_1 + x_2 \quad .
+    y_1 = \frac{x_1-x_2}{\sqrt{\epsilon}} \, ,
+        \hspace{1cm} y_2 = x_1 + x_2 \quad .
 \end{equation}
 This motivates affine invariance: an algorithm that is \emph{affine invariant}
 performs equally well under all linear transformations; it will therefore be
@@ -299,8 +301,9 @@ Bovy:2011, Dorman:2012}.
 In what follows, we summarize the Goodman--Weare
 algorithm and the implementation
 decisions made in \this. We also describe the small changes
-that must be made to the algorithm to parallelize it. Finally, in \app{api},
-we outline the installation, usage and troubleshooting of the package.
+that must be made to the algorithm to parallelize it. Finally, in the
+appendix, we outline the installation, usage and troubleshooting of
+the package.
 
 \section{The Algorithm}\sectlabel{algo}
 
@@ -319,8 +322,8 @@ where the prior distribution $\pr{\model, \nuisance}$ and the likelihood
 function $\pr{\data|\model,\nuisance}$ can be relatively easily (but not
 necessarily quickly) computed for any particular value of
 $(\model_i, \nuisance_i)$.  The normalization $Z=\pr{\data}$ is
-independent of $\model$ and $\nuisance$ once we have chosen the form of the generative model.
-This means that it is possible
+independent of $\model$ and $\nuisance$ once we have chosen the form of the
+generative model. This means that it is possible
 to sample from \pr{\model, \nuisance | \data} without computing $Z$ ---
 unless one would like to compare the validity of two different generative
 models. This is important because $Z$ is generally very expensive to
@@ -334,8 +337,6 @@ by $\model$. In particular, this implies that the
 expectation value of a function of the model parameters $f(\model)$ is
 \begin{equation}
     \expect{f(\model)} = \int
-            %\left [ \int \pr{\model, \nuisance | \data}
-            %\, \dd \nuisance \right ]
     \pr{\model|\data}
     \, f(\model) \, \dd\model
     \,\approx\, \frac{1}{T} \sum_{i=1} ^T f(\model_i) \quad.
@@ -409,7 +410,8 @@ simultaneously evolving an ensemble of $K$ \emph{walkers}
 $\ensemble = \{ \vector{X_k} \}$ where the proposal
 distribution for one walker $k$ is based on the current positions of the
 $K-1$ walkers in the \emph{complementary ensemble}
-$\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$.
+$\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$. Here, ``position''
+refers to a vector in the $N$-dimensional, real-valued parameter space.
 
 To update the position of a walker at position $\vector{X_k}$,
 a walker $X_j$ is drawn randomly from the remaining walkers $\ensemble_{[k]}$ and
@@ -599,23 +601,6 @@ the autocorrelation time. This module is a direct port of the original
 algorithm \citepalias[described by][]{Goodman:2010} and implemented by those
 authors in
 C++.\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor}}
-
-\paragraph{Multivariate Gaussian distribution}
-
-The simplest test of an MCMC sampler is its sampling performance on a highly
-covariant multivariate Gaussian density. For the tests in the paper, we
-randomly generated a 50 dimensional positive definite covariance tensor and
-initial conditions for each walker. Then, each sampler was tested with the
-same initial conditions for its performance on the density
-\begin{equation}
-    \pi (\mathbf{x}) \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \,
-                                \Sigma^{-1} \, \mathbf{x} \right )
-\end{equation}
-for the same covariance tensor $\Sigma$ in each trial.
-
-DFM: actually do some tests here...
-
-\paragraph{Rosenbrock density}
 
 \section{Discussion \& Tips}
 
@@ -837,9 +822,7 @@ Cambridge University Press, 2007
 \clearpage
 \appendix
 
-\section{Usage}\sectlabel{api}
-
-\paragraph{Installation}
+\section{Installation}
 
 The easiest way to install \this\ is using
 \pip\footnote{\url{http://pypi.python.org/pypi/pip/}}. Running the command
@@ -849,10 +832,10 @@ The easiest way to install \this\ is using
 at the command line of a UNIX-based system will install the package and its
 \Python\ dependencies. If you would like to install for all users, you might
 need to run the above command with superuser permissions. \this\ depends on
-\Python\ ($>2.7$) and \numpy\footnote{\url{http://numpy.scipy.org}} ($>1.6$)
-and the associated \texttt{dev} headers. On some systems, you might need to
-install these packages separately. On most systems where \Python\ has already
-been installed, this won't be necessary but if it is, you can install
+\Python\ ($\ge2.7$) and \numpy\footnote{\url{http://numpy.scipy.org}} ($\ge1.6$)
+and the associated \code{dev} headers. On some systems, you might need to
+install the \code{dev} packages separately. On most systems where \Python\ has
+already been installed, this won't be necessary but if it is, you can install
 dependencies (on \Ubuntu, for example) with the command:
 \begin{lstlisting}
 % apt-get python python-dev numpy numpy-dev
@@ -866,7 +849,7 @@ An alternative installation method is to download the source code from
 in the unzipped directory. Make sure that you have \numpy\ installed in this
 case as well.
 
-\paragraph{Issues \& Contributions}
+\section{Issues \& Contributions}
 
 The development of \this\ is being coordinated on \github\ at
 \url{http://github.com/dfm/emcee} and contributions are welcome. If you
@@ -874,10 +857,28 @@ encounter any problems with the code, please report them at
 \url{http://github.com/dfm/emcee/issues} and consider
 contributing a patch.
 
-\paragraph{Basic usage}
+\section{Code Structure}
 
-A very simple sample problem and a common unit test for sampling code is
-the performance of the code on a high dimensional Gaussian density
+The main functionality of this sampler is contained in the
+\code{EnsembleSampler} object (defined in \code{emcee/ensemble.py}) and
+in the abstract base \code{Sampler} object (defined in
+\code{emcee/sampler.py}). Each \code{EnsembleSampler} instance has two
+\code{Ensemble} members that provide the proposal steps following
+\algo{parallel}. The detailed structure of the code is shown in
+\app{api} or online at \url{http://danfm.ca/emcee/}.
+
+\section{Examples}
+
+The best way to get started with the package is to try out some of this
+sample code. Most problems with map nicely to one of these examples and
+if not, there are more details given in \app{api}. We provide to examples
+below: (1) the classic multi-variate Gaussian density and (2) a very
+anisotropic density in 2 dimensions.
+
+\subsection{The multi-variate Gaussian}
+
+A very simple sample problem and a common unit test for samplers is
+the performance of the code on a high-dimensional Gaussian density
 \begin{equation}\eqlabel{mgauss}
     \pr{\mathbf{x}} \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \,
                                 \Sigma^{-1} \, \mathbf{x} \right ).
@@ -934,41 +935,72 @@ sampler.reset()
 sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{lstlisting}
 
-\section{API}
+\clearpage
 
-\paragraph{\code{\thisplain.ensemble}}
+\section{API}\sectlabel{api}
 
-\class{EnsembleSampler}{*args, **kwargs}
-    {Ensemble sampling following Goodman \& Weare (2010) with optional
-    parallelization}
+\fontsize{9pt}{1}\selectfont
+
+\class{Sampler}{dim, lnprobfn, args=[]}{An abstract sampler object that implements various helper functions}
 
 \begin{args}
-    \param{k}{int}{The number of Goodman \& Weare ``walkers''.}
     \param{dim}{int}{Number of dimensions in the parameter space.}
-    \param{lnpostfn}{callable}{%
-        A function that takes a vector in the parameter space as input and
-        returns the natural logarithm of the posterior probability for that
-        position.
-    }
+    \param{lnpostfn}{callable}{A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.}
 \end{args}
 
 \begin{kwargs}
-    \param{a}{float}{The proposal scale parameter from \eq{goodmanprop}.
-                     (default: \code{2.0})}
-    \param{args}{list}{%
-        Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn}
-        will be called with the sequence \code{lnpostfn(p, *args)}.
-    }
+    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence `lnpostfn(p,}
+\end{kwargs}
+
+\begin{properties}
+    \property{acceptance\_fraction}{An array (length: \code{k}) of the fraction of steps accepted for each
+walker.}
+    \property{acor}{The autocorrelation time of each parameter in the chain (length:
+\code{dim}) as estimated by the \code{acor} module.}
+    \property{chain}{A pointer to the Markov chain itself. The shape of this array is
+\code{(k, dim, iterations)}.}
+    \property{flatchain}{A shortcut for accessing chain flattened along the zeroth (walker)
+axis.}
+    \property{lnprobability}{A pointer to the matrix of the value of \code{lnprobfn} produced at each
+step for each walker. The shape is \code{(k, iterations)}.}
+    \property{random\_state}{The state of the internal random number generator. In practice, it's
+the result of calling \code{get\_state()} on a
+\code{numpy.random.mtrand.RandomState} object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.}
+\end{properties}
+
+\begin{methods}
+    \method{clear\_chain}{}{An alias for \code{reset} kept for backwards compatibility.}{}
+
+    \method{get\_lnprob}{p}{Return the log-probability at the given position.}{}
+
+    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the bookkeeping parameters.}{}
+
+    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None}{Iterate sample for \code{N} iterations and return the result. The arguments
+are passed directly to \code{sample} so see the parameter details given in
+\code{sample}.}{}
+
+\end{methods}
+
+
+\class{EnsembleSampler}{k, *args, **kwargs}{A generalized Ensemble sampler that uses 2 ensembles for parallelization.
+
+This is a subclass of the \code{Sampler} object. See [[sampler.py\#sampler]]
+for more details about the inherited properties.}
+
+\begin{args}
+    \param{k}{int}{The number of Goodman \& Weare "walkers".}
+    \param{dim}{int}{Number of dimensions in the parameter space.}
+    \param{lnpostfn}{callable}{A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.}
+\end{args}
+
+\begin{kwargs}
+    \param{a}{float}{The proposal scale parameter. (default: \code{2.0})}
+    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence `lnpostfn(p,}
     \param{postargs}{list}{Alias of \code{args} for backwards compatibility.}
-    \param{threads}{int}{The number of threads to use for parallelization.
-        If \code{threads == 1}, then the \code{multiprocessing} is not used
-        but if \code{threads > 1}, then a \code{Pool} object
-        is created and calls to \code{lnpostfn} are run in parallel following
-        \algo{parallel}. (default: \code{1})}
-    \param{pool}{multiprocessing.Pool}{An alternative method of using the
-        parallelized algorithm. If \code{pool is not None}, the value of
-        \code{threads} is ignored and the provided \code{Pool} is used for
-        all parallelization. (default: \code{None})}
+    \param{threads}{int}{The number of threads to use for parallelization. If \code{threads == 1}, then the \code{multiprocessing} module is not used but if \code{threads > 1}, then a \code{Pool} object is created and calls to \code{lnpostfn} are run in parallel. (default: 1)}
+    \param{pool}{multiprocessing.Pool}{An alternative method of using the parallelized algorithm. If \code{pool is not None}, the value of \code{threads} is ignored and the provided \code{Pool} is used for all parallelization. (default: \code{None})}
 \end{kwargs}
 
 \begin{errors}
@@ -976,82 +1008,86 @@ sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{errors}
 
 \begin{properties}
-    \property{chain}{numpy.ndarray}{A pointer to the Markov chain itself. The
-        shape of this array is \code{(k, dim, iterations/resample)}}
-    \property{flatchain}{numpy.ndarray}{A shortcut for accessing \code{chain}
-        flattened along the zeroth (walker) axis.}
-    \property{lnprobability}{numpy.ndarray}{A pointer to the matrix of the
-        value of \code{lnprobfn} produced at each step for each walker. The
-        shape is \code{(k, iterations/resample)}.}
-    \property{iterations}{int}{The number of steps that have been run in the
-        chain.}
-    \property{acceptance\_fraction}{numpy.ndarray}{An array (length: \code{k})
-        of the fraction of steps accepted for each walker.}
-    \property{acor}{numpy.ndarray}{The autocorrelation time of each parameter
-        in the chain (length: \code{dim}) as estimated by the \code{acor}
-        module.}
-    \property{random\_state}{tuple}{The state of the internal random number
-        generator. In practice, it's the result of calling \code{get\_state()}
-        on a \code{numpy.random.mtrand.RandomState} object. You can try to
-        set this property but be warned that if you do this and it fails, it
-        will do so silently.}
+    \property{acceptance\_fraction}{An array (length: \code{k}) of the fraction of steps accepted for each
+walker.}
+    \property{acor}{The autocorrelation time of each parameter in the chain (length:
+\code{dim}) as estimated by the \code{acor} module.}
+    \property{chain}{A pointer to the Markov chain itself. The shape of this array is
+\code{(k, dim, iterations)}.}
+    \property{flatchain}{A shortcut for accessing chain flattened along the zeroth (walker)
+axis.}
+    \property{lnprobability}{A pointer to the matrix of the value of \code{lnprobfn} produced at each
+step for each walker. The shape is \code{(k, iterations)}.}
+    \property{random\_state}{The state of the internal random number generator. In practice, it's
+the result of calling \code{get\_state()} on a
+\code{numpy.random.mtrand.RandomState} object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.}
 \end{properties}
 
 \begin{methods}
-    \method{sample}{pos0, lnprob0=None, rstate0=None, iterations=1}
-        {Advances the chain \code{iterations} steps as an iterator}{%
-            \begin{args}
-                \param{pos0}{numpy.ndarray}{
-                    A list of the initial positions of the walkers in the
-                    parameter space. The shape is \code{(k, dim)}.}
-            \end{args}
-            \begin{kwargs}
-                \param{lnprob0}{numpy.ndarray}{
-                    The list of log posterior probabilities for the walkers
-                    at positions given by the \code{p0}. If \code{lnprob is
-                    None}, the initial values are calculated. The shape is
-                    \code{(k, dim)}.}
-                \param{rstate0}{tuple}{The state of the random number
-                    generator. \\
-                    See \code{EnsembleSampler.random\_state} for details.}
-                \param{iterations}{int}{The number of steps to run.
-                    (default: \code{1})}
-            \end{kwargs}
-            \begin{yields}
-                \param{pos}{numpy.ndarray}{
-                    A list of the current positions of the walkers in the
-                    parameter space. The shape is \code{(k, dim)}.}
-                \param{lnprob}{numpy.ndarray}{
-                    The list of log posterior probabilities for the walkers
-                    at positions given by the \code{pos}. The shape is
-                    \code{(k, dim)}.}
-                \param{rstate}{tuple}{The state of the random number
-                    generator.}
-            \end{yields}
-        }
-    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None, **kwargs}
-        {Iterate \code{sample} for \code{N} iterations and return the result.
-        The parameters are passed directly to \code{sample} so see above for
-        details.}{%
-            \begin{returns}
-                \param{pos}{numpy.ndarray}{
-                    A list of the final positions of the walkers in the
-                    parameter space. The shape is \code{(k, dim)}.}
-                \param{lnprob}{numpy.ndarray}{
-                    The list of log posterior probabilities for the walkers
-                    at positions given by the \code{pos}. The shape is
-                    \code{(k, dim)}.}
-                \param{rstate}{tuple}{The final state of the random number
-                    generator.}
-            \end{returns}
-        }
-    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the
-        bookkeeping parameters.}{}
-    \method{clear\_chain}{}{An alias of \code{reset} kept for backwards
-        compatibility.}{}
+    \method{clear\_chain}{}{An alias for \code{reset} kept for backwards compatibility.}{}
+
+    \method{get\_lnprob}{p}{Return the log-probability at the given position.}{}
+
+    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the bookkeeping parameters.}{}
+
+    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None}{Iterate sample for \code{N} iterations and return the result. The arguments
+are passed directly to \code{sample} so see the parameter details given in
+\code{sample}.}{}
+
+    \method{sample}{p0, lnprob0=None, rstate0=None, iterations=1, **kwargs}{Advance the chain iterations steps as an iterator.}{
+\begin{args}
+    \param{pos0}{numpy.ndarray}{A list of the initial positions of the walkers in the parameter space. The shape is \code{(k, dim)}.}
+\end{args}
+
+\begin{kwargs}
+    \param{lnprob0}{numpy.ndarray}{The list of log posterior probabilities for the walkers at positions given by \code{p0}. If \code{lnprob is None}, the initial values are calculated. The shape is \code{(k, dim)}.}
+    \param{rstate0}{tuple}{The state of the random number generator. See the \code{Sampler.random\_state} property for details.}
+    \param{iterations}{int}{The number of steps to run. (default: 1)}
+\end{kwargs}
+
+\begin{yields}
+    \param{pos}{numpy.ndarray}{A list of the current positions of the walkers in the parameter space. The shape is \code{(k, dim)}.}
+    \param{lnprob}{numpy.ndarray}{The list of log posterior probabilities for the walkers at positions given by \code{pos}. The shape is \code{(k, dim)}.}
+    \param{rstate}{tuple}{The state of the random number generator.}
+\end{yields}
+}
 
 \end{methods}
 
+
+\class{Ensemble}{sampler}{A sub-ensemble object that actually does the heavy lifting of the
+likelihood calculations and proposals of a new position.}
+
+\begin{args}
+    \param{sampler}{Sampler}{The sampler object that this sub-ensemble should be connected to.}
+\end{args}
+
+\begin{methods}
+    \method{get\_lnprob}{pos=None}{Calculate the vector of log-probability for the walkers.}{
+\begin{kwargs}
+    \param{pos}{numpy.ndarray}{The position vector in parameter space where the probability should be calculated. This defaults to the current position unless a different one is provided.}
+\end{kwargs}
+
+\begin{returns}
+    \param{lnprob}{numpy.ndarray}{A vector of log-probabilities with one entry for each walker in this sub-ensemble.}
+\end{returns}
+}
+
+    \method{propose\_position}{ensemble}{Propose a new position for another ensemble given the current positions}{
+\begin{args}
+    \param{ensemble}{Ensemble}{The ensemble to be advanced.}
+\end{args}
+
+\begin{returns}
+    \param{q}{numpy.array}{The new proposed positions for the walkers in \code{ensemble}.}
+    \param{newlnprob}{numpy.ndarray}{The vector of log-probabilities at the positions given by \code{q}.}
+    \param{accept}{numpy.ndarray}{A vector of \code{bool}s indicating whether or not the proposed position for each walker should be accepted.}
+\end{returns}
+}
+
+\end{methods}
 
 \end{document}
 
