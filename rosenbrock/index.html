@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>emcee - Sampling the Rosenbrock Density</title>
+        <meta name="description" content="Kick-ass MCMC">
+        <meta name="author" content="Dan Foreman-Mackey">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <link href="../assets/prettify.css" type="text/css" rel="stylesheet" />
+        <link href="../assets/code.css" type="text/css" rel="stylesheet" />
+        <link rel="shortcut icon" href="../assets/favicon.png">
+
+        <script type="text/javascript" src="http://use.typekit.com/phg8fgl.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    </head>
+
+    <body>
+
+        <header>
+            Some sample code for <a href="http://danfm.ca/emcee">emcee</a>
+        </header>
+
+        <div id="code-container">
+            <pre class="prettyprint">
+import numpy as np
+
+import emcee
+
+# Define the Density
+class Rosenbrock(object):
+    def __init__(self):
+        self.a1 = 100.0
+        self.a2 = 20.0
+
+    def __call__(self, p):
+        return -(self.a1 * (p[1]-p[0]**2)**2 + (1-p[0])**2)/self.a2
+
+nwalkers = 100
+
+# Make an initial guess for the positions. This is a pretty bad guess!
+p0 = np.random.rand(nwalkers*2).reshape(nwalkers,2)
+
+# Instantiate the class
+rosenbrock = Rosenbrock()
+
+# The sampler object
+sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock)
+
+# Sample, outputting to a file
+f = open("rosenbrock.out", "w")
+for pos, lnprob, rstate in sampler.sample(np.array(p0), iterations=500):
+    # Write the current position to a file, one line per walker
+    f.write("\n".join(["\t".join([str(q) for q in p]) for p in pos]))
+    f.write("\n")
+f.close()
+            </pre>
+        </div>
+
+        <footer>
+            <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., GPLv2 License</em></p>
+        </footer>
+
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        <script type="text/javascript" src="../assets/prettify.js"></script>
+        <script>$(function () { prettyPrint() })</script>
+
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-22909046-1']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                })();
+        </script>
+
+    </body>
+</html>
+
