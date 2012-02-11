@@ -935,6 +935,55 @@ sampler.reset()
 sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{lstlisting}
 
+\subsection{The Rosenbrock density}
+
+Despite the fact that it is only two-dimensional, the Rosenbrock density
+\begin{equation}
+    p(\mathbf{x}) \propto \exp \left ( -\frac{100 \,
+        (x_2 - x_1^2)^2+ (1-x_1)^2}{20} \right )
+\end{equation}
+poses severe problems for all MCMC samplers because of its anisotropy.
+
+The following example shows how one might sample this density with some more
+advanced techniques. First, we will use an object oriented approach for
+defining the likelihood function. This seems slightly artificial in this
+context but in more complicated problems where the likelihood calculation
+requires significant amounts of structured data, this approach can be
+quite beneficial. First, define the density.
+\begin{lstlisting}
+import numpy as np
+import emcee
+
+class Rosenbrock(object):
+    def __init__(self):
+        self.a1 = 100.0
+        self.a2 = 20.0
+
+    def __call__(self, p):
+        return -(self.a1 * (p[1]-p[0]**2)**2 + (1-p[0])**2)/self.a2
+
+\end{lstlisting}
+Then make an initial guess for the optimal position and set up the sampler.
+\begin{lstlisting}
+nwalkers = 100
+p0 = np.random.rand(nwalkers*2).reshape(nwalkers,2)
+rosenbrock = Rosenbrock()
+sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock)
+\end{lstlisting}
+Finally, sample 500 steps and write each step to a file. We would recommend
+writing atomically to a binary format (for example, \project{HDF5}\ or
+\project{FITS}) in practice but this shows one possible
+workflow for the output.
+\begin{lstlisting}
+f = open("rosenbrock.out", "w")
+for pos, lnprob, rstate in sampler.sample(np.array(p0), iterations=500):
+    # Write the current position to a file, one line per walker
+    f.write("\n".join(["\t".join([str(q) for q in p]) for p in pos]))
+    f.write("\n")
+f.close()
+\end{lstlisting}
+
+
 \clearpage
 
 \section{API}\sectlabel{api}
