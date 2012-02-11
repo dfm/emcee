@@ -1,0 +1,53 @@
+body {
+    font-family: "raleway", "Helvetica Neue", Helvetica, sans-serif;
+    text-rendering: optimizelegibility;
+    width: 100%;
+    background-color: #ddd;
+    padding: 0;
+    margin: 0;
+}
+
+#code-container {
+    width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 10px 20px;
+    border: 1px solid #aaa;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    border-radius: 4px;
+}
+
+pre.prettyprint {
+    border-width: 0;
+}
+
+a {
+    color: inherit !important;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 1px dashed #999;
+}
+
+a:hover {
+    border-bottom: 1px solid #666;
+}
+
+header {
+    font-family: "raleway", "Helvetica Neue", Helvetica, sans-serif;
+    display: block;
+    width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 16pt;
+    padding: 20px 0;
+}
+
+footer {
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    display: block;
+    width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 8pt;
+}
+

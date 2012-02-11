@@ -880,12 +880,12 @@ anisotropic density in 2 dimensions.
 A very simple sample problem and a common unit test for samplers is
 the performance of the code on a high-dimensional Gaussian density
 \begin{equation}\eqlabel{mgauss}
-    \pr{\mathbf{x}} \propto \exp\left ( -\frac{1}{2} \mathbf{x}^T \,
-                                \Sigma^{-1} \, \mathbf{x} \right ).
+    \pr{\vector{X}} \propto \exp\left ( -\frac{1}{2} [\vector{X} - \mu]^T \,
+                                \Sigma^{-1} \, [\vector{X} - \mu] \right ).
 \end{equation}
 We will incrementally work through this example here and the source code
 is available online.%
-\footnote{\url{http://danfm.ca/emcee/quickstart.html}}
+\footnote{\url{http://danfm.ca/emcee/quickstart/}}
 
 First, import the necessary packages and define the function that calculates
 the logarithm of \eq{mgauss}.
@@ -939,8 +939,8 @@ sampler.run_mcmc(pos, 2000, rstate0=state)
 
 Despite the fact that it is only two-dimensional, the Rosenbrock density
 \begin{equation}
-    p(\mathbf{x}) \propto \exp \left ( -\frac{100 \,
-        (x_2 - x_1^2)^2+ (1-x_1)^2}{20} \right )
+    p(\vector{X}) \propto \exp \left ( -\frac{a_1 \,
+        (X_2 - X_1^2)^2+ (1-X_1)^2}{a_2} \right )
 \end{equation}
 poses severe problems for all MCMC samplers because of its anisotropy.
 
@@ -950,7 +950,7 @@ defining the likelihood function. This seems slightly artificial in this
 context but in more complicated problems where the likelihood calculation
 requires significant amounts of structured data, this approach can be
 quite beneficial. Again, the full source code is available online.%
-\footnote{\url{http://danfm.ca/emcee/rosenbrock.html}}
+\footnote{\url{http://danfm.ca/emcee/rosenbrock/}}
 
 First, define the density.
 \begin{lstlisting}
