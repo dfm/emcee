@@ -1,32 +1,46 @@
-{{=<% %>=}}
-\method{<%& name %>}{<%& init_args %>}{<%& desc %>}{<%# has_args %>
-\begin{args}
-    <%# args %>
-    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
-    <%/ args %>
-\end{args}
-<%/ has_args %><%# has_kwargs %>
-\begin{kwargs}
-    <%# kwargs %>
-    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
-    <%/ kwargs %>
-\end{kwargs}
-<%/ has_kwargs %><%# has_returns %>
-\begin{returns}
-    <%# returns %>
-    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
-    <%/ returns %>
-\end{returns}
-<%/ has_returns %><%# has_yields %>
-\begin{yields}
-    <%# yields %>
-    \param{<%& name %>}{<%& dtype %>}{<%& desc %>}
-    <%/ yields %>
-\end{yields}
-<%/ has_yields %><%# has_errors %>
-\begin{errors}
-    <%# errors %>
-    \exception{<%& name %>}{<%& desc %>}
-    <%/ errors %>
-\end{errors}
-<%/ has_errors %>}
+<div class="method">
+    <h4><small>emcee.{{class_name}}.</small>{{ name }} <small>({{ init_args }})</small></h4>
+    {{{ desc }}}
+</div>
+<div class="method_args">
+    {{# has_args }}
+        <div class="member">
+            <h5>Arguments</h5>
+            <ul>
+                {{# args }}
+                <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                {{/ args }}
+            </ul>
+        </div>
+    {{/ has_args }}
+    {{# has_kwargs }}
+        <div class="member">
+            <h5>Keyword Arguments</h5>
+            <ul>
+                {{# kwargs }}
+                <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                {{/ kwargs }}
+            </ul>
+        </div>
+    {{/ has_kwargs }}
+    {{# has_returns }}
+        <div class="member">
+            <h5>Returns</h5>
+            <ul>
+                {{# returns }}
+                <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                {{/ returns }}
+            </ul>
+        </div>
+    {{/ has_returns }}
+    {{# has_yields }}
+        <div class="member">
+            <h5>Yields</h5>
+            <ul>
+                {{# yields }}
+                <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                {{/ yields }}
+            </ul>
+        </div>
+    {{/ has_yields }}
+</div>
