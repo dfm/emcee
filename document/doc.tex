@@ -399,8 +399,13 @@ autocorrelation time.
 
 \paragraph{The stretch move}
 
+** introduced to reduce acor time see section blah
+
 \citetalias{Goodman:2010} proposed an affine-invariant ensemble sampling
-algorithm informally called the ``stretch move.''  For completeness and for
+algorithm informally called the ``stretch move.'' This algorithm
+significantly outperforms standard M--H methods producing independent
+samples with a much shorter autocorrelation time (see \sect{acor} for
+a discussion of the autocorrelation time). For completeness and for
 clarity of notation, we summarize the algorithm here and refer the interested
 reader to the original paper for more details. This method involves
 simultaneously evolving an ensemble of $K$ \emph{walkers}
@@ -410,9 +415,10 @@ $K-1$ walkers in the \emph{complementary ensemble}
 $\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$. Here, ``position''
 refers to a vector in the $N$-dimensional, real-valued parameter space.
 
+
 To update the position of a walker at position $\vector{X_k}$,
-a walker $X_j$ is drawn randomly from the remaining walkers $\ensemble_{[k]}$ and
-a new position is proposed:
+a walker $X_j$ is drawn randomly from the remaining walkers $\ensemble_{[k]}$
+and a new position is proposed:
 \begin{equation}
     \eqlabel{proposal}
     \vector{X_k} (t) \to \vector{Y} = \vector{X_j}
@@ -552,10 +558,17 @@ these effects can generally be counterbalanced by decreasing (or increasing,
 respectively) the eigenvalues of the proposal distribution covariance. For
 the stretch move, the parameter $a$ effectively controls the step size so
 it can be used to similar effect. In our tests, it has never been
-necessary to use a value of $a$ other than $2$, but we make no guarantee that this
-is the optimal value.
+necessary to use a value of $a$ other than $2$, but we make no guarantee that
+this is the optimal value.
 
-\paragraph{Autocorrelation time}
+\paragraph{Autocorrelation time} \sectlabel{acor}
+
+The autocorrelation time is a direct measure of the number of evaluations of
+the posterior PDF required to produce independent samples of the target
+density. \citetalias{Goodman:2010} show that the stretch-move algorithm
+has a significantly shorter autocorrelation time on several non-trivial
+densities. This means that fewer PDF computations are required---compared
+to a M--H sampler---to produce the same number of independent samples.
 
 The autocovariance function of a time series $\vector{X} (t)$ is
 \begin{equation}
@@ -988,7 +1001,7 @@ f.close()
 \end{args}
 
 \begin{kwargs}
-    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence `lnpostfn(p,}
+    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence \code{lnpostfn(p, *args)}.}
 \end{kwargs}
 
 \begin{properties}
@@ -1025,7 +1038,7 @@ are passed directly to \code{sample} so see the parameter details given in
 
 \class{EnsembleSampler}{k, *args, **kwargs}{A generalized Ensemble sampler that uses 2 ensembles for parallelization.
 
-This is a subclass of the \code{Sampler} object. See [[sampler.py\#sampler]]
+This is a subclass of the \code{Sampler} object. See the \code{Sampler} object
 for more details about the inherited properties.}
 
 \begin{args}
@@ -1036,14 +1049,14 @@ for more details about the inherited properties.}
 
 \begin{kwargs}
     \param{a}{float}{The proposal scale parameter. (default: \code{2.0})}
-    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence `lnpostfn(p,}
+    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence \code{lnpostfn(p, *args)}.}
     \param{postargs}{list}{Alias of \code{args} for backwards compatibility.}
-    \param{threads}{int}{The number of threads to use for parallelization. If \code{threads == 1}, then the \code{multiprocessing} module is not used but if \code{threads > 1}, then a \code{Pool} object is created and calls to \code{lnpostfn} are run in parallel. (default: 1)}
+    \param{threads}{int}{The number of threads to use for parallelization. If \code{threads == 1}, then the \code{multiprocessing} module is not used but if \code{threads \texttt{>} 1}, then a \code{Pool} object is created and calls to \code{lnpostfn} are run in parallel. (default: 1)}
     \param{pool}{multiprocessing.Pool}{An alternative method of using the parallelized algorithm. If \code{pool is not None}, the value of \code{threads} is ignored and the provided \code{Pool} is used for all parallelization. (default: \code{None})}
 \end{kwargs}
 
 \begin{errors}
-    \exception{AssertionError}{If \code{k < 2*dim} or if \code{k} is not even.}
+    \exception{AssertionError}{If \code{k \texttt{<} 2*dim} or if \code{k} is not even.}
 \end{errors}
 
 \begin{properties}
