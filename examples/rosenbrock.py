@@ -27,7 +27,7 @@ p0 = np.random.rand(nwalkers*2).reshape(nwalkers,2)
 rosenbrock = Rosenbrock()
 
 # The sampler object
-sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock)
+sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock, threads=10)
 
 # Sample, outputting to a file
 f = open("rosenbrock.out", "w")

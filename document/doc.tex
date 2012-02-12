@@ -870,10 +870,10 @@ in the abstract base \code{Sampler} object (defined in
 The best way to get started with the package is to try out some of this
 sample code. Most problems with map nicely to one of these examples and
 if not, there are more details given in \app{api}. We provide to examples
-below: (1) the classic multi-variate Gaussian density and (2) a very
+below: (1) the classic multivariate Gaussian density and (2) a very
 anisotropic density in 2 dimensions.
 
-\subsection{The multi-variate Gaussian}
+\subsection{The multivariate Gaussian}
 
 A very simple sample problem and a common unit test for samplers is
 the performance of the code on a high-dimensional Gaussian density
@@ -943,11 +943,12 @@ Despite the fact that it is only two-dimensional, the Rosenbrock density
 poses severe problems for all MCMC samplers because of its anisotropy.
 
 The following example shows how one might sample this density with some more
-advanced techniques. First, we will use an object oriented approach for
+advanced techniques. First, we will use an object-oriented approach for
 defining the likelihood function. This seems slightly artificial in this
 context but in more complicated problems where the likelihood calculation
 requires significant amounts of structured data, this approach can be
-quite beneficial. Again, the full source code is available online.%
+quite beneficial. Also, we use the multiprocessing capabilities of this
+parallelized algorithm. Again, the full source code is available online.%
 \footnote{\url{http://danfm.ca/emcee/rosenbrock/}}
 
 First, define the density.
@@ -964,12 +965,13 @@ class Rosenbrock(object):
         return -(self.a1 * (p[1]-p[0]**2)**2 + (1-p[0])**2)/self.a2
 
 \end{lstlisting}
-Then make an initial guess for the optimal position and set up the sampler.
+Then make an initial guess for the optimal position and set up the sampler
+(using 10 CPUs to compute the likelihoods in parallel).
 \begin{lstlisting}
 nwalkers = 100
 p0 = np.random.rand(nwalkers*2).reshape(nwalkers,2)
 rosenbrock = Rosenbrock()
-sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock)
+sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock, threads=10)
 \end{lstlisting}
 Finally, sample 500 steps and write each step to a file. We would recommend
 writing atomically to a binary format (for example, \project{HDF5}\ or
