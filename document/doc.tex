@@ -5,17 +5,16 @@
 \definecolor{linkcolor}{rgb}{0,0,0.5}
 \hypersetup{colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,
             filecolor=linkcolor,urlcolor=linkcolor}
-
-
 % dstn -- put paragraph numbers in the margins
-\usepackage{mparhack}
-\usepackage{numberparagraphs}
+% \usepackage{mparhack}
+% \usepackage{numberparagraphs}
 % Small margins
-\let\oldmarginpar\marginpar
-\renewcommand\marginpar[1]{\-\oldmarginpar{\footnotesize #1}}
+% \let\oldmarginpar\marginpar
+% \renewcommand\marginpar[1]{\-\oldmarginpar{\footnotesize #1}}
 % Put the margin notes on the left-hand margin.
-\reversemarginpar
-
+% \reversemarginpar
+\newcommand{\numberparagraphs}{}
+\newcommand{\nonumberparagraphs}{}
 
 \usepackage{url}
 \usepackage{algorithmic,algorithm}
@@ -83,22 +82,22 @@
 \newcommand{\etal}{\foreign{et\,al.}}
 \newcommand{\etc}{\foreign{etc.}}
 
-\newcommand{\Fig}[1]{Figure \ref{fig:#1}}
-\newcommand{\fig}[1]{Figure \ref{fig:#1}}
+\newcommand{\Fig}[1]{Figure~\ref{fig:#1}}
+\newcommand{\fig}[1]{\Fig{#1}}
 \newcommand{\figlabel}[1]{\label{fig:#1}}
-\newcommand{\Tab}[1]{Table \ref{tab:#1}}
-\newcommand{\tab}[1]{Table \ref{tab:#1}}
+\newcommand{\Tab}[1]{Table~\ref{tab:#1}}
+\newcommand{\tab}[1]{\Tab{#1}}
 \newcommand{\tablabel}[1]{\label{tab:#1}}
-\newcommand{\Eq}[1]{Equation (\ref{eq:#1})}
-\newcommand{\eq}[1]{Equation (\ref{eq:#1})}
+\newcommand{\Eq}[1]{Equation~(\ref{eq:#1})}
+\newcommand{\eq}[1]{\Eq{#1}}
 \newcommand{\eqlabel}[1]{\label{eq:#1}}
-\newcommand{\Sect}[1]{\S\ref{sect:#1}}
-\newcommand{\sect}[1]{\S\ref{sect:#1}}
-\newcommand{\App}[1]{Appendix \ref{sect:#1}}
-\newcommand{\app}[1]{Appendix \ref{sect:#1}}
+\newcommand{\Sect}[1]{Section~\ref{sect:#1}}
+\newcommand{\sect}[1]{\Sect{#1}}
+\newcommand{\App}[1]{Appendix~\ref{sect:#1}}
+\newcommand{\app}[1]{\App{#1}}
 \newcommand{\sectlabel}[1]{\label{sect:#1}}
-\newcommand{\Algo}[1]{Algorithm \ref{algo:#1}}
-\newcommand{\algo}[1]{Algorithm \ref{algo:#1}}
+\newcommand{\Algo}[1]{Algorithm~\ref{algo:#1}}
+\newcommand{\algo}[1]{\Algo{#1}}
 \newcommand{\algolabel}[1]{\label{algo:#1}}
 
 % math symbols
@@ -154,30 +153,22 @@
                         251 Mercer St., New York, NY 10012, United States}
 
 \numberparagraphs
-
-
 \begin{abstract}
-
     We introduce a stable, well tested Python implementation of the affine-%
     invariant ensemble sampler for Markov chain Monte Carlo (MCMC)
     proposed by Goodman \& Weare (2010). The code is open source and has
     already been used in several published projects in the astrophysics
     literature. The algorithm behind \this\ has several advantages over
     traditional MCMC sampling methods and it has excellent performance as
-    measured by the autocorrelation time.
+    measured by the autocorrelation time (or function calls per independent sample).
     One major advantage of the algorithm is that it requires hand-tuning of
-    only 2 parameters compared to $\sim N^2$ for
+    only 1 or 2 parameters compared to $\sim N^2$ for
     a traditional algorithm in an $N$-dimensional parameter space. In this
     \paper, we describe the algorithm and the details of our implementation
-    and API. Taking advantage of the naturally parallel nature of
-    the algorithm, \this\ permits \emph{any} user to take advantage of
-    multiple CPU cores without extra effort. This is a huge advantage over a
-    na\"ive implementation when applied to
-    computationally expensive problems.
-
-    The code is available online at \url{http://danfm.ca/\thisplain} under the
-    \license.
-
+    and API.  Exploiting the parallelism of the ensemble method,
+    \this\ permits \emph{any} user to take advantage of
+    multiple CPU cores without extra effort.  The code is available online
+    at \url{http://danfm.ca/\thisplain} under the \license.
 \end{abstract}
 
 \keywords{
@@ -186,83 +177,91 @@
     methods: statistical
 }
 
+~ \clearpage
+
+\noindent
+\emph{Note: If you want to get started immediately with the \this\ package,
+  start at \app{install} on
+  page~\pageref{sect:install}.  If you are sampling with \this\ and having
+  low-acceptance-rate or other issues, there is some advice in
+  \sect{advice} starting on page~\pageref{sect:advice}.}
+
 \section{Introduction}
 
-Probabilistic data analysis --- including Bayesian inference --- has
+Probabilistic data analysis---including Bayesian inference---has
 transformed scientific research in the past decade. Many of the most
-significant gains have been due to numerical methods for approximate
-inference; especially Markov chain Monte Carlo (MCMC). Many
-problems in cosmology and astrophysics have directly benefited from these
-advances because the observations tend to have low signal-to-noise and
-missing data. In fact, while the discussions in this \paper\ have a more
-general applicability, we will mostly present examples from astrophysics
-and cosmology, the fields with which we have the most experience.
+significant gains have come from numerical methods for approximate
+inference, especially Markov chain Monte Carlo (MCMC).  For example,
+many problems in cosmology and astrophysics\footnote{The methods and
+  discussion in this \paper\ have general applicability, but we will
+  mostly present examples from astrophysics and cosmology, the fields
+  in which we have most experience} have directly benefited from MCMC
+because the models are often expensive to compute, there are many free
+parameters, and the observations are usually low in signal-to-noise.
 
-Probabilistic data analysis procedures involve examining and operating on
-either the posterior probability density function (PDF) of the parameters
-of the model or the likelihood function. In some cases it is
-sufficient to find the maximum of this function but it is often of
-interest to (at least approximately) measure this distribution in more detail.
-In particular, if we wish to propagate the effects of measurement
-uncertainties through the analysis to the conclusions, we must sample the
-PDF on sufficiently small scales. MCMC methods are designed to
-sample and approximate the PDF efficiently even in high dimensional
-parameter spaces. This has proved useful in too many research
-applications to list here but the results from the Wilkinson Microwave
-Anisotropy Probe (WMAP) mission provide a dramatic example
-\citep[for example,][]{Dunkley:2005}.
+Probabilistic data analysis procedures involve computing and using
+either the posterior probability density function (PDF) for the
+parameters of the model or the likelihood function. In some cases it
+is sufficient to find the maximum of one of these, but it is often
+necessary to understand the posterior PDF in detail.  MCMC methods are
+designed to sample from---and thereby provide sampling approximations
+to---the posterior PDF efficiently even in parameter spaces with large
+numbers of dimensions. This has proven useful in too many research
+applications to list here but the results from the NASA Wilkinson
+Microwave Anisotropy Probe (WMAP) cosmology mission provide a dramatic
+example \citep[for example,][]{Dunkley:2005}.
 
 Arguably the most important advantage of Bayesian data analysis is
 that it is possible to \emph{marginalize} over nuisance parameters. A
-\emph{nuisance} parameter is one that is required in order to model the
+nuisance parameter is one that is required in order to model the
 process that generates the data, but is otherwise of little interest.
 Marginalization is the process of integrating over all possible values of
-a parameter and hence propagating the effects of uncertainty about
-its value to the final result.  Often we wish to marginalize over all
+the  parameter and hence propagating the effects of uncertainty about
+its value into the final result.  Often we wish to marginalize over all
 nuisance parameters in a model.  The exact result of marginalization
 is the marginalized probability function \pr{\model | \data}
-of the set model parameters
-\model\ given the observations \data
+of the set (list or vector) of model parameters
+\model\ given the set of observations \data
 \begin{equation}
     \eqlabel{marginalization}
     \pr{\model | \data} = \int
         \pr{ \model, \nuisance | \data} \,
         \dd  \nuisance \quad,
 \end{equation}
-where \nuisance\ is the set of of nuisance parameters. In general, \data\ is
-a list of objects (for example, scalars, vectors, images or strings) in some
-observed space and \model\ and \nuisance\ are lists
-of parameters in model space. It is often useful, however, to view
-$(\model, \nuisance)$ as a vector in a Euclidean parameter space.
-In some specific
-cases, the integral in \eq{marginalization} is analytically tractable but in
-general, the likelihood function
-$p (\data | \model, \nuisance)$ is not a simple
-integrable function. In fact, in many problems, the likelihood
-function is actually the result of an expensive simulation or
-computation. In this regime, the integration must be calculated numerically
-and it is often relatively efficient to approximate \eq{marginalization}
-using MCMC sampling. If the likelihood function is expensive to
-calculate, it is advantageous to use a sampling algorithm that reduces the
-number of likelihood evaluations required.
+where \nuisance\ is the set (list or vector) of nuisance
+parameters. Because the nuisance parameter set \nuisance\ can be very large, this
+integral is often extremely daunting.  However, a
+MCMC-generated sampling of values $(\model_t,\nuisance_t)$ of the
+model and nuisance parameters from the joint distribution $\pr{\model,
+  \nuisance | \data}$ automatically provides a sampling of values
+$\model_t$ from the marginalized PDF $\pr{\model | \data}$.
+
+In addition to the problem of marginalization, in many problems of
+interest the likelihood or the prior is the result of an expensive
+simulation or computation. In this regime, MCMC sampling is very
+valuable, but it is even \emph{more} valuable if the MCMC algorithm is
+efficient, in the sense that it does not require many function
+evaluations to generate a statistically independent sample from the
+posterior PDF.  The methods presented here are designed for efficiency.
 
 Most uses of MCMC in the astrophysics literature are based on slight
-modifications to the Metropolis-Hastings (M--H) method
-\citep[for example,][]{MacKay:2003}. Each step in a M--H chain is proposed
-using a compact proposal distribution centered on the current position of the
-chain (normally a multivariate Gaussian). Since
+modifications to the Metropolis-Hastings (M--H) method (introduced
+below in \sect{algo}).  Each step in a M--H chain is proposed using a
+compact proposal distribution centered on the current position of the
+chain (normally a multivariate Gaussian or something similar). Since
 each term in the covariance matrix of this proposal distribution is an
-unspecified parameter, this method has $N\,[N+1]/2$ tuning parameters (where
-$N$ is the dimension of the parameter space).  To make matters worse, the
-performance of this sampler is very sensitive to these
-tuning parameters and there is no fool-proof method for choosing the values
-correctly. As a result, many heuristic methods have been developed to attempt
-to determine the optimal parameters in a data-driven way
-\citep[for example,][]{Gregory:2005,Dunkley:2005,Widrow:2008}. Unfortunately,
-these methods all require a lengthy ``burn-in'' phase where shorter Markov
-chains are sampled and the results are used to tune the hyperparameters. This
-extra cost is unacceptable when the likelihood calls are computationally
-expensive.
+unspecified parameter, this method has $N\,[N+1]/2$ tuning parameters
+(where $N$ is the dimension of the parameter space).  To make matters
+worse, the performance of this sampler is very sensitive to these
+tuning parameters and there is no fool-proof method for choosing the
+values correctly. As a result, many heuristic methods have been
+developed to attempt to determine the optimal parameters in a
+data-driven way \citep[for
+  example,][]{Gregory:2005,Dunkley:2005,Widrow:2008}. Unfortunately,
+these methods all require a lengthy ``burn-in'' phase where shorter
+Markov chains are sampled and the results are used to tune the
+hyperparameters. This extra cost is unacceptable when the likelihood
+calls are computationally expensive.
 
 The problem with traditional sampling methods can be visualized by looking
 at the simple but highly anisotropic density
@@ -302,7 +301,7 @@ In what follows, we summarize the Goodman--Weare
 algorithm and the implementation
 decisions made in \this. We also describe the small changes
 that must be made to the algorithm to parallelize it. Finally, in the
-appendix, we outline the installation, usage and troubleshooting of
+Appendices, we outline the installation, usage and troubleshooting of
 the package.
 
 \section{The Algorithm}\sectlabel{algo}
@@ -378,7 +377,6 @@ the target density. A more efficient chain has a shorter
 autocorrelation time.
 
 \nonumberparagraphs
-
 \begin{algorithm}
 \caption{The procedure for a single Metropolis-Hastings MCMC step.
     \algolabel{mh}}
@@ -397,7 +395,6 @@ autocorrelation time.
 
 \end{algorithmic}
 \end{algorithm}
-
 \numberparagraphs
 
 \paragraph{The stretch move}
@@ -450,7 +447,6 @@ where $a$ is an adjustable scale parameter that \citetalias{Goodman:2010} set
 to 2.
 
 \nonumberparagraphs
-
 \begin{algorithm}
 \caption{A single stretch move update step from \citetalias{Goodman:2010}
     \algolabel{goodman}}
@@ -472,7 +468,6 @@ to 2.
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
-
 \numberparagraphs
 
 \paragraph{The parallel stretch move}
@@ -492,7 +487,7 @@ we can update $\blue$. In this case, the outcome is a valid step
 for all of the walkers. The pseudocode for
 this procedure is shown in \algo{parallel}. This code is similar to
 \algo{goodman} but now the computationally expensive inner loop
-(starting at line \ref{line:parallelloop} in \algo{parallel}) can be run in
+(starting at line~\ref{line:parallelloop} in \algo{parallel}) can be run in
 parallel.
 
 The performance of this method --- quantified by the autocorrelation time ---
@@ -501,7 +496,6 @@ can now take advantage of generic parallelization makes it
 extremely powerful.
 
 \nonumberparagraphs
-
 \begin{algorithm}
 \caption{The parallel stretch move update step
     \algolabel{parallel}}
@@ -527,10 +521,9 @@ extremely powerful.
     \STATE $t \gets t+\frac{1}{2}$
 \ENDFOR
 
-\numberparagraphs
-
 \end{algorithmic}
 \end{algorithm}
+\numberparagraphs
 
 \section{Tests} \sectlabel{tests}
 
@@ -602,7 +595,7 @@ algorithm \citepalias[described by][]{Goodman:2010} and implemented by those
 authors in
 C++.\footnote{\url{http://www.math.nyu.edu/faculty/goodman/software/acor}}
 
-\section{Discussion \& Tips}
+\section{Discussion \& Tips}\sectlabel{advice}
 
 The goal of this project has been to make a sampler that is a useful
 tool for a large class of data analysis problems---a ``hammer'' if you
@@ -739,14 +732,10 @@ helpful contributions to the ideas and code presented here.
 \this\ makes use of the open-source Python \numpy\ package.
 
 \nonumberparagraphs
-
-\begin{thebibliography}{}
-\raggedright
-
+\begin{thebibliography}{}\raggedright
 \bibitem[Bovy\ \etal(2011)]{Bovy:2011}
  Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
 Y.~S., 2011, \apj, submitted, \arxiv{1111.1724} [astro-ph.GA]
-% http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1111.1724
 
 \bibitem[Christen(2007)]{Christen:2007}
 {Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
@@ -807,22 +796,20 @@ Cambridge University Press, 2003
 Pasarica, C. \& Gelman, A.,
 2010, Statistica Sinica, 20, 343--364
 
-\bibitem[Press \etal(2007))]{Press:2007}
+\bibitem[Press \etal(2007)]{Press:2007}
 {Press}, W.~H., {Teukolsky}, S.~A., {Vetterling}, W.~T., \& {Flannery}, B.~P.,
 \emph{Numerical Recipes: The Art of Scientific Computing},
 Cambridge University Press, 2007
 
-\bibitem[Widrow\ \etal(2008))]{Widrow:2008}
+\bibitem[Widrow\ \etal(2008)]{Widrow:2008}
 {Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
 2008, \apj, 679, 1239
-% http://adsabs.harvard.edu/abs/2008ApJ...679.1239W
 
 \end{thebibliography}
 
 \clearpage
 \appendix
-
-\section{Installation}
+\section{Installation}\sectlabel{install}
 
 The easiest way to install \this\ is using
 \pip\footnote{\url{http://pypi.python.org/pypi/pip/}}. Running the command
