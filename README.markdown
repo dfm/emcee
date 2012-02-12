@@ -20,13 +20,13 @@ at these docs after you've cloned the repository by running
 
     python -m SimpleHTTPServer 5000
 
-in the `docs` directory and navigating to [localhost](http://localhost:5000).
+in the `docs` directory and navigating to
+[localhost:5000](http://localhost:5000).
 
 ### Attribution
 
-Please cite Foreman-Mackey, Hogg, et al. (2012) if you find this
-code useful in your research. We also provide support in exchange for
-authorship on a case-by-case basis.
+Please cite Foreman-Mackey, Hogg, Lang & Goodman (2012) if you find this
+code useful in your research.
 
 ### License
 
