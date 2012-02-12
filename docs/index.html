@@ -32,6 +32,30 @@
                 padding: 8px;
                 border: none;
             }
+            .simpleusage {
+                font-family: "skippy-sharp", "Helvetica Neue", helvetica, sans-serif;
+                font-size: 24pt;
+            }
+            .fast {
+                margin-top: -20px;
+                text-align: right;
+            }
+            .fast span {
+                color: #600;
+            }
+            .simpleusage span.emcee {
+                font-weight: bold;
+                color: #008;
+            }
+            .simpleusage span.simple {
+                text-decoration: underline;
+                color: #066;
+            }
+            pre.deadsimple {
+                box-shadow: 0 1px 5px rgba(0,0,0,.4);
+                font-size: 11pt;
+                border: 1px solid #aaa;
+            }
             ol.install > li {
                 padding-bottom: 5px;
             }
@@ -39,6 +63,11 @@
                 font-weight: normal;
                 padding-bottom: 20px;
                 text-align: right;
+            }
+            .alert code {
+                background-color: inherit !important;
+                color: inherit !important;
+                border-width: 0;
             }
             .dl .btn {
                 font-size: 16px;
@@ -53,6 +82,8 @@
         <link rel="stylesheet" href="assets/bootstrap-responsive.css">
         <link rel="shortcut icon" href="assets/favicon.png">
 
+        <script type="text/javascript" src="http://use.typekit.com/phg8fgl.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     </head>
 
@@ -155,7 +186,40 @@
                 </div>
 
                 <div class="row">
-                    <div class="span12">
+                    <div class="span9 offset1">
+                        <span class="simpleusage">
+                            Using <span class="emcee">emcee</span> is dead
+                            <span class="simple">simple</span>...
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span8 offset2">
+                        <pre class="prettyprint deadsimple">
+import numpy as np
+import emcee
+
+def lnprob(x, ivar):
+    return -0.5*np.sum(ivar * x**2)
+
+ndim, nwalkers = 10, 100
+ivar = 1./np.random.rand(ndim)
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
+sampler.run_mcmc(p0, 1000)</pre>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span9 offset2">
+                        <p class="simpleusage fast">
+                            ...and it's <span>blazingly</span> fast!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span8 offset2">
                         <div class="alert">
                             <strong>Warning:</strong>
                             If you used a previous version of this code, you'll find that
@@ -167,122 +231,27 @@
                 </div>
 
                 <div class="row">
-                    <div class="span4">
-                        <p>Start by defining the probability distribution that you
-                        would like to sample.</p>
-                        <p>We'll use a
-                        <a href="http://en.wikipedia.org/wiki/Multivariate_normal_distribution">multivariate Gaussian</a>.
-                        </p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-import numpy as np
-
-def lnprob(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Let's use <code>10</code> dimensions with some randomly chosen means
-                        and covariance matrix.</p>
-                        <p><code>cov</code> needs to be positive definite so we make
-                        sure that that happens and the take the inverse.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-ndim = 10
-means = np.random.rand(ndim)
-cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov  = np.triu(cov)
-cov += cov.T - np.diag(cov.diagonal())
-cov  = np.dot(cov,cov)
-icov = np.linalg.inv(cov)</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Then we guess some initial positions for <code>100</code>
-                        <a href="#faq-walkers">walkers</a> and then initialize a
-                        new <code>EnsembleSampler</code>.</p>
-                        <p>If your <code>lnprob</code> calls are the bottleneck and
-                        you have CPU cycles to spare, you can
-                        <a href="#faq-multi">use multiprocessing</a>.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-nwalkers = 100
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-
-import emcee
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Now, let's take 500 steps as a burn-in.</p>
-                        <p><span class="label label-info">Note</span> <small>each walker is
-                        advanced 500 times here so lnprob will actually
-                        be called 5x10<sup>4</sup> times here.</small></p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-pos, prob, state = sampler.run_mcmc(p0, 500)
-sampler.clear_chain()</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>And then, run <code>2000</code> real steps in the chain
-                        starting from the final position
-                        and random state of the burn-in.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-sampler.run_mcmc(pos, 2000, rstate0=state)</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>The results are stored in a <code>(100, 2000, 10)</code>
-                        NumPy array.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-sampler.chain</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>To plot the histogram that approximates the marginal
-                        distribution of parameter <code>1</code>, we use the
-                        <code>flatchain</code> property. <code>flatchain</code>
-                        is flattened along the walker axis and it, therefore,
-                        has the shape <code>(200000, 10)</code>.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-import matplotlib.pyplot as pl
-pl.hist(sampler.flatchain[:,0], 100)
-pl.show()</pre>
-                    </div>
-                </div>
-
-                <div class="row">
                     <div class="span12">
-                        <p>
-                        You can
-                        <a class="btn btn-primary" href="https://github.com/dfm/emcee/blob/master/quickstart.py">
-                            get all this code</a>
-                        from <a href="https://github.com/dfm/emcee">the GitHub repository</a>.
-                        </p>
+                        <h3>So you want some more info?
+                        <small>Why don't you check out some examples?</small>
+                        </h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span3 offset2">
+                        <a href="quickstart" class="thumbnail">
+                        <img src="assets/contour.png">
+                        </a>
+                        <h5 style="text-align:center;"><strong>Simple</strong>: Multivariate Gaussian</h5>
+                        <p style="text-align:center;">Sample a Gaussian in 50 dimensions.</p>
+                    </div>
+                    <div class="span3 offset1">
+                        <a href="rosenbrock" class="thumbnail">
+                        <img src="assets/rosenbrock.png">
+                        </a>
+                        <h5 style="text-align:center;"><strong>Advanced</strong>: Rosenbrock Density</h5>
+                        <p style="text-align:center;">Sample a highly anisotropic density in 2-dimensions
+                        using multiprocessing.</p>
                     </div>
                 </div>
             </section>

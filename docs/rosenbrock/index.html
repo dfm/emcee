@@ -30,14 +30,12 @@
 
         <div id="code-container">
             <pre class="prettyprint">#!/usr/bin/env python
-# encoding: utf-8
 &quot;&quot;&quot;
 Sample code for sampling the Rosenbrock density using emcee.
 
 &quot;&quot;&quot;
 
 import numpy as np
-
 import emcee
 
 # Define the Density
@@ -62,7 +60,7 @@ sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock, threads=10)
 
 # Sample, outputting to a file
 f = open(&quot;rosenbrock.out&quot;, &quot;w&quot;)
-for pos, lnprob, rstate in sampler.sample(np.array(p0), iterations=500):
+for pos, prob, rstate in sampler.sample(p0, iterations=2000):
     # Write the current position to a file, one line per walker
     f.write(&quot;\n&quot;.join([&quot;\t&quot;.join([str(q) for q in p]) for p in pos]))
     f.write(&quot;\n&quot;)

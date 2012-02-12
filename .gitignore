@@ -15,3 +15,5 @@ samples
 *.out
 dist
 docs/.gitignore
+MANIFEST
+document/*.pdf
