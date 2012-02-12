@@ -126,6 +126,7 @@ class ObjectView(pystache.View):
     template_name = "object"
 
     _tex_code_re = re.compile("`(.+?)`")
+    _tex_quotes_re = re.compile("\"(.+?)\"", re.M|re.S)
     _echars = "\\%#~&_"
 
     def __init__(self, obj, **kwargs):
@@ -143,6 +144,8 @@ class ObjectView(pystache.View):
         s = s.replace(">", "\\texttt{>}")
         _tex_code = lambda s: "\code{" + s.group(0)[1:-1] + "}"
         s = self._tex_code_re.sub(_tex_code, s)
+        _tex_quote = lambda s: "``" + s.group(0)[1:-1] + "''"
+        s = self._tex_quotes_re.sub(_tex_quote, s)
         return s
 
     def has(self, attr):

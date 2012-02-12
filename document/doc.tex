@@ -338,15 +338,15 @@ expectation value of a function of the model parameters $f(\model)$ is
     \expect{f(\model)} = \int
     \pr{\model|\data}
     \, f(\model) \, \dd\model
-    \,\approx\, \frac{1}{T} \sum_{i=1} ^T f(\model_i) \quad.
+    \,\approx\, \frac{1}{M} \sum_{i=1} ^M f(\model_i) \quad.
 \end{equation}
 Generating the samples $\model_i$ is a non-trivial process unless
 $\pr{\model, \nuisance, \data}$ is a very specific analytic distribution
 (for example, a Gaussian). MCMC is a procedure for generating a random walk
 in the parameter space that, over time, draws a representative set
 of samples from the distribution. Each point in a Markov chain
-$\link (t) = [\model(t), \nuisance(t)]$
-depends only on the position of the previous step $\link (t-1)$.
+$\link (t_i) = [\model_i, \nuisance_i]$
+depends only on the position of the previous step $\link (t_{i-1})$.
 
 \paragraph{The Metropolis-Hastings (M--H) Algorithm}
 
@@ -398,8 +398,6 @@ autocorrelation time.
 \numberparagraphs
 
 \paragraph{The stretch move}
-
-** introduced to reduce acor time see section blah
 
 \citetalias{Goodman:2010} proposed an affine-invariant ensemble sampling
 algorithm informally called the ``stretch move.'' This algorithm
@@ -1042,7 +1040,7 @@ This is a subclass of the \code{Sampler} object. See the \code{Sampler} object
 for more details about the inherited properties.}
 
 \begin{args}
-    \param{k}{int}{The number of Goodman \& Weare "walkers".}
+    \param{k}{int}{The number of Goodman \& Weare ``walkers''.}
     \param{dim}{int}{Number of dimensions in the parameter space.}
     \param{lnpostfn}{callable}{A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.}
 \end{args}
