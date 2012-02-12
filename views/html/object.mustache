@@ -1,32 +1,79 @@
-<div class="row">
-    <div class="span10 offset1">
-        <h3><small>emcee.</small>{{ name }} <small>({{ init_args }})</small></h3>
-        {{{ desc }}}
+<div class="api">
+    <div class="row">
+        <div class="span12">
+            <h3><small>emcee.</small>{{ name }} <small>({{ init_args }})</small></h3>
+            {{{ desc }}}
+        </div>
     </div>
-</div>
-{{# has_args }}
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Arguments</h4>
-        <ul>
-            {{# args }}
-            <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
-            {{/ args }}
-        </ul>
+    {{# has_args }}
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Arguments</h4>
+                <ul>
+                    {{# args }}
+                    <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                    {{/ args }}
+                </ul>
+            </div>
+        </div>
     </div>
-</div>
-{{/ has_args }}
-{{# has_kwargs }}
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Keyword Arguments</h4>
-        <ul>
-            {{# kwargs }}
-            <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
-            {{/ kwargs }}
-        </ul>
+    {{/ has_args }}
+    {{# has_kwargs }}
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Keyword Arguments</h4>
+                <ul>
+                    {{# kwargs }}
+                    <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+                    {{/ kwargs }}
+                </ul>
+            </div>
+        </div>
     </div>
+    {{/ has_kwargs }}
+    {{# has_errors }}
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Exceptions</h4>
+                <ul>
+                    {{# errors }}
+                    <li><code>{{ name }}</code>: {{{ desc }}}</li>
+                    {{/ errors }}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {{/ has_errors }}
+    {{# has_properties }}
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Properties</h4>
+                <ul>
+                    {{# properties }}
+                    <li><code>{{ name }}</code>: {{{ desc }}}</li>
+                    {{/ properties }}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {{/ has_properties }}
+    {{# has_methods }}
+    <div class="row">
+        <div class="span12">
+            <div class="methods">
+                <h4>Methods</h4>
+                <ul>
+                    {{# methods }}
+                    {{{ render }}}
+                    {{/ methods }}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {{/ has_methods }}
 </div>
-{{/ has_kwargs }}
-
 

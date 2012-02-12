@@ -125,7 +125,8 @@ class ObjectView(pystache.View):
     template_path = os.path.join("views", "latex")
     template_name = "object"
 
-    _tex_code_re = re.compile("`(.+?)`")
+    _code_re = re.compile("`(.+?)`")
+    _quotes_re = re.compile("\"(.+?)\"", re.M|re.S)
     _echars = "\\%#~&_"
 
     def __init__(self, obj, **kwargs):
@@ -142,7 +143,9 @@ class ObjectView(pystache.View):
         s = s.replace("<", "\\texttt{<}")
         s = s.replace(">", "\\texttt{>}")
         _tex_code = lambda s: "\code{" + s.group(0)[1:-1] + "}"
-        s = self._tex_code_re.sub(_tex_code, s)
+        s = self._code_re.sub(_tex_code, s)
+        _tex_quote = lambda s: "``" + s.group(0)[1:-1] + "''"
+        s = self._quotes_re.sub(_tex_quote, s)
         return s
 
     def has(self, attr):
@@ -170,24 +173,31 @@ class HTMLView(ObjectView):
     template_path = os.path.join("views", "html")
 
     def escape(self, s):
+        if isinstance(s, (list, tuple)):
+            return [self.escape(o) for o in s]
+        elif isinstance(s, dict):
+            return dict([(k, self.escape(s[k])) for k in s])
+        _tex_code = lambda s: "<code>" + s.group(0)[1:-1] + "</code>"
+        s = self._code_re.sub(_tex_code, s)
         return s
 
     @property
     def methods(self):
-        return [HTMLMethodView(m) for m in self._methods]
+        return [HTMLMethodView(m).set_class(self._vals["name"]) for m in self._methods]
 
     @property
     def desc(self):
         return markdown.markdown(self._vals["desc"])
 
-    # @property
-    # def args(self):
-    #     ret = self._vals["args"]
-    #     for i in range(len(ret)):
-            # ret[i]["desc"] = markdownret[i]["desc"])
-
 class HTMLMethodView(HTMLView):
     template_name = "method"
+
+    def escape(self, s):
+        return s
+
+    def set_class(self, cn):
+        self.class_name = cn
+        return self
 
 if __name__ == '__main__':
     import sys

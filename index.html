@@ -32,6 +32,30 @@
                 padding: 8px;
                 border: none;
             }
+            .simpleusage {
+                font-family: "skippy-sharp", "Helvetica Neue", helvetica, sans-serif;
+                font-size: 24pt;
+            }
+            .fast {
+                margin-top: -20px;
+                text-align: right;
+            }
+            .fast span {
+                color: #600;
+            }
+            .simpleusage span.emcee {
+                font-weight: bold;
+                color: #008;
+            }
+            .simpleusage span.simple {
+                text-decoration: underline;
+                color: #066;
+            }
+            pre.deadsimple {
+                box-shadow: 0 1px 5px rgba(0,0,0,.4);
+                font-size: 11pt;
+                border: 1px solid #aaa;
+            }
             ol.install > li {
                 padding-bottom: 5px;
             }
@@ -39,6 +63,11 @@
                 font-weight: normal;
                 padding-bottom: 20px;
                 text-align: right;
+            }
+            .alert code {
+                background-color: inherit !important;
+                color: inherit !important;
+                border-width: 0;
             }
             .dl .btn {
                 font-size: 16px;
@@ -49,10 +78,26 @@
             .dl .btn span {
                 font-weight: bold;
             }
+            .api code {
+                background-color: inherit !important;
+                color: inherit !important;
+                border-width: 0;
+            }
+            .member {
+                margin-left: 25px;
+            }
+            .methods {
+                margin-left: 25px;
+            }
+            .method {
+                margin-left: 0px;
+            }
         </style>
         <link rel="stylesheet" href="assets/bootstrap-responsive.css">
         <link rel="shortcut icon" href="assets/favicon.png">
 
+        <script type="text/javascript" src="http://use.typekit.com/phg8fgl.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     </head>
 
@@ -66,6 +111,7 @@
                         <li><a href="#install">Installation</a></li>
                         <li><a href="#quickstart">Basic Usage</a></li>
                         <li><a href="#advanced">Advanced Usage</a></li>
+                        <li><a href="#src">Annotated Source</a></li>
                         <li><a href="#api">API</a></li>
                         <li><a href="#faq">FAQ</a></li>
                     </ul>
@@ -138,7 +184,7 @@
                         <p style="text-align: center;"><code>python -c 'import emcee; emcee.test()'</code></p>
                     </div>
                     <div class="span4">
-                        <h3>Bleeding edge</h3>
+                        <h3>Bleeding Edge</h3>
                         <p>For all the hackers in the house...
                         <em>you know what to do!</em></p>
                         <p class="dl" style="text-align: center;">
@@ -155,7 +201,40 @@
                 </div>
 
                 <div class="row">
-                    <div class="span12">
+                    <div class="span9 offset1">
+                        <span class="simpleusage">
+                            Using <span class="emcee">emcee</span> is dead
+                            <span class="simple">simple</span>...
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span8 offset2">
+                        <pre class="prettyprint deadsimple">
+import numpy as np
+import emcee
+
+def lnprob(x, ivar):
+    return -0.5*np.sum(ivar * x**2)
+
+ndim, nwalkers = 10, 100
+ivar = 1./np.random.rand(ndim)
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
+sampler.run_mcmc(p0, 1000)</pre>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span9 offset2">
+                        <p class="simpleusage fast">
+                            ...and it's <span>blazingly</span> fast!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span8 offset2">
                         <div class="alert">
                             <strong>Warning:</strong>
                             If you used a previous version of this code, you'll find that
@@ -167,122 +246,27 @@
                 </div>
 
                 <div class="row">
-                    <div class="span4">
-                        <p>Start by defining the probability distribution that you
-                        would like to sample.</p>
-                        <p>We'll use a
-                        <a href="http://en.wikipedia.org/wiki/Multivariate_normal_distribution">multivariate Gaussian</a>.
-                        </p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-import numpy as np
-
-def lnprob(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Let's use <code>10</code> dimensions with some randomly chosen means
-                        and covariance matrix.</p>
-                        <p><code>cov</code> needs to be positive definite so we make
-                        sure that that happens and the take the inverse.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-ndim = 10
-means = np.random.rand(ndim)
-cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov  = np.triu(cov)
-cov += cov.T - np.diag(cov.diagonal())
-cov  = np.dot(cov,cov)
-icov = np.linalg.inv(cov)</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Then we guess some initial positions for <code>100</code>
-                        <a href="#faq-walkers">walkers</a> and then initialize a
-                        new <code>EnsembleSampler</code>.</p>
-                        <p>If your <code>lnprob</code> calls are the bottleneck and
-                        you have CPU cycles to spare, you can
-                        <a href="#faq-multi">use multiprocessing</a>.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-nwalkers = 100
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-
-import emcee
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Now, let's take 500 steps as a burn-in.</p>
-                        <p><span class="label label-info">Note</span> <small>each walker is
-                        advanced 500 times here so lnprob will actually
-                        be called 5x10<sup>4</sup> times here.</small></p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-pos, prob, state = sampler.run_mcmc(p0, 500)
-sampler.clear_chain()</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>And then, run <code>2000</code> real steps in the chain
-                        starting from the final position
-                        and random state of the burn-in.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-sampler.run_mcmc(pos, 2000, rstate0=state)</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>The results are stored in a <code>(100, 2000, 10)</code>
-                        NumPy array.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-sampler.chain</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>To plot the histogram that approximates the marginal
-                        distribution of parameter <code>1</code>, we use the
-                        <code>flatchain</code> property. <code>flatchain</code>
-                        is flattened along the walker axis and it, therefore,
-                        has the shape <code>(200000, 10)</code>.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-import matplotlib.pyplot as pl
-pl.hist(sampler.flatchain[:,0], 100)
-pl.show()</pre>
-                    </div>
-                </div>
-
-                <div class="row">
                     <div class="span12">
-                        <p>
-                        You can
-                        <a class="btn btn-primary" href="https://github.com/dfm/emcee/blob/master/quickstart.py">
-                            get all this code</a>
-                        from <a href="https://github.com/dfm/emcee">the GitHub repository</a>.
-                        </p>
+                        <h3>So you want some more info?
+                        <small>Why don't you check out some examples?</small>
+                        </h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span3 offset2">
+                        <a href="quickstart" class="thumbnail">
+                        <img src="assets/contour.png">
+                        </a>
+                        <h5 style="text-align:center;"><strong>Simple</strong>: Multivariate Gaussian</h5>
+                        <p style="text-align:center;">Sample a Gaussian in 50 dimensions.</p>
+                    </div>
+                    <div class="span3 offset2">
+                        <a href="rosenbrock" class="thumbnail">
+                        <img src="assets/rosenbrock.png">
+                        </a>
+                        <h5 style="text-align:center;"><strong>Advanced</strong>: Rosenbrock Density</h5>
+                        <p style="text-align:center;">Sample a highly anisotropic density in 2-dimensions
+                        using multiprocessing.</p>
                     </div>
                 </div>
             </section>
@@ -305,7 +289,8 @@ pl.show()</pre>
                         object with the <code>threads</code> argument set to
                         an integer greater than 1.</p>
                         <p>In practice, this only works when your likelihood
-                        function is pickleable.</p>
+                        function is
+                        <a href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a>.</p>
                     </div>
                     <div class="span8">
                         <pre class="prettyprint">
@@ -313,64 +298,14 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov], thre
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="span12">
-                        <h3>Object-oriented approach</h3>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>To emulate the above multivariate Gaussian example,
-                        we create a class with the mean vector and covariance
-                        tensor (generated as above) as properties of the object.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-class MultivariateGaussian(object):
-    def __init__(self, ndim):
-        self.mu = np.random.rand(ndim)
-        cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-        cov  = np.triu(cov)
-        cov += cov.T - np.diag(cov.diagonal())
-        cov  = np.dot(cov,cov)
-        self.icov = np.linalg.inv(cov)</pre>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="span4">
-                        <p>Then, you can overload the magic <code>__call__</code>
-                        method of the class with the log-posterior function.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-    def __call__(self, x):
-        diff = x-self.mu
-        return -np.dot(diff,np.dot(self.icov,diff))/2.0</pre>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="span4">
-                        <p>Finally, you instantiate the sampler as follows and
-                        finish the analysis as before.</p>
-                    </div>
-                    <div class="span8">
-                        <pre class="prettyprint">
-mygaussian = MultivariateGaussian(ndim)
-sampler = emcee.EnsembleSampler(nwalkers, ndim, mygaussian)</pre>
-                    </div>
-                </div>
-
             </section>
 
-            <section id="api">
+            <section id="src">
                 <div class="page-header">
-                    <h1>API <small></small></h1>
+                    <h1>Annotated source code</h1>
                 </div>
                 <div class="row" id="faq-walkers">
                     <div class="span12">
-                        <h3>Annotated source code</h3>
                         <p>The annotated source code is an excellent place to
                         get information about how this code works.
                         Most of the core functionality is in the
@@ -383,81 +318,319 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, mygaussian)</pre>
                         <a href="1.0.0/tests.html">unit tests</a>.
                     </div>
                 </div>
+            </section>
 
-<div class="row">
-    <div class="span10 offset1">
-        <h3><small>emcee.</small>Sampler <small>(dim, lnprobfn, args=[])</small></h3>
-        <p>An abstract sampler object that implements various helper functions</p>
+            <section id="api">
+                <div class="page-header">
+                    <h1>API <small></small></h1>
+                </div>
+
+<!-- BEGIN AUTOGEN API -->
+
+<div class="api">
+    <div class="row">
+        <div class="span12">
+            <h3><small>emcee.</small>Sampler <small>(dim, lnprobfn, args=[])</small></h3>
+            <p>An abstract sampler object that implements various helper functions</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Arguments</h4>
+                <ul>
+                    <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
+                    <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Keyword Arguments</h4>
+                <ul>
+                    <li><code>args</code> (list): Optional list of extra arguments for <code>lnpostfn</code>. <code>lnpostfn</code> will be called with the sequence <code>lnpostfn(p, *args)</code>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Properties</h4>
+                <ul>
+                    <li><code>acceptance_fraction</code>: An array (length: <code>k</code>) of the fraction of steps accepted for each
+walker.</li>
+                    <li><code>acor</code>: The autocorrelation time of each parameter in the chain (length:
+<code>dim</code>) as estimated by the <code>acor</code> module.</li>
+                    <li><code>chain</code>: A pointer to the Markov chain itself. The shape of this array is
+<code>(k, dim, iterations)</code>.</li>
+                    <li><code>flatchain</code>: A shortcut for accessing chain flattened along the zeroth (walker)
+axis.</li>
+                    <li><code>lnprobability</code>: A pointer to the matrix of the value of <code>lnprobfn</code> produced at each
+step for each walker. The shape is <code>(k, iterations)</code>.</li>
+                    <li><code>random_state</code>: The state of the internal random number generator. In practice, it's
+the result of calling <code>get_state()</code> on a
+<code>numpy.random.mtrand.RandomState</code> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="methods">
+                <h4>Methods</h4>
+                <ul>
+                    <div class="method">
+    <h4><small>emcee.Sampler.</small>clear_chain <small>()</small></h4>
+    <p>An alias for <code>reset</code> kept for backwards compatibility.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.Sampler.</small>get_lnprob <small>(p)</small></h4>
+    <p>Return the log-probability at the given position.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.Sampler.</small>reset <small>()</small></h4>
+    <p>Clear <code>chain</code>, <code>lnprobability</code> and the bookkeeping parameters.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.Sampler.</small>run_mcmc <small>(pos0, N, rstate0=None, lnprob0=None)</small></h4>
+    <p>Iterate sample for <code>N</code> iterations and return the result. The arguments
+are passed directly to <code>sample</code> so see the parameter details given in
+<code>sample</code>.</p>
+</div>
+<div class="method_args">
+</div>
+
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Arguments</h4>
-        <ul>
-            <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
-            <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
-        </ul>
-    </div>
-</div>
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Keyword Arguments</h4>
-        <ul>
-            <li><code>args</code> (list): Optional list of extra arguments for `lnpostfn`. `lnpostfn` will be called with the sequence `lnpostfn(p,</li>
-        </ul>
-    </div>
-</div>
 
 
-
-<div class="row">
-    <div class="span10 offset1">
-        <h3><small>emcee.</small>EnsembleSampler <small>(k, *args, **kwargs)</small></h3>
-        <p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.</p>
-<p>This is a subclass of the <code>Sampler</code> object. See [[sampler.py#sampler]]
+<div class="api">
+    <div class="row">
+        <div class="span12">
+            <h3><small>emcee.</small>EnsembleSampler <small>(k, *args, **kwargs)</small></h3>
+            <p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.</p>
+<p>This is a subclass of the <code>Sampler</code> object. See the <code>Sampler</code> object
 for more details about the inherited properties.</p>
+        </div>
     </div>
-</div>
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Arguments</h4>
-        <ul>
-            <li><code>k</code> (int): The number of Goodman & Weare "walkers".</li>
-            <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
-            <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
-        </ul>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Arguments</h4>
+                <ul>
+                    <li><code>k</code> (int): The number of Goodman & Weare "walkers".</li>
+                    <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
+                    <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
+                </ul>
+            </div>
+        </div>
     </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Keyword Arguments</h4>
+                <ul>
+                    <li><code>a</code> (float): The proposal scale parameter. (default: <code>2.0</code>)</li>
+                    <li><code>args</code> (list): Optional list of extra arguments for <code>lnpostfn</code>. <code>lnpostfn</code> will be called with the sequence <code>lnpostfn(p, *args)</code>.</li>
+                    <li><code>postargs</code> (list): Alias of <code>args</code> for backwards compatibility.</li>
+                    <li><code>threads</code> (int): The number of threads to use for parallelization. If <code>threads == 1</code>, then the <code>multiprocessing</code> module is not used but if <code>threads > 1</code>, then a <code>Pool</code> object is created and calls to <code>lnpostfn</code> are run in parallel. (default: 1)</li>
+                    <li><code>pool</code> (multiprocessing.Pool): An alternative method of using the parallelized algorithm. If <code>pool is not None</code>, the value of <code>threads</code> is ignored and the provided <code>Pool</code> is used for all parallelization. (default: <code>None</code>)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Exceptions</h4>
+                <ul>
+                    <li><code>AssertionError</code>: If <code>k < 2*dim</code> or if <code>k</code> is not even.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Properties</h4>
+                <ul>
+                    <li><code>acceptance_fraction</code>: An array (length: <code>k</code>) of the fraction of steps accepted for each
+walker.</li>
+                    <li><code>acor</code>: The autocorrelation time of each parameter in the chain (length:
+<code>dim</code>) as estimated by the <code>acor</code> module.</li>
+                    <li><code>chain</code>: A pointer to the Markov chain itself. The shape of this array is
+<code>(k, dim, iterations)</code>.</li>
+                    <li><code>flatchain</code>: A shortcut for accessing chain flattened along the zeroth (walker)
+axis.</li>
+                    <li><code>lnprobability</code>: A pointer to the matrix of the value of <code>lnprobfn</code> produced at each
+step for each walker. The shape is <code>(k, iterations)</code>.</li>
+                    <li><code>random_state</code>: The state of the internal random number generator. In practice, it's
+the result of calling <code>get_state()</code> on a
+<code>numpy.random.mtrand.RandomState</code> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="methods">
+                <h4>Methods</h4>
+                <ul>
+                    <div class="method">
+    <h4><small>emcee.EnsembleSampler.</small>clear_chain <small>()</small></h4>
+    <p>An alias for <code>reset</code> kept for backwards compatibility.</p>
 </div>
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Keyword Arguments</h4>
-        <ul>
-            <li><code>a</code> (float): The proposal scale parameter. (default: `2.0`)</li>
-            <li><code>args</code> (list): Optional list of extra arguments for `lnpostfn`. `lnpostfn` will be called with the sequence `lnpostfn(p,</li>
-            <li><code>postargs</code> (list): Alias of `args` for backwards compatibility.</li>
-            <li><code>threads</code> (int): The number of threads to use for parallelization. If `threads == 1`, then the `multiprocessing` module is not used but if `threads > 1`, then a `Pool` object is created and calls to `lnpostfn` are run in parallel. (default: 1)</li>
-            <li><code>pool</code> (multiprocessing.Pool): An alternative method of using the parallelized algorithm. If `pool is not None`, the value of `threads` is ignored and the provided `Pool` is used for all parallelization. (default: `None`)</li>
-        </ul>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.EnsembleSampler.</small>get_lnprob <small>(p)</small></h4>
+    <p>Return the log-probability at the given position.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.EnsembleSampler.</small>reset <small>()</small></h4>
+    <p>Clear <code>chain</code>, <code>lnprobability</code> and the bookkeeping parameters.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.EnsembleSampler.</small>run_mcmc <small>(pos0, N, rstate0=None, lnprob0=None)</small></h4>
+    <p>Iterate sample for <code>N</code> iterations and return the result. The arguments
+are passed directly to <code>sample</code> so see the parameter details given in
+<code>sample</code>.</p>
+</div>
+<div class="method_args">
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.EnsembleSampler.</small>sample <small>(p0, lnprob0=None, rstate0=None, iterations=1, **kwargs)</small></h4>
+    <p>Advance the chain iterations steps as an iterator.</p>
+</div>
+<div class="method_args">
+        <div class="member">
+            <h5>Arguments</h5>
+            <ul>
+                <li><code>pos0</code> (numpy.ndarray): A list of the initial positions of the walkers in the parameter space. The shape is <code>(k, dim)</code>.</li>
+            </ul>
+        </div>
+        <div class="member">
+            <h5>Keyword Arguments</h5>
+            <ul>
+                <li><code>lnprob0</code> (numpy.ndarray): The list of log posterior probabilities for the walkers at positions given by <code>p0</code>. If <code>lnprob is None</code>, the initial values are calculated. The shape is <code>(k, dim)</code>.</li>
+                <li><code>rstate0</code> (tuple): The state of the random number generator. See the <code>Sampler.random_state</code> property for details.</li>
+                <li><code>iterations</code> (int): The number of steps to run. (default: 1)</li>
+            </ul>
+        </div>
+        <div class="member">
+            <h5>Yields</h5>
+            <ul>
+                <li><code>pos</code> (numpy.ndarray): A list of the current positions of the walkers in the parameter space. The shape is <code>(k, dim)</code>.</li>
+                <li><code>lnprob</code> (numpy.ndarray): The list of log posterior probabilities for the walkers at positions given by <code>pos</code>. The shape is <code>(k, dim)</code>.</li>
+                <li><code>rstate</code> (tuple): The state of the random number generator.</li>
+            </ul>
+        </div>
+</div>
+
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
 
-
-<div class="row">
-    <div class="span10 offset1">
-        <h3><small>emcee.</small>Ensemble <small>(sampler)</small></h3>
-        <p>A sub-ensemble object that actually does the heavy lifting of the
+<div class="api">
+    <div class="row">
+        <div class="span12">
+            <h3><small>emcee.</small>Ensemble <small>(sampler)</small></h3>
+            <p>A sub-ensemble object that actually does the heavy lifting of the
 likelihood calculations and proposals of a new position.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="member">
+                <h4>Arguments</h4>
+                <ul>
+                    <li><code>sampler</code> (Sampler): The sampler object that this sub-ensemble should be connected to.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <div class="methods">
+                <h4>Methods</h4>
+                <ul>
+                    <div class="method">
+    <h4><small>emcee.Ensemble.</small>get_lnprob <small>(pos=None)</small></h4>
+    <p>Calculate the vector of log-probability for the walkers.</p>
+</div>
+<div class="method_args">
+        <div class="member">
+            <h5>Keyword Arguments</h5>
+            <ul>
+                <li><code>pos</code> (numpy.ndarray): The position vector in parameter space where the probability should be calculated. This defaults to the current position unless a different one is provided.</li>
+            </ul>
+        </div>
+        <div class="member">
+            <h5>Returns</h5>
+            <ul>
+                <li><code>lnprob</code> (numpy.ndarray): A vector of log-probabilities with one entry for each walker in this sub-ensemble.</li>
+            </ul>
+        </div>
+</div>
+
+                    <div class="method">
+    <h4><small>emcee.Ensemble.</small>propose_position <small>(ensemble)</small></h4>
+    <p>Propose a new position for another ensemble given the current positions</p>
+</div>
+<div class="method_args">
+        <div class="member">
+            <h5>Arguments</h5>
+            <ul>
+                <li><code>ensemble</code> (Ensemble): The ensemble to be advanced.</li>
+            </ul>
+        </div>
+        <div class="member">
+            <h5>Returns</h5>
+            <ul>
+                <li><code>q</code> (numpy.array): The new proposed positions for the walkers in <code>ensemble</code>.</li>
+                <li><code>newlnprob</code> (numpy.ndarray): The vector of log-probabilities at the positions given by <code>q</code>.</li>
+                <li><code>accept</code> (numpy.ndarray): A vector of <code>bool</code>s indicating whether or not the proposed position for each walker should be accepted.</li>
+            </ul>
+        </div>
+</div>
+
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
-<div class="row">
-    <div class="span10 offset1">
-        <h4>Arguments</h4>
-        <ul>
-            <li><code>sampler</code> (Sampler): The sampler object that this sub-ensemble should be connected to.</li>
-        </ul>
-    </div>
-</div>
+
+<!-- END AUTOGEN API -->
 
             </section>
 
