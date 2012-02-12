@@ -1,0 +1,32 @@
+<div class="row">
+    <div class="span10 offset1">
+        <h3><small>emcee.</small>{{ name }} <small>({{ init_args }})</small></h3>
+        {{{ desc }}}
+    </div>
+</div>
+{{# has_args }}
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Arguments</h4>
+        <ul>
+            {{# args }}
+            <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+            {{/ args }}
+        </ul>
+    </div>
+</div>
+{{/ has_args }}
+{{# has_kwargs }}
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Keyword Arguments</h4>
+        <ul>
+            {{# kwargs }}
+            <li><code>{{ name }}</code> ({{ dtype }}): {{{ desc }}}</li>
+            {{/ kwargs }}
+        </ul>
+    </div>
+</div>
+{{/ has_kwargs }}
+
+

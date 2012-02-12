@@ -384,6 +384,81 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, mygaussian)</pre>
                     </div>
                 </div>
 
+<div class="row">
+    <div class="span10 offset1">
+        <h3><small>emcee.</small>Sampler <small>(dim, lnprobfn, args=[])</small></h3>
+        <p>An abstract sampler object that implements various helper functions</p>
+    </div>
+</div>
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Arguments</h4>
+        <ul>
+            <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
+            <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Keyword Arguments</h4>
+        <ul>
+            <li><code>args</code> (list): Optional list of extra arguments for `lnpostfn`. `lnpostfn` will be called with the sequence `lnpostfn(p,</li>
+        </ul>
+    </div>
+</div>
+
+
+
+<div class="row">
+    <div class="span10 offset1">
+        <h3><small>emcee.</small>EnsembleSampler <small>(k, *args, **kwargs)</small></h3>
+        <p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.</p>
+<p>This is a subclass of the <code>Sampler</code> object. See [[sampler.py#sampler]]
+for more details about the inherited properties.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Arguments</h4>
+        <ul>
+            <li><code>k</code> (int): The number of Goodman & Weare "walkers".</li>
+            <li><code>dim</code> (int): Number of dimensions in the parameter space.</li>
+            <li><code>lnpostfn</code> (callable): A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.</li>
+        </ul>
+    </div>
+</div>
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Keyword Arguments</h4>
+        <ul>
+            <li><code>a</code> (float): The proposal scale parameter. (default: `2.0`)</li>
+            <li><code>args</code> (list): Optional list of extra arguments for `lnpostfn`. `lnpostfn` will be called with the sequence `lnpostfn(p,</li>
+            <li><code>postargs</code> (list): Alias of `args` for backwards compatibility.</li>
+            <li><code>threads</code> (int): The number of threads to use for parallelization. If `threads == 1`, then the `multiprocessing` module is not used but if `threads > 1`, then a `Pool` object is created and calls to `lnpostfn` are run in parallel. (default: 1)</li>
+            <li><code>pool</code> (multiprocessing.Pool): An alternative method of using the parallelized algorithm. If `pool is not None`, the value of `threads` is ignored and the provided `Pool` is used for all parallelization. (default: `None`)</li>
+        </ul>
+    </div>
+</div>
+
+
+
+<div class="row">
+    <div class="span10 offset1">
+        <h3><small>emcee.</small>Ensemble <small>(sampler)</small></h3>
+        <p>A sub-ensemble object that actually does the heavy lifting of the
+likelihood calculations and proposals of a new position.</p>
+    </div>
+</div>
+<div class="row">
+    <div class="span10 offset1">
+        <h4>Arguments</h4>
+        <ul>
+            <li><code>sampler</code> (Sampler): The sampler object that this sub-ensemble should be connected to.</li>
+        </ul>
+    </div>
+</div>
+
             </section>
 
             <section id="faq">

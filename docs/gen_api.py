@@ -6,6 +6,7 @@ import re
 import inspect
 
 import pystache
+import markdown
 
 class DocstringParser(object):
     section_otag = "####"
@@ -20,7 +21,7 @@ class DocstringParser(object):
         tags = {'otag': re.escape(self.section_otag),
                 'ctag': re.escape(self.section_ctag)}
         self.section_re = re.compile(r"%(otag)s(.*)%(ctag)s"%tags)
-        self.pgroup_re  = re.compile(r"\s+?\*", re.M|re.S)
+        self.pgroup_re  = re.compile(r"\s+?\*\s", re.M|re.S)
         self.param_re   = re.compile(r"`(.*?)`.*?(\(.*?\))?:(.+)", re.M|re.S)
 
     def parse(self, obj):
@@ -138,6 +139,8 @@ class ObjectView(pystache.View):
             return dict([(k, self.escape(s[k])) for k in s])
         for c in self._echars:
             s = s.replace(c, "\\"+c)
+        s = s.replace("<", "\\texttt{<}")
+        s = s.replace(">", "\\texttt{>}")
         _tex_code = lambda s: "\code{" + s.group(0)[1:-1] + "}"
         s = self._tex_code_re.sub(_tex_code, s)
         return s
@@ -163,11 +166,40 @@ class MethodView(ObjectView):
     def escape(self, s):
         return s
 
+class HTMLView(ObjectView):
+    template_path = os.path.join("views", "html")
+
+    def escape(self, s):
+        return s
+
+    @property
+    def methods(self):
+        return [HTMLMethodView(m) for m in self._methods]
+
+    @property
+    def desc(self):
+        return markdown.markdown(self._vals["desc"])
+
+    # @property
+    # def args(self):
+    #     ret = self._vals["args"]
+    #     for i in range(len(ret)):
+            # ret[i]["desc"] = markdownret[i]["desc"])
+
+class HTMLMethodView(HTMLView):
+    template_name = "method"
+
 if __name__ == '__main__':
+    import sys
     import emcee
     parser = DocstringParser()
 
-    print ObjectView(parser.parse(emcee.Sampler)).render()
-    print ObjectView(parser.parse(emcee.EnsembleSampler)).render()
-    print ObjectView(parser.parse(emcee.ensemble.Ensemble)).render()
+    if "--html" in sys.argv or len(sys.argv) == 1:
+        print HTMLView(parser.parse(emcee.Sampler)).render()
+        print HTMLView(parser.parse(emcee.EnsembleSampler)).render()
+        print HTMLView(parser.parse(emcee.ensemble.Ensemble)).render()
+    if "--tex" in sys.argv or len(sys.argv) == 1:
+        print ObjectView(parser.parse(emcee.Sampler)).render()
+        print ObjectView(parser.parse(emcee.EnsembleSampler)).render()
+        print ObjectView(parser.parse(emcee.ensemble.Ensemble)).render()
 
