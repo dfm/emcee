@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>emcee - A Quickstart Guide</title>
+        <meta name="description" content="Kick-ass MCMC">
+        <meta name="author" content="Dan Foreman-Mackey">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <link href="../assets/prettify.css" type="text/css" rel="stylesheet" />
+        <link href="../assets/code.css" type="text/css" rel="stylesheet" />
+        <link rel="shortcut icon" href="../assets/favicon.png">
+
+        <script type="text/javascript" src="http://use.typekit.com/phg8fgl.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    </head>
+
+    <body>
+
+        <header>
+            Some sample code for <a href="http://danfm.ca/emcee">emcee</a>
+        </header>
+
+        <div id="code-container">
+            <pre class="prettyprint"># Take a look at: http://danfm.ca/emcee/#quickstart
+
+import numpy as np
+import emcee
+
+def lnprob(x, mu, icov):
+    diff = x-mu
+    return -np.dot(diff,np.dot(icov,diff))/2.0
+
+ndim = 10
+means = np.random.rand(ndim)
+cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
+cov  = np.triu(cov)
+cov += cov.T - np.diag(cov.diagonal())
+cov  = np.dot(cov,cov)
+icov = np.linalg.inv(cov)
+
+nwalkers = 100
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])
+
+pos, prob, state = sampler.run_mcmc(p0, 500)
+sampler.reset()
+
+sampler.run_mcmc(pos, 2000, rstate0=state)
+
+print &quot;Mean acceptance fraction:&quot;, np.mean(sampler.acceptance_fraction)
+
+try:
+    import matplotlib.pyplot as pl
+except ImportError:
+    print &quot;Try installing matplotlib to generate some sweet plots...&quot;
+else:
+    pl.hist(sampler.flatchain[:,0], 100)
+    pl.show()
+
+</pre>
+        </div>
+
+        <footer>
+            <p style="text-align: center;">&copy; 2012 <a href="http://danfm.ca">Dan Foreman-Mackey</a> et al., GPLv2 License</em></p>
+        </footer>
+
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        <script type="text/javascript" src="../assets/prettify.js"></script>
+        <script>$(function () { prettyPrint() })</script>
+
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-22909046-1']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                })();
+        </script>
+
+    </body>
+</html>
+
