@@ -270,7 +270,7 @@ at the simple but highly anisotropic density
     p(\mathbf{x}) \propto f \left (-\frac{(x_1-x_2)^2}{2\,\epsilon}
                                         - \frac{(x_1+x_2)^2}{2} \right )
 \end{equation}
-which would be considered difficult (in the low-$\epsilon$ regime) for
+which would be considered difficult (in the small-$\epsilon$ regime) for
 standard MCMC algorithms. In principle, it is possible to tune the
 hyperparameters of a M--H sampler to make this sampling converge quickly,
 but if the dimension is large and calculating the density
@@ -297,8 +297,8 @@ algorithm in astrophysics. The implementation presented here is
 an independent effort that has already proved effective in several projects
 \citep[][Foreman-Mackey \& Widrow\ 2012, in prep.]{Lang:2011,
 Bovy:2011, Dorman:2012}.
-In what follows, we summarize the Goodman--Weare
-algorithm and the implementation
+In what follows, we summarize the
+algorithm from \citetalias{Goodman:2010} and the implementation
 decisions made in \this. We also describe the small changes
 that must be made to the algorithm to parallelize it. Finally, in the
 Appendices, we outline the installation, usage and troubleshooting of
@@ -361,7 +361,7 @@ $Q(Y; X(t))$, (2) accept this proposal with probability
             \frac{Q(X(t); Y)}{ Q(Y;X(t))}  \right) \quad.
 \end{equation}
 It is worth emphasizing that if this step is accepted $X(t+1) = Y$; Otherwise,
-the new position is set to the previous one $X(t+1) \gets X(t)$ (in other
+the new position is set to the previous one $X(t+1) = X(t)$ (in other
 words, the position $X(t)$ is \emph{repeated in the chain}).
 
 The M--H algorithm converges (as $t \to \infty$) to a stationary set of
@@ -410,7 +410,7 @@ simultaneously evolving an ensemble of $K$ \emph{walkers}
 $\ensemble = \{ \vector{X_k} \}$ where the proposal
 distribution for one walker $k$ is based on the current positions of the
 $K-1$ walkers in the \emph{complementary ensemble}
-$\ensemble_{[k]} = \{ \vector{X_j}, \forall j \ne k \}$. Here, ``position''
+$\ensemble_{[k]} = \{ \vector{X_j}, \, \forall j \ne k \}$. Here, ``position''
 refers to a vector in the $N$-dimensional, real-valued parameter space.
 
 
@@ -481,8 +481,8 @@ simultaneously advancing each walker based on the state of the ensemble
 instead of evolving the walkers in series. Unfortunately, this subtly
 violates detailed balance. Instead, we must split the full ensemble
 into two subsets
-($\red = \{ \vector{X_k} \, \forall k = 1, \ldots, K/2 \}$ and
-$\blue = \{ \vector{X_k} \, \forall k = K/2+1, \ldots, K \}$) and
+($\red = \{ \vector{X_k}, \, \forall k = 1, \ldots, K/2 \}$ and
+$\blue = \{ \vector{X_k}, \, \forall k = K/2+1, \ldots, K \}$) and
 simultaneously update all the walkers in $\red$
 --- using the stretch move procedure from \algo{goodman} ---
 based \emph{only} on the positions of the walkers in the other set
@@ -586,8 +586,8 @@ time
 In practice, one can estimate $C_f (T)$ for a Markov chain of $M$ samples as
 \begin{equation}
     C_f (T) \approx \frac{1}{M-T} \sum_{m=1}^{M-T}
-        \left [ f(X(T+m)) - E[f] \right ] \,
-        \left [ f(X(m)) - E[f] \right ].
+        \left [ f(X(T+m)) - \expect{f} \right ] \,
+        \left [ f(X(m)) - \expect{f} \right ].
 \end{equation}
 
 We advocate for the autocorrelation time as a measure of sampler
@@ -823,21 +823,20 @@ Cambridge University Press, 2007
 \section{Installation}\sectlabel{install}
 
 The easiest way to install \this\ is using
-\pip\footnote{\url{http://pypi.python.org/pypi/pip/}}. Running the command
+\pip\footnote{\url{http://pypi.python.org/pypi/pip}}. Running the command
 \begin{lstlisting}
 % pip install emcee
 \end{lstlisting}
-at the command line of a UNIX-based system will install the package and its
-\Python\ dependencies. If you would like to install for all users, you might
-need to run the above command with superuser permissions. \this\ depends on
-\Python\ ($\ge2.7$) and \numpy\footnote{\url{http://numpy.scipy.org}} ($\ge1.6$)
-and the associated \code{dev} headers. On some systems, you might need to
-install the \code{dev} packages separately. On most systems where \Python\ has
-already been installed, this won't be necessary but if it is, you can install
-dependencies (on \Ubuntu, for example) with the command:
-\begin{lstlisting}
-% apt-get python python-dev numpy numpy-dev
-\end{lstlisting}
+at the command line of a UNIX-based system will install the package in your
+\Python\ path.
+If you would like to install for all users, you might
+need to run the above command with superuser permissions.
+In order to use \this, you must also have
+\numpy\footnote{\url{http://numpy.scipy.org}} installed (this can also be
+achieved using \pip\ on most systems).
+\this\ has been
+tested with \Python\ 2.7 and \numpy\ 1.6
+but it is likely to work with earlier versions of both of these as well.
 
 An alternative installation method is to download the source code from
 \url{http://danfm.ca/emcee} and run
@@ -883,7 +882,7 @@ the performance of the code on a high-dimensional Gaussian density
 \end{equation}
 We will incrementally work through this example here and the source code
 is available online.%
-\footnote{\url{http://danfm.ca/emcee/quickstart/}}
+\footnote{\url{http://danfm.ca/emcee/quickstart}}
 
 First, import the necessary packages and define the function that calculates
 the logarithm of \eq{mgauss}.
@@ -932,6 +931,7 @@ of the burn-in chain.
 sampler.reset()
 sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{lstlisting}
+From here, you can begin the post-processing procedure.
 
 \subsection{The Rosenbrock density}
 
@@ -949,7 +949,7 @@ context but in more complicated problems where the likelihood calculation
 requires significant amounts of structured data, this approach can be
 quite beneficial. Also, we use the multiprocessing capabilities of this
 parallelized algorithm. Again, the full source code is available online.%
-\footnote{\url{http://danfm.ca/emcee/rosenbrock/}}
+\footnote{\url{http://danfm.ca/emcee/rosenbrock}}
 
 First, define the density.
 \begin{lstlisting}
