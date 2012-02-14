@@ -931,7 +931,26 @@ of the burn-in chain.
 sampler.reset()
 sampler.run_mcmc(pos, 2000, rstate0=state)
 \end{lstlisting}
-From here, you can begin the post-processing procedure.
+From here, you can begin the post-processing procedure. To plot a
+histogram of the samples for a particular parameter $i$, you can
+get a list of the samples using
+\begin{lstlisting}
+samples = sampler.flatchain[:,i]
+\end{lstlisting}
+\code{samples} will now be a \numpy\ array with one entry for each step in
+the chain. The acceptance fractions (one for each walker in the ensemble)
+is given by
+\begin{lstlisting}
+af = sampler.acceptance_fraction
+\end{lstlisting}
+and the overall acceptance fraction is \texttt{af.mean()}. If you install
+the \acor\ package\footnote{\url{http://github.com/dfm/acor}}, then the
+autocorrelation time of the chain is given by
+\begin{lstlisting}
+tau = sampler.acor
+\end{lstlisting}
+\code{tau} is now a list with one entry for each parameter (the
+integrated autocorrelation time for that parameter).
 
 \subsection{The Rosenbrock density}
 
@@ -963,7 +982,6 @@ class Rosenbrock(object):
 
     def __call__(self, p):
         return -(self.a1 * (p[1]-p[0]**2)**2 + (1-p[0])**2)/self.a2
-
 \end{lstlisting}
 Then make an initial guess for the optimal position and set up the sampler
 (using 10 CPUs to compute the likelihoods in parallel).
@@ -990,6 +1008,12 @@ f.close()
 \clearpage
 
 \section{API}\sectlabel{api}
+
+The detailed structure of the API with all the available options
+is given below and the human-readable annotated source code is available
+online\footnote{\url{http://danfm.ca/emcee/\#src}}.
+
+\vspace{1.2cm}
 
 \fontsize{9pt}{1}\selectfont
 
@@ -1108,7 +1132,7 @@ are passed directly to \code{sample} so see the parameter details given in
 
 \end{methods}
 
-
+\newpage
 \class{Ensemble}{sampler}{A sub-ensemble object that actually does the heavy lifting of the
 likelihood calculations and proposals of a new position.}
 
