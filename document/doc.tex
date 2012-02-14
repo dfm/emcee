@@ -997,7 +997,7 @@ writing atomically to a binary format (for example, \project{HDF5}\ or
 workflow for the output.
 \begin{lstlisting}
 f = open("rosenbrock.out", "w")
-for pos, lnprob, rstate in sampler.sample(np.array(p0), iterations=500):
+for pos, lnprob, rstate in sampler.sample(p0, iterations=500):
     # Write the current position to a file, one line per walker
     f.write("\n".join(["\t".join([str(q) for q in p]) for p in pos]))
     f.write("\n")
