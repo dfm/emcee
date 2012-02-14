@@ -8,6 +8,7 @@
 <body>
 <div id="background"></div>
 <div id='container'>
+  
   <div class='section'>
     <div class='docs'><h1>tests.py</h1></div>
   </div>
@@ -30,8 +31,7 @@
 <span class="n">logprecision</span> <span class="o">=</span> <span class="o">-</span><span class="mi">4</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-1'>
+  <div class='clearall'></div><div class='section' id='section-1'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
@@ -43,8 +43,7 @@
     <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">icov</span><span class="p">,</span><span class="n">x</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-2'>
+  <div class='clearall'></div><div class='section' id='section-2'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
@@ -55,8 +54,7 @@
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">Tests</span><span class="p">:</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-3'>
+  <div class='clearall'></div><div class='section' id='section-3'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
@@ -81,8 +79,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span><span class="mi">100000</span><span class="p">)</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-4'>
+  <div class='clearall'></div><div class='section' id='section-4'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
@@ -106,8 +103,7 @@
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">maxdiff</span><span class="p">)</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-5'>
+  <div class='clearall'></div><div class='section' id='section-5'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
@@ -120,8 +116,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='clearall'></div><div class='section' id='section-6'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
@@ -134,8 +129,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">check_sampler</span><span class="p">()</span></pre></div>
     </div>
   </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='clearall'></div><div class='section' id='section-7'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-7'>#</a>
