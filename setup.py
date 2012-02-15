@@ -9,7 +9,7 @@ setup(
     url="http://danfm.ca/emcee/",
     license="GPL",
     description="Kick ass affine-invariant ensemble MCMC sampling",
-    long_description="Read the docs at http://danfm.ca/emcee/",
+    long_description="Read the documentation online at http://danfm.ca/emcee/",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
