@@ -352,6 +352,12 @@ $Q(Y; X(t))$, (2) accept this proposal with probability
             \frac{\pr{\vector{Y} | \data}}{\pr{\vector{X}(t) | \data}} \,
             \frac{Q(X(t); Y)}{ Q(Y;X(t))}  \right) \quad.
 \end{equation}
+The transition distribution $Q(Y; X(t))$ is an
+easy-to-sample probability distribution for the proposal $Y$ given
+a position $X(t)$.
+A common parameterization of $Q(Y; X(t))$ is a multivariate Gaussian
+distribution centered on $X(t)$ with a general covariance tensor that has
+been tuned for performance.
 It is worth emphasizing that if this step is accepted $X(t+1) = Y$; Otherwise,
 the new position is set to the previous one $X(t+1) = X(t)$ (in other
 words, the position $X(t)$ is \emph{repeated in the chain}).
@@ -731,7 +737,9 @@ be useful, or might require clever or interesting improvements.  The
 
 \acknowledgments It is a pleasure to thank Jo Bovy (IAS), Andrew
 Gelman (Columbia), Fengji Hou (NYU), and Larry Widrow (Queen's) for
-helpful contributions to the ideas and code presented here.
+helpful contributions to the ideas and code presented here. We would also
+like to thank Eric Agol (UW) for pointing out an important typo in the
+first version of this \paper.
 \this\ makes use of the open-source Python \numpy\ package.
 
 \nonumberparagraphs
