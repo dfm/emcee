@@ -379,7 +379,7 @@ autocorrelation time.
         / [\pr{\vector{X}(t)} \, Q(Y;X(t))]$%
             \hspace{1cm}{\footnotesize\it // This line is generally expensive}
 \STATE $r \gets R \sim [0, 1]$
-\IF{$r \ge q$}
+\IF{$r \le q$}
     \STATE $\vector{X}(t+1) \gets \vector{Y}$
 \ELSE
     \STATE $\vector{X}(t+1) \gets \vector{X}(t)$
@@ -456,7 +456,7 @@ to 2.
     \STATE $q \gets z^{N-1} \, p(Y)/p(X_k(t))$ \label{line:hard}%
         \hspace{1cm}{\footnotesize\it // This line is generally expensive}
     \STATE $r \gets R \sim [0, 1]$
-    \IF{$r \ge q$, \eq{acceptance}}
+    \IF{$r \le q$, \eq{acceptance}}
         \STATE $X_k(t+1) \gets Y$
     \ELSE
         \STATE $X_k(t+1) \gets X_k(t)$
@@ -508,7 +508,7 @@ extremely powerful.
                 + z \, [ \vector{X_k} (t) - \vector{X_j}]$
         \STATE $q \gets z^{n-1} \, p(\vector{Y})/p(\vector{X}_k(t))$
         \STATE $r \gets R \sim [0, 1]$
-        \IF{$r \ge q$, \eq{acceptance}}
+        \IF{$r \le q$, \eq{acceptance}}
             \STATE $\vector{X_k} (t+\frac{1}{2}) \gets \vector{Y}$
         \ELSE
             \STATE $\vector{X_k} (t+\frac{1}{2}) \gets \vector{X_k}(t)$
