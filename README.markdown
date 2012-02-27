@@ -2,6 +2,8 @@ emcee
 =====
 **The Python ensemble sampling toolkit for affine-invariant MCMC**
 
+[![Build Status](https://secure.travis-ci.org/dfm/emcee.png?branch=master)](http://travis-ci.org/dfm/emcee)
+
 emcee is a stable, well tested Python implementation of the affine-invariant
 ensemble sampler for Markov chain Monte Carlo (MCMC)
 proposed by
