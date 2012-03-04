@@ -70,7 +70,8 @@ class EnsembleSampler(Sampler):
         self.pool    = kwargs.pop("pool", None)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
-        assert self.k%2 == 0 and self.k >= 2*self.dim
+        if not kwargs.pop('live_dangerously', False):
+            assert self.k%2 == 0 and self.k >= 2*self.dim
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
