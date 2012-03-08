@@ -69,8 +69,10 @@ class EnsembleSampler(Sampler):
         self.threads = int(kwargs.pop("threads", 1))
         self.pool    = kwargs.pop("pool", None)
 
+        dangerous = kwargs.pop('live_dangerously', False)
+
         super(EnsembleSampler, self).__init__(*args, **kwargs)
-        if not kwargs.pop('live_dangerously', False):
+        if not dangerous:
             assert self.k%2 == 0 and self.k >= 2*self.dim
 
         if self.threads > 1 and self.pool is None:
