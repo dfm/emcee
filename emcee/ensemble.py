@@ -203,7 +203,7 @@ class EnsembleSampler(Sampler):
         s = self.dim
         t = np.zeros(s)
         for i in range(s):
-            t[i] = acor.acor(self.chain[:,:,i].T)[0]
+            t[i] = acor.acor(self.chain[:,:,i])[0]
         return t
 
 class _function_wrapper(object):
