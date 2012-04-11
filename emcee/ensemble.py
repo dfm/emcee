@@ -68,10 +68,10 @@ class EnsembleSampler(Sampler):
         self.a       = kwargs.pop("a", 2.0)
         self.threads = int(kwargs.pop("threads", 1))
         self.pool    = kwargs.pop("pool", None)
-
         dangerous = kwargs.pop('live_dangerously', False)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
+        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args)
         if not dangerous:
             assert self.k%2 == 0 and self.k >= 2*self.dim
 
@@ -89,7 +89,6 @@ class EnsembleSampler(Sampler):
     def reset(self):
         """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
         super(EnsembleSampler, self).reset()
-        self.ensembles = [Ensemble(self), Ensemble(self)]
         self.naccepted = np.zeros(self.k)
         self._chain  = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
@@ -132,24 +131,15 @@ class EnsembleSampler(Sampler):
         # its current state.
         self.random_state = rstate0
 
-        # Split the ensemble in half and assign the positions to the two
-        # `Ensemble`s.
+        # Split the ensemble in half
         p = np.array(p0)
         halfk = int(self.k/2)
-        self.ensembles[0].pos = p[:halfk]
-        self.ensembles[1].pos = p[halfk:]
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
         lnprob = lnprob0
-        if lnprob is not None:
-            self.ensembles[0].lnprob = lnprob[:halfk]
-            self.ensembles[1].lnprob = lnprob[halfk:]
-        else:
-            lnprob = np.zeros(self.k)
-            for k, ens in enumerate(self.ensembles):
-                ens.lnprob = ens.get_lnprob()
-                lnprob[halfk*k:halfk*(k+1)] = ens.lnprob
+        if lnprob is None:
+            lnprob = self._getlnprob(p)
 
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
@@ -166,31 +156,27 @@ class EnsembleSampler(Sampler):
 
             if mh_proposal is not None:
                 q = mh_proposal(p)
-                newlnp = self.ensembles[0].get_lnprob(q)
+                newlnp = self._getlnprob(q)
                 acc = (newlnp > lnprob)
                 # For the steps that got worse, we sometimes accept...
                 worse = np.flatnonzero(acc == False)
-                acc[worse] = ((newlnp[worse] - lnprob[worse]) > np.log(self._random.rand(len(worse))))
+                acc[worse] = ((newlnp[worse] - lnprob[worse]) >
+                              np.log(self._random.rand(len(worse))))
                 del worse
                 lnprob[acc] = newlnp[acc]
                 p[acc] = q[acc]
                 self.naccepted[acc] += 1
-                self.ensembles[0].pos = p[:halfk]
-                self.ensembles[1].pos = p[halfk:]
-                self.ensembles[0].lnprob = lnprob[:halfk]
-                self.ensembles[1].lnprob = lnprob[halfk:]
-                
+
             else:
                 # Loop over the two ensembles, calculating the proposed positions.
-                for e1,e0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
-                    q,newlnp,acc = self.ensembles[e1].propose_position(self.ensembles[e0])
+                S = [slice(halfk), slice(halfk, self.k)]
+                for S0,S1 in [(S[0],S[1]), (S[1],S[0])]:
+                    q,newlnp,acc = self._propose_stretch(p[S0], p[S1], lnprob[S0])
                     if np.any(acc):
-                        # Update the `Ensemble`'s walker positions.
-                        lnprob[half][acc] = newlnp[acc]
-                        p[half][acc] = q[acc]
-                        self.naccepted[half][acc] += 1
-                        self.ensembles[e0].pos[acc] = q[acc]
-                        self.ensembles[e0].lnprob[acc] = newlnp[acc]
+                        # Update the positions
+                        lnprob[S0][acc] = newlnp[acc]
+                        p[S0][acc] = q[acc]
+                        self.naccepted[S0][acc] += 1
                 
             if storechain and i%thin== 0:
                 ind = i0 + int(i/thin)
@@ -226,6 +212,73 @@ class EnsembleSampler(Sampler):
             t[i] = acor.acor(self.chain[:,:,i])[0]
         return t
 
+    def _map(self, func, iterable):
+        """ Dispatch to the `pool' for parallel map, or the builtin. """
+        if self.pool is not None:
+            M = self.pool.map
+        else:
+            M = map
+        return M(func, iterable)
+
+    def _getlnprob(self, p):
+        """
+        Calculate the vector of log-probability for the walkers.
+
+        #### Keyword Arguments
+
+        * `pos` (numpy.ndarray): The position vector in parameter space where
+          the probability should be calculated. This defaults to the current
+          position unless a different one is provided.
+
+        #### Returns
+
+        * `lnprob` (numpy.ndarray): A vector of log-probabilities with one
+          entry for each walker in this sub-ensemble.
+
+        """
+        return np.array(self._map(self.lnprobfn, p))
+
+    def _propose_stretch(self, p0, p1, lnprob0):
+        """
+        Propose a new position for one ensemble given another
+
+        #### Arguments
+
+        * `p0`: (numpy array): The positions from which to jump
+        * `lnprob0': (numpy array): The ln-probs at p0
+        * `p1`: (numpy array): The other ensemble
+
+        #### Returns
+
+        * `q` (numpy.array): The new proposed positions for the walkers in
+          `p0`.
+        * `newlnprob` (numpy.ndarray): The vector of log-probabilities at
+          the positions given by `q`.
+        * `accept` (numpy.ndarray): A vector of `bool`s indicating whether or
+          not the proposed position for each walker should be accepted.
+
+        """
+        s = np.atleast_2d(p0)
+        Ns = len(s)
+        c = np.atleast_2d(p1)
+        Nc = len(c)
+
+        # Generate the vectors of random numbers that will produce the
+        # proposal.
+        zz = ((self.a - 1.) * self._random.rand(Ns) + 1)**2. / self.a
+        rint = self._random.randint(Nc, size=(Ns,))
+
+        # Calculate the proposed positions
+        q = c[rint] - zz[:,np.newaxis] * (c[rint] - s)
+        # ... and the log-probability there.
+        newlnprob = self._getlnprob(q)
+
+        # Decide whether or not the proposals should be accepted.
+        lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
+        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
+        return q, newlnprob, accept
+        
+
 class _function_wrapper(object):
     """
     This is a hack to make the likelihood function pickleable when `args` are
@@ -247,98 +300,3 @@ class _function_wrapper(object):
             traceback.print_exc()
             raise
 
-# === Ensemble ===
-class Ensemble(object):
-    """
-    A sub-ensemble object that actually does the heavy lifting of the
-    likelihood calculations and proposals of a new position.
-
-    #### Arguments
-
-    * `sampler` (Sampler): The sampler object that this sub-ensemble should
-      be connected to.
-
-    """
-
-    def __init__(self, sampler):
-        self.sampler = sampler
-        # Do a little bit of _magic_ to make the likelihood call with
-        # `args` pickleable.
-        self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
-
-    def get_lnprob(self, pos=None):
-        """
-        Calculate the vector of log-probability for the walkers.
-
-        #### Keyword Arguments
-
-        * `pos` (numpy.ndarray): The position vector in parameter space where
-          the probability should be calculated. This defaults to the current
-          position unless a different one is provided.
-
-        #### Returns
-
-        * `lnprob` (numpy.ndarray): A vector of log-probabilities with one
-          entry for each walker in this sub-ensemble.
-
-        """
-        if pos is None:
-            p = self.pos
-        else:
-            p = pos
-
-        # If the `pool` property of the sampler has been set (i.e. we want
-        # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
-        # just use the built-in `map` function.
-        if self.sampler.pool is not None:
-            M = self.sampler.pool.map
-        else:
-            M = map
-
-        # Calculate the probabilities.
-        lnprob = np.array(M(self.lnprobfn, p))
-        #[p[i] for i in range(len(p))]
-
-        return lnprob
-
-    def propose_position(self, ensemble):
-        """
-        Propose a new position for another ensemble given the current positions
-
-        #### Arguments
-
-        * `ensemble` (Ensemble): The ensemble to be advanced.
-
-        #### Returns
-
-        * `q` (numpy.array): The new proposed positions for the walkers in
-          `ensemble`.
-        * `newlnprob` (numpy.ndarray): The vector of log-probabilities at
-          the positions given by `q`.
-        * `accept` (numpy.ndarray): A vector of `bool`s indicating whether or
-          not the proposed position for each walker should be accepted.
-
-        """
-        s = np.atleast_2d(ensemble.pos)
-        Ns = len(s)
-        c = np.atleast_2d(self.pos)
-        Nc = len(c)
-
-        # Generate the vectors of random numbers that will produce the
-        # proposal.
-        zz = ((self.sampler.a - 1.) * self.sampler._random.rand(Ns) + 1)**2.\
-                / self.sampler.a
-        rint = self.sampler._random.randint(Nc, size=(Ns,))
-
-        # Calculate the proposed positions and the log-probability there.
-        q = c[rint] - zz[:,np.newaxis]*(c[rint]-s)
-        newlnprob = ensemble.get_lnprob(q)
-
-        # Decide whether or not the proposals should be accepted.
-        lnpdiff = (self.sampler.dim - 1.) * np.log(zz) \
-                + newlnprob - ensemble.lnprob
-        accept = (lnpdiff > np.log(self.sampler._random.rand(len(lnpdiff))))
-
-        return q, newlnprob, accept
-
-        
