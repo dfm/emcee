@@ -7,7 +7,7 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
-__all__ = ['EnsembleSampler']
+__all__ = ['EnsembleSampler', 'MH_proposal_axisaligned']
 
 import multiprocessing
 import numpy as np
@@ -154,11 +154,15 @@ class EnsembleSampler(Sampler):
         for i in xrange(int(iterations)):
             self.iterations += 1
 
+            # If we were passed a Metropolis-Hastings proposal
+            # function, use it.
             if mh_proposal is not None:
+                # Draw proposed positions & evaluate lnprob there
                 q = mh_proposal(p)
                 newlnp = self._getlnprob(q)
+                # Accept if newlnp is better; and ...
                 acc = (newlnp > lnprob)
-                # For the steps that got worse, we sometimes accept...
+                # ... sometimes accept for steps that got worse
                 worse = np.flatnonzero(acc == False)
                 acc[worse] = ((newlnp[worse] - lnprob[worse]) >
                               np.log(self._random.rand(len(worse))))
@@ -169,11 +173,12 @@ class EnsembleSampler(Sampler):
 
             else:
                 # Loop over the two ensembles, calculating the proposed positions.
-                S = [slice(halfk), slice(halfk, self.k)]
-                for S0,S1 in [(S[0],S[1]), (S[1],S[0])]:
+                # Slices for the first and second halves
+                first,second = slice(halfk), slice(halfk, self.k)
+                for S0,S1 in [(first,second), (second,first)]:
                     q,newlnp,acc = self._propose_stretch(p[S0], p[S1], lnprob[S0])
                     if np.any(acc):
-                        # Update the positions
+                        # Update the positions, lnprobs, and acceptance counts
                         lnprob[S0][acc] = newlnp[acc]
                         p[S0][acc] = q[acc]
                         self.naccepted[S0][acc] += 1
@@ -300,3 +305,14 @@ class _function_wrapper(object):
             traceback.print_exc()
             raise
 
+class MH_proposal_axisaligned(object):
+    """
+    A Metropolis-Hastings proposal, with axis-aligned Gaussian steps,
+    for convenient use as the 'mh_proposal' option to EnsembleSampler.sample.
+    """
+    def __init__(self, stdev):
+        self.stdev = stdev
+    def __call__(self, X):
+        (nw,npar) = X.shape
+        assert(len(self.stdev) == npar)
+        return X + self.stdev * np.random.normal(size=X.shape)
