@@ -164,22 +164,16 @@ class EnsembleSampler(Sampler):
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
-            for k, ens in enumerate(self.ensembles):
-                q, newlnprob, accept = \
-                        self.ensembles[(k+1)%2].propose_position(ens)
-                fullaccept = np.zeros(self.k,dtype=bool)
-                fullaccept[halfk*k:halfk*(k+1)] = accept
-
-                # Update the `Ensemble`'s walker positions.
-                if np.any(accept):
-                    lnprob[fullaccept] = newlnprob[accept]
-                    p[fullaccept] = q[accept]
-
-                    ens.pos[accept] = q[accept]
-                    ens.lnprob[accept] = newlnprob[accept]
-
-                    self.naccepted[fullaccept] += 1
-
+            for i1,i0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
+                q,newlnp,acc = self.ensembles[i1].propose_position(self.ensembles[i0])
+                if np.any(acc):
+                    # Update the `Ensemble`'s walker positions.
+                    lnprob[half][acc] = newlnp[acc]
+                    p[half][acc] = q[acc]
+                    self.naccepted[half][acc] += 1
+                    self.ensembles[i0].pos[acc] = q[acc]
+                    self.ensembles[i0].lnprob[acc] = lnp[acc]
+                
             if storechain and i%thin== 0:
                 ind = i0 + int(i/thin)
                 self._chain[:,ind,:] = p
