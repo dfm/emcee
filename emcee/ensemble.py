@@ -128,7 +128,7 @@ class EnsembleSampler(Sampler):
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
         # we'll just interpret any garbage as letting the generator stay in
-        # it's current state.
+        # its current state.
         self.random_state = rstate0
 
         # Split the ensemble in half and assign the positions to the two
@@ -164,15 +164,15 @@ class EnsembleSampler(Sampler):
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
-            for i1,i0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
-                q,newlnp,acc = self.ensembles[i1].propose_position(self.ensembles[i0])
+            for e1,e0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
+                q,newlnp,acc = self.ensembles[e1].propose_position(self.ensembles[e0])
                 if np.any(acc):
                     # Update the `Ensemble`'s walker positions.
                     lnprob[half][acc] = newlnp[acc]
                     p[half][acc] = q[acc]
                     self.naccepted[half][acc] += 1
-                    self.ensembles[i0].pos[acc] = q[acc]
-                    self.ensembles[i0].lnprob[acc] = lnp[acc]
+                    self.ensembles[e0].pos[acc] = q[acc]
+                    self.ensembles[e0].lnprob[acc] = lnp[acc]
                 
             if storechain and i%thin== 0:
                 ind = i0 + int(i/thin)
