@@ -78,6 +78,14 @@ class EnsembleSampler(Sampler):
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
 
+	@staticmethod
+	def sampleBall(p0, stdev, nw):
+		'''Produce a ball of walkers around an initial parameter value 'p0'
+		with axis-aligned standard deviation 'stdev', for 'nw' walkers.'''
+		assert(len(p0) == len(stdev))
+		return np.vstack([p0 + stdev * np.random.normal(size=len(p0))
+						  for i in range(nw)])
+
     def reset(self):
         """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
         super(EnsembleSampler, self).reset()
