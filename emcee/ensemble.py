@@ -124,6 +124,7 @@ class EnsembleSampler(Sampler):
         """
         storechain = kwargs.pop("storechain", True)
         thin = kwargs.pop("thin", 1)
+        mh_proposal = kwargs.pop('mh_proposal', None)
 
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
@@ -163,16 +164,33 @@ class EnsembleSampler(Sampler):
         for i in xrange(int(iterations)):
             self.iterations += 1
 
-            # Loop over the two ensembles, calculating the proposed positions.
-            for e1,e0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
-                q,newlnp,acc = self.ensembles[e1].propose_position(self.ensembles[e0])
-                if np.any(acc):
-                    # Update the `Ensemble`'s walker positions.
-                    lnprob[half][acc] = newlnp[acc]
-                    p[half][acc] = q[acc]
-                    self.naccepted[half][acc] += 1
-                    self.ensembles[e0].pos[acc] = q[acc]
-                    self.ensembles[e0].lnprob[acc] = lnp[acc]
+            if mh_proposal is not None:
+                q = mh_proposal(p)
+                newlnp = self.ensembles[0].get_lnprob(q)
+                acc = (newlnp > lnprob)
+                # For the steps that got worse, we sometimes accept...
+                worse = np.flatnonzero(acc == False)
+                acc[worse] = ((newlnp[worse] - lnprob[worse]) > np.log(self._random.rand(len(worse))))
+                del worse
+                lnprob[acc] = newlnp[acc]
+                p[acc] = q[acc]
+                self.naccepted[acc] += 1
+                self.ensembles[0].pos = p[:halfk]
+                self.ensembles[1].pos = p[halfk:]
+                self.ensembles[0].lnprob = lnprob[:halfk]
+                self.ensembles[1].lnprob = lnprob[halfk:]
+                
+            else:
+                # Loop over the two ensembles, calculating the proposed positions.
+                for e1,e0,half in zip([1,0], [0,1], [slice(halfk), slice(halfk, self.k)]):
+                    q,newlnp,acc = self.ensembles[e1].propose_position(self.ensembles[e0])
+                    if np.any(acc):
+                        # Update the `Ensemble`'s walker positions.
+                        lnprob[half][acc] = newlnp[acc]
+                        p[half][acc] = q[acc]
+                        self.naccepted[half][acc] += 1
+                        self.ensembles[e0].pos[acc] = q[acc]
+                        self.ensembles[e0].lnprob[acc] = newlnp[acc]
                 
             if storechain and i%thin== 0:
                 ind = i0 + int(i/thin)
@@ -278,8 +296,8 @@ class Ensemble(object):
             M = map
 
         # Calculate the probabilities.
-        lnprob = np.array(M(self.lnprobfn, [p[i]
-                    for i in range(len(p))]))
+        lnprob = np.array(M(self.lnprobfn, p))
+        #[p[i] for i in range(len(p))]
 
         return lnprob
 
@@ -323,3 +341,4 @@ class Ensemble(object):
 
         return q, newlnprob, accept
 
+        
