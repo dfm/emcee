@@ -132,7 +132,7 @@ class Sampler(object):
         raise NotImplementedError("The sampling routine must be implemented "\
                 "by subclasses")
 
-    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None):
+    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None, **kwargs):
         """
         Iterate sample for `N` iterations and return the result. The arguments
         are passed directly to `sample` so see the parameter details given in
@@ -144,7 +144,7 @@ class Sampler(object):
 
         """
         for pos,lnprob,state in self.sample(pos0, lnprob0, rstate0,
-                                          iterations=N):
+                                          iterations=N, **kwargs):
             pass
         return pos,lnprob,state
 
