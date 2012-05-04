@@ -1,5 +1,16 @@
-"""EMCEE example which gets probabilties from a set of external
-processes, rather than from a Python function.
+"""An emcee example which gets probabilties from a set of external
+processes, rather than from a Python function. We use a Pool-like
+object which provides map to pass to emcee.
+
+This example starts the remote() method of itself in different
+processes to compute the lnprob. The remote process returns the
+probability for a chi2 fit of a+b*x to some data.
+
+Note that by using a command line using the "ssh" command, this
+example can be extended to run on many computers simultaneously.
+
+Also note that the reliance on select.Poll means this will not work on
+Windows.
 
 Jeremy Sanders 2012
 """
@@ -10,16 +21,17 @@ import atexit
 import collections
 import os
 import sys
+import re
 
 import numpy as np
 import emcee
 
 # make sure pools are finished at end
 _pools = []
-def _finishPools():
+def _finish_pools():
     while len(_pools) > 0:
         _pools[0].finish()
-atexit.register(_finishPools)
+atexit.register(_finish_pools)
 
 class Pool(object):
     """Pool object manages external commands and sends and receives
@@ -41,7 +53,7 @@ class Pool(object):
             p = subprocess.Popen(cmd,
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE)
-            self.initSubprocess(p)
+            self.init_subprocess(p)
             self.popens.append(p)
 
             fd = p.stdout.fileno()
@@ -56,7 +68,7 @@ class Pool(object):
         # tell processes to finish
         for p in self.popens:
             self.poll.unregister(p.stdout.fileno())
-            self.closeSubprocess(p)
+            self.close_subprocess(p)
         # wait until they have closed
         for p in self.popens:
             p.wait()
@@ -64,15 +76,17 @@ class Pool(object):
         # make sure we don't finish twice
         del _pools[ _pools.index(self) ]
 
-    def initSubprocess(self, popen):
+    def init_subprocess(self, popen):
         """Initialise the subprocess given by popen.
-        Override this."""
+        Override this if required."""
 
-    def closeSubprocess(self, popen):
-        """Finish process given by popen."""
+    def close_subprocess(self, popen):
+        """Finish process given by popen.
+        Override this if required
+        """
         popen.stdin.close()
 
-    def sendParameters(self, popen, params):
+    def send_parameters(self, popen, params):
         """Send parameters to remote subprocess.
         By default just writes a line with parameters + \n
 
@@ -82,30 +96,37 @@ class Pool(object):
         popen.stdin.write(txt + '\n')
         popen.stdin.flush()
 
-    def getLnProb(self, popen):
+    def identify_lnprob(self, text):
+        """Is the log probability in this text from the remote
+        process. Return value if yes, or None.
+
+        Override this
+        """
+        if text[-1] != '\n':
+            return None
+        try:
+            return float(text.strip())
+        except ValueError:
+            return None
+
+    def get_lnprob(self, popen):
         """Called when the subprocess has written something to stdout.
         If the process has returned a lnprob, return its value.
         If it has not, return None.
-        Override this."""
+        """
 
         # Read text available. This is more complex than we expect as
-        # we might not get the full line. This probably isn't required
-        # as we do line buffering.
+        # we might not get the full text.
         txt = os.read(popen.stdout.fileno(), 4096)
         # add to buffered text
         self.buffer[popen] += txt
 
-        fulltxt = self.buffer[popen]
-        eol = fulltxt.find('\n')
-        if eol < 0:
-            # no line end, so we haven't read the complete text
-            return None
+        val = self.identify_lnprob(self.buffer[popen])
+        if val is not None:
+            self.buffer[popen] = ''
+            return val
         else:
-            # convert number
-            num = float( fulltxt[:eol] )
-            # strip out used text
-            self.buffer[popen] = fulltxt[eol+1:]
-            return num
+            return None
 
     def map(self, function, paramlist):
         """Return a list of lnprob values for the list parameter sets
@@ -133,7 +154,7 @@ class Pool(object):
                 idx, params = inparams[0]
                 popen = iter(freepopens).next()
                 # send the process the parameters
-                self.sendParameters(popen, params)
+                self.send_parameters(popen, params)
                 # move to next parameters and mark popen as busy
                 del inparams[0]
                 waitingpopens[popen] = idx
@@ -145,7 +166,7 @@ class Pool(object):
                 popen = self.fdmap[fd]
 
                 # popen got something, so see whether there is a probability
-                lnprob = self.getLnProb(popen)
+                lnprob = self.get_lnprob(popen)
                 if lnprob is not None:
                     # record result
                     idx = waitingpopens[popen]
@@ -164,23 +185,36 @@ def main():
     pool = Pool( cmds )
 
     # two parameter chi2 fit to data (see remote below)
-    ndim, nwalkers = 2, 100
+    ndim, nwalkers, nburn, nchain = 2, 100, 100, 1000
+    # some wild initial parameters
     p0 = [np.random.rand(ndim)*0.1 for i in xrange(nwalkers)]
 
+    # Start sampler. Note lnprob function is None as it is not used.
     sampler = emcee.EnsembleSampler(nwalkers, ndim, None, pool=pool)
-    sampler.run_mcmc(p0, 1000)
 
-    print sampler.chain
+    # Burn in period
+    pos, prob, state = sampler.run_mcmc(p0, nburn)
+    sampler.reset()
+
+    # Proper run
+    sampler.run_mcmc(pos, nchain, rstate0=state)
+
+    # Print out median parameters (a, b)
+    print "a = %g, b = %g" % ( np.median(sampler.chain[:,:,0]),
+                               np.median(sampler.chain[:,:,1]) )
 
 def remote():
-    # return chi2 probability of fit to data
+    """Return chi2 probability of fit to data."""
+
+    # our fake data and error bars
     x = np.arange(9)
-    y = np.array([0.97,1.95,3.1,4.04,4.95,6.03,7,7.85,9.1])
+    y = np.array([1.97,2.95,4.1,5.04,5.95,6.03,8,8.85,10.1])
     err = 0.2
 
     while True:
         line = sys.stdin.readline()
         if not line:
+            # calling process has closed stdin
             break
 
         params = [float(v) for v in line.split()]
