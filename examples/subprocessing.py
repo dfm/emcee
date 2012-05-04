@@ -21,7 +21,6 @@ import atexit
 import collections
 import os
 import sys
-import re
 
 import numpy as np
 import emcee
@@ -29,7 +28,7 @@ import emcee
 # make sure pools are finished at end
 _pools = []
 def _finish_pools():
-    while len(_pools) > 0:
+    while _pools:
         _pools[0].finish()
 atexit.register(_finish_pools)
 
@@ -147,10 +146,10 @@ class Pool(object):
         waitingpopens = {}
 
         # repeat while work to do, or work being done
-        while len(inparams) > 0 or len(waitingpopens) > 0:
+        while inparams or waitingpopens:
 
             # start job if possible
-            while len(freepopens) > 0 and len(inparams) > 0:
+            while freepopens and inparams:
                 idx, params = inparams[0]
                 popen = iter(freepopens).next()
                 # send the process the parameters
@@ -187,7 +186,7 @@ def main():
     # two parameter chi2 fit to data (see remote below)
     ndim, nwalkers, nburn, nchain = 2, 100, 100, 1000
     # some wild initial parameters
-    p0 = [np.random.rand(ndim)*0.1 for i in xrange(nwalkers)]
+    p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
     # Start sampler. Note lnprob function is None as it is not used.
     sampler = emcee.EnsembleSampler(nwalkers, ndim, None, pool=pool)
