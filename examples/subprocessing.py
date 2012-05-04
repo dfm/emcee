@@ -99,7 +99,7 @@ class Pool(object):
         except ValueError:
             return None
 
-    def get_lnprob(self, fileobj):
+    def get_lnprob(self, stdout):
         """Called when the subprocess has written something to stdout.
         If the process has returned a lnprob, return its value.
         If it has not, return None.
@@ -107,13 +107,13 @@ class Pool(object):
 
         # Read text available. This is more complex than we expect as
         # we might not get the full text.
-        txt = os.read(fileobj.fileno(), 4096)
+        txt = os.read(stdout.fileno(), 4096)
         # add to buffered text
-        self.buffer[fileobj] += txt
+        self.buffer[stdout] += txt
 
-        val = self.identify_lnprob(self.buffer[fileobj])
+        val = self.identify_lnprob(self.buffer[stdout])
         if val is not None:
-            self.buffer[fileobj] = ''
+            self.buffer[stdout] = ''
             return val
         else:
             return None
@@ -133,7 +133,7 @@ class Pool(object):
 
         # systems which are waiting to do work
         freepopens = set( self.popens )
-        # Stdout from systems currently doing work.  Maps fileobj ->
+        # Stdout from systems currently doing work.  Maps stdout ->
         # (output index, Popen object)
         waitingstdout = {}
 
