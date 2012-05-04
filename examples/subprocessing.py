@@ -9,8 +9,8 @@ probability for a chi2 fit of a+b*x to some data.
 Note that by using a command line using the "ssh" command, this
 example can be extended to run on many computers simultaneously.
 
-Also note that the reliance on select.Poll means this will not work on
-Windows.
+Note that this example will not work on Windows, as Windows does not
+allow select.select to be used on pipes from subprocesses.
 
 Jeremy Sanders 2012
 """
@@ -41,8 +41,6 @@ class Pool(object):
 
         # list of open subprocesses
         self.popens = []
-        # object to poll stdouts of subprocesses
-        self.poll = select.poll()
         # mapping of output filedescriptors to popens
         self.fdmap = {}
         # input text buffers for processes
@@ -57,7 +55,6 @@ class Pool(object):
 
             fd = p.stdout.fileno()
             self.fdmap[fd] = p
-            self.poll.register(fd, select.POLLIN)
 
         # keep track of open pool objects
         _pools.append(self)
@@ -66,7 +63,6 @@ class Pool(object):
         """Finish all processes."""
         # tell processes to finish
         for p in self.popens:
-            self.poll.unregister(p.stdout.fileno())
             self.close_subprocess(p)
         # wait until they have closed
         for p in self.popens:
@@ -97,9 +93,9 @@ class Pool(object):
 
     def identify_lnprob(self, text):
         """Is the log probability in this text from the remote
-        process. Return value if yes, or None.
+        process? Return value if yes, or None.
 
-        Override this
+        Override this if process returns more than a single value
         """
         if text[-1] != '\n':
             return None
@@ -144,6 +140,8 @@ class Pool(object):
         freepopens = set( self.popens )
         # systems doing work (mapping popen -> retn index)
         waitingpopens = {}
+        # set of file descriptors we're waiting for input from
+        waitingfds = set()
 
         # repeat while work to do, or work being done
         while inparams or waitingpopens:
@@ -157,14 +155,16 @@ class Pool(object):
                 # move to next parameters and mark popen as busy
                 del inparams[0]
                 waitingpopens[popen] = idx
+                waitingfds.add(popen.stdout.fileno())
                 freepopens.remove(popen)
 
-            # poll waiting external commands, waiting at least 1ms
-            # if nothing is returned
-            for fd, event in self.poll.poll(1):
+            # select checks file descriptor list for input available
+            fds = select.select(list(waitingfds), [], [], 0.001)[0]
+            # loop over file descriptors
+            for fd in fds:
+                # Popen object associated with fd
                 popen = self.fdmap[fd]
-
-                # popen got something, so see whether there is a probability
+                # see whether process has written out probability
                 lnprob = self.get_lnprob(popen)
                 if lnprob is not None:
                     # record result
@@ -173,6 +173,7 @@ class Pool(object):
                     # open process up for work again
                     del waitingpopens[popen]
                     freepopens.add(popen)
+                    waitingfds.remove(fd)
 
         return results
 
