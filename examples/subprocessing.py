@@ -41,8 +41,6 @@ class Pool(object):
 
         # list of open subprocesses
         self.popens = []
-        # mapping of output filedescriptors to popens
-        self.fdmap = {}
         # input text buffers for processes
         self.buffer = collections.defaultdict(str)
 
@@ -52,9 +50,6 @@ class Pool(object):
                                  stdout=subprocess.PIPE)
             self.init_subprocess(p)
             self.popens.append(p)
-
-            fd = p.stdout.fileno()
-            self.fdmap[fd] = p
 
         # keep track of open pool objects
         _pools.append(self)
@@ -81,15 +76,15 @@ class Pool(object):
         """
         popen.stdin.close()
 
-    def send_parameters(self, popen, params):
+    def send_parameters(self, stdin, params):
         """Send parameters to remote subprocess.
         By default just writes a line with parameters + \n
 
         Override this for more complex behaviour
         """
         txt = ' '.join([str(x) for x in params])
-        popen.stdin.write(txt + '\n')
-        popen.stdin.flush()
+        stdin.write(txt + '\n')
+        stdin.flush()
 
     def identify_lnprob(self, text):
         """Is the log probability in this text from the remote
@@ -104,7 +99,7 @@ class Pool(object):
         except ValueError:
             return None
 
-    def get_lnprob(self, popen):
+    def get_lnprob(self, fileobj):
         """Called when the subprocess has written something to stdout.
         If the process has returned a lnprob, return its value.
         If it has not, return None.
@@ -112,13 +107,13 @@ class Pool(object):
 
         # Read text available. This is more complex than we expect as
         # we might not get the full text.
-        txt = os.read(popen.stdout.fileno(), 4096)
+        txt = os.read(fileobj.fileno(), 4096)
         # add to buffered text
-        self.buffer[popen] += txt
+        self.buffer[fileobj] += txt
 
-        val = self.identify_lnprob(self.buffer[popen])
+        val = self.identify_lnprob(self.buffer[fileobj])
         if val is not None:
-            self.buffer[popen] = ''
+            self.buffer[fileobj] = ''
             return val
         else:
             return None
@@ -138,42 +133,36 @@ class Pool(object):
 
         # systems which are waiting to do work
         freepopens = set( self.popens )
-        # systems doing work (mapping popen -> retn index)
-        waitingpopens = {}
-        # set of file descriptors we're waiting for input from
-        waitingfds = set()
+        # Stdout from systems currently doing work.  Maps fileobj ->
+        # (output index, Popen object)
+        waitingstdout = {}
 
         # repeat while work to do, or work being done
-        while inparams or waitingpopens:
+        while inparams or waitingstdout:
 
             # start job if possible
             while freepopens and inparams:
                 idx, params = inparams[0]
                 popen = iter(freepopens).next()
                 # send the process the parameters
-                self.send_parameters(popen, params)
+                self.send_parameters(popen.stdin, params)
                 # move to next parameters and mark popen as busy
                 del inparams[0]
-                waitingpopens[popen] = idx
-                waitingfds.add(popen.stdout.fileno())
+                waitingstdout[popen.stdout] = (idx, popen)
                 freepopens.remove(popen)
 
-            # select checks file descriptor list for input available
-            fds = select.select(list(waitingfds), [], [], 0.001)[0]
-            # loop over file descriptors
-            for fd in fds:
-                # Popen object associated with fd
-                popen = self.fdmap[fd]
+            # see whether any stdouts have output
+            stdouts = select.select( waitingstdout.keys(), [], [], 0.001 )[0]
+            for stdout in stdouts:
                 # see whether process has written out probability
-                lnprob = self.get_lnprob(popen)
+                lnprob = self.get_lnprob(stdout)
                 if lnprob is not None:
                     # record result
-                    idx = waitingpopens[popen]
+                    idx, popen = waitingstdout[stdout]
                     results[idx] = lnprob
                     # open process up for work again
-                    del waitingpopens[popen]
+                    del waitingstdout[stdout]
                     freepopens.add(popen)
-                    waitingfds.remove(fd)
 
         return results
 
