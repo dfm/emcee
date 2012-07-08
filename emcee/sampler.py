@@ -12,8 +12,10 @@ import numpy as np
 
 try:
     import acor
+    acor = acor
 except ImportError:
     acor = None
+
 
 # === Sampler ===
 class Sampler(object):
@@ -34,9 +36,9 @@ class Sampler(object):
 
     """
     def __init__(self, dim, lnprobfn, args=[]):
-        self.dim      = dim
+        self.dim = dim
         self.lnprobfn = lnprobfn
-        self.args     = args
+        self.args = args
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -75,7 +77,7 @@ class Sampler(object):
         walker.
 
         """
-        return self.naccepted/self.iterations
+        return self.naccepted / self.iterations
 
     @property
     def chain(self):
@@ -122,7 +124,7 @@ class Sampler(object):
     def reset(self):
         """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
         self.iterations = 0
-        self.naccepted  = 0
+        self.naccepted = 0
 
     def clear_chain(self):
         """An alias for `reset` kept for backwards compatibility."""
@@ -143,9 +145,7 @@ class Sampler(object):
         The `(position, lnprob, state)` tuple after `N` iterations.
 
         """
-        for pos,lnprob,state in self.sample(pos0, lnprob0, rstate0,
+        for results in self.sample(pos0, lnprob0, rstate0,
                                           iterations=N):
             pass
-        return pos,lnprob,state
-
-
+        return results

@@ -10,6 +10,7 @@ import numpy as np
 
 from sampler import Sampler
 
+
 # === MHSampler ===
 class MHSampler(Sampler):
     """
@@ -31,8 +32,8 @@ class MHSampler(Sampler):
 
     #### Notes
 
-    The 'chain' member of this object has the shape: (nlinks, dim) where 'nlinks'
-    is the number of steps taken by the chain.
+    The 'chain' member of this object has the shape: (nlinks, dim) where
+    'nlinks' is the number of steps taken by the chain.
 
     """
     def __init__(self, cov, *args, **kwargs):
@@ -41,11 +42,11 @@ class MHSampler(Sampler):
 
     def reset(self):
         super(MHSampler, self).reset()
-        self._chain  = np.empty((0, self.dim))
+        self._chain = np.empty((0, self.dim))
         self._lnprob = np.empty(0)
 
-    def sample(self, p0, lnprob=None, randomstate=None, storechain=True, resample=1,
-            iterations=1):
+    def sample(self, p0, lnprob=None, randomstate=None, storechain=True,
+            resample=1, iterations=1):
         """
         Advances the chain iterations steps as an iterator
 
@@ -76,7 +77,7 @@ class MHSampler(Sampler):
 
         # Resize the chain in advance.
         if storechain:
-            N = int(iterations/resample)
+            N = int(iterations / resample)
             self._chain = np.concatenate((self._chain,
                     np.zeros((N, self.dim))), axis=0)
             self._lnprob = np.append(self._lnprob, np.zeros(N))
@@ -88,7 +89,7 @@ class MHSampler(Sampler):
             # Calculate the proposal distribution.
             q = self._random.multivariate_normal(p, self.cov)
             newlnprob = self.get_lnprob(q)
-            diff = newlnprob-lnprob
+            diff = newlnprob - lnprob
 
             # M-H acceptance ratio
             if diff < 0:
@@ -99,11 +100,10 @@ class MHSampler(Sampler):
                 lnprob = newlnprob
                 self.naccepted += 1
 
-            if storechain and i%resample == 0:
-                ind = i0 + int(i/resample)
-                self._chain[ind,:] = p
-                self._lnprob[ind]  = lnprob
+            if storechain and i % resample == 0:
+                ind = i0 + int(i / resample)
+                self._chain[ind, :] = p
+                self._lnprob[ind] = lnprob
 
             # Heavy duty iterator action going on right here...
             yield p, lnprob, self.random_state
-

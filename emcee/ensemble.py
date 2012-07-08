@@ -14,10 +14,12 @@ import numpy as np
 
 try:
     import acor
+    acor = acor
 except ImportError:
     acor = None
 
 from sampler import Sampler
+
 
 # === EnsembleSampler ===
 class EnsembleSampler(Sampler):
@@ -64,16 +66,16 @@ class EnsembleSampler(Sampler):
 
     """
     def __init__(self, k, *args, **kwargs):
-        self.k       = k
-        self.a       = kwargs.pop("a", 2.0)
+        self.k = k
+        self.a = kwargs.pop("a", 2.0)
         self.threads = int(kwargs.pop("threads", 1))
-        self.pool    = kwargs.pop("pool", None)
+        self.pool = kwargs.pop("pool", None)
 
         dangerous = kwargs.pop('live_dangerously', False)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
         if not dangerous:
-            assert self.k%2 == 0 and self.k >= 2*self.dim
+            assert self.k % 2 == 0 and self.k >= 2 * self.dim
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
@@ -91,7 +93,7 @@ class EnsembleSampler(Sampler):
         super(EnsembleSampler, self).reset()
         self.ensembles = [Ensemble(self), Ensemble(self)]
         self.naccepted = np.zeros(self.k)
-        self._chain  = np.empty((self.k, 0, self.dim))
+        self._chain = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
 
     def sample(self, p0, lnprob0=None, rstate0=None, iterations=1, **kwargs):
@@ -134,7 +136,7 @@ class EnsembleSampler(Sampler):
         # Split the ensemble in half and assign the positions to the two
         # `Ensemble`s.
         p = np.array(p0)
-        halfk = int(self.k/2)
+        halfk = int(self.k / 2)
         self.ensembles[0].pos = p[:halfk]
         self.ensembles[1].pos = p[halfk:]
 
@@ -148,12 +150,12 @@ class EnsembleSampler(Sampler):
             lnprob = np.zeros(self.k)
             for k, ens in enumerate(self.ensembles):
                 ens.lnprob = ens.get_lnprob()
-                lnprob[halfk*k:halfk*(k+1)] = ens.lnprob
+                lnprob[halfk * k:halfk * (k + 1)] = ens.lnprob
 
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
-            N = int(iterations/thin)
+            N = int(iterations / thin)
             self._chain = np.concatenate((self._chain,
                     np.zeros((self.k, N, self.dim))), axis=1)
             self._lnprob = np.concatenate((self._lnprob,
@@ -166,9 +168,9 @@ class EnsembleSampler(Sampler):
             # Loop over the two ensembles, calculating the proposed positions.
             for k, ens in enumerate(self.ensembles):
                 q, newlnprob, accept = \
-                        self.ensembles[(k+1)%2].propose_position(ens)
-                fullaccept = np.zeros(self.k,dtype=bool)
-                fullaccept[halfk*k:halfk*(k+1)] = accept
+                        self.ensembles[(k + 1) % 2].propose_position(ens)
+                fullaccept = np.zeros(self.k, dtype=bool)
+                fullaccept[halfk * k:halfk * (k + 1)] = accept
 
                 # Update the `Ensemble`'s walker positions.
                 if np.any(accept):
@@ -180,10 +182,10 @@ class EnsembleSampler(Sampler):
 
                     self.naccepted[fullaccept] += 1
 
-            if storechain and i%thin== 0:
-                ind = i0 + int(i/thin)
-                self._chain[:,ind,:] = p
-                self._lnprob[:,ind]  = lnprob
+            if storechain and i % thin == 0:
+                ind = i0 + int(i / thin)
+                self._chain[:, ind, :] = p
+                self._lnprob[:, ind] = lnprob
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
@@ -197,7 +199,7 @@ class EnsembleSampler(Sampler):
 
         """
         s = self.chain.shape
-        return self.chain.reshape(s[0]*s[1], s[2])
+        return self.chain.reshape(s[0] * s[1], s[2])
 
     @property
     def acor(self):
@@ -211,8 +213,9 @@ class EnsembleSampler(Sampler):
         s = self.dim
         t = np.zeros(s)
         for i in range(s):
-            t[i] = acor.acor(self.chain[:,:,i])[0]
+            t[i] = acor.acor(self.chain[:, :, i])[0]
         return t
+
 
 class _function_wrapper(object):
     """
@@ -223,6 +226,7 @@ class _function_wrapper(object):
     def __init__(self, f, args):
         self.f = f
         self.args = args
+
     def __call__(self, x):
         try:
             return self.f(x, *self.args)
@@ -234,6 +238,7 @@ class _function_wrapper(object):
             print '  exception:'
             traceback.print_exc()
             raise
+
 
 # === Ensemble ===
 class Ensemble(object):
@@ -314,12 +319,12 @@ class Ensemble(object):
 
         # Generate the vectors of random numbers that will produce the
         # proposal.
-        zz = ((self.sampler.a - 1.) * self.sampler._random.rand(Ns) + 1)**2.\
+        zz = ((self.sampler.a - 1.) * self.sampler._random.rand(Ns) + 1) ** 2.\
                 / self.sampler.a
         rint = self.sampler._random.randint(Nc, size=(Ns,))
 
         # Calculate the proposed positions and the log-probability there.
-        q = c[rint] - zz[:,np.newaxis]*(c[rint]-s)
+        q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
         newlnprob = ensemble.get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
@@ -328,4 +333,3 @@ class Ensemble(object):
         accept = (lnpdiff > np.log(self.sampler._random.rand(len(lnpdiff))))
 
         return q, newlnprob, accept
-
