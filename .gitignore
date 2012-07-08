@@ -17,3 +17,5 @@ dist
 docs/.gitignore
 MANIFEST
 document/*.pdf
+*.pkl
+*.pdf
