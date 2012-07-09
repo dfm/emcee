@@ -190,16 +190,16 @@ class EnsembleSampler(Sampler):
 
                     if blob is not None:
                         ind = np.arange(len(accept))[accept]
-                        indfull = np.arange(len(fullaccept))[accept]
+                        indfull = np.arange(len(fullaccept))[fullaccept]
                         for j in range(len(ind)):
-                            blobs[ind[j]] = blobs[indfull[j]]
+                            blobs[indfull[j]] = blob[ind[j]]
 
             if storechain and i % thin == 0:
                 ind = i0 + int(i / thin)
                 self._chain[:, ind, :] = p
                 self._lnprob[:, ind] = lnprob
                 if blobs is not None:
-                    self._blobs.append(blob)
+                    self._blobs.append(blobs)
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
@@ -307,6 +307,7 @@ class Ensemble(object):
         # Run the log-probability calculations (optionally in parallel).
         results = M(self.lnprobfn, [p[i]
                     for i in range(len(p))])
+
         try:
             lnprob = np.array([l[0] for l in results])
             blob = [l[1] for l in results]
