@@ -206,6 +206,16 @@ class EnsembleSampler(Sampler):
             yield p, lnprob, self.random_state, blobs
 
     @property
+    def blobs(self):
+        """
+        Get the list of "blobs" produced by sampling. The result is a list
+        (of length `iterations`) of `list`s (of length `nwalkers`) of
+        arbitrary objects.
+
+        """
+        return self._blobs
+
+    @property
     def flatchain(self):
         """
         A shortcut for accessing chain flattened along the zeroth (walker)
