@@ -96,6 +96,9 @@ class EnsembleSampler(Sampler):
         self._chain = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
 
+        # Initialize lists for storing optional metadata blobs.
+        self._blobs = [[] for i in range(self.k)]
+
     def sample(self, p0, lnprob0=None, rstate0=None, iterations=1, **kwargs):
         """
         Advance the chain iterations steps as an iterator.
@@ -142,6 +145,7 @@ class EnsembleSampler(Sampler):
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
+        blobs = []
         lnprob = lnprob0
         if lnprob is not None:
             self.ensembles[0].lnprob = lnprob[:halfk]
@@ -149,8 +153,10 @@ class EnsembleSampler(Sampler):
         else:
             lnprob = np.zeros(self.k)
             for k, ens in enumerate(self.ensembles):
-                ens.lnprob = ens.get_lnprob()
+                ens.lnprob, blob = ens.get_lnprob()
                 lnprob[halfk * k:halfk * (k + 1)] = ens.lnprob
+                if blob is not None:
+                    blobs += blob
 
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
@@ -167,7 +173,7 @@ class EnsembleSampler(Sampler):
 
             # Loop over the two ensembles, calculating the proposed positions.
             for k, ens in enumerate(self.ensembles):
-                q, newlnprob, accept = \
+                q, newlnprob, accept, blob = \
                         self.ensembles[(k + 1) % 2].propose_position(ens)
                 fullaccept = np.zeros(self.k, dtype=bool)
                 fullaccept[halfk * k:halfk * (k + 1)] = accept
@@ -182,14 +188,22 @@ class EnsembleSampler(Sampler):
 
                     self.naccepted[fullaccept] += 1
 
+                    if blob is not None:
+                        ind = np.arange(len(accept))[accept]
+                        indfull = np.arange(len(fullaccept))[accept]
+                        for j in range(len(ind)):
+                            blobs[ind[j]] = blobs[indfull[j]]
+
             if storechain and i % thin == 0:
                 ind = i0 + int(i / thin)
                 self._chain[:, ind, :] = p
                 self._lnprob[:, ind] = lnprob
+                if blobs is not None:
+                    self._blobs.append(blob)
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
-            yield p, lnprob, self.random_state
+            yield p, lnprob, self.random_state, blobs
 
     @property
     def flatchain(self):
@@ -273,6 +287,8 @@ class Ensemble(object):
 
         * `lnprob` (numpy.ndarray): A vector of log-probabilities with one
           entry for each walker in this sub-ensemble.
+        * `blob` (list): The list of meta data returned by the `lnpostfn` at
+          this position or `None` if nothing was returned.
 
         """
         if pos is None:
@@ -288,11 +304,17 @@ class Ensemble(object):
         else:
             M = map
 
-        # Calculate the probabilities.
-        lnprob = np.array(M(self.lnprobfn, [p[i]
-                    for i in range(len(p))]))
+        # Run the log-probability calculations (optionally in parallel).
+        results = M(self.lnprobfn, [p[i]
+                    for i in range(len(p))])
+        try:
+            lnprob = np.array([l[0] for l in results])
+            blob = [l[1] for l in results]
+        except IndexError:
+            lnprob = np.array(results)
+            blob = None
 
-        return lnprob
+        return lnprob, blob
 
     def propose_position(self, ensemble):
         """
@@ -310,6 +332,8 @@ class Ensemble(object):
           the positions given by `q`.
         * `accept` (numpy.ndarray): A vector of `bool`s indicating whether or
           not the proposed position for each walker should be accepted.
+        * `blob` (list): The new meta data blobs or `None` if nothing was
+          provided.
 
         """
         s = np.atleast_2d(ensemble.pos)
@@ -325,11 +349,11 @@ class Ensemble(object):
 
         # Calculate the proposed positions and the log-probability there.
         q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
-        newlnprob = ensemble.get_lnprob(q)
+        newlnprob, blob = ensemble.get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
         lnpdiff = (self.sampler.dim - 1.) * np.log(zz) \
                 + newlnprob - ensemble.lnprob
         accept = (lnpdiff > np.log(self.sampler._random.rand(len(lnpdiff))))
 
-        return q, newlnprob, accept
+        return q, newlnprob, accept, blob
