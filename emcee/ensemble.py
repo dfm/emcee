@@ -325,7 +325,7 @@ class Ensemble(object):
         try:
             lnprob = np.array([l[0] for l in results])
             blob = [l[1] for l in results]
-        except IndexError:
+        except (IndexError, TypeError):
             lnprob = np.array(results)
             blob = None
 
