@@ -72,8 +72,12 @@ class EnsembleSampler(Sampler):
         dangerous = kwargs.pop('live_dangerously', False)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
+        assert self.k % 2 == 0, "The number of walkers must be even."
         if not dangerous:
-            assert self.k%2 == 0 and self.k >= 2*self.dim
+            assert self.k >= 2 * self.dim, (
+                    "The number of walkers needs to be more than twice the "
+                    + "dimension of your parameter space... unless you're "
+                    + "crazy!")
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
