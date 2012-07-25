@@ -7,6 +7,8 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
+from __future__ import print_function
+
 __all__ = ['EnsembleSampler']
 
 import multiprocessing
@@ -126,6 +128,14 @@ class EnsembleSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+
+        #Set up xrange/range - xrange is identical to range in
+        #python3, so we just define an internal alias to call
+        if self.py_ver3 :
+            ourrange = range
+        else :
+            ourrange = xrange
+
         storechain = kwargs.pop("storechain", True)
         thin = kwargs.pop("thin", 1)
 
@@ -164,7 +174,7 @@ class EnsembleSampler(Sampler):
                                            np.zeros((self.k, N))), axis=1)
 
         i0 = self.iterations
-        for i in xrange(int(iterations)):
+        for i in ourrange(int(iterations)):  #Alias for range or xrange
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
@@ -232,10 +242,10 @@ class _function_wrapper(object):
             return self.f(x, *self.args)
         except:
             import traceback
-            print 'emcee: Exception while calling your likelihood function:'
-            print '  params:', x
-            print '  args:', self.args
-            print '  exception:'
+            print('emcee: Exception while calling your likelihood function:')
+            print('  params:', x)
+            print('  args:', self.args)
+            print('  exception:')
             traceback.print_exc()
             raise
 
@@ -256,8 +266,14 @@ class Ensemble(object):
         self.sampler = sampler
         # Do a little bit of _magic_ to make the likelihood call with
         # `args` pickleable.
+        import sys
         self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
-
+        # Store whether we are in python3 or python2
+        if sys.version_info < (3,): 
+            self.py_ver3 = False
+        else: 
+            self.py_ver3 = True
+    
     def get_lnprob(self, pos=None):
         """
         Calculate the vector of log-probability for the walkers.
@@ -288,8 +304,12 @@ class Ensemble(object):
             M = map
 
         # Calculate the probabilities.
-        lnprob = np.array(M(self.lnprobfn, [p[i]
-                    for i in range(len(p))]))
+        if self.py_ver3:
+            lnprob = np.array(list(M(self.lnprobfn, [p[i]
+                                     for i in range(len(p))])))
+        else:
+            lnprob = np.array(M(self.lnprobfn, [p[i]
+                                for i in range(len(p))]))
 
         return lnprob
 

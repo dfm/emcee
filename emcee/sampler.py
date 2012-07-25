@@ -34,6 +34,7 @@ class Sampler(object):
 
     """
     def __init__(self, dim, lnprobfn, args=[]):
+        import sys
         self.dim      = dim
         self.lnprobfn = lnprobfn
         self.args     = args
@@ -42,6 +43,11 @@ class Sampler(object):
         # of without affecting the numpy-wide generator
         self._random = np.random.mtrand.RandomState()
 
+        if sys.version_info < (3,): 
+            self.py_ver3 = False
+        else: 
+            self.py_ver3 = True
+    
         self.reset()
 
     @property

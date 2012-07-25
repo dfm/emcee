@@ -30,7 +30,7 @@ class Tests:
         self.cov += self.cov.T - np.diag(self.cov.diagonal())
         self.cov  = np.dot(self.cov,self.cov)
         self.icov = np.linalg.inv(self.cov)
-        self.p0   = [0.1*np.random.randn(self.ndim) for i in xrange(self.nwalkers)]
+        self.p0   = [0.1*np.random.randn(self.ndim) for i in range(self.nwalkers)]
 
         self.truth = np.random.multivariate_normal(self.mean,self.cov,100000)
 
@@ -54,7 +54,8 @@ class Tests:
         self.check_sampler(N=self.N*self.nwalkers, p0=self.p0[0])
 
     def test_ensemble(self):
-        self.sampler = EnsembleSampler(self.nwalkers, self.ndim, lnprob_gaussian, args=[self.icov])
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim, 
+                                       lnprob_gaussian, args=[self.icov])
         self.check_sampler()
 
     def test_parallel(self):
