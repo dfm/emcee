@@ -8,8 +8,10 @@ Thanks to Phil Marshall (Oxford) who coded this example.
 
 """
 
+from __future__ import print_function
 import numpy as np
 import emcee
+
 
 # Define the posterior density to be sampled:
 class Eggbox(object):
@@ -69,7 +71,7 @@ try:
     import matplotlib.pyplot as pl
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
-    print "Try installing matplotlib to generate some sweet plots..."
+    print("Try installing matplotlib to generate some sweet plots...")
 else:
     pl.figure()
     for k in range(nwalkers):

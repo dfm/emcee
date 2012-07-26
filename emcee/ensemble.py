@@ -7,6 +7,8 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
+from __future__ import print_function
+
 __all__ = ['EnsembleSampler']
 
 import multiprocessing
@@ -74,8 +76,12 @@ class EnsembleSampler(Sampler):
         dangerous = kwargs.pop('live_dangerously', False)
 
         super(EnsembleSampler, self).__init__(*args, **kwargs)
+        assert self.k % 2 == 0, "The number of walkers must be even."
         if not dangerous:
-            assert self.k % 2 == 0 and self.k >= 2 * self.dim
+            assert self.k >= 2 * self.dim, (
+                    "The number of walkers needs to be more than twice the "
+                    + "dimension of your parameter space... unless you're "
+                    + "crazy!")
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
@@ -127,6 +133,7 @@ class EnsembleSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+
         storechain = kwargs.pop("storechain", True)
         thin = kwargs.pop("thin", 1)
 
@@ -168,7 +175,10 @@ class EnsembleSampler(Sampler):
                                            np.zeros((self.k, N))), axis=1)
 
         i0 = self.iterations
-        for i in xrange(int(iterations)):
+        # Use range instead of xrange for compatability with python 3
+        # It is slightly less efficient, but for a realistic number of
+        # walkers it isn't too bad
+        for i in range(int(iterations)):
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
@@ -260,10 +270,10 @@ class _function_wrapper(object):
             return self.f(x, *self.args)
         except:
             import traceback
-            print 'emcee: Exception while calling your likelihood function:'
-            print '  params:', x
-            print '  args:', self.args
-            print '  exception:'
+            print('emcee: Exception while calling your likelihood function:')
+            print('  params:', x)
+            print('  args:', self.args)
+            print('  exception:')
             traceback.print_exc()
             raise
 

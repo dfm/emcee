@@ -69,6 +69,7 @@ class MHSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+
         self.random_state = randomstate
 
         p = np.array(p0)
@@ -83,7 +84,8 @@ class MHSampler(Sampler):
             self._lnprob = np.append(self._lnprob, np.zeros(N))
 
         i0 = self.iterations
-        for i in xrange(int(iterations)):
+        # Use range instead of xrange for python 3 compatability
+        for i in range(int(iterations)):
             self.iterations += 1
 
             # Calculate the proposal distribution.
