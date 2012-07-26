@@ -19,3 +19,6 @@ MANIFEST
 document/*.pdf
 *.pkl
 *.pdf
+venv
+venv2
+venv3
