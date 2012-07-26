@@ -7,8 +7,8 @@ Defines various nose unit tests
 
 import numpy as np
 
-from mh import MHSampler
-from ensemble import EnsembleSampler
+from .mh import MHSampler
+from .ensemble import EnsembleSampler
 
 logprecision = -4
 

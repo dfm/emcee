@@ -1,10 +1,11 @@
 from __future__ import print_function
-from sampler import *
-from mh import *
-from ensemble import *
+from .sampler import *
+from .mh import *
+from .ensemble import *
+
 
 def test():
-    from tests import Tests
+    from .tests import Tests
 
     test_names = [
                   ("Parallel Sampler",    "test_parallel"),
@@ -21,12 +22,11 @@ def test():
         try:
             getattr(tests, t[1])()
         except Exception as e:
-            print("Test: %s failed with error:"%(t[0]))
-            print("\t%s: %s"%(e.__class__.__name__, e))
+            print("Test: {0} failed with error:".format(t[0]))
+            print("\t{0}: {1}".format(e.__class__.__name__, e))
             failures += 1
         else:
-            print("Test: %s passed."%(t[0]))
+            print("Test: {0} passed.".format(t[0]))
 
-    print("%d tests passed"%(len(test_names)-failures))
-    print("%d tests failed"%(failures))
-
+    print("{0} tests passed".format(len(test_names) - failures))
+    print("{0} tests failed".format(failures))

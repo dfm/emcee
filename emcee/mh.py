@@ -8,7 +8,7 @@ __all__ = ['MHSampler']
 
 import numpy as np
 
-from sampler import Sampler
+from .sampler import Sampler
 
 
 # === MHSampler ===

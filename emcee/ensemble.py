@@ -20,7 +20,7 @@ try:
 except ImportError:
     acor = None
 
-from sampler import Sampler
+from .sampler import Sampler
 
 
 # === EnsembleSampler ===
@@ -270,10 +270,10 @@ class _function_wrapper(object):
             return self.f(x, *self.args)
         except:
             import traceback
-            print('emcee: Exception while calling your likelihood function:')
-            print('  params:', x)
-            print('  args:', self.args)
-            print('  exception:')
+            print("emcee: Exception while calling your likelihood function:")
+            print("  params:", x)
+            print("  args:", self.args)
+            print("  exception:")
             traceback.print_exc()
             raise
 
@@ -329,8 +329,7 @@ class Ensemble(object):
             M = map
 
         # Run the log-probability calculations (optionally in parallel).
-        results = M(self.lnprobfn, [p[i]
-                    for i in range(len(p))])
+        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
             lnprob = np.array([l[0] for l in results])
