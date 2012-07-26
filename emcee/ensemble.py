@@ -129,13 +129,6 @@ class EnsembleSampler(Sampler):
 
         """
 
-        #Set up xrange/range - xrange is identical to range in
-        #python3, so we just define an internal alias to call
-        if self.py_ver3 :
-            ourrange = range
-        else :
-            ourrange = xrange
-
         storechain = kwargs.pop("storechain", True)
         thin = kwargs.pop("thin", 1)
 
@@ -174,7 +167,10 @@ class EnsembleSampler(Sampler):
                                            np.zeros((self.k, N))), axis=1)
 
         i0 = self.iterations
-        for i in ourrange(int(iterations)):  #Alias for range or xrange
+        # Use range instead of xrange for compatability with python 3
+        # It is slightly less efficient, but for a realistic number of
+        # walkers it isn't too bad
+        for i in range(int(iterations)):  
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
@@ -266,13 +262,7 @@ class Ensemble(object):
         self.sampler = sampler
         # Do a little bit of _magic_ to make the likelihood call with
         # `args` pickleable.
-        import sys
         self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
-        # Store whether we are in python3 or python2
-        if sys.version_info < (3,): 
-            self.py_ver3 = False
-        else: 
-            self.py_ver3 = True
     
     def get_lnprob(self, pos=None):
         """
@@ -304,13 +294,9 @@ class Ensemble(object):
             M = map
 
         # Calculate the probabilities.
-        if self.py_ver3:
-            lnprob = np.array(list(M(self.lnprobfn, [p[i]
-                                     for i in range(len(p))])))
-        else:
-            lnprob = np.array(M(self.lnprobfn, [p[i]
-                                for i in range(len(p))]))
-
+        # The explicit list call is for python 3 compatability
+        lnprob = np.array(list(M(self.lnprobfn, 
+                                 [p[i] for i in range(len(p))])))
         return lnprob
 
     def propose_position(self, ensemble):
