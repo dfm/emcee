@@ -15,6 +15,7 @@ allow select.select to be used on pipes from subprocesses.
 Jeremy Sanders 2012
 """
 
+from __future__ import print_function
 import subprocess
 import select
 import atexit
@@ -189,8 +190,8 @@ def main():
     sampler.run_mcmc(pos, nchain, rstate0=state)
 
     # Print out median parameters (a, b)
-    print "a = %g, b = %g" % ( np.median(sampler.chain[:,:,0]),
-                               np.median(sampler.chain[:,:,1]) )
+    print("a = %g, b = %g" % ( np.median(sampler.chain[:,:,0]),
+                               np.median(sampler.chain[:,:,1]) ))
 
 def remote():
     """Return chi2 probability of fit to data."""

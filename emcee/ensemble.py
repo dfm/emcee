@@ -7,6 +7,8 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
+from __future__ import print_function
+
 __all__ = ['EnsembleSampler']
 
 import multiprocessing
@@ -126,6 +128,7 @@ class EnsembleSampler(Sampler):
         * `rstate` (tuple): The state of the random number generator.
 
         """
+
         storechain = kwargs.pop("storechain", True)
         thin = kwargs.pop("thin", 1)
 
@@ -164,7 +167,10 @@ class EnsembleSampler(Sampler):
                                            np.zeros((self.k, N))), axis=1)
 
         i0 = self.iterations
-        for i in xrange(int(iterations)):
+        # Use range instead of xrange for compatability with python 3
+        # It is slightly less efficient, but for a realistic number of
+        # walkers it isn't too bad
+        for i in range(int(iterations)):  
             self.iterations += 1
 
             # Loop over the two ensembles, calculating the proposed positions.
@@ -232,10 +238,10 @@ class _function_wrapper(object):
             return self.f(x, *self.args)
         except:
             import traceback
-            print 'emcee: Exception while calling your likelihood function:'
-            print '  params:', x
-            print '  args:', self.args
-            print '  exception:'
+            print('emcee: Exception while calling your likelihood function:')
+            print('  params:', x)
+            print('  args:', self.args)
+            print('  exception:')
             traceback.print_exc()
             raise
 
@@ -257,7 +263,7 @@ class Ensemble(object):
         # Do a little bit of _magic_ to make the likelihood call with
         # `args` pickleable.
         self.lnprobfn = _function_wrapper(sampler.lnprobfn, sampler.args)
-
+    
     def get_lnprob(self, pos=None):
         """
         Calculate the vector of log-probability for the walkers.
@@ -288,9 +294,9 @@ class Ensemble(object):
             M = map
 
         # Calculate the probabilities.
-        lnprob = np.array(M(self.lnprobfn, [p[i]
-                    for i in range(len(p))]))
-
+        # The explicit list call is for python 3 compatability
+        lnprob = np.array(list(M(self.lnprobfn, 
+                                 [p[i] for i in range(len(p))])))
         return lnprob
 
     def propose_position(self, ensemble):
