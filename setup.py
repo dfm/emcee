@@ -1,17 +1,35 @@
-from distutils.core import setup
+import os
+import sys
+import emcee
+
+try:
+    from setuptools import setup
+    setup
+except ImportError:
+    from distutils.core import setup
+    setup
+
+
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist upload')
+    sys.exit()
+
 
 setup(
     name="emcee",
-    version="1.0.1",
+    version=emcee.__version__,
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     packages=["emcee"],
     url="http://danfm.ca/emcee/",
-    license="GPL",
+    license=open("LICENSE").read(),
     description="Kick ass affine-invariant ensemble MCMC sampling",
-    long_description="Read the documentation online at http://danfm.ca/emcee/",
+    long_description=open("README.rst").read() + "\n\n" +
+                     open("HISTORY.rst").read(),
+    package_data={"": ["LICENSE"]},
+    include_package_data=True,
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License (GPL)",

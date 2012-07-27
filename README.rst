@@ -18,13 +18,7 @@ literature.
 Documentation
 -------------
 
-Read the docs at `danfm.ca/emcee <http://danfm.ca/emcee/>`_. You can also look
-at these docs after you've cloned the repository by running ::
-
-    python -m SimpleHTTPServer 5000
-
-in the "docs" directory and navigating to
-`localhost:5000 <http://localhost:5000>`_.
+Read the docs at `danfm.ca/emcee <http://danfm.ca/emcee/>`_.
 
 
 Attribution

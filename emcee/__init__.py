@@ -4,6 +4,9 @@ from .mh import *
 from .ensemble import *
 
 
+__version__ = "1.2.0"
+
+
 def test():
     from .tests import Tests
 
