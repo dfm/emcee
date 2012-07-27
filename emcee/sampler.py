@@ -6,7 +6,7 @@ The base sampler class implementing various helpful functions.
 
 from __future__ import division
 
-__all__ = ['Sampler']
+__all__ = ["Sampler"]
 
 import numpy as np
 
@@ -17,22 +17,21 @@ except ImportError:
     acor = None
 
 
-# === Sampler ===
 class Sampler(object):
     """
     An abstract sampler object that implements various helper functions
 
-    #### Arguments
+    :param dim:
+        The number of dimensions in the parameter space.
 
-    * `dim` (int): Number of dimensions in the parameter space.
-    * `lnpostfn` (callable): A function that takes a vector in the parameter
-      space as input and returns the natural logarithm of the posterior
-      probability for that position.
+    :param lnpostfn:
+        A function that takes a vector in the parameter space as input and
+        returns the natural logarithm of the posterior probability for that
+        position.
 
-    #### Keyword Arguments
-
-    * `args` (list): Optional list of extra arguments for `lnpostfn`.
-      `lnpostfn` will be called with the sequence `lnpostfn(p, *args)`.
+    :param args: (optional)
+        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
+        called with the sequence ``lnpostfn(p, *args)``.
 
     """
     def __init__(self, dim, lnprobfn, args=[]):
@@ -73,7 +72,7 @@ class Sampler(object):
     @property
     def acceptance_fraction(self):
         """
-        An array (length: `k`) of the fraction of steps accepted for each
+        An array (length: ``k``) of the fraction of steps accepted for each
         walker.
 
         """
@@ -83,7 +82,7 @@ class Sampler(object):
     def chain(self):
         """
         A pointer to the Markov chain itself. The shape of this array is
-        `(k, dim, iterations)`.
+        ``(k, dim, iterations)``.
 
         """
         return self._chain
@@ -100,8 +99,8 @@ class Sampler(object):
     @property
     def lnprobability(self):
         """
-        A pointer to the matrix of the value of `lnprobfn` produced at each
-        step for each walker. The shape is `(k, iterations)`.
+        A pointer to the matrix of the value of ``lnprobfn`` produced at each
+        step for each walker. The shape is ``(k, iterations)``.
 
         """
         return self._lnprob
@@ -110,7 +109,7 @@ class Sampler(object):
     def acor(self):
         """
         The autocorrelation time of each parameter in the chain (length:
-        `dim`) as estimated by the `acor` module.
+        ``dim``) as estimated by the ``acor`` module.
 
         """
         if acor is None:
@@ -122,12 +121,15 @@ class Sampler(object):
         return self.lnprobfn(p, *self.args)
 
     def reset(self):
-        """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
+        """
+        Clear ``chain``, ``lnprobability`` and the bookkeeping parameters.
+
+        """
         self.iterations = 0
         self.naccepted = 0
 
     def clear_chain(self):
-        """An alias for `reset` kept for backwards compatibility."""
+        """An alias for :func:`reset` kept for backwards compatibility."""
         return self.reset()
 
     def sample(self, *args, **kwargs):
@@ -136,13 +138,12 @@ class Sampler(object):
 
     def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None):
         """
-        Iterate sample for `N` iterations and return the result. The arguments
-        are passed directly to `sample` so see the parameter details given in
-        `sample`.
+        Iterate sample for ``N`` iterations and return the result. The
+        arguments are passed directly to `sample` so see the parameter
+        details given in ``sample``.
 
-        #### Returns
-
-        The `(position, lnprob, state)` tuple after `N` iterations.
+        This method returns the ``(position, lnprob, state)`` tuple after
+        ``N`` iterations.
 
         """
         for results in self.sample(pos0, lnprob0, rstate0,

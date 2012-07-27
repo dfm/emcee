@@ -9,7 +9,7 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 from __future__ import print_function
 
-__all__ = ['EnsembleSampler']
+__all__ = ["EnsembleSampler", "Ensemble"]
 
 import multiprocessing
 import numpy as np
@@ -23,61 +23,68 @@ except ImportError:
 from .sampler import Sampler
 
 
-# === EnsembleSampler ===
 class EnsembleSampler(Sampler):
     """
     A generalized Ensemble sampler that uses 2 ensembles for parallelization.
+    The ``__init__`` function will raise an ``AssertionError`` if
+    ``k < 2 * dim`` (and you haven't set the ``live_dangerously`` parameter)
+    or if ``k`` is odd.
 
-    This is a subclass of the `Sampler` object. See the `Sampler` object
-    for more details about the inherited properties.
+    **Warning**: The :attr:`chain` member of this object has the shape:
+    ``(nwalkers, nlinks, dim)`` where ``nlinks`` is the number of steps
+    taken by the chain and ``k`` is the number of walkers.  Use the
+    :attr:`flatchain` property to get the chain flattened to
+    ``(nlinks, dim)``. For users of pre-1.0 versions, this shape is
+    different so be careful!
 
-    #### Arguments
+    :param nwalkers:
+        The number of Goodman & Weare "walkers".
 
-    * `k` (int): The number of Goodman & Weare "walkers".
-    * `dim` (int): Number of dimensions in the parameter space.
-    * `lnpostfn` (callable): A function that takes a vector in the parameter
-      space as input and returns the natural logarithm of the posterior
-      probability for that position.
+    :param dim:
+        Number of dimensions in the parameter space.
 
-    #### Keyword Arguments
+    :param lnpostfn:
+        A function that takes a vector in the parameter space as input and
+        returns the natural logarithm of the posterior probability for that
+        position.
 
-    * `a` (float): The proposal scale parameter. (default: `2.0`)
-    * `args` (list): Optional list of extra arguments for `lnpostfn`.
-      `lnpostfn` will be called with the sequence `lnpostfn(p, *args)`.
-    * `postargs` (list): Alias of `args` for backwards compatibility.
-    * `threads` (int): The number of threads to use for parallelization.
-      If `threads == 1`, then the `multiprocessing` module is not used but if
-      `threads > 1`, then a `Pool` object is created and calls to `lnpostfn`
-      are run in parallel. (default: 1)
-    * `pool` (multiprocessing.Pool): An alternative method of using the
-      parallelized algorithm. If `pool is not None`, the value of `threads`
-      is ignored and the provided `Pool` is used for all parallelization.
-      (default: `None`)
+    :param a: (optional)
+        The proposal scale parameter. (default: ``2.0``)
 
-    #### Exceptions
+    :param args: (optional)
+        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
+        called with the sequence ``lnpostfn(p, *args)``.
 
-    * `AssertionError`: If `k < 2*dim` or if `k` is not even.
+    :param postargs: (optional)
+        Alias of ``args`` for backwards compatibility.
 
-    #### Warning
+    :param threads: (optional)
+        The number of threads to use for parallelization. If ``threads == 1``,
+        then the ``multiprocessing`` module is not used but if
+        ``threads > 1``, then a ``Pool`` object is created and calls to
+        ``lnpostfn`` are run in parallel.
 
-    The `chain` member of this object has the shape: `(k, nlinks, dim)` where
-    `nlinks` is the number of steps taken by the chain and `k` is the number
-    of walkers.  Use the `flatchain` property to get the chain flattened to
-    `(nlinks, dim)`. For users of older versions, this shape is different so
-    be careful!
+    :param pool: (optional)
+        An alternative method of using the parallelized algorithm. If
+        provided, the value of ``threads`` is ignored and the
+        object provided by ``pool`` is used for all parallelization. It
+        can be any object with a ``map`` method that follows the same
+        calling sequence as the built-in ``map`` function.
 
     """
-    def __init__(self, k, *args, **kwargs):
-        self.k = k
-        self.a = kwargs.pop("a", 2.0)
-        self.threads = int(kwargs.pop("threads", 1))
-        self.pool = kwargs.pop("pool", None)
+    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
+            threads=1, pool=None, live_dangerously=False):
+        self.k = nwalkers
+        self.a = a
+        self.threads = threads
+        self.pool = pool
 
-        dangerous = kwargs.pop('live_dangerously', False)
+        if postargs is not None:
+            args = postargs
+        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args)
 
-        super(EnsembleSampler, self).__init__(*args, **kwargs)
         assert self.k % 2 == 0, "The number of walkers must be even."
-        if not dangerous:
+        if not live_dangerously:
             assert self.k >= 2 * self.dim, (
                     "The number of walkers needs to be more than twice the "
                     + "dimension of your parameter space... unless you're "
@@ -86,16 +93,12 @@ class EnsembleSampler(Sampler):
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
 
-    @staticmethod
-    def sampleBall(p0, stdev, nw):
-        '''Produce a ball of walkers around an initial parameter value 'p0'
-        with axis-aligned standard deviation 'stdev', for 'nw' walkers.'''
-        assert(len(p0) == len(stdev))
-        return np.vstack([p0 + stdev * np.random.normal(size=len(p0))
-                          for i in range(nw)])
-
     def reset(self):
-        """Clear `chain`, `lnprobability` and the bookkeeping parameters."""
+        """
+        Clear the ``chain`` and ``lnprobability`` array. Also reset the
+        bookkeeping parameters.
+
+        """
         super(EnsembleSampler, self).reset()
         self.ensembles = [Ensemble(self), Ensemble(self)]
         self.naccepted = np.zeros(self.k)
@@ -105,38 +108,44 @@ class EnsembleSampler(Sampler):
         # Initialize lists for storing optional metadata blobs.
         self._blobs = [[] for i in range(self.k)]
 
-    def sample(self, p0, lnprob0=None, rstate0=None, iterations=1, **kwargs):
+    def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
+            iterations=1, thin=1, storechain=True):
         """
-        Advance the chain iterations steps as an iterator.
+        Advance the chain iterations steps as a generator.
 
-        #### Arguments
+        :param p0:
+            A list of the initial positions of the walkers in the
+            parameter space. It should have the shape ``(nwalkers, dim)``.
 
-        * `pos0` (numpy.ndarray): A list of the initial positions of the
-          walkers in the parameter space. The shape is `(k, dim)`.
+        :param lnprob0: (optional)
+            The list of log posterior probabilities for the walkers at
+            positions given by ``p0``. If ``lnprob is None``, the initial
+            values are calculated. It should have the shape ``(k, dim)``.
 
-        #### Keyword Arguments
+        :param rstate0: (optional)
+            The state of the random number generator.
+            See the :attr:`Sampler.random_state` property for details.
 
-        * `lnprob0` (numpy.ndarray): The list of log posterior probabilities
-          for the walkers at positions given by `p0`. If `lnprob is None`,
-          the initial values are calculated. The shape is `(k, dim)`.
-        * `rstate0` (tuple): The state of the random number generator.
-          See the `Sampler.random_state` property for details.
-        * `iterations` (int): The number of steps to run. (default: 1)
+        :param iterations: (optional)
+            The number of steps to run.
 
-        #### Yields
+        At each iteration, this generator yields:
 
-        * `pos` (numpy.ndarray): A list of the current positions of the
-          walkers in the parameter space. The shape is `(k, dim)`.
-        * `lnprob` (numpy.ndarray): The list of log posterior probabilities
-          for the walkers at positions given by `pos`. The shape is
-          `(k, dim)`.
-        * `rstate` (tuple): The state of the random number generator.
+        * ``pos`` — A list of the current positions of the walkers in the
+          parameter space. The shape of this object will be
+          ``(nwalkers, dim)``.
+
+        * ``lnprob`` — The list of log posterior probabilities for the
+          walkers at positions given by ``pos``. The shape of this object
+          is ``(nwalkers, dim)``.
+
+        * ``rstate`` — The current state of the random number generator.
+
+        * ``blobs`` — (optional) The metadata "blobs" associated with the
+          current position. The value is only returned if ``lnpostfn``
+          returns blobs too.
 
         """
-
-        storechain = kwargs.pop("storechain", True)
-        thin = kwargs.pop("thin", 1)
-
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
         # we'll just interpret any garbage as letting the generator stay in
@@ -199,6 +208,10 @@ class EnsembleSampler(Sampler):
                     self.naccepted[fullaccept] += 1
 
                     if blob is not None:
+                        assert blobs is not None, ("If you start sampling "
+                                + "with a given lnprob, you also need to "
+                                + "provide the current list of blobs at that "
+                                + "position.")
                         ind = np.arange(len(accept))[accept]
                         indfull = np.arange(len(fullaccept))[fullaccept]
                         for j in range(len(ind)):
@@ -223,8 +236,9 @@ class EnsembleSampler(Sampler):
     def blobs(self):
         """
         Get the list of "blobs" produced by sampling. The result is a list
-        (of length `iterations`) of `list`s (of length `nwalkers`) of
-        arbitrary objects.
+        (of length ``iterations``) of ``list``s (of length ``nwalkers``) of
+        arbitrary objects. **Note**: this will actually be an empty list if
+        your ``lnpostfn`` doesn't return any metadata.
 
         """
         return self._blobs
@@ -243,7 +257,7 @@ class EnsembleSampler(Sampler):
     def acor(self):
         """
         The autocorrelation time of each parameter in the chain (length:
-        `dim`) as estimated by the `acor` module.
+        ``dim``) as estimated by the ``acor`` module.
 
         """
         if acor is None:
@@ -257,8 +271,8 @@ class EnsembleSampler(Sampler):
 
 class _function_wrapper(object):
     """
-    This is a hack to make the likelihood function pickleable when `args` are
-    also included.
+    This is a hack to make the likelihood function pickleable when ``args``
+    are also included.
 
     """
     def __init__(self, f, args):
@@ -278,16 +292,13 @@ class _function_wrapper(object):
             raise
 
 
-# === Ensemble ===
 class Ensemble(object):
     """
     A sub-ensemble object that actually does the heavy lifting of the
     likelihood calculations and proposals of a new position.
 
-    #### Arguments
-
-    * `sampler` (Sampler): The sampler object that this sub-ensemble should
-      be connected to.
+    :param sampler:
+        The sampler object that this sub-ensemble should be connected to.
 
     """
 
@@ -301,18 +312,18 @@ class Ensemble(object):
         """
         Calculate the vector of log-probability for the walkers.
 
-        #### Keyword Arguments
+        :param pos: (optional)
+            The position vector in parameter space where the probability
+            should be calculated. This defaults to the current position
+            unless a different one is provided.
 
-        * `pos` (numpy.ndarray): The position vector in parameter space where
-          the probability should be calculated. This defaults to the current
-          position unless a different one is provided.
+        This method returns:
 
-        #### Returns
+        * ``lnprob`` — A vector of log-probabilities with one entry for each
+          walker in this sub-ensemble.
 
-        * `lnprob` (numpy.ndarray): A vector of log-probabilities with one
-          entry for each walker in this sub-ensemble.
-        * `blob` (list): The list of meta data returned by the `lnpostfn` at
-          this position or `None` if nothing was returned.
+        * ``blob`` — The list of meta data returned by the ``lnpostfn`` at
+          this position or ``None`` if nothing was returned.
 
         """
         if pos is None:
@@ -342,22 +353,24 @@ class Ensemble(object):
 
     def propose_position(self, ensemble):
         """
-        Propose a new position for another ensemble given the current positions
+        Propose a new position for *a different* ensemble given the current
+        positions in *this*.
 
-        #### Arguments
+        :param ensemble:
+            The ensemble to be advanced.
 
-        * `ensemble` (Ensemble): The ensemble to be advanced.
+        This method returns:
 
-        #### Returns
+        * ``q`` — The new proposed positions for the walkers in ``ensemble``.
 
-        * `q` (numpy.array): The new proposed positions for the walkers in
-          `ensemble`.
-        * `newlnprob` (numpy.ndarray): The vector of log-probabilities at
-          the positions given by `q`.
-        * `accept` (numpy.ndarray): A vector of `bool`s indicating whether or
-          not the proposed position for each walker should be accepted.
-        * `blob` (list): The new meta data blobs or `None` if nothing was
-          provided.
+        * ``newlnprob`` — The vector of log-probabilities at the positions
+          given by ``q``.
+
+        * ``accept`` — A vector of type ``bool`` indicating whether or not
+          the proposed position for each walker should be accepted.
+
+        * ``blob`` — The new meta data blobs or ``None`` if nothing was
+          returned by ``lnprobfn``.
 
         """
         s = np.atleast_2d(ensemble.pos)
