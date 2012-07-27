@@ -10,8 +10,8 @@ except ImportError:
     setup
 
 
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
+if sys.argv[-1] == "publish":
+    os.system("python setup.py sdist upload")
     sys.exit()
 
 
@@ -28,6 +28,7 @@ setup(
                      open("HISTORY.rst").read(),
     package_data={"": ["LICENSE"]},
     include_package_data=True,
+    install_requires=["numpy"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
