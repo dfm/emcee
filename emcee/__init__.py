@@ -2,6 +2,7 @@ from __future__ import print_function
 from .sampler import *
 from .mh import *
 from .ensemble import *
+from . import utils
 
 
 __version__ = "1.1.0"

@@ -1,4 +1,4 @@
-__all__ = ["sample_ball"]
+__all__ = ["sample_ball", "MH_proposal_axisaligned"]
 
 
 import numpy as np
@@ -16,3 +16,19 @@ def sample_ball(p0, std, size=1):
     assert(len(p0) == len(std))
     return np.vstack([p0 + std * np.random.normal(size=len(p0))
                         for i in range(size)])
+
+
+class MH_proposal_axisaligned(object):
+    """
+    A Metropolis-Hastings proposal, with axis-aligned Gaussian steps,
+    for convenient use as the ``mh_proposal`` option to
+    :func:`EnsembleSampler.sample` .
+
+    """
+    def __init__(self, stdev):
+        self.stdev = stdev
+
+    def __call__(self, X):
+        (nw, npar) = X.shape
+        assert(len(self.stdev) == npar)
+        return X + self.stdev * np.random.normal(size=X.shape)

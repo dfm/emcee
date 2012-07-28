@@ -13,13 +13,9 @@ The Affine-Invariant Ensemble Sampler
 -------------------------------------
 
 Standard usage of ``emcee`` involves instantiating an
-:class:`EnsembleSampler` that contains a pair of :class:`Ensemble` objects
-that trace out the Markov chain in parallel.
+:class:`EnsembleSampler`.
 
 .. autoclass:: emcee.EnsembleSampler
-   :inherited-members:
-
-.. autoclass:: emcee.Ensemble
    :inherited-members:
 
 
@@ -52,3 +48,5 @@ Utilities
 ---------
 
 .. autofunction:: emcee.utils.sample_ball
+
+.. autoclass:: emcee.utils.MH_proposal_axisaligned
