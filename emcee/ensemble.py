@@ -244,6 +244,15 @@ class EnsembleSampler(Sampler):
         return self._blobs
 
     @property
+    def chain(self):
+        """
+        A pointer to the Markov chain itself. The shape of this array is
+        ``(k, dim, iterations)``.
+
+        """
+        return super(EnsembleSampler, self).chain
+
+    @property
     def flatchain(self):
         """
         A shortcut for accessing chain flattened along the zeroth (walker)
@@ -252,6 +261,24 @@ class EnsembleSampler(Sampler):
         """
         s = self.chain.shape
         return self.chain.reshape(s[0] * s[1], s[2])
+
+    @property
+    def lnprobability(self):
+        """
+        A pointer to the matrix of the value of ``lnprobfn`` produced at each
+        step for each walker. The shape is ``(k, iterations)``.
+
+        """
+        return super(EnsembleSampler, self).lnprobability
+
+    @property
+    def acceptance_fraction(self):
+        """
+        An array (length: ``k``) of the fraction of steps accepted for each
+        walker.
+
+        """
+        return super(EnsembleSampler, self).acceptance_fraction
 
     @property
     def acor(self):

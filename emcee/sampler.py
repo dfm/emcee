@@ -72,8 +72,7 @@ class Sampler(object):
     @property
     def acceptance_fraction(self):
         """
-        An array (length: ``k``) of the fraction of steps accepted for each
-        walker.
+        The fraction of proposed steps that were accepted.
 
         """
         return self.naccepted / self.iterations
@@ -81,8 +80,7 @@ class Sampler(object):
     @property
     def chain(self):
         """
-        A pointer to the Markov chain itself. The shape of this array is
-        ``(k, dim, iterations)``.
+        A pointer to the Markov chain.
 
         """
         return self._chain
@@ -90,8 +88,7 @@ class Sampler(object):
     @property
     def flatchain(self):
         """
-        A shortcut for accessing chain flattened along the zeroth (walker)
-        axis.
+        Alias of ``chain`` provided for compatibility.
 
         """
         return self._chain
@@ -99,8 +96,8 @@ class Sampler(object):
     @property
     def lnprobability(self):
         """
-        A pointer to the matrix of the value of ``lnprobfn`` produced at each
-        step for each walker. The shape is ``(k, iterations)``.
+        A list of the log-probability values associated with each step in
+        the chain.
 
         """
         return self._lnprob
