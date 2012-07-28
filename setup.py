@@ -24,9 +24,11 @@ setup(
     url="http://danfm.ca/emcee/",
     license=open("LICENSE").read(),
     description="Kick ass affine-invariant ensemble MCMC sampling",
-    long_description=open("README.rst").read() + "\n\n" +
-                     open("HISTORY.rst").read(),
-    package_data={"": ["LICENSE"]},
+    long_description=open("README.rst").read() + "\n\n"
+                    + "Changelog\n"
+                    + "---------\n\n"
+                    + open("HISTORY.rst").read(),
+    package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
     install_requires=["numpy"],
     classifiers=[

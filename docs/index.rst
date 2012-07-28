@@ -21,6 +21,17 @@ Seriously Kick-Ass MCMC
     <a href="http://cosmo.nyu.edu/hogg">folks</a> implemented it in Python.
     It's a little crazy how much it rocks.</p>
 
+``emcee`` is a GPLv2 licensed pure-Python implementation of Goodman & Weare's
+`Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler
+<http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and these pages will
+show you how to use it.
+
+This documentation won't teach you too much about MCMC but there are a lot
+of resources available for that (try `this one
+<http://www.inference.phy.cam.ac.uk/mackay/itila/book.html>`_). We also
+posted `a paper <http://arxiv.org/abs/1202.3665>`_ to the arXiv explaining
+the ``emcee`` algorithm in much greater detail.
+
 
 Basic Usage
 -----------
@@ -34,11 +45,11 @@ something like:
     import emcee
 
     def lnprob(x, ivar):
-        return -0.5*np.sum(ivar * x**2)
+        return -0.5 * np.sum(ivar * x ** 2)
 
     ndim, nwalkers = 10, 100
-    ivar = 1./np.random.rand(ndim)
-    p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+    ivar = 1. / np.random.rand(ndim)
+    p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
     sampler.run_mcmc(p0, 1000)
@@ -52,6 +63,8 @@ User Guide
 
    user/install
    user/quickstart
+   user/advanced
+   user/faq
 
 
 API Documentation

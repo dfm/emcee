@@ -132,6 +132,17 @@ class EnsembleSampler(Sampler):
         :param iterations: (optional)
             The number of steps to run.
 
+        :param thin: (optional)
+            If you only want to store and yield every ``thin`` samples in the
+            chain, set thin to an integer greater than 1.
+
+        :param storechain: (optional)
+            By default, the sampler stores (in memory) the positions and
+            log-probabilities of the samples in the chain. If you are
+            using another method to store the samples to a file or if you
+            don't need to analyse the samples after the fact (for burn-in
+            for example) set ``storechain`` to ``False``.
+
         :param mh_proposal: (optional)
             A function that returns a list of positions for ``nwalkers``
             walkers given a current list of positions of the same size. See
