@@ -12,8 +12,4 @@ emcee.egg-info
 MANIFEST
 docs.tar
 
-*.svg
-*.png
-*.hdf5
-*.pkl
 *.pdf
