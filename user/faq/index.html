@@ -1,0 +1,177 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FAQ &mdash; emcee 1.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 1.1.0 documentation" href="../../" />
+    <link rel="next" title="API" href="../../api/" />
+    <link rel="prev" title="Advanced Patterns" href="../advanced/" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../api/" title="API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../advanced/" title="Advanced Patterns"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../">emcee 1.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="faq">
+<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<p><strong>The not-so-frequently asked questions that still have useful answers</strong></p>
+<div class="section" id="what-are-walkers">
+<span id="walkers"></span><h2>What are &#8220;walkers&#8221;?<a class="headerlink" href="#what-are-walkers" title="Permalink to this headline">¶</a></h2>
+<p>Walkers are the members of the ensemble. They are almost like separate
+Metropolis-Hastings chains but, of course, the proposal distribution for
+a given walker depends on the positions of all the other walkers in the
+ensemble. See <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Goodman &amp; Weare (2010)</a> for more details.</p>
+</div>
+<div class="section" id="how-should-i-initialize-the-walkers">
+<h2>How should I initialize the walkers?<a class="headerlink" href="#how-should-i-initialize-the-walkers" title="Permalink to this headline">¶</a></h2>
+<p>The best technique seems to be to start in a small ball around the a priori
+preferred position. Don&#8217;t worry, the walkers quickly branch out and explore
+the rest of the space.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p><strong>I&#8217;m getting weird spikes in my data/I have low acceptance fractions/both...
+what should I do?</strong></p>
+<p>Double the number of walkers. If that doesn&#8217;t work, double it again. And
+again. Until you run out of RAM. At that point, I don&#8217;t know!</p>
+<p><strong>The walkers are getting stuck in &#8220;islands&#8221; of low likelihood. How can I
+fix that?</strong></p>
+<p>Try increasing the number of walkers. If that doesn&#8217;t work, you can try
+pruning using a clustering algorithm like the one found in
+<a class="reference external" href="http://arxiv.org/abs/1104.2612">arxiv:1104.2612</a>.</p>
+</div>
+<div class="section" id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
+<p>If you find this useful, please <a class="reference external" href="http://arxiv.org/abs/1202.3665">cite us</a>.
+Also, please <a class="reference external" href="https://github.com/dfm/emcee">fork us on GitHub</a> so we can
+all benefit from any changes you come up with!</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#what-are-walkers">What are &#8220;walkers&#8221;?</a></li>
+<li><a class="reference internal" href="#how-should-i-initialize-the-walkers">How should I initialize the walkers?</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#citation">Citation</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../advanced/" title="previous chapter">Advanced Patterns</a></li>
+      <li>Next: <a href="../../api/" title="next chapter">API</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012, Dan Foreman-Mackey.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>emcee.utils &mdash; emcee 1.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 1.1.0 documentation" href="../../../" />
+    <link rel="up" title="emcee" href="../" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../../_static/favicon.png">
+
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../">emcee 1.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../" >Module code</a> &raquo;</li>
+          <li><a href="../" accesskey="U">emcee</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for emcee.utils</h1><div class="highlight"><pre>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;sample_ball&quot;</span><span class="p">,</span> <span class="s">&quot;MH_proposal_axisaligned&quot;</span><span class="p">]</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="sample_ball"><a class="viewcode-back" href="../../../api/#emcee.utils.sample_ball">[docs]</a><span class="k">def</span> <span class="nf">sample_ball</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Produce a ball of walkers around an initial parameter value.</span>
+
+<span class="sd">    :param p0: The initial parameter value.</span>
+<span class="sd">    :param std: The axis-aligned standard deviation.</span>
+<span class="sd">    :param size: The number of samples to produce.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">std</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">p0</span> <span class="o">+</span> <span class="n">std</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">)])</span>
+
+</div>
+<div class="viewcode-block" id="MH_proposal_axisaligned"><a class="viewcode-back" href="../../../api/#emcee.utils.MH_proposal_axisaligned">[docs]</a><span class="k">class</span> <span class="nc">MH_proposal_axisaligned</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Metropolis-Hastings proposal, with axis-aligned Gaussian steps,</span>
+<span class="sd">    for convenient use as the ``mh_proposal`` option to</span>
+<span class="sd">    :func:`EnsembleSampler.sample` .</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stdev</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdev</span> <span class="o">=</span> <span class="n">stdev</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">nw</span><span class="p">,</span> <span class="n">npar</span><span class="p">)</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stdev</span><span class="p">)</span> <span class="o">==</span> <span class="n">npar</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdev</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../../">
+        <img class="logo" src="../../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p><h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../">Documentation overview</a><ul>
+  <li><a href="../../">Module code</a><ul>
+  <li><a href="../">emcee</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012, Dan Foreman-Mackey.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+  </body>
+</html>

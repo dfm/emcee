@@ -1,0 +1,630 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API &mdash; emcee 1.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 1.1.0 documentation" href="../" />
+    <link rel="prev" title="FAQ" href="../user/faq/" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../_static/favicon.png">
+
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../user/faq/" title="FAQ"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../">emcee 1.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="api">
+<span id="id1"></span><h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-emcee"></span><p>This page details the methods and classes provided by the <tt class="docutils literal"><span class="pre">emcee</span></tt> module.
+The main entry point is through the <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> object.</p>
+<div class="section" id="the-affine-invariant-ensemble-sampler">
+<h2>The Affine-Invariant Ensemble Sampler<a class="headerlink" href="#the-affine-invariant-ensemble-sampler" title="Permalink to this headline">¶</a></h2>
+<p>Standard usage of <tt class="docutils literal"><span class="pre">emcee</span></tt> involves instantiating an
+<a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>.</p>
+<dl class="class">
+<dt id="emcee.EnsembleSampler">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">EnsembleSampler</tt><big>(</big><em>nwalkers</em>, <em>dim</em>, <em>lnpostfn</em>, <em>a=2.0</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>postargs=None</em>, <em>threads=1</em>, <em>pool=None</em>, <em>live_dangerously=False</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.
+The <tt class="docutils literal"><span class="pre">__init__</span></tt> function will raise an <tt class="docutils literal"><span class="pre">AssertionError</span></tt> if
+<tt class="docutils literal"><span class="pre">k</span> <span class="pre">&lt;</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">dim</span></tt> (and you haven&#8217;t set the <tt class="docutils literal"><span class="pre">live_dangerously</span></tt> parameter)
+or if <tt class="docutils literal"><span class="pre">k</span></tt> is odd.</p>
+<p><strong>Warning</strong>: The <a class="reference internal" href="#emcee.EnsembleSampler.chain" title="emcee.EnsembleSampler.chain"><tt class="xref py py-attr docutils literal"><span class="pre">chain</span></tt></a> member of this object has the shape:
+<tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">nlinks,</span> <span class="pre">dim)</span></tt> where <tt class="docutils literal"><span class="pre">nlinks</span></tt> is the number of steps
+taken by the chain and <tt class="docutils literal"><span class="pre">k</span></tt> is the number of walkers.  Use the
+<a class="reference internal" href="#emcee.EnsembleSampler.flatchain" title="emcee.EnsembleSampler.flatchain"><tt class="xref py py-attr docutils literal"><span class="pre">flatchain</span></tt></a> property to get the chain flattened to
+<tt class="docutils literal"><span class="pre">(nlinks,</span> <span class="pre">dim)</span></tt>. For users of pre-1.0 versions, this shape is
+different so be careful!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nwalkers</strong> &#8211; The number of Goodman &amp; Weare &#8220;walkers&#8221;.</li>
+<li><strong>dim</strong> &#8211; Number of dimensions in the parameter space.</li>
+<li><strong>lnpostfn</strong> &#8211; A function that takes a vector in the parameter space as input and
+returns the natural logarithm of the posterior probability for that
+position.</li>
+<li><strong>a</strong> &#8211; (optional)
+The proposal scale parameter. (default: <tt class="docutils literal"><span class="pre">2.0</span></tt>)</li>
+<li><strong>args</strong> &#8211; (optional)
+A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
+called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+<li><strong>postargs</strong> &#8211; (optional)
+Alias of <tt class="docutils literal"><span class="pre">args</span></tt> for backwards compatibility.</li>
+<li><strong>threads</strong> &#8211; (optional)
+The number of threads to use for parallelization. If <tt class="docutils literal"><span class="pre">threads</span> <span class="pre">==</span> <span class="pre">1</span></tt>,
+then the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> module is not used but if
+<tt class="docutils literal"><span class="pre">threads</span> <span class="pre">&gt;</span> <span class="pre">1</span></tt>, then a <tt class="docutils literal"><span class="pre">Pool</span></tt> object is created and calls to
+<tt class="docutils literal"><span class="pre">lnpostfn</span></tt> are run in parallel.</li>
+<li><strong>pool</strong> &#8211; (optional)
+An alternative method of using the parallelized algorithm. If
+provided, the value of <tt class="docutils literal"><span class="pre">threads</span></tt> is ignored and the
+object provided by <tt class="docutils literal"><span class="pre">pool</span></tt> is used for all parallelization. It
+can be any object with a <tt class="docutils literal"><span class="pre">map</span></tt> method that follows the same
+calling sequence as the built-in <tt class="docutils literal"><span class="pre">map</span></tt> function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.acceptance_fraction">
+<tt class="descname">acceptance_fraction</tt><a class="headerlink" href="#emcee.EnsembleSampler.acceptance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array (length: <tt class="docutils literal"><span class="pre">k</span></tt>) of the fraction of steps accepted for each
+walker.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.acor">
+<tt class="descname">acor</tt><a class="headerlink" href="#emcee.EnsembleSampler.acor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The autocorrelation time of each parameter in the chain (length:
+<tt class="docutils literal"><span class="pre">dim</span></tt>) as estimated by the <tt class="docutils literal"><span class="pre">acor</span></tt> module.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.blobs">
+<tt class="descname">blobs</tt><a class="headerlink" href="#emcee.EnsembleSampler.blobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of &#8220;blobs&#8221; produced by sampling. The result is a list
+(of length <tt class="docutils literal"><span class="pre">iterations</span></tt>) of <tt class="docutils literal"><span class="pre">list</span></tt> s (of length <tt class="docutils literal"><span class="pre">nwalkers</span></tt>) of
+arbitrary objects. <strong>Note</strong>: this will actually be an empty list if
+your <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> doesn&#8217;t return any metadata.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.chain">
+<tt class="descname">chain</tt><a class="headerlink" href="#emcee.EnsembleSampler.chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pointer to the Markov chain itself. The shape of this array is
+<tt class="docutils literal"><span class="pre">(k,</span> <span class="pre">dim,</span> <span class="pre">iterations)</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.EnsembleSampler.clear_chain">
+<tt class="descname">clear_chain</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.clear_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#emcee.EnsembleSampler.reset" title="emcee.EnsembleSampler.reset"><tt class="xref py py-func docutils literal"><span class="pre">reset()</span></tt></a> kept for backwards compatibility.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.flatchain">
+<tt class="descname">flatchain</tt><a class="headerlink" href="#emcee.EnsembleSampler.flatchain" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for accessing chain flattened along the zeroth (walker)
+axis.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.EnsembleSampler.get_lnprob">
+<tt class="descname">get_lnprob</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.get_lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-probability at the given position.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.lnprobability">
+<tt class="descname">lnprobability</tt><a class="headerlink" href="#emcee.EnsembleSampler.lnprobability" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pointer to the matrix of the value of <tt class="docutils literal"><span class="pre">lnprobfn</span></tt> produced at each
+step for each walker. The shape is <tt class="docutils literal"><span class="pre">(k,</span> <span class="pre">iterations)</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.random_state">
+<tt class="descname">random_state</tt><a class="headerlink" href="#emcee.EnsembleSampler.random_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>The state of the internal random number generator. In practice, it&#8217;s
+the result of calling <tt class="docutils literal"><span class="pre">get_state()</span></tt> on a
+<tt class="docutils literal"><span class="pre">numpy.random.mtrand.RandomState</span></tt> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.EnsembleSampler.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the <tt class="docutils literal"><span class="pre">chain</span></tt> and <tt class="docutils literal"><span class="pre">lnprobability</span></tt> array. Also reset the
+bookkeeping parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.EnsembleSampler.run_mcmc">
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>N</strong> &#8211; The number of steps to run.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
+is not provided, the initial value is calculated.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator. See the
+<a class="reference internal" href="#emcee.EnsembleSampler.random_state" title="emcee.EnsembleSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.EnsembleSampler.sample">
+<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob0=None</em>, <em>rstate0=None</em>, <em>blobs=</em><span class="optional">[</span><span class="optional">]</span>, <em>iterations=1</em>, <em>thin=1</em>, <em>storechain=True</em>, <em>mh_proposal=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advance the chain <tt class="docutils literal"><span class="pre">iterations</span></tt> steps as a generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; A list of the initial positions of the walkers in the
+parameter space. It should have the shape <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The list of log posterior probabilities for the walkers at
+positions given by <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span> <span class="pre">is</span> <span class="pre">None</span></tt>, the initial
+values are calculated. It should have the shape <tt class="docutils literal"><span class="pre">(k,</span> <span class="pre">dim)</span></tt>.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator.
+See the <a class="reference internal" href="#emcee.Sampler.random_state" title="emcee.Sampler.random_state"><tt class="xref py py-attr docutils literal"><span class="pre">Sampler.random_state</span></tt></a> property for details.</li>
+<li><strong>iterations</strong> &#8211; (optional)
+The number of steps to run.</li>
+<li><strong>thin</strong> &#8211; (optional)
+If you only want to store and yield every <tt class="docutils literal"><span class="pre">thin</span></tt> samples in the
+chain, set thin to an integer greater than 1.</li>
+<li><strong>storechain</strong> &#8211; (optional)
+By default, the sampler stores (in memory) the positions and
+log-probabilities of the samples in the chain. If you are
+using another method to store the samples to a file or if you
+don&#8217;t need to analyse the samples after the fact (for burn-in
+for example) set <tt class="docutils literal"><span class="pre">storechain</span></tt> to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>mh_proposal</strong> &#8211; (optional)
+A function that returns a list of positions for <tt class="docutils literal"><span class="pre">nwalkers</span></tt>
+walkers given a current list of positions of the same size. See
+<a class="reference internal" href="#emcee.utils.MH_proposal_axisaligned" title="emcee.utils.MH_proposal_axisaligned"><tt class="xref py py-class docutils literal"><span class="pre">utils.MH_proposal_axisaligned</span></tt></a> for an example.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>At each iteration, this generator yields:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">pos</span></tt> — A list of the current positions of the walkers in the
+parameter space. The shape of this object will be
+<tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> — The list of log posterior probabilities for the
+walkers at positions given by <tt class="docutils literal"><span class="pre">pos</span></tt> . The shape of this object
+is <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">rstate</span></tt> — The current state of the random number generator.</li>
+<li><tt class="docutils literal"><span class="pre">blobs</span></tt> — (optional) The metadata &#8220;blobs&#8221; associated with the
+current position. The value is only returned if <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+returns blobs too.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="standard-metropolis-hastings-sampler">
+<h2>Standard Metropolis-Hastings Sampler<a class="headerlink" href="#standard-metropolis-hastings-sampler" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">Metropolis-Hastings</a>
+sampler included in this module is far from fine-tuned and optimized. It
+is, however, stable and it has a consistent API so it can be useful for
+testing and comparison.</p>
+<dl class="class">
+<dt id="emcee.MHSampler">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">MHSampler</tt><big>(</big><em>cov</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.MHSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The most basic possible Metropolis-Hastings style MCMC sampler</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cov</strong> &#8211; The covariance matrix to use for the proposal distribution.</li>
+<li><strong>dim</strong> &#8211; Number of dimensions in the parameter space.</li>
+<li><strong>lnpostfn</strong> &#8211; A function that takes a vector in the parameter space as input and
+returns the natural logarithm of the posterior probability for that
+position.</li>
+<li><strong>args</strong> &#8211; (optional)
+A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
+called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="emcee.MHSampler.acceptance_fraction">
+<tt class="descname">acceptance_fraction</tt><a class="headerlink" href="#emcee.MHSampler.acceptance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The fraction of proposed steps that were accepted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.MHSampler.acor">
+<tt class="descname">acor</tt><a class="headerlink" href="#emcee.MHSampler.acor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The autocorrelation time of each parameter in the chain (length:
+<tt class="docutils literal"><span class="pre">dim</span></tt>) as estimated by the <tt class="docutils literal"><span class="pre">acor</span></tt> module.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.MHSampler.chain">
+<tt class="descname">chain</tt><a class="headerlink" href="#emcee.MHSampler.chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pointer to the Markov chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.MHSampler.clear_chain">
+<tt class="descname">clear_chain</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.MHSampler.clear_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <tt class="xref py py-func docutils literal"><span class="pre">reset()</span></tt> kept for backwards compatibility.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.MHSampler.flatchain">
+<tt class="descname">flatchain</tt><a class="headerlink" href="#emcee.MHSampler.flatchain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias of <tt class="docutils literal"><span class="pre">chain</span></tt> provided for compatibility.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.MHSampler.get_lnprob">
+<tt class="descname">get_lnprob</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.get_lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-probability at the given position.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.MHSampler.lnprobability">
+<tt class="descname">lnprobability</tt><a class="headerlink" href="#emcee.MHSampler.lnprobability" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the log-probability values associated with each step in
+the chain.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.MHSampler.random_state">
+<tt class="descname">random_state</tt><a class="headerlink" href="#emcee.MHSampler.random_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>The state of the internal random number generator. In practice, it&#8217;s
+the result of calling <tt class="docutils literal"><span class="pre">get_state()</span></tt> on a
+<tt class="docutils literal"><span class="pre">numpy.random.mtrand.RandomState</span></tt> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.MHSampler.run_mcmc">
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate <a class="reference internal" href="#emcee.MHSampler.sample" title="emcee.MHSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>N</strong> &#8211; The number of steps to run.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
+is not provided, the initial value is calculated.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator. See the
+<a class="reference internal" href="#emcee.MHSampler.random_state" title="emcee.MHSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.MHSampler.sample">
+<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob=None</em>, <em>randomstate=None</em>, <em>storechain=True</em>, <em>resample=1</em>, <em>iterations=1</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advances the chain <tt class="docutils literal"><span class="pre">iterations</span></tt> steps as an iterator</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
+is not provided, the initial value is calculated.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator. See the
+<a class="reference internal" href="#emcee.MHSampler.random_state" title="emcee.MHSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+<li><strong>iterations</strong> &#8211; (optional)
+The number of steps to run.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>At each iteration, this generator yields:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">pos</span></tt> — The current positions of the chain in the parameter
+space.</li>
+<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> — The value of the log posterior at <tt class="docutils literal"><span class="pre">pos</span></tt> .</li>
+<li><tt class="docutils literal"><span class="pre">rstate</span></tt> — The current state of the random number generator.</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="abstract-sampler-object">
+<h2>Abstract Sampler Object<a class="headerlink" href="#abstract-sampler-object" title="Permalink to this headline">¶</a></h2>
+<p>This section is mostly for developers who would be interested in implementing
+a new sampler for inclusion in <tt class="docutils literal"><span class="pre">emcee</span></tt>. A good starting point would be
+to subclass the sampler object and override the <tt class="xref py py-func docutils literal"><span class="pre">Sampler.sample()</span></tt>
+method.</p>
+<dl class="class">
+<dt id="emcee.Sampler">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">Sampler</tt><big>(</big><em>dim</em>, <em>lnprobfn</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#emcee.Sampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>An abstract sampler object that implements various helper functions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dim</strong> &#8211; The number of dimensions in the parameter space.</li>
+<li><strong>lnpostfn</strong> &#8211; A function that takes a vector in the parameter space as input and
+returns the natural logarithm of the posterior probability for that
+position.</li>
+<li><strong>args</strong> &#8211; (optional)
+A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
+called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="emcee.Sampler.acceptance_fraction">
+<tt class="descname">acceptance_fraction</tt><a class="headerlink" href="#emcee.Sampler.acceptance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The fraction of proposed steps that were accepted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Sampler.acor">
+<tt class="descname">acor</tt><a class="headerlink" href="#emcee.Sampler.acor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The autocorrelation time of each parameter in the chain (length:
+<tt class="docutils literal"><span class="pre">dim</span></tt>) as estimated by the <tt class="docutils literal"><span class="pre">acor</span></tt> module.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Sampler.chain">
+<tt class="descname">chain</tt><a class="headerlink" href="#emcee.Sampler.chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pointer to the Markov chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.clear_chain">
+<tt class="descname">clear_chain</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.Sampler.clear_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#emcee.Sampler.reset" title="emcee.Sampler.reset"><tt class="xref py py-func docutils literal"><span class="pre">reset()</span></tt></a> kept for backwards compatibility.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Sampler.flatchain">
+<tt class="descname">flatchain</tt><a class="headerlink" href="#emcee.Sampler.flatchain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias of <tt class="docutils literal"><span class="pre">chain</span></tt> provided for compatibility.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.get_lnprob">
+<tt class="descname">get_lnprob</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#emcee.Sampler.get_lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-probability at the given position.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Sampler.lnprobability">
+<tt class="descname">lnprobability</tt><a class="headerlink" href="#emcee.Sampler.lnprobability" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the log-probability values associated with each step in
+the chain.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Sampler.random_state">
+<tt class="descname">random_state</tt><a class="headerlink" href="#emcee.Sampler.random_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>The state of the internal random number generator. In practice, it&#8217;s
+the result of calling <tt class="docutils literal"><span class="pre">get_state()</span></tt> on a
+<tt class="docutils literal"><span class="pre">numpy.random.mtrand.RandomState</span></tt> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.Sampler.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear <tt class="docutils literal"><span class="pre">chain</span></tt>, <tt class="docutils literal"><span class="pre">lnprobability</span></tt> and the bookkeeping parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.run_mcmc">
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.Sampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate <tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>N</strong> &#8211; The number of steps to run.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
+is not provided, the initial value is calculated.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator. See the
+<a class="reference internal" href="#emcee.Sampler.random_state" title="emcee.Sampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="emcee.utils.sample_ball">
+<tt class="descclassname">emcee.utils.</tt><tt class="descname">sample_ball</tt><big>(</big><em>p0</em>, <em>std</em>, <em>size=1</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#sample_ball"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.sample_ball" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a ball of walkers around an initial parameter value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial parameter value.</li>
+<li><strong>std</strong> &#8211; The axis-aligned standard deviation.</li>
+<li><strong>size</strong> &#8211; The number of samples to produce.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.utils.MH_proposal_axisaligned">
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MH_proposal_axisaligned</tt><big>(</big><em>stdev</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MH_proposal_axisaligned"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MH_proposal_axisaligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Metropolis-Hastings proposal, with axis-aligned Gaussian steps,
+for convenient use as the <tt class="docutils literal"><span class="pre">mh_proposal</span></tt> option to
+<a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.sample()</span></tt></a> .</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../">
+        <img class="logo" src="../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API</a><ul>
+<li><a class="reference internal" href="#the-affine-invariant-ensemble-sampler">The Affine-Invariant Ensemble Sampler</a></li>
+<li><a class="reference internal" href="#standard-metropolis-hastings-sampler">Standard Metropolis-Hastings Sampler</a></li>
+<li><a class="reference internal" href="#abstract-sampler-object">Abstract Sampler Object</a></li>
+<li><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../">Documentation overview</a><ul>
+      <li>Previous: <a href="../user/faq/" title="previous chapter">FAQ</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012, Dan Foreman-Mackey.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+  </body>
+</html>
