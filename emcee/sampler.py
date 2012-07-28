@@ -49,8 +49,8 @@ class Sampler(object):
     def random_state(self):
         """
         The state of the internal random number generator. In practice, it's
-        the result of calling `get_state()` on a
-        `numpy.random.mtrand.RandomState` object. You can try to set this
+        the result of calling ``get_state()`` on a
+        ``numpy.random.mtrand.RandomState`` object. You can try to set this
         property but be warned that if you do this and it fails, it will do
         so silently.
 
@@ -138,12 +138,21 @@ class Sampler(object):
 
     def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None):
         """
-        Iterate sample for ``N`` iterations and return the result. The
-        arguments are passed directly to `sample` so see the parameter
-        details given in ``sample``.
+        Iterate :func:`sample` for ``N`` iterations and return the result.
 
-        This method returns the ``(position, lnprob, state)`` tuple after
-        ``N`` iterations.
+        :param p0:
+            The initial position vector.
+
+        :param N:
+            The number of steps to run.
+
+        :param lnprob0: (optional)
+            The log posterior probability at position ``p0``. If ``lnprob``
+            is not provided, the initial value is calculated.
+
+        :param rstate0: (optional)
+            The state of the random number generator. See the
+            :func:`random_state` property for details.
 
         """
         for results in self.sample(pos0, lnprob0, rstate0,

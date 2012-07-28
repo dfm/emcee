@@ -10,5 +10,5 @@ Comments, corrections & suggestions:
 
 - Jonathan Goodman (NYU)
 - Jo Bovy (IAS)
-- Eric Agol (UW)
+- Eric Agol (UWash)
 - John Gizis (Delaware)

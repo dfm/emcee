@@ -111,7 +111,7 @@ class EnsembleSampler(Sampler):
     def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
             iterations=1, thin=1, storechain=True):
         """
-        Advance the chain iterations steps as a generator.
+        Advance the chain ``iterations`` steps as a generator.
 
         :param p0:
             A list of the initial positions of the walkers in the
@@ -136,7 +136,7 @@ class EnsembleSampler(Sampler):
           ``(nwalkers, dim)``.
 
         * ``lnprob`` — The list of log posterior probabilities for the
-          walkers at positions given by ``pos``. The shape of this object
+          walkers at positions given by ``pos`` . The shape of this object
           is ``(nwalkers, dim)``.
 
         * ``rstate`` — The current state of the random number generator.
@@ -236,7 +236,7 @@ class EnsembleSampler(Sampler):
     def blobs(self):
         """
         Get the list of "blobs" produced by sampling. The result is a list
-        (of length ``iterations``) of ``list``s (of length ``nwalkers``) of
+        (of length ``iterations``) of ``list`` s (of length ``nwalkers``) of
         arbitrary objects. **Note**: this will actually be an empty list if
         your ``lnpostfn`` doesn't return any metadata.
 

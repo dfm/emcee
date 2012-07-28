@@ -16,24 +16,20 @@ class MHSampler(Sampler):
     """
     The most basic possible Metropolis-Hastings style MCMC sampler
 
-    #### Arguments
+    :param cov:
+        The covariance matrix to use for the proposal distribution.
 
-    * `cov` (numpy.ndarray): The covariance matrix to use for the proposal
-      distribution.
-    * `dim` (int): Number of dimensions in the parameter space.
-    * `lnpostfn` (callable): A function that takes a vector in the parameter
-      space as input and returns the natural logarithm of the posterior
-      probability for that position.
+    :param dim:
+        Number of dimensions in the parameter space.
 
-    #### Keyword Arguments
+    :param lnpostfn:
+        A function that takes a vector in the parameter space as input and
+        returns the natural logarithm of the posterior probability for that
+        position.
 
-    * `args` (list): Optional list of extra arguments for `lnpostfn`.
-      `lnpostfn` will be called with the sequence `lnpostfn(p, *args)`.
-
-    #### Notes
-
-    The 'chain' member of this object has the shape: (nlinks, dim) where
-    'nlinks' is the number of steps taken by the chain.
+    :param args: (optional)
+        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
+        called with the sequence ``lnpostfn(p, *args)``.
 
     """
     def __init__(self, cov, *args, **kwargs):
@@ -48,25 +44,30 @@ class MHSampler(Sampler):
     def sample(self, p0, lnprob=None, randomstate=None, storechain=True,
             resample=1, iterations=1):
         """
-        Advances the chain iterations steps as an iterator
+        Advances the chain ``iterations`` steps as an iterator
 
-        #### Arguments
+        :param p0:
+            The initial position vector.
 
-        * `pos0` (numpy.ndarray): The initial position vector.
+        :param lnprob0: (optional)
+            The log posterior probability at position ``p0``. If ``lnprob``
+            is not provided, the initial value is calculated.
 
-        #### Keyword Arguments
+        :param rstate0: (optional)
+            The state of the random number generator. See the
+            :func:`random_state` property for details.
 
-        * `lnprob0` (float): The log posterior probability at position `p0`.
-          If `lnprob is None`, the initial value is calculated.
-        * `rstate0` (tuple): The state of the random number generator.
-          See the `Sampler.random_state` property for details.
-        * `iterations` (int): The number of steps to run. (default: 1)
+        :param iterations: (optional)
+            The number of steps to run.
 
-        #### Yields
+        At each iteration, this generator yields:
 
-        * `pos` (numpy.ndarray): The final position vector.
-        * `lnprob` (float): The log-probability at `pos`.
-        * `rstate` (tuple): The state of the random number generator.
+        * ``pos`` — The current positions of the chain in the parameter
+          space.
+
+        * ``lnprob`` — The value of the log posterior at ``pos`` .
+
+        * ``rstate`` — The current state of the random number generator.
 
         """
 

@@ -1,6 +1,6 @@
 .. :changelog:
 
-1.2.0 (...)
+1.1.0 (...)
 ++++++++++++++++++
 
 - Allow the ``lnprobfn`` to return arbitrary "blobs" of data as well as the

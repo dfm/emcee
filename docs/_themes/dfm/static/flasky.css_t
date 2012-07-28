@@ -2,7 +2,9 @@
  * flasky.css_t
  * ~~~~~~~~~~~~
  *
- * :copyright: Copyright 2010 by Armin Ronacher. Modifications by Kenneth Reitz.
+ * :copyright: Copyright 2010 by Armin Ronacher.
+ *             Modifications by Kenneth Reitz.
+ *             Further modification by Dan Foreman-Mackey.
  * :license: Flask Design License, see LICENSE for details.
  */
 
@@ -11,11 +13,16 @@
 
 @import url("basic.css");
 
-/* -- page layout ----------------------------------------------------------- */
+#seriously-kick-ass-mcmc h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+}
 
 body {
-    font-family: 'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro';
-    font-size: 17px;
+    font-family: "abril-text", serif;
+    font-size: 16px;
+    line-height: 1.8em;
     background-color: white;
     color: #000;
     margin: 0;
@@ -83,7 +90,7 @@ div.sphinxsidebar a:hover {
 
 div.sphinxsidebar {
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.8;
 }
 
 div.sphinxsidebarwrapper {
@@ -98,7 +105,7 @@ div.sphinxsidebarwrapper p.logo {
 
 div.sphinxsidebar h3,
 div.sphinxsidebar h4 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: "Alegreya", Palatino, Georgia, serif;
     color: #444;
     font-size: 24px;
     font-weight: normal;
@@ -134,20 +141,18 @@ div.sphinxsidebar ul {
 
 div.sphinxsidebar input {
     border: 1px solid #ccc;
-    font-family: 'Georgia', serif;
+    font-family: "Alegreya", Palatino, Georgia, serif;
     font-size: 1em;
 }
 
 /* -- body styles ----------------------------------------------------------- */
 
 a {
-    color: #004B6B;
-    text-decoration: underline;
+    color: #124600;
 }
 
 a:hover {
-    color: #6D4100;
-    text-decoration: underline;
+    color: #7FD600;
 }
 
 div.body h1,
@@ -156,18 +161,22 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: "Alegreya", Palatino, Georgia, serif;
     font-weight: normal;
     margin: 30px 0px 10px 0px;
     padding: 0;
 }
 
-div.body h1 { margin-top: 0; padding-top: 0; font-size: 240%; }
-div.body h2 { font-size: 180%; }
-div.body h3 { font-size: 150%; }
-div.body h4 { font-size: 130%; }
+div.body h1 { padding-top: 0; font-size: 240%; }
+div.body h2 { font-size: 150%; }
+div.body h3 { font-size: 120%; }
+div.body h4 { font-size: 110%; }
 div.body h5 { font-size: 100%; }
 div.body h6 { font-size: 100%; }
+
+div.body h1, div.body h2 {
+    margin: 35px 0 20px 0;
+}
 
 a.headerlink {
     color: #ddd;
@@ -181,37 +190,7 @@ a.headerlink:hover {
 }
 
 div.body p, div.body dd, div.body li {
-    line-height: 1.4em;
-}
-
-div.admonition {
-    background: #fafafa;
-    margin: 20px -30px;
-    padding: 10px 30px;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-}
-
-div.admonition tt.xref, div.admonition a tt {
-    border-bottom: 1px solid #fafafa;
-}
-
-dd div.admonition {
-    margin-left: -60px;
-    padding-left: 60px;
-}
-
-div.admonition p.admonition-title {
-    font-family: 'Garamond', 'Georgia', serif;
-    font-weight: normal;
-    font-size: 24px;
-    margin: 0 0 10px 0;
-    padding: 0;
-    line-height: 1;
-}
-
-div.admonition p.last {
-    margin-bottom: 0;
+    /* line-height: 1.8em; */
 }
 
 div.highlight {
@@ -245,11 +224,31 @@ p.admonition-title:after {
 }
 
 pre, tt {
-    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-family: "Menlo", "Deja Vu Sans Mono", "Bitstream Vera Sans Mono", monospace;
     font-size: 0.9em;
 }
 
 img.screenshot {
+}
+
+.class dt, .function dt {
+    line-height: 1em;
+}
+
+dl.class dt em, dl.function dt em, dl.class dt span, dl.function dt span {
+    font-family: "Menlo", "Deja Vu Sans Mono", "Bitstream Vera Sans Mono", monospace;
+    font-size: 0.7em;
+    text-indent: 50px;
+}
+
+dl.class dt em, dl.function dt em {
+    padding: 0 3px;
+}
+
+dl.class em.property, dl.function em.property {
+    font-family: "Alegreya", Palatino, Georgia, serif;
+    padding-right: 5px;
+    font-size: 0.9em;
 }
 
 tt.descname, tt.descclassname {
@@ -325,8 +324,9 @@ dl dd {
 }
 
 blockquote {
-    margin: 0 0 0 30px;
-    padding: 0;
+    margin: 0 0 0 10px;
+    padding: 0 0 5px 10px;
+    border-left: 2px solid #ddd;
 }
 
 ul, ol {
@@ -360,15 +360,6 @@ tt {
 tt.xref, a tt {
     background-color: #FBFBFB;
     border-bottom: 1px solid white;
-}
-
-a.reference {
-    text-decoration: none;
-    border-bottom: 1px dotted #004B6B;
-}
-
-a.reference:hover {
-    border-bottom: 1px solid #6D4100;
 }
 
 a.footnote-reference {
@@ -435,9 +426,6 @@ a:hover tt {
     .github {
         display: none;
     }
-
-
-
 }
 
 
