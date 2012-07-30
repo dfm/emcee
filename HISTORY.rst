@@ -1,5 +1,12 @@
 .. :changelog:
 
+1.1.1 (2012-07-30)
+++++++++++++++++++
+
+- Fixed bug related to metadata blobs. The sample function was yielding
+  the ``blobs`` object even when it wasn't expected.
+
+
 1.1.0 (2012-07-28)
 ++++++++++++++++++
 

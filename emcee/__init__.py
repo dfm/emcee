@@ -5,7 +5,7 @@ from .ensemble import *
 from . import utils
 
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 
 def test():

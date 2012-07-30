@@ -260,7 +260,7 @@ class EnsembleSampler(Sampler):
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
-            if len(self._blobs) > 0:
+            if blobs is not None:
                 # This is a bit of a hack to keep things backwards compatible.
                 yield p, lnprob, self.random_state, blobs
             else:
