@@ -66,13 +66,14 @@ def oned():
     niter = 10
     nthreads = 2
 
-    outfn = "gauss_scaling.h5"
+    outfn = os.path.join(os.path.split(__file__)[0], "gauss_scaling.h5")
+    print outfn
     f = h5py.File(outfn, "w")
     f.create_dataset("data", (niter, 3), "f")
     f.close()
 
     pool = Pool(nthreads)
-    map(_worker, [(i, outfn, nsteps) for i in range(niter)])
+    pool.map(_worker, [(i, outfn, nsteps) for i in range(niter)])
 
     f = h5py.File(outfn)
     data = f["data"][...]
@@ -81,7 +82,8 @@ def oned():
     pl.clf()
     pl.plot(data[:, 0], data[:, 1], "ks", alpha=0.5)
     pl.plot(data[:, 0], data[:, 2], ".k", alpha=0.5)
-    pl.savefig("oned.png")
+
+    pl.savefig(os.path.join(os.path.split(__file__)[0], "gauss_scaling.png"))
 
 
 if __name__ == "__main__":
