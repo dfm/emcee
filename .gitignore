@@ -6,3 +6,4 @@ dist
 document
 emcee
 _themes
+*.pyc
