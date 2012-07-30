@@ -5,8 +5,6 @@
 \definecolor{linkcolor}{rgb}{0,0,0.5}
 \hypersetup{colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,
             filecolor=linkcolor,urlcolor=linkcolor}
-\newcommand{\numberparagraphs}{}
-\newcommand{\nonumberparagraphs}{}
 
 \usepackage{url}
 \usepackage{algorithmic,algorithm}
@@ -40,35 +38,6 @@
 \newcommand{\this}{\project{\thisplain}}
 \newcommand{\paper}{document}
 \newcommand{\license}{GNU General Public License v2}
-
-% shortcuts for API layout -- this is some brittle stuff!
-\newlength{\argmarg}
-\setlength{\argmarg}{0.5in}
-\newcommand{\code}[1]{{\sffamily #1}}
-\newcommand{\class}[3]{\def\curclass{#1}
-                \noindent{\small\this}\texttt{.}\code{{\large #1}{\small (#2)}}
-                \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
-                {\item #3}\end{list}}
-\newcommand{\param}[3]{{\item {\code{#1}} {\scriptsize (\code{#2})}: #3}}
-\newcommand{\exception}[2]{{\item \code{#1}: #2}}
-\newcommand{\property}[2]{{\item {\code{#1}}: #2}}
-\newcommand{\method}[4]{{\item
-    \noindent{\scriptsize\this\texttt{.}\code{\curclass}}%
-    \texttt{.}{\bf \code{#1}}{\scriptsize\code{(#2)}}
-    \begin{list}{}{\setlength{\leftmargin}{0.5\argmarg}}
-    {\item #3}\end{list} \indent#4}}
-\newenvironment{arglist}[1]{\noindent\hspace{0.5\argmarg}{\bf {#1}}
-    \begin{list}{}{
-        \setlength{\leftmargin}{\argmarg}
-    }}
-    {\end{list}}
-\newenvironment{args}{\begin{arglist}{Arguments}}{\end{arglist}}
-\newenvironment{kwargs}{\begin{arglist}{Keyword Arguments}}{\end{arglist}}
-\newenvironment{errors}{\begin{arglist}{Exceptions}}{\end{arglist}}
-\newenvironment{properties}{\begin{arglist}{Properties}}{\end{arglist}}
-\newenvironment{yields}{\begin{arglist}{Yields}}{\end{arglist}}
-\newenvironment{returns}{\begin{arglist}{Returns}}{\end{arglist}}
-\newenvironment{methods}{\begin{arglist}{Methods}}{\end{arglist}}
 
 \newcommand{\foreign}[1]{\emph{#1}}
 \newcommand{\etal}{\foreign{et\,al.}}
@@ -144,7 +113,6 @@
 \altaffiltext{\courant}{Courant Institute, New York University,
                         251 Mercer St., New York, NY 10012, United States}
 
-\numberparagraphs
 \begin{abstract}
     We introduce a stable, well tested Python implementation of the affine-%
     invariant ensemble sampler for Markov chain Monte Carlo (MCMC)
@@ -374,7 +342,6 @@ number of steps needed in the chain in order to draw independent samples from
 the target density. A more efficient chain has a shorter
 autocorrelation time.
 
-\nonumberparagraphs
 \begin{algorithm}
 \caption{The procedure for a single Metropolis-Hastings MCMC step.
     \algolabel{mh}}
@@ -393,7 +360,6 @@ autocorrelation time.
 
 \end{algorithmic}
 \end{algorithm}
-\numberparagraphs
 
 \paragraph{The stretch move}
 
@@ -448,7 +414,6 @@ procedure shown in \algo{goodman}.
 where $a$ is an adjustable scale parameter that \citetalias{Goodman:2010} set
 to 2.
 
-\nonumberparagraphs
 \begin{algorithm}
 \caption{A single stretch move update step from \citetalias{Goodman:2010}
     \algolabel{goodman}}
@@ -470,7 +435,6 @@ to 2.
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
-\numberparagraphs
 
 \paragraph{The parallel stretch move}
 
@@ -497,7 +461,6 @@ is comparable to the serial stretch move algorithm but the fact that one
 can now take advantage of generic parallelization makes it
 extremely powerful.
 
-\nonumberparagraphs
 \begin{algorithm}
 \caption{The parallel stretch move update step
     \algolabel{parallel}}
@@ -525,7 +488,6 @@ extremely powerful.
 
 \end{algorithmic}
 \end{algorithm}
-\numberparagraphs
 
 \section{Tests} \sectlabel{tests}
 
@@ -742,7 +704,6 @@ like to thank Eric Agol (UW) for pointing out an important typo in the
 first version of this \paper.
 \this\ makes use of the open-source Python \numpy\ package.
 
-\nonumberparagraphs
 \begin{thebibliography}{}\raggedright
 \bibitem[Bovy\ \etal(2011)]{Bovy:2011}
  Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
@@ -1004,167 +965,4 @@ for pos, lnprob, rstate in sampler.sample(p0, iterations=500):
 f.close()
 \end{lstlisting}
 
-
-\clearpage
-
-\section{API}\sectlabel{api}
-
-The detailed structure of the API with all the available options
-is given below and the human-readable annotated source code is available
-online\footnote{\url{http://danfm.ca/emcee/\#src}}.
-
-\vspace{1.2cm}
-
-\fontsize{9pt}{1}\selectfont
-
-\class{Sampler}{dim, lnprobfn, args=[]}{An abstract sampler object that implements various helper functions}
-
-\begin{args}
-    \param{dim}{int}{Number of dimensions in the parameter space.}
-    \param{lnpostfn}{callable}{A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.}
-\end{args}
-
-\begin{kwargs}
-    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence \code{lnpostfn(p, *args)}.}
-\end{kwargs}
-
-\begin{properties}
-    \property{acceptance\_fraction}{An array (length: \code{k}) of the fraction of steps accepted for each
-walker.}
-    \property{acor}{The autocorrelation time of each parameter in the chain (length:
-\code{dim}) as estimated by the \code{acor} module.}
-    \property{chain}{A pointer to the Markov chain itself. The shape of this array is
-\code{(k, dim, iterations)}.}
-    \property{flatchain}{A shortcut for accessing chain flattened along the zeroth (walker)
-axis.}
-    \property{lnprobability}{A pointer to the matrix of the value of \code{lnprobfn} produced at each
-step for each walker. The shape is \code{(k, iterations)}.}
-    \property{random\_state}{The state of the internal random number generator. In practice, it's
-the result of calling \code{get\_state()} on a
-\code{numpy.random.mtrand.RandomState} object. You can try to set this
-property but be warned that if you do this and it fails, it will do
-so silently.}
-\end{properties}
-
-\begin{methods}
-    \method{clear\_chain}{}{An alias for \code{reset} kept for backwards compatibility.}{}
-
-    \method{get\_lnprob}{p}{Return the log-probability at the given position.}{}
-
-    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the bookkeeping parameters.}{}
-
-    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None}{Iterate sample for \code{N} iterations and return the result. The arguments
-are passed directly to \code{sample} so see the parameter details given in
-\code{sample}.}{}
-
-\end{methods}
-
-
-\class{EnsembleSampler}{k, *args, **kwargs}{A generalized Ensemble sampler that uses 2 ensembles for parallelization.
-
-This is a subclass of the \code{Sampler} object. See the \code{Sampler} object
-for more details about the inherited properties.}
-
-\begin{args}
-    \param{k}{int}{The number of Goodman \& Weare ``walkers''.}
-    \param{dim}{int}{Number of dimensions in the parameter space.}
-    \param{lnpostfn}{callable}{A function that takes a vector in the parameter space as input and returns the natural logarithm of the posterior probability for that position.}
-\end{args}
-
-\begin{kwargs}
-    \param{a}{float}{The proposal scale parameter. (default: \code{2.0})}
-    \param{args}{list}{Optional list of extra arguments for \code{lnpostfn}. \code{lnpostfn} will be called with the sequence \code{lnpostfn(p, *args)}.}
-    \param{postargs}{list}{Alias of \code{args} for backwards compatibility.}
-    \param{threads}{int}{The number of threads to use for parallelization. If \code{threads == 1}, then the \code{multiprocessing} module is not used but if \code{threads \texttt{>} 1}, then a \code{Pool} object is created and calls to \code{lnpostfn} are run in parallel. (default: 1)}
-    \param{pool}{multiprocessing.Pool}{An alternative method of using the parallelized algorithm. If \code{pool is not None}, the value of \code{threads} is ignored and the provided \code{Pool} is used for all parallelization. (default: \code{None})}
-\end{kwargs}
-
-\begin{errors}
-    \exception{AssertionError}{If \code{k \texttt{<} 2*dim} or if \code{k} is not even.}
-\end{errors}
-
-\begin{properties}
-    \property{acceptance\_fraction}{An array (length: \code{k}) of the fraction of steps accepted for each
-walker.}
-    \property{acor}{The autocorrelation time of each parameter in the chain (length:
-\code{dim}) as estimated by the \code{acor} module.}
-    \property{chain}{A pointer to the Markov chain itself. The shape of this array is
-\code{(k, dim, iterations)}.}
-    \property{flatchain}{A shortcut for accessing chain flattened along the zeroth (walker)
-axis.}
-    \property{lnprobability}{A pointer to the matrix of the value of \code{lnprobfn} produced at each
-step for each walker. The shape is \code{(k, iterations)}.}
-    \property{random\_state}{The state of the internal random number generator. In practice, it's
-the result of calling \code{get\_state()} on a
-\code{numpy.random.mtrand.RandomState} object. You can try to set this
-property but be warned that if you do this and it fails, it will do
-so silently.}
-\end{properties}
-
-\begin{methods}
-    \method{clear\_chain}{}{An alias for \code{reset} kept for backwards compatibility.}{}
-
-    \method{get\_lnprob}{p}{Return the log-probability at the given position.}{}
-
-    \method{reset}{}{Clear \code{chain}, \code{lnprobability} and the bookkeeping parameters.}{}
-
-    \method{run\_mcmc}{pos0, N, rstate0=None, lnprob0=None}{Iterate sample for \code{N} iterations and return the result. The arguments
-are passed directly to \code{sample} so see the parameter details given in
-\code{sample}.}{}
-
-    \method{sample}{p0, lnprob0=None, rstate0=None, iterations=1, **kwargs}{Advance the chain iterations steps as an iterator.}{
-\begin{args}
-    \param{pos0}{numpy.ndarray}{A list of the initial positions of the walkers in the parameter space. The shape is \code{(k, dim)}.}
-\end{args}
-
-\begin{kwargs}
-    \param{lnprob0}{numpy.ndarray}{The list of log posterior probabilities for the walkers at positions given by \code{p0}. If \code{lnprob is None}, the initial values are calculated. The shape is \code{(k, dim)}.}
-    \param{rstate0}{tuple}{The state of the random number generator. See the \code{Sampler.random\_state} property for details.}
-    \param{iterations}{int}{The number of steps to run. (default: 1)}
-\end{kwargs}
-
-\begin{yields}
-    \param{pos}{numpy.ndarray}{A list of the current positions of the walkers in the parameter space. The shape is \code{(k, dim)}.}
-    \param{lnprob}{numpy.ndarray}{The list of log posterior probabilities for the walkers at positions given by \code{pos}. The shape is \code{(k, dim)}.}
-    \param{rstate}{tuple}{The state of the random number generator.}
-\end{yields}
-}
-
-\end{methods}
-
-\newpage
-\class{Ensemble}{sampler}{A sub-ensemble object that actually does the heavy lifting of the
-likelihood calculations and proposals of a new position.}
-
-\begin{args}
-    \param{sampler}{Sampler}{The sampler object that this sub-ensemble should be connected to.}
-\end{args}
-
-\begin{methods}
-    \method{get\_lnprob}{pos=None}{Calculate the vector of log-probability for the walkers.}{
-\begin{kwargs}
-    \param{pos}{numpy.ndarray}{The position vector in parameter space where the probability should be calculated. This defaults to the current position unless a different one is provided.}
-\end{kwargs}
-
-\begin{returns}
-    \param{lnprob}{numpy.ndarray}{A vector of log-probabilities with one entry for each walker in this sub-ensemble.}
-\end{returns}
-}
-
-    \method{propose\_position}{ensemble}{Propose a new position for another ensemble given the current positions}{
-\begin{args}
-    \param{ensemble}{Ensemble}{The ensemble to be advanced.}
-\end{args}
-
-\begin{returns}
-    \param{q}{numpy.array}{The new proposed positions for the walkers in \code{ensemble}.}
-    \param{newlnprob}{numpy.ndarray}{The vector of log-probabilities at the positions given by \code{q}.}
-    \param{accept}{numpy.ndarray}{A vector of \code{bool}s indicating whether or not the proposed position for each walker should be accepted.}
-\end{returns}
-}
-
-\end{methods}
-
 \end{document}
-
-
