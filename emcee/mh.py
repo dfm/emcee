@@ -90,7 +90,7 @@ class MHSampler(Sampler):
 
         # Resize the chain in advance.
         if storechain:
-            N = int(iterations / resample)
+            N = int(iterations / thin)
             self._chain = np.concatenate((self._chain,
                     np.zeros((N, self.dim))), axis=0)
             self._lnprob = np.append(self._lnprob, np.zeros(N))
