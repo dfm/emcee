@@ -1,3 +1,8 @@
 .DS_Store
 docs
 venv*
+emcee.egg-info
+dist
+document
+emcee
+_themes
