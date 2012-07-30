@@ -133,7 +133,7 @@ class Sampler(object):
         raise NotImplementedError("The sampling routine must be implemented "\
                 "by subclasses")
 
-    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None):
+    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None, **kwargs):
         """
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
@@ -151,8 +151,11 @@ class Sampler(object):
             The state of the random number generator. See the
             :func:`random_state` property for details.
 
+        :param **kwargs: (optional)
+            Other parameters that are directly passed to :func:`sample`.
+
         """
-        for results in self.sample(pos0, lnprob0, rstate0,
-                                          iterations=N):
+        for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
+                **kwargs):
             pass
         return results

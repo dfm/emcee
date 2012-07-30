@@ -41,8 +41,8 @@ class MHSampler(Sampler):
         self._chain = np.empty((0, self.dim))
         self._lnprob = np.empty(0)
 
-    def sample(self, p0, lnprob=None, randomstate=None, storechain=True,
-            resample=1, iterations=1):
+    def sample(self, p0, lnprob=None, randomstate=None, thin=1,
+            storechain=True, iterations=1):
         """
         Advances the chain ``iterations`` steps as an iterator
 
@@ -59,6 +59,17 @@ class MHSampler(Sampler):
 
         :param iterations: (optional)
             The number of steps to run.
+
+        :param thin: (optional)
+            If you only want to store and yield every ``thin`` samples in the
+            chain, set thin to an integer greater than 1.
+
+        :param storechain: (optional)
+            By default, the sampler stores (in memory) the positions and
+            log-probabilities of the samples in the chain. If you are
+            using another method to store the samples to a file or if you
+            don't need to analyse the samples after the fact (for burn-in
+            for example) set ``storechain`` to ``False``.
 
         At each iteration, this generator yields:
 
@@ -103,8 +114,8 @@ class MHSampler(Sampler):
                 lnprob = newlnprob
                 self.naccepted += 1
 
-            if storechain and i % resample == 0:
-                ind = i0 + int(i / resample)
+            if storechain and i % thin == 0:
+                ind = i0 + int(i / thin)
                 self._chain[ind, :] = p
                 self._lnprob[ind] = lnprob
 
