@@ -1,6 +1,9 @@
-Direct contributions to the code base:
+Author:
 
 - `Dan Foreman-Mackey (NYU) <https://github.com/dfm>`_
+
+Direct contributions to the code base:
+
 - `Dustin Lang (Princeton/CMU) <https://github.com/dstndstn>`_
 - `David W. Hogg (NYU) <https://github.com/davidwhogg>`_
 - `Alex Conley (U Colorado, Boulder) <https://github.com/aconley314>`_
