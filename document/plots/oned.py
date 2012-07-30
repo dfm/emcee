@@ -1,8 +1,12 @@
 import os
 import sys
+import time
 
 import numpy as np
 import matplotlib.pyplot as pl
+import h5py
+
+from multiprocessing import Pool
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..", "..")))
 import emcee
@@ -20,41 +24,64 @@ def random_cov(ndim, dof=1):
             / (ndim + dof))
 
 
+_rngs = {}
+
+
+def _worker(args):
+    i, outfn, nsteps = args
+
+    pid = os.getpid()
+    _random = _rngs.get(pid, np.random.RandomState(int(int(pid)
+        + time.time())))
+    _rngs[pid] = _random
+
+    ndim = int(np.ceil(2 ** (7 * _random.rand())))
+    nwalkers = 2 * ndim + 2
+    # nwalkers += nwalkers % 2
+    print ndim, nwalkers
+
+    cov = random_cov(ndim)
+    icov = np.linalg.inv(cov)
+
+    ens_samp = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
+            args=[icov])
+    ens_samp.random_state = _random.get_state()
+    pos, lnprob, state = ens_samp.run_mcmc(np.random.randn(nwalkers * ndim)
+            .reshape([nwalkers, ndim]), nsteps)
+
+    proposal = np.diag(cov.diagonal())
+    mh_samp = emcee.MHSampler(proposal, ndim, lnprobfn,
+            args=[icov])
+    mh_samp.random_state = state
+    mh_samp.run_mcmc(np.random.randn(ndim), nsteps)
+
+    f = h5py.File(outfn)
+    f["data"][i, :] = np.array([ndim, np.mean(ens_samp.acor),
+                                np.mean(mh_samp.acor)])
+    f.close()
+
+
 def oned():
-    nsteps = 5000
-    ens_acor = []
-    mh_acor = []
-    dims = []
+    nsteps = 10000
+    niter = 10
+    nthreads = 2
 
-    for i in range(200):
-        ndim = int(np.ceil(2 ** (6 * np.random.rand())))
-        dims.append(ndim)
-        nwalkers = 2 * ndim + 2
-        # nwalkers += nwalkers % 2
-        print ndim, nwalkers
+    outfn = "gauss_scaling.h5"
+    f = h5py.File(outfn, "w")
+    f.create_dataset("data", (niter, 3), "f")
+    f.close()
 
-        cov = random_cov(ndim)
-        icov = np.linalg.inv(cov)
+    pool = Pool(nthreads)
+    map(_worker, [(i, outfn, nsteps) for i in range(niter)])
 
-        ens_samp = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
-                args=[icov])
-        ens_samp.run_mcmc(np.random.randn(nwalkers * ndim).reshape(
-            [nwalkers, ndim]), nsteps)
-        ens_acor.append(np.mean(ens_samp.acor))
+    f = h5py.File(outfn)
+    data = f["data"][...]
+    f.close()
 
-        proposal = np.diag(cov.diagonal())
-        mh_samp = emcee.MHSampler(proposal, ndim, lnprobfn,
-                args=[icov])
-        mh_samp.run_mcmc(np.random.randn(ndim), nsteps)
-        mh_acor.append(np.mean(mh_samp.acor))
-
-        print "\t", ens_acor[-1], mh_acor[-1]
-
-        pl.clf()
-        pl.plot(dims, ens_acor, "ks", alpha=0.5)
-        pl.plot(dims, mh_acor, ".k", alpha=0.5)
-
-        pl.savefig("oned.png")
+    pl.clf()
+    pl.plot(data[:, 0], data[:, 1], "ks", alpha=0.5)
+    pl.plot(data[:, 0], data[:, 2], ".k", alpha=0.5)
+    pl.savefig("oned.png")
 
 
 if __name__ == "__main__":
