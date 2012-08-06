@@ -16,3 +16,4 @@ Comments, corrections & suggestions:
 - Jo Bovy (IAS)
 - Eric Agol (UWash)
 - John Gizis (Delaware)
+- Jacqueline Chen (MIT)
