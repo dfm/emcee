@@ -6,5 +6,6 @@ docs:
 	git commit -am "Updating docs"
 	git push origin gh-pages
 	git checkout master
+	rm -rf _themes
 
 .PHONY: docs

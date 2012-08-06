@@ -22,7 +22,7 @@ setup(
     author_email="danfm@nyu.edu",
     packages=["emcee"],
     url="http://danfm.ca/emcee/",
-    license=open("LICENSE").read(),
+    license="GPLv2",
     description="Kick ass affine-invariant ensemble MCMC sampling",
     long_description=open("README.rst").read() + "\n\n"
                     + "Changelog\n"
