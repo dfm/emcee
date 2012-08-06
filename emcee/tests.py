@@ -81,8 +81,3 @@ class Tests:
         # Make sure that the blobs aren't all the same.
         blobs = self.sampler.blobs
         assert np.any([blobs[-1] != blobs[i] for i in range(len(blobs) - 1)])
-
-if __name__ == "__main__":
-    t = Tests()
-    t.setUp()
-    t.test_blobs()
