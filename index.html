@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>emcee &mdash; emcee 1.1.1 documentation</title>
+    <title>emcee &mdash; emcee 1.1.2 documentation</title>
     
     <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.1',
+        VERSION:     '1.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.1 documentation" href="#" />
+    <link rel="top" title="emcee 1.1.2 documentation" href="#" />
     <link rel="next" title="Installation" href="user/install/" />
      
     
@@ -52,7 +52,7 @@
         <li class="right" >
           <a href="user/install/" title="Installation"
              accesskey="N">next</a> |</li>
-        <li><a href="#">emcee 1.1.1 documentation</a> &raquo;</li> 
+        <li><a href="#">emcee 1.1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -165,19 +165,29 @@ something like:</p>
 <li>Jo Bovy (IAS)</li>
 <li>Eric Agol (UWash)</li>
 <li>John Gizis (Delaware)</li>
+<li>Jacqueline Chen (MIT)</li>
 </ul>
 </div>
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id1">
-<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>1.1.2 (2012-08-06)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Another bug fix related to metadata blobs: the shape of the final <cite>blobs</cite>
+object was incorrect and all of the entries would generally be identical
+because we needed to copy the list that was appended at each step. Thanks
+goes to Jacqueline Chen (MIT) for catching this problem.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed bug related to metadata blobs. The sample function was yielding
 the <tt class="docutils literal"><span class="pre">blobs</span></tt> object even when it wasn&#8217;t expected.</li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Allow the <tt class="docutils literal"><span class="pre">lnprobfn</span></tt> to return arbitrary &#8220;blobs&#8221; of data as well as the
 log-probability.</li>
@@ -186,14 +196,14 @@ log-probability.</li>
 <li>New documentation with better examples and more discussion.</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed transpose bug in the usage of <tt class="docutils literal"><span class="pre">acor</span></tt> in <tt class="docutils literal"><span class="pre">EnsembleSampler</span></tt>.</li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Initial release.</li>
 </ul>

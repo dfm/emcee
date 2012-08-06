@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API &mdash; emcee 1.1.1 documentation</title>
+    <title>API &mdash; emcee 1.1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.1',
+        VERSION:     '1.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.1 documentation" href="../" />
+    <link rel="top" title="emcee 1.1.2 documentation" href="../" />
     <link rel="prev" title="FAQ" href="../user/faq/" />
      
     
@@ -52,7 +52,7 @@
         <li class="right" >
           <a href="../user/faq/" title="FAQ"
              accesskey="P">previous</a> |</li>
-        <li><a href="../">emcee 1.1.1 documentation</a> &raquo;</li> 
+        <li><a href="../">emcee 1.1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -190,7 +190,7 @@ bookkeeping parameters.</p>
 
 <dl class="method">
 <dt id="emcee.EnsembleSampler.run_mcmc">
-<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -205,6 +205,9 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.EnsembleSampler.random_state" title="emcee.EnsembleSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+<li><strong>**kwargs</strong> &#8211; <p>(optional)
+Other parameters that are directly passed to <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -214,7 +217,7 @@ The state of the random number generator. See the
 
 <dl class="method">
 <dt id="emcee.EnsembleSampler.sample">
-<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob0=None</em>, <em>rstate0=None</em>, <em>blobs=</em><span class="optional">[</span><span class="optional">]</span>, <em>iterations=1</em>, <em>thin=1</em>, <em>storechain=True</em>, <em>mh_proposal=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.sample" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob0=None</em>, <em>rstate0=None</em>, <em>blobs0=None</em>, <em>iterations=1</em>, <em>thin=1</em>, <em>storechain=True</em>, <em>mh_proposal=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advance the chain <tt class="docutils literal"><span class="pre">iterations</span></tt> steps as a generator.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -352,7 +355,7 @@ so silently.</p>
 
 <dl class="method">
 <dt id="emcee.MHSampler.run_mcmc">
-<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate <a class="reference internal" href="#emcee.MHSampler.sample" title="emcee.MHSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -367,6 +370,9 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.MHSampler.random_state" title="emcee.MHSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+<li><strong>**kwargs</strong> &#8211; <p>(optional)
+Other parameters that are directly passed to <a class="reference internal" href="#emcee.MHSampler.sample" title="emcee.MHSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -376,7 +382,7 @@ The state of the random number generator. See the
 
 <dl class="method">
 <dt id="emcee.MHSampler.sample">
-<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob=None</em>, <em>randomstate=None</em>, <em>storechain=True</em>, <em>resample=1</em>, <em>iterations=1</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.sample" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob=None</em>, <em>randomstate=None</em>, <em>thin=1</em>, <em>storechain=True</em>, <em>iterations=1</em><big>)</big><a class="headerlink" href="#emcee.MHSampler.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advances the chain <tt class="docutils literal"><span class="pre">iterations</span></tt> steps as an iterator</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -392,6 +398,15 @@ The state of the random number generator. See the
 <a class="reference internal" href="#emcee.MHSampler.random_state" title="emcee.MHSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
 <li><strong>iterations</strong> &#8211; (optional)
 The number of steps to run.</li>
+<li><strong>thin</strong> &#8211; (optional)
+If you only want to store and yield every <tt class="docutils literal"><span class="pre">thin</span></tt> samples in the
+chain, set thin to an integer greater than 1.</li>
+<li><strong>storechain</strong> &#8211; (optional)
+By default, the sampler stores (in memory) the positions and
+log-probabilities of the samples in the chain. If you are
+using another method to store the samples to a file or if you
+don&#8217;t need to analyse the samples after the fact (for burn-in
+for example) set <tt class="docutils literal"><span class="pre">storechain</span></tt> to <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
 </ul>
 </td>
 </tr>
@@ -498,7 +513,7 @@ so silently.</p>
 
 <dl class="method">
 <dt id="emcee.Sampler.run_mcmc">
-<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em><big>)</big><a class="headerlink" href="#emcee.Sampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.Sampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate <tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -513,6 +528,9 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.Sampler.random_state" title="emcee.Sampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+<li><strong>**kwargs</strong> &#8211; <p>(optional)
+Other parameters that are directly passed to <tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt>.</p>
+</li>
 </ul>
 </td>
 </tr>
