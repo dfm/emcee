@@ -66,3 +66,23 @@ class Tests:
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
                 lnprob_gaussian, args=[self.icov], threads=2)
         self.check_sampler()
+
+    def test_blobs(self):
+        lnprobfn = lambda p: (-0.5 * np.sum(p ** 2), np.random.rand())
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim, lnprobfn)
+        self.check_sampler()
+
+        # Make sure that the shapes of everything are as expected.
+        assert (self.sampler.chain.shape == (self.nwalkers, self.N, self.ndim)
+                and len(self.sampler.blobs) == self.N
+                and len(self.sampler.blobs[0]) == self.nwalkers), \
+                        "The blob dimensions are wrong."
+
+        # Make sure that the blobs aren't all the same.
+        blobs = self.sampler.blobs
+        assert np.any([blobs[-1] != blobs[i] for i in range(len(blobs) - 1)])
+
+if __name__ == "__main__":
+    t = Tests()
+    t.setUp()
+    t.test_blobs()

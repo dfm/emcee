@@ -108,10 +108,10 @@ class EnsembleSampler(Sampler):
         self._chain = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
 
-        # Initialize lists for storing optional metadata blobs.
-        self._blobs = [[] for i in range(self.k)]
+        # Initialize list for storing optional metadata blobs.
+        self._blobs = []
 
-    def sample(self, p0, lnprob0=None, rstate0=None, blobs=[],
+    def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
             iterations=1, thin=1, storechain=True, mh_proposal=None):
         """
         Advance the chain ``iterations`` steps as a generator.
@@ -177,6 +177,7 @@ class EnsembleSampler(Sampler):
         # If the initial log-probabilities were not provided, calculate them
         # now.
         lnprob = lnprob0
+        blobs = blobs0
         if lnprob is None:
             lnprob, blobs = self._get_lnprob(p)
 
@@ -256,7 +257,7 @@ class EnsembleSampler(Sampler):
                 self._chain[:, ind, :] = p
                 self._lnprob[:, ind] = lnprob
                 if blobs is not None:
-                    self._blobs.append(blobs)
+                    self._blobs.append(list(blobs))
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
