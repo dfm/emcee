@@ -1,5 +1,14 @@
 .. :changelog:
 
+1.1.2 (2012-08-06)
+++++++++++++++++++
+
+- Another bug fix related to metadata blobs: the shape of the final `blobs`
+  object was incorrect and all of the entries would generally be identical
+  because we needed to copy the list that was appended at each step. Thanks
+  goes to Jacqueline Chen (MIT) for catching this problem.
+
+
 1.1.1 (2012-07-30)
 ++++++++++++++++++
 
