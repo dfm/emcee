@@ -155,7 +155,7 @@ samples to get an estimate of the density that you were sampling:
 
     for i in range(ndim):
         pl.figure()
-        pl.hist(sampler.flatchain[:,0], 100, color="k", histtype="step")
+        pl.hist(sampler.flatchain[:,i], 100, color="k", histtype="step")
         pl.title("Dimension {0:d}".format(i))
 
     pl.show()
