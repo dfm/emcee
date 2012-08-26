@@ -9,6 +9,7 @@ Direct contributions to the code base:
 - `Alex Conley (U Colorado, Boulder) <https://github.com/aconley314>`_
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Phil Marshall (Oxford) <https://github.com/drphilmarshall>`_
+- `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
 
 Comments, corrections & suggestions:
 
