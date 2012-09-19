@@ -10,6 +10,7 @@ Direct contributions to the code base:
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Phil Marshall (Oxford) <https://github.com/drphilmarshall>`_
 - `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
+- `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
 
 Comments, corrections & suggestions:
 
