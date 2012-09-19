@@ -199,7 +199,7 @@ class EnsembleSampler(Sampler):
             if mh_proposal is not None:
                 # Draw proposed positions & evaluate lnprob there
                 q = mh_proposal(p)
-                newlnp, blob = self._getlnprob(q)
+                newlnp, blob = self._get_lnprob(q)
 
                 # Accept if newlnp is better; and ...
                 acc = (newlnp > lnprob)
