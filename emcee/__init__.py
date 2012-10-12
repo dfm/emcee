@@ -2,6 +2,7 @@ from __future__ import print_function
 from .sampler import *
 from .mh import *
 from .ensemble import *
+from .ptsampler import *
 from . import utils
 
 
