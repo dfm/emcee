@@ -77,9 +77,9 @@ class PTSampler(em.Sampler):
         here.  For example, :class:`multi.Pool` will do.
 
     :param betas: (optional) 
-        Array giving the inverse temperatures, beta=1/T, used in the
+        Array giving the inverse temperatures, :math:`\\beta=1/T`, used in the
         ladder.  The default is for an exponential ladder, with beta
-        decreasing by a factor of 1/sqrt(2) each rung."""
+        decreasing by a factor of :math:`1/\\sqrt{2}` each rung."""
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1, pool=None, betas=None):
         self.logl=logl
         self.logp=logp
@@ -126,7 +126,7 @@ class PTSampler(em.Sampler):
         self._lnprob = None
         self._lnlikelihood = None
 
-    def sample(self, p0, lnprob0=None, logl0=None, iterations=1, thin=1, storechain=True):
+    def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True):
         """Advance the chains ``iterations`` steps as a generator.
         
         :param p0: 
@@ -137,7 +137,7 @@ class PTSampler(em.Sampler):
             The initial posterior values for the ensembles.  Shape
             ``(ntemps, nwalkers)``.
 
-        :param logl0: (optional) 
+        :param lnlike0: (optional) 
             The initial likelihood values for the ensembles.  Shape
             ``(ntemps, nwalkers)``.
 
@@ -163,9 +163,9 @@ class PTSampler(em.Sampler):
         p = p0
 
         # If we have no lnprob or logls compute them
-        if lnprob0 is None or logl0 is None:
+        if lnprob0 is None or lnlike0 is None:
             lnprob0=np.zeros((self.ntemps, self.nwalkers))
-            logl0=np.zeros((self.ntemps, self.nwalkers))
+            lnlike0=np.zeros((self.ntemps, self.nwalkers))
             for i in range(self.ntemps):
                 fn=PTPost(self.logl, self.logp, self.betas[i])
                 if self.pool is None:
@@ -174,11 +174,12 @@ class PTSampler(em.Sampler):
                     results=self.pool.map(fn, p[i,:,:])
 
                 lnprob0[i,:] = np.array([r[0] for r in results])
-                logl0[i,:] = np.array([r[1] for r in results])
+                lnlike0[i,:] = np.array([r[1] for r in results])
 
         lnprob = lnprob0
-        logl = logl0
+        logl = lnlike0
 
+        # Expand the chain in advance of the iterations
         if storechain:
             nsave=iterations/thin
             if self._chain is None:
