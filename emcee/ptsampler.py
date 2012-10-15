@@ -224,30 +224,32 @@ class PTSampler(em.Sampler):
 
             dbeta = bi1-bi
 
-            for j in range(self.nwalkers):
-                self.nswap[i] += 1
-                self.nswap[i-1] += 1
+            iperm=nr.permutation(self.nwalkers)
+            i1perm=nr.permutation(self.nwalkers)
 
-                ii=nr.randint(self.nwalkers)
-                jj=nr.randint(self.nwalkers)
+            raccept=np.log(nr.uniform(size=self.nwalkers))
+            paccept=dbeta*(logl[i, iperm] - logl[i-1, i1perm])
 
-                paccept = dbeta*(logl[i, ii] - logl[i-1, jj])
+            self.nswap[i] += self.nwalkers
+            self.nswap[i-1] += self.nwalkers
 
-                if paccept > 0 or np.log(nr.rand()) < paccept:
-                    self.nswap_accepted[i] += 1
-                    self.nswap_accepted[i-1] += 1
+            asel=(paccept > raccept)
+            nacc = np.count_nonzero(asel)
 
-                    ptemp=np.copy(p[i, ii, :])
-                    logltemp=logl[i, ii]
-                    lnprobtemp=lnprob[i, ii]
+            self.nswap_accepted[i] += nacc
+            self.nswap_accepted[i-1] += nacc
 
-                    p[i,ii,:]=p[i-1,jj,:]
-                    logl[i,ii]=logl[i-1, jj]
-                    lnprob[i,ii] = lnprob[i-1,jj] - dbeta*logl[i-1,jj]
+            ptemp=np.copy(p[i, iperm[asel], :])
+            ltemp=np.copy(logl[i, iperm[asel]])
+            prtemp=np.copy(lnprob[i, iperm[asel]])
 
-                    p[i-1,jj,:]=ptemp
-                    logl[i-1,jj]=logltemp
-                    lnprob[i-1,jj]=lnprobtemp + dbeta*logltemp
+            p[i,iperm[asel],:]=p[i-1, i1perm[asel], :]
+            logl[i, iperm[asel]]=logl[i-1, i1perm[asel]]
+            lnprob[i, iperm[asel]]=lnprob[i-1, i1perm[asel]] - dbeta*logl[i-1, i1perm[asel]]
+
+            p[i-1, i1perm[asel], :] = ptemp
+            logl[i-1, i1perm[asel]] = ltemp
+            lnprob[i-1, i1perm[asel]] = prtemp + dbeta*ltemp
 
         return p, lnprob, logl
 
