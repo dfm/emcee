@@ -77,9 +77,9 @@ Now we can construct a sampler object that will drive the PTMCMC;
 arbitrarily, we choose to use 20 temperatures (the default is for each
 temperature to increase by a factor of :math:`\sqrt{2}`, so the
 highest temperature will be :math:`T = 1024`, resulting in an
-effective :math:`\sigma_T = 32 \sigma = 3.2`, which is much larger
-than the separation of our modes).  Let's use 100 walkers in the
-ensemble at each temperature, and run with 2 parallel threads.
+effective :math:`\sigma_T = 32 \sigma = 3.2`, which is about the
+separation of our modes).  Let's use 100 walkers in the ensemble at
+each temperature, and run with 2 parallel threads.
 
 ::
 
@@ -96,17 +96,23 @@ The ``pool`` argument also allows to specify our own pool
 of worker threads if we wanted fine-grained control over the
 parallelism.
 
-Finally, we set up an initial configuration, and run the sampler for
-10,000 iterations:
+First, we run the sampler for 1000 burn-in iterations::
 
-::
+    for p, lnprob, lnlike in sampler.sample(np.random.uniform(low=-1.0, high=1.0, size=(ntemps, nwalkers, ndim))):
+        pass
+    sampler.reset()
 
-    niter = 10000
+Now we sample for 10000 iterations, recording every 10th sample::
 
-    p = np.random.uniform(low=-1.0, high=1.0, size=(ntemps, nwalkers, ndim))
+    for p, lnprob, lnlike in sampler.sample(p, lnprob0=lnprob, logl0=lnlike, iterations=10000, thin=10):
+        pass
 
-    for p, lnprob, lnlike in sampler.sample(p, iterations=niter):
-        # do something with each sample?
+The resulting samples (1000 of them) are stored as the
+``sampler.chain`` property::
 
-    # Or access the chains after-the-fact with
-    chain=sampler.chain # shape (ntemps, nwalkers, niter, ndim)
+    # Chain has shape (ntemps, nwalkers, nsteps, ndim)
+    # Zero temperature mean:
+    mu0 = np.mean(np.mean(sampler.chain[0,...], axis=0), axis=0)
+
+    # Longest autocorrelation length (over any temperature)
+    max_acl = np.max(sampler.acor)
