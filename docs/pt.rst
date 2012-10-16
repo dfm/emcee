@@ -170,7 +170,7 @@ normalized), we have
 
 .. math::
 
-    Z(1) = \int_0^1 d\beta \left \langle \ln l \right\rangle_\beta
+    \ln Z(1) = \int_0^1 d\beta \left \langle \ln l \right\rangle_\beta
 
 This quantity can be estimated from a PTMCMC by computing the average
 :math:`ln l` within each chain and applying a quadrature formula to
