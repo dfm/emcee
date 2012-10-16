@@ -169,9 +169,9 @@ class PTSampler(em.Sampler):
             for i in range(self.ntemps):
                 fn=PTPost(self.logl, self.logp, self.betas[i])
                 if self.pool is None:
-                    results=map(fn, p[i,:,:])
+                    results=list(map(fn, p[i,:,:]))
                 else:
-                    results=self.pool.map(fn, p[i,:,:])
+                    results=list(self.pool.map(fn, p[i,:,:]))
 
                 lnprob0[i,:] = np.array([r[0] for r in results])
                 lnlike0[i,:] = np.array([r[1] for r in results])
