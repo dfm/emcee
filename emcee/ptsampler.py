@@ -160,7 +160,7 @@ class PTSampler(em.Sampler):
 
         * ``lnlike`` the current likelihood values for the walkers."""
 
-        p = p0
+        p = np.copy(np.array(p0))
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
