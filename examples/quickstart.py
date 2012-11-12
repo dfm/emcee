@@ -35,13 +35,13 @@ p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])
 
-# Run 500 steps as a burn-in.
+# Run 100 steps as a burn-in.
 pos, prob, state = sampler.run_mcmc(p0, 100)
 
 # Reset the chain to remove the burn-in samples.
 sampler.reset()
 
-# Starting from the final position in the burn-in chain, sample for 2000
+# Starting from the final position in the burn-in chain, sample for 1000
 # steps.
 sampler.run_mcmc(pos, 1000, rstate0=state)
 
