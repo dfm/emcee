@@ -1,6 +1,6 @@
 import os
 import sys
-import emcee
+import re
 
 try:
     from setuptools import setup
@@ -15,9 +15,15 @@ if sys.argv[-1] == "publish":
     sys.exit()
 
 
+vre = re.compile("__version__ = \"(.*?)\"")
+m = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "emcee", "__init__.py")).read()
+version = vre.findall(m)[0]
+
+
 setup(
     name="emcee",
-    version=emcee.__version__,
+    version=version,
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     packages=["emcee"],
