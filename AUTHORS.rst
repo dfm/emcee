@@ -4,13 +4,13 @@ Author:
 
 Direct contributions to the code base:
 
+- `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
 - `Dustin Lang (Princeton/CMU) <https://github.com/dstndstn>`_
 - `David W. Hogg (NYU) <https://github.com/davidwhogg>`_
 - `Alex Conley (U Colorado, Boulder) <https://github.com/aconley314>`_
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Phil Marshall (Oxford) <https://github.com/drphilmarshall>`_
 - `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
-- `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
 
 Comments, corrections & suggestions:
 
