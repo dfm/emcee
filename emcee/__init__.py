@@ -2,6 +2,7 @@ from __future__ import print_function
 from .sampler import *
 from .mh import *
 from .ensemble import *
+from .ptsampler import *
 from . import utils
 
 
@@ -15,6 +16,7 @@ def test():
                   ("Parallel Sampler",    "test_parallel"),
                   ("Ensemble Sampler",    "test_ensemble"),
                   ("Metropolis-Hastings", "test_mh"),
+                  ("Parallel Tempering", "test_pt_sampler")
                  ]
 
     print("Starting tests...")
