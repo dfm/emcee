@@ -151,7 +151,7 @@ class Sampler(object):
             The state of the random number generator. See the
             :func:`random_state` property for details.
 
-        :param **kwargs: (optional)
+        :param kwargs: (optional)
             Other parameters that are directly passed to :func:`sample`.
 
         """
