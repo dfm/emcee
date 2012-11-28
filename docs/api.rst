@@ -24,7 +24,8 @@ The Parallel-Tempered Ensemble Sampler
 The :class:`PTSampler` class performs a parallel-tempered ensemble
 sampling using :class:`EnsembleSampler` to sample within each
 temperature.  This sort of sampling is useful if you expect your
-distribution to be multi-modal.
+distribution to be multi-modal. Take a look at :doc:`the documentation
+</user/pt>` to see how you might use this class.
 
 .. autoclass:: emcee.PTSampler
    :members:
