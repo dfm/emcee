@@ -7,8 +7,9 @@ Parallel-Tempering Ensemble MCMC
 ================================
 
 When your posterior is multi-modal or otherwise hard to sample with a
-standard MCMC, try a parallel-tempered MCMC (PTMCMC).  A PTMCMC runs
-multiple MCMC's at different temperatures, :math:`T`.  Each MCMC
+standard MCMC, a good option to try is `parallel-tempered MCMC (PTMCMC)
+<http://en.wikipedia.org/wiki/Parallel_tempering>`_.
+PTMCMC runs multiple MCMC's at different temperatures, :math:`T`.  Each MCMC
 samples from a modified posterior, given by
 
 .. math::
@@ -32,11 +33,15 @@ well-separated modes.
 How To Sample a Multi-Modal Gaussian
 ------------------------------------
 
-Suppose we want to sample from the posterior given by 
+Suppose we want to sample from the posterior given by
 
 .. math::
 
-   \pi(\vec{x}) \propto \exp\left[ - \frac{1}{2} \left( \vec{x} - \vec{mu}_1 \right)^T \Sigma^{-1}_1 \left( \vec{x} - \vec{\mu}_1 \right) \right] + \exp\left[ -\frac{1}{2} \left( \vec{x} - \vec{\mu}_2 \right)^T \Sigma^{-1}_2 \left( \vec{x} - \vec{\mu}_2 \right) \right]
+   \pi(\vec{x}) \propto \exp\left[ - \frac{1}{2}
+        \left( \vec{x} - \vec{\mu}_1 \right)^T \Sigma^{-1}_1
+        \left( \vec{x} - \vec{\mu}_1 \right) \right]
+        + \exp\left[ -\frac{1}{2} \left( \vec{x} - \vec{\mu}_2 \right)^T
+          \Sigma^{-1}_2 \left( \vec{x} - \vec{\mu}_2 \right) \right]
 
 If the modes :math:`\mu_{1,2}` are well-separated with respect to the
 scale of :math:`\Sigma_{1,2}`, then this distribution will be hard to
@@ -92,13 +97,16 @@ threads if we wanted fine-grained control over the parallelism.
 
 First, we run the sampler for 1000 burn-in iterations::
 
-    for p, lnprob, lnlike in sampler.sample(np.random.uniform(low=-1.0, high=1.0, size=(ntemps, nwalkers, ndim)), iterations=1000):
+    p0 = np.random.uniform(low=-1.0, high=1.0, size=(ntemps, nwalkers, ndim))
+    for p, lnprob, lnlike in sampler.sample(p0, iterations=1000):
         pass
     sampler.reset()
 
 Now we sample for 10000 iterations, recording every 10th sample::
 
-    for p, lnprob, lnlike in sampler.sample(p, lnprob0=lnprob, lnlike0=lnlike, iterations=10000, thin=10):
+    for p, lnprob, lnlike in sampler.sample(p, lnprob0=lnprob,
+                                               lnlike0=lnlike,
+                                               iterations=10000, thin=10):
         pass
 
 The resulting samples (1000 of them) are stored as the
@@ -161,7 +169,9 @@ differential equation
 
 .. math::
 
-    \frac{d \ln Z}{d\beta} = \frac{1}{Z(\beta)} \int dx\, \ln l(x) l^\beta(x) p(x) = \left \langle \ln l \right\rangle_\beta
+    \frac{d \ln Z}{d\beta}
+        = \frac{1}{Z(\beta)} \int dx\, \ln l(x) l^\beta(x) p(x)
+        = \left \langle \ln l \right\rangle_\beta
 
 where :math:`\left\langle \ldots \right\rangle_\beta` is the average
 of a quantity over the posterior at temperature :math:`T = 1/\beta`.
