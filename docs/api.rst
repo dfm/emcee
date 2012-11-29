@@ -62,3 +62,5 @@ Utilities
 .. autofunction:: emcee.utils.sample_ball
 
 .. autoclass:: emcee.utils.MH_proposal_axisaligned
+
+.. autoclass:: emcee.utils.MPIPool

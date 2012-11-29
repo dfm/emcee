@@ -6,6 +6,8 @@
 Parallel-Tempering Ensemble MCMC
 ================================
 
+*Added in version 1.2.0*
+
 When your posterior is multi-modal or otherwise hard to sample with a
 standard MCMC, a good option to try is `parallel-tempered MCMC (PTMCMC)
 <http://en.wikipedia.org/wiki/Parallel_tempering>`_.

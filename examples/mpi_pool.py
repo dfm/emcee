@@ -5,7 +5,7 @@ shared memory, letting you use much larger machines with emcee.
 
 The pool only support the "map" method at the moment.
 
-See the example below, which should be run using mpirun with a number of 
+See the example below, which should be run using mpirun with a number of
 processes greater than two. They will not work in an interactive interpreter.
 e.g.
 mpirun -np 3 mpi_test.py
@@ -16,7 +16,7 @@ confusing - as it assumes that the same function is used for each map).
 
 I have done no tests about the efficiency of this in terms of cpu usage, but it
 should be good if the number of processes is much smaller than the number of
-walkers, or a multiple of it and the time taken per log-prob is relatively 
+walkers, or a multiple of it and the time taken per log-prob is relatively
 homogeneous.
 
 Joe Zuntz.
@@ -155,4 +155,3 @@ class MPIPool(object):
 		if self.is_master():
 			for i in xrange(self.size):
 				self.comm.isend(ClosePoolMessage(), dest=i+1)
-
