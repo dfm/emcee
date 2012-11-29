@@ -350,10 +350,10 @@ class EnsembleSampler(Sampler):
         results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
-            lnprob = np.array([l[0] for l in results])
+            lnprob = np.array([float(l[0]) for l in results])
             blob = [l[1] for l in results]
         except (IndexError, TypeError):
-            lnprob = np.array(results)
+            lnprob = np.array([float(l) for l in results])
             blob = None
 
         return lnprob, blob
