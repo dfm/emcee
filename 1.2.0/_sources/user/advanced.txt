@@ -120,7 +120,7 @@ multiple cores but it is sometimes useful to distribute the computation
 across a larger cluster. To do this, we need to do something a little bit
 more sophisticated using the `mpi4py module
 <http://mpi4py.scipy.org/docs/usrman/index.html>`_. Below, we'll implement
-an example similar to the `quickstart <quickstart>`_ using MPI but
+an example similar to the `quickstart <../quickstart>`_ using MPI but
 first you'll need to `install mpi4py
 <http://mpi4py.scipy.org/docs/usrman/install.html>`_.
 
