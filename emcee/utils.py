@@ -68,7 +68,7 @@ if MPI is not None:
         this is the only functionality that emcee needs. That being said,
         this pool is fairly general and it could be used for other purposes.
 
-        *Contributed by `Joe Zuntz <https://github.com/joezuntz>`_.*
+        Contributed by `Joe Zuntz <https://github.com/joezuntz>`_.
 
         :param comm: (optional)
             The ``mpi4py`` communicator.

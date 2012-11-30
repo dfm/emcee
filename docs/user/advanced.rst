@@ -71,7 +71,7 @@ parallel sampler actually provides significant speed gains.
 Arbitrary metadata blobs
 ------------------------
 
-*(New in version 1.1.0)*
+*Added in version 1.1.0*
 
 Imagine that your log-probability function involves an extremely
 computationally expensive numerical simulation starting from initial
