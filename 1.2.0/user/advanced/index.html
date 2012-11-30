@@ -197,6 +197,11 @@ set up the sampler providing this pool object to do the parallelization:</p>
 chain should <em>actually</em> directly interact with the sampler and the other
 processes should only wait for instructions.</p>
 <p>The full source code for this example is available <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/mpi.py">on Github</a>.</p>
+<p>If we save this script to the file <tt class="docutils literal"><span class="pre">mpi.py</span></tt>, we can then run this example
+with the command:</p>
+<div class="highlight-python"><pre>mpirun -np 2 python mpi.py</pre>
+</div>
+<p>for local testing.</p>
 </div>
 </div>
 
