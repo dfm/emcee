@@ -107,11 +107,11 @@ if MPI is not None:
 
             while True:
                 # Event loop.
-                # Sit here and await instructions
+                # Sit here and await instructions.
                 if self.debug:
                     print(u"Worker {0} waiting for task.".format(self.rank))
 
-                #Blocking receive to wait for instructions
+                # Blocking receive to wait for instructions.
                 task = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
                 if self.debug:
                     print(u"Worker {0} got task {1} with tag {2}."
@@ -195,3 +195,9 @@ if MPI is not None:
             if self.is_master():
                 for i in range(self.size):
                     self.comm.isend(_close_pool_message(), dest=i + 1)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.close()
