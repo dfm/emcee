@@ -16,10 +16,6 @@ from emcee.utils import MPIPool
 def lnprob(x):
     return -0.5 * np.sum(x ** 2)
 
-ndim = 50
-nwalkers = 250
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-
 # Initialize the MPI-based pool used for parallelization.
 pool = MPIPool()
 
@@ -27,6 +23,10 @@ if not pool.is_master():
     # Wait for instructions from the master process.
     pool.wait()
     sys.exit(0)
+
+ndim = 50
+nwalkers = 250
+p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)

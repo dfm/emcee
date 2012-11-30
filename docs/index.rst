@@ -64,7 +64,6 @@ User Guide
    user/install
    user/quickstart
    user/advanced
-   user/mpi
    user/pt
    user/faq
 
