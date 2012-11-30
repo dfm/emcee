@@ -170,3 +170,12 @@ processes should only wait for instructions.
 
 The full source code for this example is available `on Github
 <https://github.com/dfm/emcee/blob/master/examples/mpi.py>`_.
+
+If we save this script to the file ``mpi.py``, we can then run this example
+with the command:
+
+::
+
+    mpirun -np 2 python mpi.py
+
+for local testing.
