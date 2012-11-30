@@ -7,3 +7,5 @@ document
 emcee
 _themes
 *.pyc
+build
+examples
