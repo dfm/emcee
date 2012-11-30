@@ -6,7 +6,7 @@ from .ptsampler import *
 from . import utils
 
 
-__version__ = "1.1.4-dev"
+__version__ = "1.2.0-dev"
 
 
 def test():
