@@ -163,20 +163,29 @@ if MPI is not None:
             F = _function_wrapper(function)
 
             # Tell all the workers what function to use.
+            requests = []
             for i in range(self.size):
-                self.comm.isend(F, dest=i + 1)
+                r = self.comm.isend(F, dest=i + 1)
+                requests.append(r)
 
-            # Send all the tasks off. Do not wait for them to be received,
-            # just continue.
+            # Wait until all of the workers have responded. See:
+            #       https://gist.github.com/4176241
+            MPI.Request.waitall(requests)
+
+            # Send all the tasks off and wait for them to be received.
+            # Again, see the bug in the above gist.
+            requests = []
             for i, task in enumerate(tasks):
                 worker = i % self.size + 1
                 if self.debug:
                     print(u"Sent task {0} to worker {1} with tag {2}."
                             .format(task, worker, i))
-                self.comm.isend(task, dest=worker, tag=i)
-            results = []
+                r = self.comm.isend(task, dest=worker, tag=i)
+                requests.append(r)
+            MPI.Request.waitall(requests)
 
             # Now wait for the answers.
+            results = []
             for i in range(ntask):
                 worker = i % self.size + 1
                 if self.debug:
