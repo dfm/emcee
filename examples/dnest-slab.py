@@ -8,6 +8,7 @@ mpirun -np 2 python examples/mpi.py
 from __future__ import print_function
 
 import numpy as np
+import matplotlib.pyplot as pl
 
 import os
 import sys
@@ -37,4 +38,8 @@ p0 = [0.5 - np.random.rand(ndim) for i in xrange(nwalkers)]
 # Initialize the sampler with the chosen specs.
 sampler = emcee.DNestSampler(nwalkers, ndim, lnprior, lnlike)
 
-sampler.build_levels(p0, 1000, nlevels=20)
+sampler.build_levels(p0, 1000, nlevels=100)
+
+lstars = sampler.levels.lstars
+pl.plot(-np.arange(0, len(lstars)), lstars, "ok")
+pl.savefig("slab.png")
