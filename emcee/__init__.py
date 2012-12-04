@@ -3,6 +3,7 @@ from .sampler import *
 from .mh import *
 from .ensemble import *
 from .ptsampler import *
+from .dnest import *
 from . import utils
 
 
