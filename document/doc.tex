@@ -128,7 +128,7 @@
     and API.  Exploiting the parallelism of the ensemble method,
     \this\ permits \emph{any} user to take advantage of
     multiple CPU cores without extra effort.  The code is available online
-    at \url{http://danfm.ca/\thisplain} under the \license.
+    at \url{http://dan.iel.fm/\thisplain} under the \license.
 \end{abstract}
 
 \keywords{
@@ -137,12 +137,13 @@
     methods: statistical
 }
 
-~ \clearpage
+~\clearpage
 
 \noindent
 \emph{Note: If you want to get started immediately with the \this\ package,
   start at \app{install} on
-  page~\pageref{sect:install}.  If you are sampling with \this\ and having
+  page~\pageref{sect:install} or visit the online documentation at
+  \url{http://dan.iel.fm/emcee}. If you are sampling with \this\ and having
   low-acceptance-rate or other issues, there is some advice in
   \sect{advice} starting on page~\pageref{sect:advice}.}
 
@@ -800,7 +801,7 @@ tested with \Python\ 2.7 and \numpy\ 1.6
 but it is likely to work with earlier versions of both of these as well.
 
 An alternative installation method is to download the source code from
-\url{http://danfm.ca/emcee} and run
+\url{http://dan.iel.fm/emcee} and run
 \begin{lstlisting}
 % python setup.py install
 \end{lstlisting}
@@ -815,154 +816,10 @@ encounter any problems with the code, please report them at
 \url{http://github.com/dfm/emcee/issues} and consider
 contributing a patch.
 
-\section{Code Structure}
+\section{Online Documentation}
 
-The main functionality of this sampler is contained in the
-\code{EnsembleSampler} object (defined in \code{emcee/ensemble.py}) and
-in the abstract base \code{Sampler} object (defined in
-\code{emcee/sampler.py}). Each \code{EnsembleSampler} instance has two
-\code{Ensemble} members that provide the proposal steps following
-\algo{parallel}. The detailed structure of the code is shown in
-\app{api} or online at \url{http://danfm.ca/emcee}.
-
-\section{Examples}
-
-The best way to get started with the package is to try out some of this
-sample code. Most problems with map nicely to one of these examples and
-if not, there are more details given in \app{api}. We provide to examples
-below: (1) the classic multivariate Gaussian density and (2) a very
-anisotropic density in 2 dimensions.
-
-\subsection{The multivariate Gaussian}
-
-A very simple sample problem and a common unit test for samplers is
-the performance of the code on a high-dimensional Gaussian density
-\begin{equation}\eqlabel{mgauss}
-    \pr{\vector{X}} \propto \exp\left ( -\frac{1}{2} [\vector{X} - \mu]^T \,
-                                \Sigma^{-1} \, [\vector{X} - \mu] \right ).
-\end{equation}
-We will incrementally work through this example here and the source code
-is available online.%
-\footnote{\url{http://danfm.ca/emcee/quickstart}}
-
-First, import the necessary packages and define the function that calculates
-the logarithm of \eq{mgauss}.
-\begin{lstlisting}
-import numpy as np
-import emcee
-
-def lnprobfn(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0
-\end{lstlisting}
-Next, choose the number of dimensions to use and generate the mean vector
-\code{means} and the positive definite covariance matrix \code{cov} and its
-inverse \code{icov}.
-\begin{lstlisting}
-ndim  = 10
-means = np.random.rand(ndim)
-cov   = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov   = np.triu(cov)
-cov  += cov.T - np.diag(cov.diagonal())
-cov   = np.dot(cov,cov)
-icov  = np.linalg.inv(cov)
-\end{lstlisting}
-The number of walkers to use is one of the tuning parameters of this sampler
-and we'll come back to some discussion of how to choose this shortly. For
-now, use 100 walkers and generate an initial guess for the position of each
-of the walkers (in a small ball centered at zero mean).
-\begin{lstlisting}
-nwalkers = 100
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
-\end{lstlisting}
-Initialize the sampler object passing the chosen hyperparameters and the
-generated likelihood function and its arguments.
-\begin{lstlisting}
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
-                        args=[means, icov])
-\end{lstlisting}
-Now, run a ``burn-in'' chain of 500 steps. Note that each walker is advanced
-500 times here so \code{lnprobfn} is actually be called $5\times10^4$ times.
-\begin{lstlisting}
-pos, prob, state = sampler.run_mcmc(p0, 500)
-\end{lstlisting}
-Finally, reset the chain and sample 2000 steps starting from the final state
-of the burn-in chain.
-\begin{lstlisting}
-sampler.reset()
-sampler.run_mcmc(pos, 2000, rstate0=state)
-\end{lstlisting}
-From here, you can begin the post-processing procedure. To plot a
-histogram of the samples for a particular parameter $i$, you can
-get a list of the samples using
-\begin{lstlisting}
-samples = sampler.flatchain[:,i]
-\end{lstlisting}
-\code{samples} will now be a \numpy\ array with one entry for each step in
-the chain. The acceptance fractions (one for each walker in the ensemble)
-is given by
-\begin{lstlisting}
-af = sampler.acceptance_fraction
-\end{lstlisting}
-and the overall acceptance fraction is \texttt{af.mean()}. If you install
-the \acor\ package\footnote{\url{http://github.com/dfm/acor}}, then the
-autocorrelation time of the chain is given by
-\begin{lstlisting}
-tau = sampler.acor
-\end{lstlisting}
-\code{tau} is now a list with one entry for each parameter (the
-integrated autocorrelation time for that parameter).
-
-\subsection{The Rosenbrock density}
-
-Despite the fact that it is only two-dimensional, the Rosenbrock density
-\begin{equation}
-    p(\vector{X}) \propto \exp \left ( -\frac{a_1 \,
-        (X_2 - X_1^2)^2+ (1-X_1)^2}{a_2} \right )
-\end{equation}
-poses severe problems for all MCMC samplers because of its anisotropy.
-
-The following example shows how one might sample this density with some more
-advanced techniques. First, we will use an object-oriented approach for
-defining the likelihood function. This seems slightly artificial in this
-context but in more complicated problems where the likelihood calculation
-requires significant amounts of structured data, this approach can be
-quite beneficial. Also, we use the multiprocessing capabilities of this
-parallelized algorithm. Again, the full source code is available online.%
-\footnote{\url{http://danfm.ca/emcee/rosenbrock}}
-
-First, define the density.
-\begin{lstlisting}
-import numpy as np
-import emcee
-
-class Rosenbrock(object):
-    def __init__(self):
-        self.a1 = 100.0
-        self.a2 = 20.0
-
-    def __call__(self, p):
-        return -(self.a1 * (p[1]-p[0]**2)**2 + (1-p[0])**2)/self.a2
-\end{lstlisting}
-Then make an initial guess for the optimal position and set up the sampler
-(using 10 CPUs to compute the likelihoods in parallel).
-\begin{lstlisting}
-nwalkers = 100
-p0 = np.random.rand(nwalkers*2).reshape(nwalkers,2)
-rosenbrock = Rosenbrock()
-sampler = emcee.EnsembleSampler(nwalkers, 2, rosenbrock, threads=10)
-\end{lstlisting}
-Finally, sample 500 steps and write each step to a file. We would recommend
-writing atomically to a binary format (for example, \project{HDF5}\ or
-\project{FITS}) in practice but this shows one possible
-workflow for the output.
-\begin{lstlisting}
-f = open("rosenbrock.out", "w")
-for pos, lnprob, rstate in sampler.sample(p0, iterations=500):
-    # Write the current position to a file, one line per walker
-    f.write("\n".join(["\t".join([str(q) for q in p]) for p in pos]))
-    f.write("\n")
-f.close()
-\end{lstlisting}
+To learn more about how to use \this\ in practice, it is best to check out the
+documentation on the website \url{http://dan.iel.fm/emcee}. This page includes
+the API documentation and many examples of possible work flows.
 
 \end{document}
