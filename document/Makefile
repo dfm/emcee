@@ -9,7 +9,7 @@ SUFF        = pdf
 
 CHECK_RERUN = grep Rerun $*.log
 
-NAME    = doc
+NAME    = ms
 DOC_OUT = ${NAME}.${SUFF}
 
 default: ${DOC_OUT}
