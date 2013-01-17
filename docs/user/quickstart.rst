@@ -1,8 +1,5 @@
 .. _quickstart:
 
-.. role:: raw-html(raw)
-   :format: html
-
 .. module:: emcee
 
 Quickstart
@@ -19,18 +16,14 @@ How to sample a multi-dimensional Gaussian
 We're going to demonstrate how you might draw samples from the multivariate
 Gaussian density given by:
 
-.. raw:: html
-
-    \(
+.. math::
 
         p(\vec{x}) \propto \exp \left [ - \frac{1}{2} (\vec{x} -
             \vec{\mu})^\mathrm{T} \, \Sigma ^{-1} \, (\vec{x} - \vec{\mu})
             \right ]
 
-    \)
-
-where :raw-html:`\( \vec{\mu} \)` is an *N*-dimensional vector position of
-the mean of the density and :raw-html:`\( \Sigma \)` is the square *N*-by-*N*
+where :math:`\vec{\mu}` is an *N*-dimensional vector position of
+the mean of the density and :math:`\Sigma` is the square *N*-by-*N*
 covariance matrix.
 
 The first thing that we need to do is import the necessary
@@ -42,8 +35,8 @@ modules:
     import emcee
 
 Then, we'll code up a Python function that returns the density
-:raw-html:`\( p(\vec{x}) \)` for specific values of :raw-html:`\( \vec{x} \)`,
-:raw-html:`\( \vec{\mu} \)` and :raw-html:`\( \Sigma^{-1} \)`. In fact,
+:math:`p(\vec{x})` for specific values of :math:`\vec{x}`,
+:math:`\vec{\mu}` and :math:`\Sigma^{-1}`. In fact,
 ``emcee`` actually requires the logarithm of *p*. We'll call it ``lnprob``:
 
 ::
@@ -72,7 +65,7 @@ dimensions:
     cov += cov.T - np.diag(cov.diagonal())
     cov = np.dot(cov,cov)
 
-and where ``cov`` is :raw-html:`\( \Sigma \)`. Before going on, let's
+and where ``cov`` is :math:`\Sigma`. Before going on, let's
 compute the inverse of ``cov`` because that's what we need in our
 probability function:
 
@@ -146,7 +139,7 @@ shape and make sure that you know where each of those numbers come from.
 A much more useful object is the :attr:`EnsembleSampler.flatchain` which
 has the shape ``(250000, 50)`` and contains all the samples reshaped into
 a flat list. You can see now that we now have 250 000 unbiased samples of
-the density :raw-html:`\( p(\vec{x}) \)`. You can make histograms of these
+the density :math:`p(\vec{x})`. You can make histograms of these
 samples to get an estimate of the density that you were sampling:
 
 ::

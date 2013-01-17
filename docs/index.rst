@@ -64,6 +64,7 @@ User Guide
    user/install
    user/quickstart
    user/advanced
+   user/pt
    user/faq
 
 

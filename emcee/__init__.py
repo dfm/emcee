@@ -2,10 +2,11 @@ from __future__ import print_function
 from .sampler import *
 from .mh import *
 from .ensemble import *
+from .ptsampler import *
 from . import utils
 
 
-__version__ = "1.1.3"
+__version__ = "1.2.0-dev"
 
 
 def test():
@@ -15,6 +16,7 @@ def test():
                   ("Parallel Sampler",    "test_parallel"),
                   ("Ensemble Sampler",    "test_ensemble"),
                   ("Metropolis-Hastings", "test_mh"),
+                  ("Parallel Tempering", "test_pt_sampler")
                  ]
 
     print("Starting tests...")
