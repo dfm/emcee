@@ -181,6 +181,9 @@ class EnsembleSampler(Sampler):
         if lnprob is None:
             lnprob, blobs = self._get_lnprob(p)
 
+        # Store the initial size of the stored chain.
+        i0 = self._chain.shape[1]
+
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
@@ -190,7 +193,6 @@ class EnsembleSampler(Sampler):
             self._lnprob = np.concatenate((self._lnprob,
                                            np.zeros((self.k, N))), axis=1)
 
-        i0 = self.iterations
         for i in range(int(iterations)):
             self.iterations += 1
 
