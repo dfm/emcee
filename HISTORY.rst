@@ -4,7 +4,11 @@
 ++++++++++++++++
 
 - Added a parallel tempering sampler ``PTSampler``.
-
+- Added instructions and utilities for using ``emcee`` with ``MPI``.
+- Added ``flatlnprobability`` property to the ``EnsembleSampler`` object
+  to be consistent with the ``flatchain`` property.
+- Updated document for publication in PASP.
+- Various bug fixes.
 
 1.1.3 (2012-11-22)
 ++++++++++++++++++
@@ -15,7 +19,7 @@
 1.1.2 (2012-08-06)
 ++++++++++++++++++
 
-- Another bug fix related to metadata blobs: the shape of the final `blobs`
+- Another bug fix related to metadata blobs: the shape of the final ``blobs``
   object was incorrect and all of the entries would generally be identical
   because we needed to copy the list that was appended at each step. Thanks
   goes to Jacqueline Chen (MIT) for catching this problem.
