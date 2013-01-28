@@ -297,6 +297,73 @@ class PTSampler(em.Sampler):
 
         return p, lnprob, logl
 
+    def thermodynamic_integration_log_evidence(self, logls=None, fburnin=0.1):
+        """
+        Thermodynamic integration estimate of the evidence.
+
+        :param logls: (optional) The log-likelihoods to use for
+            computing the thermodynamic evidence.  If ``None`` (the
+            default), use the stored log-likelihoods in the sampler.
+            Should be of shape ``(Ntemps, Nwalkers, Nsamples)``.
+
+        :param fburnin: (optional)
+            The fraction of the chain to discard as burnin samples; only the
+            final ``1-fburnin`` fraction of the samples will be used to
+            compute the evidence; the default is ``fburnin = 0.1``.
+
+        :return ``(lnZ, dlnZ)``: Returns an estimate of the
+            log-evidence and the error associated with the finite
+            number of temperatures at which the posterior has been
+            sampled.
+
+        The evidence is the integral of the un-normalized posterior
+        over all of parameter space:
+
+        .. math::
+
+            Z \\equiv \\int d\\theta \\, l(\\theta) p(\\theta)
+
+        Thermodymanic integration is a technique for estimating the
+        evidence integral using information from the chains at various
+        temperatures.  Let 
+
+        .. math::
+        
+            Z(\\beta) = \\int d\\theta \\, l^\\beta(\\theta) p(\\theta)
+
+        Then 
+
+        .. math::
+
+            \\frac{d \\ln Z}{d \\beta} = \\frac{1}{Z(\\beta)} \\int d\\theta l^\\beta p \\ln l = \\left \\langle \\ln l \\right \\rangle_\\beta
+
+        so 
+
+        .. math::
+
+            \\ln Z(\\beta = 1) = \\int_0^1 d\\beta \\left \\langle \\ln l \\right\\rangle_\\beta
+
+        By computing the average of the log-likelihood at the
+        difference temperatures, the sampler can approximate the above
+        integral.
+        """
+
+        if logls is None:
+            return self.thermodynamic_integration_log_evidence(logls = self.lnlikelihood, fburnin=fburnin)
+        else:
+            betas = np.concatenate((self.betas, np.array([0])))
+            betas2 = np.concatenate((self.betas[::2], np.array([0])))
+            
+            istart = int(logls.shape[2] * fburnin + 0.5)
+
+            mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
+            mean_logls2 = mean_logls[::2]
+
+            lnZ = -np.dot(mean_logls, np.diff(betas))
+            lnZ2 = -np.dot(mean_logls2, np.diff(betas2))
+
+            return lnZ, np.abs(lnZ - lnZ2)
+
     @property
     def betas(self):
         """
@@ -366,32 +433,3 @@ class PTSampler(em.Sampler):
 
             return acors
 
-    def thermodynamic_integration_log_evidence(self, fburnin=0.5):
-        """
-        Thermodynamic integration estimate of the evidence.
-
-        :param fburnin: (optional)
-            The fraction of the chain to discard as burnin samples; only the
-            final ``1-fburnin`` fraction of the samples will be used to
-            compute the evidence.
-
-        The evidence is the integral of the un-normalized posterior
-        over all of parameter space:
-
-        .. math::
-
-            Z \\equiv \\int d\\theta \\, l(\\theta) p(\\theta)
-
-        Thermodymanic integration is a technique for estimating the
-        evidence integral using information from the chains at various
-        temperatures.
-
-        """
-        raise NotImplementedError()
-
-        betas = np.concatenate(self.betas, np.array([0]))
-        logls = self.lnlikelihood
-
-        istart = int(logls.shape[2] * fburnin) + 1
-
-        mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)

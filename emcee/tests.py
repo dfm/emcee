@@ -17,12 +17,40 @@ logprecision = -4
 def lnprob_gaussian(x, icov):
     return -np.dot(x, np.dot(icov, x)) / 2.0
 
+def log_unit_sphere_volume(ndim):
+    if ndim % 2 == 0:
+        logfactorial=0.0
+        for i in range(1,ndim/2+1):
+            logfactorial+=np.log(i)
+        return ndim/2.0*np.log(np.pi) - logfactorial
+    else:
+        logfactorial=0.0
+        for i in range(1,ndim+1,2):
+            logfactorial+=np.log(i)
+        return (ndim+1)/2.0*np.log(2.0) + (ndim-1)/2.0*np.log(np.pi) - logfactorial
+
 class LnprobGaussian(object):
-    def __init__(self, icov):
+    def __init__(self, icov, cutoff=None):
+        """Initialize a gaussian PDF with the given inverse covariance
+        matrix.  If not ``None``, ``cutoff`` truncates the PDF at the
+        given number of sigma from the origin (i.e. the PDF is
+        non-zero only on an ellipse aligned with the principal axes of
+        the distribution).  Without this cutoff, thermodynamic
+        integration with a flat prior is logarithmically divergent."""
+
         self.icov = icov
+        self.cutoff = cutoff
 
     def __call__(self, x):
-        return lnprob_gaussian(x, self.icov)
+        dist2 = lnprob_gaussian(x, self.icov)
+
+        if self.cutoff is not None:
+            if -dist2 > self.cutoff*self.cutoff / 2.0:
+                return float('-inf')
+            else:
+                return dist2
+        else:
+            return dist2
 
 def ln_flat(x):
     return 0.0
@@ -64,7 +92,7 @@ class Tests:
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2 / self.N ** 2
                 < maxdiff)
 
-    def check_pt_sampler(self, N=None, p0=None):
+    def check_pt_sampler(self, cutoff, N=None, p0=None):
         if N is None:
             N = self.N
         if p0 is None:
@@ -76,11 +104,17 @@ class Tests:
         # Weaker assertions on acceptance fraction
         assert np.mean(self.sampler.acceptance_fraction) > 0.1
         assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1
-        
+    
         maxdiff = 10.0**logprecision
         
         chain=np.reshape(self.sampler.chain[0,...], (-1, self.sampler.chain.shape[-1]))
 
+        log_volume = self.ndim*np.log(cutoff) + log_unit_sphere_volume(self.ndim) + 0.5*np.log(np.linalg.det(self.cov))
+        gaussian_integral = self.ndim/2.0*np.log(2.0*np.pi) + 0.5*np.log(np.linalg.det(self.cov))
+
+        lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
+
+        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3*dlnZ
         assert np.all((np.mean(chain, axis=0) - self.mean)**2.0 / N**2.0 < maxdiff)
         assert np.all((np.cov(chain, rowvar=0) - self.cov)**2.0 / N**2.0 < maxdiff)
 
@@ -101,9 +135,10 @@ class Tests:
         self.check_sampler()
 
     def test_pt_sampler(self):
-        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim, LnprobGaussian(self.icov), ln_flat)
+        cutoff=10.0
+        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim, LnprobGaussian(self.icov, cutoff=cutoff), ln_flat)
         p0=np.random.multivariate_normal(mean=self.mean, cov=self.cov, size=(self.ntemp, self.nwalkers))
-        self.check_pt_sampler(p0=p0)
+        self.check_pt_sampler(cutoff, p0=p0, N=10000)
 
     def test_blobs(self):
         lnprobfn = lambda p: (-0.5 * np.sum(p ** 2), np.random.rand())
