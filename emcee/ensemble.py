@@ -398,6 +398,15 @@ class EnsembleSampler(Sampler):
         return super(EnsembleSampler, self).lnprobability
 
     @property
+    def flatlnprobability(self):
+        """
+        A shortcut to return the equivalent of ``lnprobability`` but aligned
+        to ``flatchain`` rather than ``chain``.
+
+        """
+        return super(EnsembleSampler, self).lnprobability.flatten()
+
+    @property
     def acceptance_fraction(self):
         """
         An array (length: ``k``) of the fraction of steps accepted for each
