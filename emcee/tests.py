@@ -17,17 +17,20 @@ logprecision = -4
 def lnprob_gaussian(x, icov):
     return -np.dot(x, np.dot(icov, x)) / 2.0
 
+
 def log_unit_sphere_volume(ndim):
     if ndim % 2 == 0:
-        logfactorial=0.0
-        for i in range(1,ndim/2+1):
-            logfactorial+=np.log(i)
-        return ndim/2.0*np.log(np.pi) - logfactorial
+        logfactorial = 0.0
+        for i in range(1, ndim / 2 + 1):
+            logfactorial += np.log(i)
+        return ndim / 2.0 * np.log(np.pi) - logfactorial
     else:
-        logfactorial=0.0
-        for i in range(1,ndim+1,2):
-            logfactorial+=np.log(i)
-        return (ndim+1)/2.0*np.log(2.0) + (ndim-1)/2.0*np.log(np.pi) - logfactorial
+        logfactorial = 0.0
+        for i in range(1, ndim + 1, 2):
+            logfactorial += np.log(i)
+        return (ndim + 1) / 2.0 * np.log(2.0) \
+                + (ndim - 1) / 2.0 * np.log(np.pi) - logfactorial
+
 
 class LnprobGaussian(object):
     def __init__(self, icov, cutoff=None):
@@ -45,17 +48,20 @@ class LnprobGaussian(object):
         dist2 = lnprob_gaussian(x, self.icov)
 
         if self.cutoff is not None:
-            if -dist2 > self.cutoff*self.cutoff / 2.0:
+            if -dist2 > self.cutoff * self.cutoff / 2.0:
                 return float('-inf')
             else:
                 return dist2
         else:
             return dist2
 
+
 def ln_flat(x):
     return 0.0
 
+
 class Tests:
+
     def setUp(self):
         self.nwalkers = 100
         self.ndim = 5
@@ -104,20 +110,25 @@ class Tests:
         # Weaker assertions on acceptance fraction
         assert np.mean(self.sampler.acceptance_fraction) > 0.1
         assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1
-    
-        maxdiff = 10.0**logprecision
-        
-        chain=np.reshape(self.sampler.chain[0,...], (-1, self.sampler.chain.shape[-1]))
 
-        log_volume = self.ndim*np.log(cutoff) + log_unit_sphere_volume(self.ndim) + 0.5*np.log(np.linalg.det(self.cov))
-        gaussian_integral = self.ndim/2.0*np.log(2.0*np.pi) + 0.5*np.log(np.linalg.det(self.cov))
+        maxdiff = 10.0 ** logprecision
+
+        chain = np.reshape(self.sampler.chain[0, ...],
+                           (-1, self.sampler.chain.shape[-1]))
+
+        log_volume = self.ndim * np.log(cutoff) \
+                     + log_unit_sphere_volume(self.ndim) \
+                     + 0.5 * np.log(np.linalg.det(self.cov))
+        gaussian_integral = self.ndim / 2.0 * np.log(2.0 * np.pi) \
+                     + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
 
-        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3*dlnZ
-        assert np.all((np.mean(chain, axis=0) - self.mean)**2.0 / N**2.0 < maxdiff)
-        assert np.all((np.cov(chain, rowvar=0) - self.cov)**2.0 / N**2.0 < maxdiff)
-
+        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ
+        assert np.all((np.mean(chain, axis=0) - self.mean) ** 2.0 / N ** 2.0
+                      < maxdiff)
+        assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2.0 / N ** 2.0
+                      < maxdiff)
 
     def test_mh(self):
         self.sampler = MHSampler(self.cov, self.ndim, lnprob_gaussian,
@@ -135,10 +146,13 @@ class Tests:
         self.check_sampler()
 
     def test_pt_sampler(self):
-        cutoff=10.0
-        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim, LnprobGaussian(self.icov, cutoff=cutoff), ln_flat)
-        p0=np.random.multivariate_normal(mean=self.mean, cov=self.cov, size=(self.ntemp, self.nwalkers))
-        self.check_pt_sampler(cutoff, p0=p0, N=10000)
+        cutoff = 10.0
+        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim,
+                                 LnprobGaussian(self.icov, cutoff=cutoff),
+                                 ln_flat)
+        p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
+                                 size=(self.ntemp, self.nwalkers))
+        self.check_pt_sampler(cutoff, p0=p0, N=1000)
 
     def test_blobs(self):
         lnprobfn = lambda p: (-0.5 * np.sum(p ** 2), np.random.rand())
