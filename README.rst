@@ -18,7 +18,7 @@ literature.
 Documentation
 -------------
 
-Read the docs at `danfm.ca/emcee <http://danfm.ca/emcee/>`_.
+Read the docs at `dan.iel.fm/emcee <http://dan.iel.fm/emcee/>`_.
 
 
 Attribution

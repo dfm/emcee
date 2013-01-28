@@ -46,7 +46,7 @@ sampler.reset()
 sampler.run_mcmc(pos, 1000, rstate0=state)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
-# has an entry for each walker so, in this case, it is a 100-dimensional
+# has an entry for each walker so, in this case, it is a 250-dimensional
 # vector.
 print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 
@@ -67,4 +67,3 @@ except ImportError:
 else:
     pl.hist(sampler.flatchain[:,0], 100)
     pl.show()
-

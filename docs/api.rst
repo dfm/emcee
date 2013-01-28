@@ -18,6 +18,18 @@ Standard usage of ``emcee`` involves instantiating an
 .. autoclass:: emcee.EnsembleSampler
    :inherited-members:
 
+The Parallel-Tempered Ensemble Sampler
+--------------------------------------
+
+The :class:`PTSampler` class performs a parallel-tempered ensemble
+sampling using :class:`EnsembleSampler` to sample within each
+temperature.  This sort of sampling is useful if you expect your
+distribution to be multi-modal. Take a look at :doc:`the documentation
+</user/pt>` to see how you might use this class.
+
+.. autoclass:: emcee.PTSampler
+   :members:
+   :inherited-members:
 
 Standard Metropolis-Hastings Sampler
 ------------------------------------
@@ -50,3 +62,6 @@ Utilities
 .. autofunction:: emcee.utils.sample_ball
 
 .. autoclass:: emcee.utils.MH_proposal_axisaligned
+
+.. autoclass:: emcee.utils.MPIPool
+   :members:

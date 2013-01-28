@@ -71,7 +71,7 @@ parallel sampler actually provides significant speed gains.
 Arbitrary metadata blobs
 ------------------------
 
-*(New in version 1.1.0)*
+*Added in version 1.1.0*
 
 Imagine that your log-probability function involves an extremely
 computationally expensive numerical simulation starting from initial
@@ -107,3 +107,75 @@ It is important to note that by returning two values from our log-probability
 function, we also change the output of :func:`EnsembleSampler.sample` and
 :func:`EnsembleSampler.run_mcmc` to return 4 values (position, probability,
 random number generator state and blobs) instead of just the first three.
+
+
+Using MPI to distribute the computations
+----------------------------------------
+
+*Added in version 1.2.0*
+
+The standard implementation of ``emcee`` relies on the ``multiprocessing``
+module to parallelize tasks. This works well on a single machine with
+multiple cores but it is sometimes useful to distribute the computation
+across a larger cluster. To do this, we need to do something a little bit
+more sophisticated using the `mpi4py module
+<http://mpi4py.scipy.org/docs/usrman/index.html>`_. Below, we'll implement
+an example similar to the `quickstart <../quickstart>`_ using MPI but
+first you'll need to `install mpi4py
+<http://mpi4py.scipy.org/docs/usrman/install.html>`_.
+
+The :class:`utils.MPIPool` object provides most of the needed functionality
+so we'll start by importing that and the other needed modules:
+
+::
+
+    import sys
+    import numpy as np
+    import emcee
+    from emcee.utils import MPIPool
+
+This time, we'll just sample a simple isotropic Gaussian (remember that the
+``emcee`` algorithm *doesn't care about covariances between parameters
+because it is affine-invariant*):
+
+::
+
+    ndim = 50
+    nwalkers = 250
+    p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+
+    def lnprob(x):
+        return -0.5 * np.sum(x ** 2)
+
+Now, this is where things start to change:
+
+::
+
+    pool = MPIPool()
+    if not pool.is_master():
+        pool.wait()
+        sys.exit(0)
+
+First, we're initializing the pool object and then---if the process isn't
+running as master---we wait for instructions and then exit. Then, we can
+set up the sampler providing this pool object to do the parallelization:
+
+::
+
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)
+
+and then run and analyse as usual. The key here is that only the master
+chain should *actually* directly interact with the sampler and the other
+processes should only wait for instructions.
+
+The full source code for this example is available `on Github
+<https://github.com/dfm/emcee/blob/master/examples/mpi.py>`_.
+
+If we save this script to the file ``mpi.py``, we can then run this example
+with the command:
+
+::
+
+    mpirun -np 2 python mpi.py
+
+for local testing.

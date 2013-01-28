@@ -251,6 +251,10 @@ dl.class em.property, dl.function em.property {
     font-size: 0.9em;
 }
 
+dl.class, dl.function {
+    padding-bottom: 50px;
+}
+
 tt.descname, tt.descclassname {
     font-size: 0.95em;
 }

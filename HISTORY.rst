@@ -1,5 +1,17 @@
 .. :changelog:
 
+1.2.0 (upcoming)
+++++++++++++++++
+
+- Added a parallel tempering sampler ``PTSampler``.
+
+
+1.1.3 (2012-11-22)
+++++++++++++++++++
+
+- Made the packaging system more robust even when numpy is not installed.
+
+
 1.1.2 (2012-08-06)
 ++++++++++++++++++
 
