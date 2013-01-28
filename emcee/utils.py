@@ -160,17 +160,23 @@ if MPI is not None:
                 self.wait()
                 return
 
-            F = _function_wrapper(function)
+            if function is not self.function:
+                if self.debug:
+                    print(u"Master replacing pool function with {0}."
+                            .format(function))
 
-            # Tell all the workers what function to use.
-            requests = []
-            for i in range(self.size):
-                r = self.comm.isend(F, dest=i + 1)
-                requests.append(r)
+                self.function = function
+                F = _function_wrapper(function)
 
-            # Wait until all of the workers have responded. See:
-            #       https://gist.github.com/4176241
-            MPI.Request.waitall(requests)
+                # Tell all the workers what function to use.
+                requests = []
+                for i in range(self.size):
+                    r = self.comm.isend(F, dest=i + 1)
+                    requests.append(r)
+
+                # Wait until all of the workers have responded. See:
+                #       https://gist.github.com/4176241
+                MPI.Request.waitall(requests)
 
             # Send all the tasks off and wait for them to be received.
             # Again, see the bug in the above gist.
