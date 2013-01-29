@@ -55,6 +55,9 @@ something like:
     sampler.run_mcmc(p0, 1000)
 
 
+.. include:: testimonials.rst
+
+
 User Guide
 ----------
 
