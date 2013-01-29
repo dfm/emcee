@@ -256,7 +256,9 @@ algorithm (\sect{algo}) with only two hyperparameters to be tuned for
 performance. \citet{Hou:2011} were the first group to implement this
 algorithm in astrophysics. The implementation presented here is
 an independent effort that has already proved effective in several projects
-\citep{}.
+\citep{sanders2013,reis2013,weisz2013,cieza2013,akeret2012,huppenkothen2012,
+monnier2012,morton2012,crossfield2012,roskar2012,bovy2012b,brown2012,
+brammer2012,bussmann2012,bovy2012a,lang2012,bovy2012,olofsson2012,dorman2012}.
 In what follows, we summarize the
 algorithm from \citetalias{Goodman:2010} and the implementation
 decisions made in \this. We also describe the small changes
@@ -697,32 +699,65 @@ reparameterization, but in some cases, samplers like \this\ will not
 be useful, or might require clever or interesting improvements.  The
 \this\ package is open-source software; please push us changes!
 
-\acknowledgments It is a pleasure to thank Jo Bovy (IAS), Andrew
-Gelman (Columbia), Fengji Hou (NYU), and Larry Widrow (Queen's) for
-helpful contributions to the ideas and code presented here. We would also
-like to thank Eric Agol (UW) for pointing out an important typo in the
-first version of this \paper.
+\acknowledgments It is a pleasure to thank
+Eric Agol (UWash),
+Jo Bovy (IAS),
+Jacqueline Chen (MIT),
+Alex Conley (Colorado),
+Will Meierjurgen Farr (Northwestern),
+Andrew Gelman (Columbia),
+John Gizis (Delaware),
+Fengji Hou (NYU),
+Jennifer Piscionere (Vanderbilt),
+Adrian Price-Whelan (Columbia),
+Hans-Walter Rix (MPIA),
+Jeremy Sanders (Cambridge),
+Larry Widrow (Queen's), and
+Joe Zuntz (Oxford)
+for helpful contributions to the ideas and code presented here.
 \this\ makes use of the open-source Python \numpy\ package.
 
 \begin{thebibliography}{}\raggedright
-\bibitem[Bovy\ \etal(2011)]{Bovy:2011}
- Bovy,~J., Rix,~H.-W., Liu,~C., Hogg,~D.~W., Beers,~T.~C., \& Lee,
-Y.~S., 2011, \apj, submitted, \arxiv{1111.1724} [astro-ph.GA]
+\bibitem[Akeret et al.(2012)]{akeret2012} Akeret, J., Seehars, S., Amara, A.,
+Refregier, A., \& Csillaghy, A.\ 2012, \arxiv{1212.1721}
+
+\bibitem[Bovy et al.(2012)]{bovy2012}
+Bovy, J., Rix, H.-W., Liu, C., et al.\ 2012, \apj, 753, 148
+
+\bibitem[Bovy et al.(2012)]{bovy2012a} Bovy, J., Rix, H.-W.,
+Hogg, D.~W., et al.\ 2012, \apj, 755, 115
+
+\bibitem[Bovy et al.(2012)]{bovy2012b}
+Bovy, J., Allende Prieto, C., Beers, T.~C., et al.\ 2012, \apj, 759, 131
+
+\bibitem[Brammer et al.(2012)]{brammer2012}
+Brammer, G.~B., S{\'a}nchez-Janssen, R., Labb{\'e}, I., et al.\ 2012,
+\apjl, 758, L17
+
+\bibitem[Brown et al.(2012)]{brown2012}
+Brown, J.~M., Rosenfeld, K.~A., Andrews, S.~M., Wilner, D.~J.,
+\& van Dishoeck, E.~F.\ 2012, \apjl, 758, L30
+
+\bibitem[Bussmann et al.(2012)]{bussmann2012}
+Bussmann, R.~S., Gurwell, M.~A., Fu, H., et al.\ 2012, \apj, 756, 134
 
 \bibitem[Christen(2007)]{Christen:2007}
 {Christen}, J., \emph{A general purpose scale-independent MCMC algorithm},
 technical report I-07-16, CIMAT, Guanajuato, 2007
 
+\bibitem[Cieza et al.(2013)]{cieza2013}
+Cieza, L.~A., Olofsson, J., Harvey, P.~M., et al.\ 2013, \apj, 762, 100
+
 \bibitem[Cowles \& Carlin(1996))]{Cowles:1996}
 Cowles, M.~K. \& Carlin, B.~P.,
 1996, Journal of the American Statistical Association, 91, 883
 
-\bibitem[Dorman\ \etal(2012)]{Dorman:2012}
-{Dorman},~C., {Guhathakurta},~P., {Fardal},~M.~A., {Geha},~M.~C.,
-{Howley},~K.~M., {Kalirai},~J.~S., {Lang},~D., {Cuillandre}, J.,
-{Dalcanton},~J., {Gilbert},~K.~M., {Seth},~A.~C., {Williams},~B.~F.,
-\& {Yniguez},\ B., 2012, \apj, submitted
-% http://adsabs.harvard.edu/abs/2012AAS...21934608D
+\bibitem[Crossfield et al.(2012)]{crossfield2012}
+Crossfield, I.~J.~M., Barman, T., Hansen, B.~M.~S., Tanaka, I.,
+\& Kodama, T.\ 2012, \apj, 760, 140
+
+\bibitem[Dorman et al.(2012)]{dorman2012} Dorman, C.~E.,
+Guhathakurta, P., Fardal, M.~A., et al.\ 2012, \apj, 752, 147
 
 \bibitem[Dunkley\ \etal(2005)]{Dunkley:2005}
 {Dunkley}, J., {Bucher}, M., {Ferreira}, P.~G., {Moodley}, K.,
@@ -755,14 +790,24 @@ Cambridge University Press, 2005
 2011, \arxiv{1104.2612}
 % http://adsabs.harvard.edu/abs/2011arXiv1104.2612H
 
-\bibitem[Lang\ \& Hogg(2011))]{Lang:2011}
-{Lang}, D. and {Hogg}, D.~W.,
-2011, AJ, submitted, \arxiv{1103.6038}
-% http://adsabs.harvard.edu/abs/2011arXiv1103.6038L
+\bibitem[Huppenkothen et al.(2012)]{huppenkothen2012}
+Huppenkothen, D., Watts, A.~L., Uttley, P., et al.\ 2012, \arxiv{1212.1011}
+
+\bibitem[Lang \& Hogg(2012)]{lang2012} Lang, D., \& Hogg, D.~W.\ 2012, \aj,
+144, 46
 
 \bibitem[MacKay(2003))]{MacKay:2003}
 {MacKay}, D., \emph{Information Theory, Inference, and Learning Algorithms},
 Cambridge University Press, 2003
+
+\bibitem[Monnier et al.(2012)]{monnier2012}
+Monnier, J.~D., Che, X., Zhao, M., et al.\ 2012, \apjl, 761, L3
+
+\bibitem[Morton(2012)]{morton2012}
+Morton, T.~D.\ 2012, \apj, 761, 6
+
+\bibitem[Olofsson et al.(2012)]{olofsson2012}
+Olofsson, J., Juh{\'a}sz, A., Henning, T., et al.\ 2012, \aap, 542, A90
 
 \bibitem[Pasarica~\&\ Gelman(2010)]{Pasarica:2010}
 Pasarica, C. \& Gelman, A.,
@@ -772,6 +817,18 @@ Pasarica, C. \& Gelman, A.,
 {Press}, W.~H., {Teukolsky}, S.~A., {Vetterling}, W.~T., \& {Flannery}, B.~P.,
 \emph{Numerical Recipes: The Art of Scientific Computing},
 Cambridge University Press, 2007
+
+\bibitem[Reis et al.(2013)]{reis2013}
+Reis, R.~C., Miller, J.~M., Reynolds, M.~T., et al.\ 2013, \apj, 763, 48
+
+\bibitem[Ro{\v s}kar et al.(2012)]{roskar2012}
+Ro{\v s}kar, R., Debattista, V.~P., \& Loebman, S.~R.\ 2012, \arxiv{1211.1982}
+
+\bibitem[Sanders \& Fabian(2013)]{sanders2013}
+Sanders, J.~S., \& Fabian, A.~C.\ 2013, \mnras, 453
+
+\bibitem[Weisz et al.(2013)]{weisz2013}
+    Weisz, D.~R., Fouesneau, M., Hogg, D.~W., et al.\ 2013, \apj, 762, 123
 
 \bibitem[Widrow\ \etal(2008)]{Widrow:2008}
 {Widrow}, L.~M. and {Pym}, B. and {Dubinski}, J.,
