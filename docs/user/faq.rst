@@ -43,9 +43,10 @@ pruning using a clustering algorithm like the one found in
 `arxiv:1104.2612 <http://arxiv.org/abs/1104.2612>`_.
 
 
-Citation
---------
+Attribution
+-----------
 
-If you find this useful, please `cite us <http://arxiv.org/abs/1202.3665>`_.
+If you find this useful, please `cite us <http://arxiv.org/abs/1202.3665>`_
+and add your paper to the :ref:`testimonials`.
 Also, please `fork us on GitHub <https://github.com/dfm/emcee>`_ so we can
 all benefit from any changes you come up with!
