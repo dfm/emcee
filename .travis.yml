@@ -5,8 +5,6 @@ python:
   - "3.2"
   - "3.3"
 install:
-  - export PYTHONIOENCODING=UTF8 # just in case
-  - 'if [ $TRAVIS_PYTHON_VERSION == "3.2" ] || [ $TRAVIS_PYTHON_VERSION == "3.3" ]; then pip install https://github.com/y-p/numpy/archive/1.6.2_with_travis_fix.tar.gz; fi'
-  - 'if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then pip install numpy; fi' # should be nop if pre-installed
+  - pip install numpy
   - pip install nose
 script:  nosetests

@@ -1,9 +1,13 @@
-from __future__ import print_function
-from .sampler import *
-from .mh import *
-from .ensemble import *
-from .ptsampler import *
-from . import utils
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+from emcee.sampler import *
+from emcee.mh import *
+from emcee.ensemble import *
+from emcee.ptsampler import *
+from emcee import utils
 
 
 __version__ = "1.2.0-dev"

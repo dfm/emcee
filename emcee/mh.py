@@ -1,14 +1,18 @@
-# encoding: utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 A vanilla Metropolis-Hastings sampler
 
 """
 
-__all__ = ['MHSampler']
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
+__all__ = ["MHSampler"]
 
 import numpy as np
 
-from .sampler import Sampler
+from emcee.sampler import Sampler
 
 
 # === MHSampler ===

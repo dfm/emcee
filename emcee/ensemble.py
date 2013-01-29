@@ -1,4 +1,5 @@
-# encoding: utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 An affine invariant Markov chain Monte Carlo (MCMC) sampler.
 
@@ -7,7 +8,8 @@ Goodman & Weare, Ensemble Samplers With Affine Invariance
 
 """
 
-from __future__ import print_function
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 __all__ = ["EnsembleSampler"]
 
@@ -20,7 +22,7 @@ try:
 except ImportError:
     acor = None
 
-from .sampler import Sampler
+from emcee.sampler import Sampler
 
 
 class EnsembleSampler(Sampler):

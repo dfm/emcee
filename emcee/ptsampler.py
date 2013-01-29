@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 __all__ = ["PTSampler"]
 
 try:
@@ -325,23 +331,26 @@ class PTSampler(em.Sampler):
 
         Thermodymanic integration is a technique for estimating the
         evidence integral using information from the chains at various
-        temperatures.  Let 
+        temperatures.  Let
 
         .. math::
-        
+
             Z(\\beta) = \\int d\\theta \\, l^\\beta(\\theta) p(\\theta)
 
-        Then 
+        Then
 
         .. math::
 
-            \\frac{d \\ln Z}{d \\beta} = \\frac{1}{Z(\\beta)} \\int d\\theta l^\\beta p \\ln l = \\left \\langle \\ln l \\right \\rangle_\\beta
+            \\frac{d \\ln Z}{d \\beta}
+            = \\frac{1}{Z(\\beta)} \\int d\\theta l^\\beta p \\ln l
+            = \\left \\langle \\ln l \\right \\rangle_\\beta
 
-        so 
+        so
 
         .. math::
 
-            \\ln Z(\\beta = 1) = \\int_0^1 d\\beta \\left \\langle \\ln l \\right\\rangle_\\beta
+            \\ln Z(\\beta = 1)
+            = \\int_0^1 d\\beta \\left \\langle \\ln l \\right\\rangle_\\beta
 
         By computing the average of the log-likelihood at the
         difference temperatures, the sampler can approximate the above
@@ -349,11 +358,12 @@ class PTSampler(em.Sampler):
         """
 
         if logls is None:
-            return self.thermodynamic_integration_log_evidence(logls = self.lnlikelihood, fburnin=fburnin)
+            return self.thermodynamic_integration_log_evidence(
+                                    logls=self.lnlikelihood, fburnin=fburnin)
         else:
             betas = np.concatenate((self.betas, np.array([0])))
             betas2 = np.concatenate((self.betas[::2], np.array([0])))
-            
+
             istart = int(logls.shape[2] * fburnin + 0.5)
 
             mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
@@ -432,4 +442,3 @@ class PTSampler(em.Sampler):
                     acors[i, j] = acor.acor(self._chain[i, :, :, j])[0]
 
             return acors
-

@@ -1,5 +1,8 @@
-from __future__ import print_function
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 __all__ = ["sample_ball", "MH_proposal_axisaligned"]
 
@@ -47,15 +50,15 @@ class MH_proposal_axisaligned(object):
 if MPI is not None:
     class _close_pool_message(object):
         def __repr__(self):
-            return u"<Close pool message>"
+            return "<Close pool message>"
 
     class _function_wrapper(object):
         def __init__(self, function):
             self.function = function
 
     def _error_function(task):
-        raise RuntimeError(u"Pool was sent tasks before being told what "
-                           u"function to apply.")
+        raise RuntimeError("Pool was sent tasks before being told what "
+                           "function to apply.")
 
     class MPIPool(object):
         """
@@ -84,9 +87,9 @@ if MPI is not None:
             self.debug = debug
             self.function = _error_function
             if self.size == 0:
-                raise ValueError(u"Tried to create an MPI pool, but there "
-                                 u"was only one MPI process available. "
-                                 u"Need at least two.")
+                raise ValueError("Tried to create an MPI pool, but there "
+                                 "was only one MPI process available. "
+                                 "Need at least two.")
 
         def is_master(self):
             """
@@ -101,7 +104,7 @@ if MPI is not None:
 
             """
             if self.is_master():
-                raise RuntimeError(u"Master node told to await jobs.")
+                raise RuntimeError("Master node told to await jobs.")
 
             status = MPI.Status()
 
@@ -109,19 +112,19 @@ if MPI is not None:
                 # Event loop.
                 # Sit here and await instructions.
                 if self.debug:
-                    print(u"Worker {0} waiting for task.".format(self.rank))
+                    print("Worker {0} waiting for task.".format(self.rank))
 
                 # Blocking receive to wait for instructions.
                 task = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
                 if self.debug:
-                    print(u"Worker {0} got task {1} with tag {2}."
+                    print("Worker {0} got task {1} with tag {2}."
                                      .format(self.rank, task, status.tag))
 
                 # Check if message is special sentinel signaling end.
                 # If so, stop.
                 if isinstance(task, _close_pool_message):
                     if self.debug:
-                        print(u"Worker {0} told to quit.".format(self.rank))
+                        print("Worker {0} told to quit.".format(self.rank))
                     break
 
                 # Check if message is special type containing new function
@@ -129,7 +132,7 @@ if MPI is not None:
                 if isinstance(task, _function_wrapper):
                     self.function = task.function
                     if self.debug:
-                        print(u"Worker {0} replaced its task function: {1}."
+                        print("Worker {0} replaced its task function: {1}."
                                 .format(self.rank, self.function))
                     continue
 
@@ -137,7 +140,7 @@ if MPI is not None:
                 # the input and return it asynchronously.
                 result = self.function(task)
                 if self.debug:
-                    print(u"Worker {0} sending answer {1} with tag {2}."
+                    print("Worker {0} sending answer {1} with tag {2}."
                             .format(self.rank, result, status.tag))
                 self.comm.isend(result, dest=0, tag=status.tag)
 
@@ -162,7 +165,7 @@ if MPI is not None:
 
             if function is not self.function:
                 if self.debug:
-                    print(u"Master replacing pool function with {0}."
+                    print("Master replacing pool function with {0}."
                             .format(function))
 
                 self.function = function
@@ -184,7 +187,7 @@ if MPI is not None:
             for i, task in enumerate(tasks):
                 worker = i % self.size + 1
                 if self.debug:
-                    print(u"Sent task {0} to worker {1} with tag {2}."
+                    print("Sent task {0} to worker {1} with tag {2}."
                             .format(task, worker, i))
                 r = self.comm.isend(task, dest=worker, tag=i)
                 requests.append(r)
@@ -195,7 +198,7 @@ if MPI is not None:
             for i in range(ntask):
                 worker = i % self.size + 1
                 if self.debug:
-                    print(u"Master waiting for worker {0} with tag {1}"
+                    print("Master waiting for worker {0} with tag {1}"
                             .format(worker, i))
                 result = self.comm.recv(source=worker, tag=i)
                 results.append(result)

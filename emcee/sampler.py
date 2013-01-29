@@ -1,10 +1,12 @@
-# encoding: utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 The base sampler class implementing various helpful functions.
 
 """
 
-from __future__ import division
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 __all__ = ["Sampler"]
 
@@ -57,7 +59,7 @@ class Sampler(object):
         """
         return self._random.get_state()
 
-    @random_state.setter
+    @random_state.setter  # NOQA
     def random_state(self, state):
         """
         Try to set the state of the random number generator but fail silently
