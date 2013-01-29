@@ -4,7 +4,7 @@ Author:
 
 Direct contributions to the code base:
 
-- `Alex Conley (U Colorado, Boulder) <https://github.com/aconley314>`_
+- `Alex Conley (U Colorado, Boulder) <https://github.com/aconley>`_
 - `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
 - `David W. Hogg (NYU) <https://github.com/davidwhogg>`_
 - `Dustin Lang (Princeton/CMU) <https://github.com/dstndstn>`_
