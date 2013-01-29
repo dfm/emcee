@@ -687,25 +687,37 @@ have a huge dynamic range in contributions to the autocorrelation
 time; you might think it is 30 when in fact it is 30\,000, but you
 don't ``see'' the 30\,000 in a run that is only 300 steps long.  There
 is not much you can do about this; it is generic when the posterior is
-multimodal: The autocorrelation time within each mode can be short but
+multi-modal: The autocorrelation time within each mode can be short but
 the mode--mode migration time can be long.  See above on low
 acceptance ratio; in general when your acceptance ratio gets low your
 autocorrelation time is very, very long.
 
-One significant limitation to the stretch move and moves like it is
+There are some cases where \this\ won't perform as well as some
+more specialized sampling techniques. In particular, when the target density
+is multi-modal, walkers can become ``stuck'' in different modes. When
+this happens, the vector between walkers is no longer a good proposal
+direction. In these cases, the acceptance fraction and autocorrelation
+time can deteriorate quickly. While this is a fairly general problem, we
+find that in many applications the effect isn't actually very important.
+That being said, there are some problems where higher-end machinery
+\citep[such as][Hou et al.\ forthcoming]{dnest} is necessary \citep[see, for
+example,][]{brewer2012,vh2013}.
+
+Another limitation to the stretch move and moves like it is
 that they implicitly assume that the parameters can be assembled into
 a vector-like object on which linear operations can be performed.
 This is not (trivially) true for parameters that have non-trivial
 constraints, like parameters that must be integer-valued or
 equivalent, or parameters that are subject to deterministic non-linear
-constraints.  Sometimes these issues can be avoided by
+constraints. Sometimes these issues can be avoided by
 reparameterization, but in some cases, samplers like \this\ will not
-be useful, or might require clever or interesting improvements.  The
+be useful, or might require clever or interesting improvements. The
 \this\ package is open-source software; please push us changes!
 
 \acknowledgments It is a pleasure to thank
 Eric Agol (UWash),
 Jo Bovy (IAS),
+Brendon Brewer (Auckland),
 Jacqueline Chen (MIT),
 Alex Conley (Colorado),
 Will Meierjurgen Farr (Northwestern),
@@ -739,6 +751,13 @@ Bovy, J., Allende Prieto, C., Beers, T.~C., et al.\ 2012, \apj, 759, 131
 \bibitem[Brammer et al.(2012)]{brammer2012}
 Brammer, G.~B., S{\'a}nchez-Janssen, R., Labb{\'e}, I., et al.\ 2012,
 \apjl, 758, L17
+
+\bibitem[Brewer et al.(2011)]{dnest}
+Brewer B.~J., P{\'a}rtay L.~B., Cs{\'a}nyi G., 2011,
+Statistics and Computing, 21, 4, 649-656, \arxiv{0912.2380}
+
+\bibitem[Brewer et al.(2012)]{brewer2012} Brewer, B.~J.,
+Foreman-Mackey, D., \& Hogg, D.~W.\ 2012, \arxiv{1211.5805}
 
 \bibitem[Brown et al.(2012)]{brown2012}
 Brown, J.~M., Rosenfeld, K.~A., Andrews, S.~M., Wilner, D.~J.,
@@ -832,6 +851,10 @@ Ro{\v s}kar, R., Debattista, V.~P., \& Loebman, S.~R.\ 2012, \arxiv{1211.1982}
 
 \bibitem[Sanders \& Fabian(2013)]{sanders2013}
 Sanders, J.~S., \& Fabian, A.~C.\ 2013, \mnras, 453
+
+\bibitem[van Haasteren et al.(2013)]{vh2013}
+van Haasteren, R., Mingarelli, C.~M.~F., Vecchio, A., \& Lassus, A.\ 2013,
+\arxiv{1301.6673}
 
 \bibitem[Weisz et al.(2013)]{weisz2013}
     Weisz, D.~R., Fouesneau, M., Hogg, D.~W., et al.\ 2013, \apj, 762, 123
