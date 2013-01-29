@@ -26,7 +26,9 @@ Attribution
 
 Please cite `Foreman-Mackey, Hogg, Lang & Goodman (2012)
 <http://arxiv.org/abs/1202.3665>`_ if you find this code useful in your
-research.
+research and add your paper to `the testimonials list
+<https://github.com/dfm/emcee/blob/master/docs/testimonials.rst>`_—or `email
+us <mailto:danfm@nyu.edu>`_ to get added—if you made use of ``emcee``.
 
 
 License
