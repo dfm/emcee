@@ -10,7 +10,7 @@ from emcee.ptsampler import *
 from emcee import utils
 
 
-__version__ = "1.2.0-dev"
+__version__ = "1.2.0"
 
 
 def test():
