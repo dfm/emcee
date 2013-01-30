@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>emcee &mdash; emcee 1.1.2 documentation</title>
+    <title>emcee &mdash; emcee 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1.2',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.2 documentation" href="#" />
+    <link rel="top" title="emcee 1.2.0 documentation" href="#" />
     <link rel="next" title="Installation" href="user/install/" />
      
     
@@ -52,7 +52,7 @@
         <li class="right" >
           <a href="user/install/" title="Installation"
              accesskey="N">next</a> |</li>
-        <li><a href="#">emcee 1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="#">emcee 1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -100,6 +100,35 @@ something like:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="testimonials">
+<span id="id1"></span><h2>Testimonials<a class="headerlink" href="#testimonials" title="Permalink to this headline">¶</a></h2>
+<p>Since the initial release, <tt class="docutils literal"><span class="pre">emcee</span></tt> has been used in many published
+scientific studies. Here is a (hopefully complete) list:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://arxiv.org/abs/1204.4455">Dorman, Guhathakurta, Fardal, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1204.2374">Olofsson, Juhász, Henning, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1111.1724">Bovy, Rix, Liu, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1103.6038">Lang &amp; Hogg (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1202.2819">Bovy, Rix, Hogg, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1207.2724">Bussmann, Gurwell, Fu, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1207.3795">Brammer, Sánchez-Janssen, Labbé, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1209.1641">Brown, Rosenfeld, Andrews, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1209.0759">Bovy, Allende Prieto, Beers, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1211.1982">Ros Roškar, Debattista, &amp; Loebman (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1210.4836">Crossfield, Barman, Hansen, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1206.1568">Morton (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1211.6055">Monnier, Che, Zhao, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1212.1011">Huppenkothen, Watts, Uttley, et al. (2012)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1211.4510">Cieza, Olofsson, Harvey, et al. (2013)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1211.6105">Weisz, Fouesneau, Hogg, et al. (2013)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1208.3277">Reis, Miller, Reynolds, et al. (2013)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1212.1259">Sanders, &amp; Fabian (2013)</a></li>
+<li><a class="reference external" href="http://arxiv.org/abs/1212.1721">Akeret, Seehars, Amara, et al. (2012)</a></li>
+</ul>
+<p>Please <a class="reference external" href="mailto:danfm&#37;&#52;&#48;nyu&#46;edu">let us know</a> if your work should be included
+in this list or <a class="reference external" href="https://github.com/dfm/emcee">fork the repository</a> and add
+it yourself.</p>
+</div>
 <div class="section" id="user-guide">
 <h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -119,13 +148,19 @@ something like:</p>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#incrementally-saving-progress">Incrementally saving progress</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#multiprocessing">Multiprocessing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#arbitrary-metadata-blobs">Arbitrary metadata blobs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/advanced/#using-mpi-to-distribute-the-computations">Using MPI to distribute the computations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/pt/">Parallel-Tempering Ensemble MCMC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/pt/#how-to-sample-a-multi-modal-gaussian">How To Sample a Multi-Modal Gaussian</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/pt/#implementation-notes">Implementation Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="user/faq/">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#what-are-walkers">What are &#8220;walkers&#8221;?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#how-should-i-initialize-the-walkers">How should I initialize the walkers?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user/faq/#citation">Citation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/faq/#attribution">Attribution</a></li>
 </ul>
 </li>
 </ul>
@@ -137,6 +172,7 @@ something like:</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/#the-affine-invariant-ensemble-sampler">The Affine-Invariant Ensemble Sampler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/#the-parallel-tempered-ensemble-sampler">The Parallel-Tempered Ensemble Sampler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/#standard-metropolis-hastings-sampler">Standard Metropolis-Hastings Sampler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/#abstract-sampler-object">Abstract Sampler Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/#utilities">Utilities</a></li>
@@ -153,43 +189,62 @@ something like:</p>
 </ul>
 <p>Direct contributions to the code base:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://github.com/dstndstn">Dustin Lang (Princeton/CMU)</a></li>
+<li><a class="reference external" href="https://github.com/aconley">Alex Conley (U Colorado, Boulder)</a></li>
+<li><a class="reference external" href="https://github.com/farr">Will Meierjurgen Farr (Northwestern)</a></li>
 <li><a class="reference external" href="https://github.com/davidwhogg">David W. Hogg (NYU)</a></li>
-<li><a class="reference external" href="https://github.com/aconley314">Alex Conley (U Colorado, Boulder)</a></li>
-<li><a class="reference external" href="https://github.com/jeremysanders">Jeremy Sanders (Cambridge)</a></li>
+<li><a class="reference external" href="https://github.com/dstndstn">Dustin Lang (Princeton/CMU)</a></li>
 <li><a class="reference external" href="https://github.com/drphilmarshall">Phil Marshall (Oxford)</a></li>
 <li><a class="reference external" href="https://github.com/adrn">Adrian Price-Whelan (Columbia)</a></li>
-<li><a class="reference external" href="https://github.com/farr">Will Meierjurgen Farr (Northwestern)</a></li>
+<li><a class="reference external" href="https://github.com/jeremysanders">Jeremy Sanders (Cambridge)</a></li>
+<li><a class="reference external" href="https://github.com/joezuntz">Joe Zuntz (Oxford)</a></li>
 </ul>
 <p>Comments, corrections &amp; suggestions:</p>
 <ul class="simple">
-<li>Jonathan Goodman (NYU)</li>
-<li>Jo Bovy (IAS)</li>
 <li>Eric Agol (UWash)</li>
-<li>John Gizis (Delaware)</li>
+<li>Jo Bovy (IAS)</li>
 <li>Jacqueline Chen (MIT)</li>
+<li>John Gizis (Delaware)</li>
+<li>Jonathan Goodman (NYU)</li>
+<li>Jennifer Piscionere (Vanderbilt)</li>
 </ul>
 </div>
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id1">
-<h3>1.1.2 (2012-08-06)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="upcoming">
+<h3>1.2.0 (upcoming)<a class="headerlink" href="#upcoming" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Another bug fix related to metadata blobs: the shape of the final <cite>blobs</cite>
+<li>Added a parallel tempering sampler <tt class="docutils literal"><span class="pre">PTSampler</span></tt>.</li>
+<li>Added instructions and utilities for using <tt class="docutils literal"><span class="pre">emcee</span></tt> with <tt class="docutils literal"><span class="pre">MPI</span></tt>.</li>
+<li>Added <tt class="docutils literal"><span class="pre">flatlnprobability</span></tt> property to the <tt class="docutils literal"><span class="pre">EnsembleSampler</span></tt> object
+to be consistent with the <tt class="docutils literal"><span class="pre">flatchain</span></tt> property.</li>
+<li>Updated document for publication in PASP.</li>
+<li>Various bug fixes.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>1.1.3 (2012-11-22)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Made the packaging system more robust even when numpy is not installed.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>1.1.2 (2012-08-06)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Another bug fix related to metadata blobs: the shape of the final <tt class="docutils literal"><span class="pre">blobs</span></tt>
 object was incorrect and all of the entries would generally be identical
 because we needed to copy the list that was appended at each step. Thanks
 goes to Jacqueline Chen (MIT) for catching this problem.</li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed bug related to metadata blobs. The sample function was yielding
 the <tt class="docutils literal"><span class="pre">blobs</span></tt> object even when it wasn&#8217;t expected.</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Allow the <tt class="docutils literal"><span class="pre">lnprobfn</span></tt> to return arbitrary &#8220;blobs&#8221; of data as well as the
 log-probability.</li>
@@ -198,14 +253,14 @@ log-probability.</li>
 <li>New documentation with better examples and more discussion.</li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed transpose bug in the usage of <tt class="docutils literal"><span class="pre">acor</span></tt> in <tt class="docutils literal"><span class="pre">EnsembleSampler</span></tt>.</li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Initial release.</li>
 </ul>
@@ -258,7 +313,7 @@ log-probability.</li>
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"

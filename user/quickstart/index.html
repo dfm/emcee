@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Quickstart &mdash; emcee 1.1.2 documentation</title>
+    <title>Quickstart &mdash; emcee 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.1.2',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.2 documentation" href="../../" />
+    <link rel="top" title="emcee 1.2.0 documentation" href="../../" />
     <link rel="next" title="Advanced Patterns" href="../advanced/" />
     <link rel="prev" title="Installation" href="../install/" />
      
@@ -56,7 +56,7 @@
         <li class="right" >
           <a href="../install/" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../">emcee 1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="../../">emcee 1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -74,14 +74,12 @@ example that demonstrates a standard usage pattern.</p>
 <h2>How to sample a multi-dimensional Gaussian<a class="headerlink" href="#how-to-sample-a-multi-dimensional-gaussian" title="Permalink to this headline">¶</a></h2>
 <p>We&#8217;re going to demonstrate how you might draw samples from the multivariate
 Gaussian density given by:</p>
-\(
-
-    p(\vec{x}) \propto \exp \left [ - \frac{1}{2} (\vec{x} -
-        \vec{\mu})^\mathrm{T} \, \Sigma ^{-1} \, (\vec{x} - \vec{\mu})
-        \right ]
-
-\)<p>where <span class="raw-html">\( \vec{\mu} \)</span> is an <em>N</em>-dimensional vector position of
-the mean of the density and <span class="raw-html">\( \Sigma \)</span> is the square <em>N</em>-by-<em>N</em>
+<div class="math">
+\[p(\vec{x}) \propto \exp \left [ - \frac{1}{2} (\vec{x} -
+    \vec{\mu})^\mathrm{T} \, \Sigma ^{-1} \, (\vec{x} - \vec{\mu})
+    \right ]\]</div>
+<p>where <span class="math">\(\vec{\mu}\)</span> is an <em>N</em>-dimensional vector position of
+the mean of the density and <span class="math">\(\Sigma\)</span> is the square <em>N</em>-by-<em>N</em>
 covariance matrix.</p>
 <p>The first thing that we need to do is import the necessary
 modules:</p>
@@ -90,8 +88,8 @@ modules:</p>
 </pre></div>
 </div>
 <p>Then, we&#8217;ll code up a Python function that returns the density
-<span class="raw-html">\( p(\vec{x}) \)</span> for specific values of <span class="raw-html">\( \vec{x} \)</span>,
-<span class="raw-html">\( \vec{\mu} \)</span> and <span class="raw-html">\( \Sigma^{-1} \)</span>. In fact,
+<span class="math">\(p(\vec{x})\)</span> for specific values of <span class="math">\(\vec{x}\)</span>,
+<span class="math">\(\vec{\mu}\)</span> and <span class="math">\(\Sigma^{-1}\)</span>. In fact,
 <tt class="docutils literal"><span class="pre">emcee</span></tt> actually requires the logarithm of <em>p</em>. We&#8217;ll call it <tt class="docutils literal"><span class="pre">lnprob</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">lnprob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">icov</span><span class="p">):</span>
     <span class="n">diff</span> <span class="o">=</span> <span class="n">x</span><span class="o">-</span><span class="n">mu</span>
@@ -115,7 +113,7 @@ dimensions:</p>
 <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span><span class="n">cov</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>and where <tt class="docutils literal"><span class="pre">cov</span></tt> is <span class="raw-html">\( \Sigma \)</span>. Before going on, let&#8217;s
+<p>and where <tt class="docutils literal"><span class="pre">cov</span></tt> is <span class="math">\(\Sigma\)</span>. Before going on, let&#8217;s
 compute the inverse of <tt class="docutils literal"><span class="pre">cov</span></tt> because that&#8217;s what we need in our
 probability function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">icov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
@@ -174,7 +172,7 @@ shape and make sure that you know where each of those numbers come from.
 A much more useful object is the <a class="reference internal" href="../../api/#emcee.EnsembleSampler.flatchain" title="emcee.EnsembleSampler.flatchain"><tt class="xref py py-attr docutils literal"><span class="pre">EnsembleSampler.flatchain</span></tt></a> which
 has the shape <tt class="docutils literal"><span class="pre">(250000,</span> <span class="pre">50)</span></tt> and contains all the samples reshaped into
 a flat list. You can see now that we now have 250 000 unbiased samples of
-the density <span class="raw-html">\( p(\vec{x}) \)</span>. You can make histograms of these
+the density <span class="math">\(p(\vec{x})\)</span>. You can make histograms of these
 samples to get an estimate of the density that you were sampling:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pl</span>
 
@@ -251,7 +249,7 @@ sample code for this demo <a class="reference external" href="https://github.com
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"

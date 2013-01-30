@@ -9,7 +9,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; emcee 1.1.2 documentation</title>
+    <title>Index &mdash; emcee 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.2',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.2 documentation" href="../" />
+    <link rel="top" title="emcee 1.2.0 documentation" href="../" />
      
     
     <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
@@ -50,7 +50,7 @@
         <li class="right" >
           <a href="../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../">emcee 1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="../">emcee 1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -69,10 +69,14 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -85,6 +89,10 @@
       <dd><dl>
         
   <dt><a href="../api/#emcee.MHSampler.acceptance_fraction">(emcee.MHSampler attribute)</a>
+  </dt>
+
+        
+  <dt><a href="../api/#emcee.PTSampler.acceptance_fraction">(emcee.PTSampler attribute)</a>
   </dt>
 
         
@@ -104,6 +112,10 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.acor">(emcee.PTSampler attribute)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.acor">(emcee.Sampler attribute)</a>
   </dt>
 
@@ -113,6 +125,12 @@
 
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.PTSampler.betas">betas (emcee.PTSampler attribute)</a>
+  </dt>
+
+  </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="../api/#emcee.EnsembleSampler.blobs">blobs (emcee.EnsembleSampler attribute)</a>
@@ -134,12 +152,14 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.chain">(emcee.PTSampler attribute)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.chain">(emcee.Sampler attribute)</a>
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="../api/#emcee.EnsembleSampler.clear_chain">clear_chain() (emcee.EnsembleSampler method)</a>
   </dt>
@@ -150,10 +170,20 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.clear_chain">(emcee.PTSampler method)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.clear_chain">(emcee.Sampler method)</a>
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.utils.MPIPool.close">close() (emcee.utils.MPIPool method)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -161,13 +191,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="../user/advanced/#module-emcee">emcee (module)</a>, <a href="../user/quickstart/#module-emcee">[1]</a>, <a href="../api/#module-emcee">[2]</a>
+  <dt><a href="../user/advanced/#module-emcee">emcee (module)</a>, <a href="../user/quickstart/#module-emcee">[1]</a>, <a href="../api/#module-emcee">[2]</a>, <a href="../user/pt/#module-emcee">[3]</a>
+  </dt>
+
+      
+  <dt><a href="../api/#emcee.EnsembleSampler">EnsembleSampler (class in emcee)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="../api/#emcee.EnsembleSampler">EnsembleSampler (class in emcee)</a>
+  <dt><a href="../api/#emcee.PTSampler.exponential_beta_ladder">exponential_beta_ladder() (emcee.PTSampler method)</a>
   </dt>
 
   </dl></td>
@@ -186,10 +220,20 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.flatchain">(emcee.PTSampler attribute)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.flatchain">(emcee.Sampler attribute)</a>
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.EnsembleSampler.flatlnprobability">flatlnprobability (emcee.EnsembleSampler attribute)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -206,6 +250,10 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.get_lnprob">(emcee.PTSampler method)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.get_lnprob">(emcee.Sampler method)</a>
   </dt>
 
@@ -213,8 +261,24 @@
   </dl></td>
 </tr></table>
 
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.utils.MPIPool.is_master">is_master() (emcee.utils.MPIPool method)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.PTSampler.lnlikelihood">lnlikelihood (emcee.PTSampler attribute)</a>
+  </dt>
+
+  </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="../api/#emcee.EnsembleSampler.lnprobability">lnprobability (emcee.EnsembleSampler attribute)</a>
@@ -223,6 +287,10 @@
       <dd><dl>
         
   <dt><a href="../api/#emcee.MHSampler.lnprobability">(emcee.MHSampler attribute)</a>
+  </dt>
+
+        
+  <dt><a href="../api/#emcee.PTSampler.lnprobability">(emcee.PTSampler attribute)</a>
   </dt>
 
         
@@ -237,6 +305,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="../api/#emcee.utils.MPIPool.map">map() (emcee.utils.MPIPool method)</a>
+  </dt>
+
+      
   <dt><a href="../api/#emcee.utils.MH_proposal_axisaligned">MH_proposal_axisaligned (class in emcee.utils)</a>
   </dt>
 
@@ -244,6 +316,20 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="../api/#emcee.MHSampler">MHSampler (class in emcee)</a>
+  </dt>
+
+      
+  <dt><a href="../api/#emcee.utils.MPIPool">MPIPool (class in emcee.utils)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.PTSampler">PTSampler (class in emcee)</a>
   </dt>
 
   </dl></td>
@@ -262,6 +348,10 @@
   </dt>
 
         
+  <dt><a href="../api/#emcee.PTSampler.random_state">(emcee.PTSampler attribute)</a>
+  </dt>
+
+        
   <dt><a href="../api/#emcee.Sampler.random_state">(emcee.Sampler attribute)</a>
   </dt>
 
@@ -271,6 +361,10 @@
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="../api/#emcee.PTSampler.reset">(emcee.PTSampler method)</a>
+  </dt>
+
         
   <dt><a href="../api/#emcee.Sampler.reset">(emcee.Sampler method)</a>
   </dt>
@@ -285,6 +379,10 @@
       <dd><dl>
         
   <dt><a href="../api/#emcee.MHSampler.run_mcmc">(emcee.MHSampler method)</a>
+  </dt>
+
+        
+  <dt><a href="../api/#emcee.PTSampler.run_mcmc">(emcee.PTSampler method)</a>
   </dt>
 
         
@@ -307,6 +405,10 @@
   <dt><a href="../api/#emcee.MHSampler.sample">(emcee.MHSampler method)</a>
   </dt>
 
+        
+  <dt><a href="../api/#emcee.PTSampler.sample">(emcee.PTSampler method)</a>
+  </dt>
+
       </dl></dd>
       
   <dt><a href="../api/#emcee.utils.sample_ball">sample_ball() (in module emcee.utils)</a>
@@ -316,6 +418,32 @@
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="../api/#emcee.Sampler">Sampler (class in emcee)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.PTSampler.thermodynamic_integration_log_evidence">thermodynamic_integration_log_evidence() (emcee.PTSampler method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.PTSampler.tswap_acceptance_fraction">tswap_acceptance_fraction (emcee.PTSampler attribute)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="../api/#emcee.utils.MPIPool.wait">wait() (emcee.utils.MPIPool method)</a>
   </dt>
 
   </dl></td>
@@ -363,7 +491,7 @@
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"

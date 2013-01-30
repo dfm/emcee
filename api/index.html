@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API &mdash; emcee 1.1.2 documentation</title>
+    <title>API &mdash; emcee 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.2',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.2 documentation" href="../" />
+    <link rel="top" title="emcee 1.2.0 documentation" href="../" />
     <link rel="prev" title="FAQ" href="../user/faq/" />
      
     
@@ -52,7 +52,7 @@
         <li class="right" >
           <a href="../user/faq/" title="FAQ"
              accesskey="P">previous</a> |</li>
-        <li><a href="../">emcee 1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="../">emcee 1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -158,6 +158,13 @@ your <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> doesn&#
 axis.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="emcee.EnsembleSampler.flatlnprobability">
+<tt class="descname">flatlnprobability</tt><a class="headerlink" href="#emcee.EnsembleSampler.flatlnprobability" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut to return the equivalent of <tt class="docutils literal"><span class="pre">lnprobability</span></tt> but aligned
+to <tt class="docutils literal"><span class="pre">flatchain</span></tt> rather than <tt class="docutils literal"><span class="pre">chain</span></tt>.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="emcee.EnsembleSampler.get_lnprob">
 <tt class="descname">get_lnprob</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.get_lnprob" title="Permalink to this definition">¶</a></dt>
@@ -205,9 +212,8 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.EnsembleSampler.random_state" title="emcee.EnsembleSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
-<li><strong>**kwargs</strong> &#8211; <p>(optional)
-Other parameters that are directly passed to <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</p>
-</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+Other parameters that are directly passed to <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -266,6 +272,250 @@ is <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class=
 current position. The value is only returned if <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
 returns blobs too.</li>
 </ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-parallel-tempered-ensemble-sampler">
+<h2>The Parallel-Tempered Ensemble Sampler<a class="headerlink" href="#the-parallel-tempered-ensemble-sampler" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#emcee.PTSampler" title="emcee.PTSampler"><tt class="xref py py-class docutils literal"><span class="pre">PTSampler</span></tt></a> class performs a parallel-tempered ensemble
+sampling using <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> to sample within each
+temperature.  This sort of sampling is useful if you expect your
+distribution to be multi-modal. Take a look at <a class="reference internal" href="../user/pt/"><em>the documentation</em></a> to see how you might use this class.</p>
+<dl class="class">
+<dt id="emcee.PTSampler">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A parallel-tempered ensemble sampler, using <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>
+for sampling within each parallel chain.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ntemps</strong> &#8211; The number of temperatures.</li>
+<li><strong>nwalkers</strong> &#8211; The number of ensemble walkers at each temperature.</li>
+<li><strong>dim</strong> &#8211; The dimension of parameter space.</li>
+<li><strong>logl</strong> &#8211; The log-likelihood function.</li>
+<li><strong>logp</strong> &#8211; The log-prior function.</li>
+<li><strong>threads</strong> &#8211; (optional)
+The number of parallel threads to use in sampling.</li>
+<li><strong>pool</strong> &#8211; (optional)
+Alternative to <tt class="docutils literal"><span class="pre">threads</span></tt>.  Any object that implements a
+<tt class="docutils literal"><span class="pre">map</span></tt> method compatible with the built-in <tt class="docutils literal"><span class="pre">map</span></tt> will do
+here.  For example, <tt class="xref py py-class docutils literal"><span class="pre">multi.Pool</span></tt> will do.</li>
+<li><strong>betas</strong> &#8211; (optional)
+Array giving the inverse temperatures, <span class="math">\(\beta=1/T\)</span>, used in the
+ladder.  The default is for an exponential ladder, with beta
+decreasing by a factor of <span class="math">\(1/\sqrt{2}\)</span> each rung.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="emcee.PTSampler.acceptance_fraction">
+<tt class="descname">acceptance_fraction</tt><a class="headerlink" href="#emcee.PTSampler.acceptance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix of shape <tt class="docutils literal"><span class="pre">(Ntemps,</span> <span class="pre">Nwalkers)</span></tt> detailing the
+acceptance fraction for each walker.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.acor">
+<tt class="descname">acor</tt><a class="headerlink" href="#emcee.PTSampler.acor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a matrix of autocorrelation lengths for each
+parameter in each temperature of shape <tt class="docutils literal"><span class="pre">(Ntemps,</span> <span class="pre">Ndim)</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.betas">
+<tt class="descname">betas</tt><a class="headerlink" href="#emcee.PTSampler.betas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sequence of inverse temperatures in the ladder.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.chain">
+<tt class="descname">chain</tt><a class="headerlink" href="#emcee.PTSampler.chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the stored chain of samples; shape <tt class="docutils literal"><span class="pre">(Ntemps,</span>
+<span class="pre">Nwalkers,</span> <span class="pre">Nsteps,</span> <span class="pre">Ndim)</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.clear_chain">
+<tt class="descname">clear_chain</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.PTSampler.clear_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#emcee.PTSampler.reset" title="emcee.PTSampler.reset"><tt class="xref py py-func docutils literal"><span class="pre">reset()</span></tt></a> kept for backwards compatibility.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.exponential_beta_ladder">
+<tt class="descname">exponential_beta_ladder</tt><big>(</big><em>ntemps</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.exponential_beta_ladder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exponential ladder in <span class="math">\(1/T\)</span>, with <span class="math">\(T\)</span> increasing by
+<span class="math">\(\sqrt{2}\)</span> each step, with <tt class="docutils literal"><span class="pre">ntemps</span></tt> in total.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.flatchain">
+<tt class="descname">flatchain</tt><a class="headerlink" href="#emcee.PTSampler.flatchain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias of <tt class="docutils literal"><span class="pre">chain</span></tt> provided for compatibility.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.get_lnprob">
+<tt class="descname">get_lnprob</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.get_lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-probability at the given position.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.lnlikelihood">
+<tt class="descname">lnlikelihood</tt><a class="headerlink" href="#emcee.PTSampler.lnlikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix of ln-likelihood values; shape <tt class="docutils literal"><span class="pre">(Ntemps,</span> <span class="pre">Nwalkers,</span> <span class="pre">Nsteps)</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.lnprobability">
+<tt class="descname">lnprobability</tt><a class="headerlink" href="#emcee.PTSampler.lnprobability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix of lnprobability values; shape <tt class="docutils literal"><span class="pre">(Ntemps,</span> <span class="pre">Nwalkers,</span> <span class="pre">Nsteps)</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.random_state">
+<tt class="descname">random_state</tt><a class="headerlink" href="#emcee.PTSampler.random_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>The state of the internal random number generator. In practice, it&#8217;s
+the result of calling <tt class="docutils literal"><span class="pre">get_state()</span></tt> on a
+<tt class="docutils literal"><span class="pre">numpy.random.mtrand.RandomState</span></tt> object. You can try to set this
+property but be warned that if you do this and it fails, it will do
+so silently.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.PTSampler.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the <tt class="docutils literal"><span class="pre">chain</span></tt>, <tt class="docutils literal"><span class="pre">lnprobability</span></tt>, <tt class="docutils literal"><span class="pre">lnlikelihood</span></tt>,
+<tt class="docutils literal"><span class="pre">acceptance_fraction</span></tt>, <tt class="docutils literal"><span class="pre">tswap_acceptance_fraction</span></tt> stored
+properties.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.run_mcmc">
+<tt class="descname">run_mcmc</tt><big>(</big><em>pos0</em>, <em>N</em>, <em>rstate0=None</em>, <em>lnprob0=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.run_mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate <a class="reference internal" href="#emcee.PTSampler.sample" title="emcee.PTSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a> for <tt class="docutils literal"><span class="pre">N</span></tt> iterations and return the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>N</strong> &#8211; The number of steps to run.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
+is not provided, the initial value is calculated.</li>
+<li><strong>rstate0</strong> &#8211; (optional)
+The state of the random number generator. See the
+<a class="reference internal" href="#emcee.PTSampler.random_state" title="emcee.PTSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+Other parameters that are directly passed to <a class="reference internal" href="#emcee.PTSampler.sample" title="emcee.PTSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.sample">
+<tt class="descname">sample</tt><big>(</big><em>p0</em>, <em>lnprob0=None</em>, <em>lnlike0=None</em>, <em>iterations=1</em>, <em>thin=1</em>, <em>storechain=True</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advance the chains <tt class="docutils literal"><span class="pre">iterations</span></tt> steps as a generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>p0</strong> &#8211; The initial positions of the walkers.  Shape should be
+<tt class="docutils literal"><span class="pre">(ntemps,</span> <span class="pre">nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
+<li><strong>lnprob0</strong> &#8211; (optional)
+The initial posterior values for the ensembles.  Shape
+<tt class="docutils literal"><span class="pre">(ntemps,</span> <span class="pre">nwalkers)</span></tt>.</li>
+<li><strong>lnlike0</strong> &#8211; (optional)
+The initial likelihood values for the ensembles.  Shape
+<tt class="docutils literal"><span class="pre">(ntemps,</span> <span class="pre">nwalkers)</span></tt>.</li>
+<li><strong>iterations</strong> &#8211; (optional)
+The number of iterations to preform.</li>
+<li><strong>thin</strong> &#8211; (optional)
+The number of iterations to perform between saving the
+state to the internal chain.</li>
+<li><strong>storechain</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt> store the iterations in the <tt class="docutils literal"><span class="pre">chain</span></tt>
+property.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>At each iteration, this generator yields</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">p</span></tt>, the current position of the walkers.</li>
+<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> the current posterior values for the walkers.</li>
+<li><tt class="docutils literal"><span class="pre">lnlike</span></tt> the current likelihood values for the walkers.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.PTSampler.thermodynamic_integration_log_evidence">
+<tt class="descname">thermodynamic_integration_log_evidence</tt><big>(</big><em>logls=None</em>, <em>fburnin=0.1</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.thermodynamic_integration_log_evidence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thermodynamic integration estimate of the evidence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logls</strong> &#8211; (optional) The log-likelihoods to use for
+computing the thermodynamic evidence.  If <tt class="docutils literal"><span class="pre">None</span></tt> (the
+default), use the stored log-likelihoods in the sampler.
+Should be of shape <tt class="docutils literal"><span class="pre">(Ntemps,</span> <span class="pre">Nwalkers,</span> <span class="pre">Nsamples)</span></tt>.</li>
+<li><strong>fburnin</strong> &#8211; (optional)
+The fraction of the chain to discard as burnin samples; only the
+final <tt class="docutils literal"><span class="pre">1-fburnin</span></tt> fraction of the samples will be used to
+compute the evidence; the default is <tt class="docutils literal"><span class="pre">fburnin</span> <span class="pre">=</span> <span class="pre">0.1</span></tt>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return (lnZ, dlnZ)<tt class="docutils literal"><span class="pre">(lnZ,</span> <span class="pre">dlnZ)</span></tt>:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last">Returns an estimate of the
+log-evidence and the error associated with the finite
+number of temperatures at which the posterior has been
+sampled.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The evidence is the integral of the un-normalized posterior
+over all of parameter space:</p>
+<div class="math">
+\[Z \equiv \int d\theta \, l(\theta) p(\theta)\]</div>
+<p>Thermodymanic integration is a technique for estimating the
+evidence integral using information from the chains at various
+temperatures.  Let</p>
+<div class="math">
+\[Z(\beta) = \int d\theta \, l^\beta(\theta) p(\theta)\]</div>
+<p>Then</p>
+<div class="math">
+\[\frac{d \ln Z}{d \beta}
+= \frac{1}{Z(\beta)} \int d\theta l^\beta p \ln l
+= \left \langle \ln l \right \rangle_\beta\]</div>
+<p>so</p>
+<div class="math">
+\[\ln Z(\beta = 1)
+= \int_0^1 d\beta \left \langle \ln l \right\rangle_\beta\]</div>
+<p>By computing the average of the log-likelihood at the
+difference temperatures, the sampler can approximate the above
+integral.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.PTSampler.tswap_acceptance_fraction">
+<tt class="descname">tswap_acceptance_fraction</tt><a class="headerlink" href="#emcee.PTSampler.tswap_acceptance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of accepted temperature swap fractions for
+each temperature; shape <tt class="docutils literal"><span class="pre">(ntemps,</span> <span class="pre">)</span></tt>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -370,9 +620,8 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.MHSampler.random_state" title="emcee.MHSampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
-<li><strong>**kwargs</strong> &#8211; <p>(optional)
-Other parameters that are directly passed to <a class="reference internal" href="#emcee.MHSampler.sample" title="emcee.MHSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</p>
-</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+Other parameters that are directly passed to <a class="reference internal" href="#emcee.MHSampler.sample" title="emcee.MHSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt></a>.</li>
 </ul>
 </td>
 </tr>
@@ -528,9 +777,8 @@ is not provided, the initial value is calculated.</li>
 <li><strong>rstate0</strong> &#8211; (optional)
 The state of the random number generator. See the
 <a class="reference internal" href="#emcee.Sampler.random_state" title="emcee.Sampler.random_state"><tt class="xref py py-func docutils literal"><span class="pre">random_state()</span></tt></a> property for details.</li>
-<li><strong>**kwargs</strong> &#8211; <p>(optional)
-Other parameters that are directly passed to <tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt>.</p>
-</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+Other parameters that are directly passed to <tt class="xref py py-func docutils literal"><span class="pre">sample()</span></tt>.</li>
 </ul>
 </td>
 </tr>
@@ -570,6 +818,71 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 <a class="reference internal" href="#emcee.EnsembleSampler.sample" title="emcee.EnsembleSampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.sample()</span></tt></a> .</p>
 </dd></dl>
 
+<dl class="class">
+<dt id="emcee.utils.MPIPool">
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10027cb88&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
+API for distributed memory parallelism.  This pool will let you run
+emcee without shared memory, letting you use much larger machines
+with emcee.</p>
+<p>The pool only support the <tt class="xref py py-func docutils literal"><span class="pre">map()</span></tt> method at the moment because
+this is the only functionality that emcee needs. That being said,
+this pool is fairly general and it could be used for other purposes.</p>
+<p>Contributed by <a class="reference external" href="https://github.com/joezuntz">Joe Zuntz</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>comm</strong> &#8211; (optional)
+The <tt class="docutils literal"><span class="pre">mpi4py</span></tt> communicator.</li>
+<li><strong>debug</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt>, print out a lot of status updates at each step.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.utils.MPIPool.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just send a message off to all the pool members which contains
+the special <tt class="xref py py-class docutils literal"><span class="pre">_close_pool_message</span></tt> sentinel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.utils.MPIPool.is_master">
+<tt class="descname">is_master</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.is_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.is_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the current process the master?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.utils.MPIPool.map">
+<tt class="descname">map</tt><big>(</big><em>function</em>, <em>tasks</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like the built-in <tt class="xref py py-func docutils literal"><span class="pre">map()</span></tt> function, apply a function to all
+of the values in a list and return the list of results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>function</strong> &#8211; The function to apply to the list.</li>
+<li><strong>tasks</strong> &#8211; The list of elements.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.utils.MPIPool.wait">
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this isn&#8217;t the master process, wait for instructions.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -595,6 +908,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
   <ul>
 <li><a class="reference internal" href="#">API</a><ul>
 <li><a class="reference internal" href="#the-affine-invariant-ensemble-sampler">The Affine-Invariant Ensemble Sampler</a></li>
+<li><a class="reference internal" href="#the-parallel-tempered-ensemble-sampler">The Parallel-Tempered Ensemble Sampler</a></li>
 <li><a class="reference internal" href="#standard-metropolis-hastings-sampler">Standard Metropolis-Hastings Sampler</a></li>
 <li><a class="reference internal" href="#abstract-sampler-object">Abstract Sampler Object</a></li>
 <li><a class="reference internal" href="#utilities">Utilities</a></li>
@@ -626,7 +940,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"

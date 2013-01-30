@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Advanced Patterns &mdash; emcee 1.1.2 documentation</title>
+    <title>Advanced Patterns &mdash; emcee 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.1.2',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,8 +25,8 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.1.2 documentation" href="../../" />
-    <link rel="next" title="FAQ" href="../faq/" />
+    <link rel="top" title="emcee 1.2.0 documentation" href="../../" />
+    <link rel="next" title="Parallel-Tempering Ensemble MCMC" href="../pt/" />
     <link rel="prev" title="Quickstart" href="../quickstart/" />
      
     
@@ -51,12 +51,12 @@
           <a href="../../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../faq/" title="FAQ"
+          <a href="../pt/" title="Parallel-Tempering Ensemble MCMC"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../quickstart/" title="Quickstart"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../">emcee 1.1.2 documentation</a> &raquo;</li> 
+        <li><a href="../../">emcee 1.2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -119,7 +119,7 @@ parallel sampler actually provides significant speed gains.</p>
 </div>
 <div class="section" id="arbitrary-metadata-blobs">
 <span id="blobs"></span><h2>Arbitrary metadata blobs<a class="headerlink" href="#arbitrary-metadata-blobs" title="Permalink to this headline">¶</a></h2>
-<p><em>(New in version 1.1.0)</em></p>
+<p><em>Added in version 1.1.0</em></p>
 <p>Imagine that your log-probability function involves an extremely
 computationally expensive numerical simulation starting from initial
 conditions parameterized by the position of the walker in parameter space.
@@ -151,6 +151,58 @@ function, we also change the output of <a class="reference internal" href="../..
 <a class="reference internal" href="../../api/#emcee.EnsembleSampler.run_mcmc" title="emcee.EnsembleSampler.run_mcmc"><tt class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.run_mcmc()</span></tt></a> to return 4 values (position, probability,
 random number generator state and blobs) instead of just the first three.</p>
 </div>
+<div class="section" id="using-mpi-to-distribute-the-computations">
+<h2>Using MPI to distribute the computations<a class="headerlink" href="#using-mpi-to-distribute-the-computations" title="Permalink to this headline">¶</a></h2>
+<p><em>Added in version 1.2.0</em></p>
+<p>The standard implementation of <tt class="docutils literal"><span class="pre">emcee</span></tt> relies on the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>
+module to parallelize tasks. This works well on a single machine with
+multiple cores but it is sometimes useful to distribute the computation
+across a larger cluster. To do this, we need to do something a little bit
+more sophisticated using the <a class="reference external" href="http://mpi4py.scipy.org/docs/usrman/index.html">mpi4py module</a>. Below, we&#8217;ll implement
+an example similar to the <a class="reference external" href="../quickstart">quickstart</a> using MPI but
+first you&#8217;ll need to <a class="reference external" href="http://mpi4py.scipy.org/docs/usrman/install.html">install mpi4py</a>.</p>
+<p>The <a class="reference internal" href="../../api/#emcee.utils.MPIPool" title="emcee.utils.MPIPool"><tt class="xref py py-class docutils literal"><span class="pre">utils.MPIPool</span></tt></a> object provides most of the needed functionality
+so we&#8217;ll start by importing that and the other needed modules:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">emcee</span>
+<span class="kn">from</span> <span class="nn">emcee.utils</span> <span class="kn">import</span> <span class="n">MPIPool</span>
+</pre></div>
+</div>
+<p>This time, we&#8217;ll just sample a simple isotropic Gaussian (remember that the
+<tt class="docutils literal"><span class="pre">emcee</span></tt> algorithm <em>doesn&#8217;t care about covariances between parameters
+because it is affine-invariant</em>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ndim</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">250</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">)]</span>
+
+<span class="k">def</span> <span class="nf">lnprob</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, this is where things start to change:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span> <span class="o">=</span> <span class="n">MPIPool</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">pool</span><span class="o">.</span><span class="n">is_master</span><span class="p">():</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, we&#8217;re initializing the pool object and then&#8212;if the process isn&#8217;t
+running as master&#8212;we wait for instructions and then exit. Then, we can
+set up the sampler providing this pool object to do the parallelization:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and then run and analyse as usual. The key here is that only the master
+chain should <em>actually</em> directly interact with the sampler and the other
+processes should only wait for instructions.</p>
+<p>The full source code for this example is available <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/mpi.py">on Github</a>.</p>
+<p>If we save this script to the file <tt class="docutils literal"><span class="pre">mpi.py</span></tt>, we can then run this example
+with the command:</p>
+<div class="highlight-python"><pre>mpirun -np 2 python mpi.py</pre>
+</div>
+<p>for local testing.</p>
+</div>
 </div>
 
 
@@ -177,6 +229,7 @@ random number generator state and blobs) instead of just the first three.</p>
 <li><a class="reference internal" href="#incrementally-saving-progress">Incrementally saving progress</a></li>
 <li><a class="reference internal" href="#multiprocessing">Multiprocessing</a></li>
 <li><a class="reference internal" href="#arbitrary-metadata-blobs">Arbitrary metadata blobs</a></li>
+<li><a class="reference internal" href="#using-mpi-to-distribute-the-computations">Using MPI to distribute the computations</a></li>
 </ul>
 </li>
 </ul>
@@ -184,7 +237,7 @@ random number generator state and blobs) instead of just the first three.</p>
 <ul>
   <li><a href="../../">Documentation overview</a><ul>
       <li>Previous: <a href="../quickstart/" title="previous chapter">Quickstart</a></li>
-      <li>Next: <a href="../faq/" title="next chapter">FAQ</a></li>
+      <li>Next: <a href="../pt/" title="next chapter">Parallel-Tempering Ensemble MCMC</a></li>
   </ul></li>
 </ul>
 <div id="searchbox" style="display: none">
@@ -206,7 +259,7 @@ random number generator state and blobs) instead of just the first three.</p>
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"
