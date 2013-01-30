@@ -1,7 +1,7 @@
 .. :changelog:
 
-1.2.0 (upcoming)
-++++++++++++++++
+1.2.0 (2013-01-30)
+++++++++++++++++++
 
 - Added a parallel tempering sampler ``PTSampler``.
 - Added instructions and utilities for using ``emcee`` with ``MPI``.
