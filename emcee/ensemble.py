@@ -377,7 +377,7 @@ class EnsembleSampler(Sampler):
     def chain(self):
         """
         A pointer to the Markov chain itself. The shape of this array is
-        ``(k, dim, iterations)``.
+        ``(k, iterations, dim)``.
 
         """
         return super(EnsembleSampler, self).chain
