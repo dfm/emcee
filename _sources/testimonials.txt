@@ -3,8 +3,13 @@
 Testimonials
 ------------
 
+    "My research—modeling strong gravitational lenses with 10-20 free
+    parameters—would be very difficult or impossible without emcee."
+
+    -- Shane Bussmann (CfA)
+
 Since the initial release, ``emcee`` has been used in many published
-scientific studies. Here is a (hopefully complete) list:
+scientific studies. Here is an incomplete list:
 
 * `Dorman, Guhathakurta, Fardal, et al. (2012)
   <http://arxiv.org/abs/1204.4455>`_
@@ -20,7 +25,7 @@ scientific studies. Here is a (hopefully complete) list:
   <http://arxiv.org/abs/1209.1641>`_
 * `Bovy, Allende Prieto, Beers, et al. (2012)
   <http://arxiv.org/abs/1209.0759>`_
-* `Ros Roškar, Debattista, & Loebman (2012)
+* `Roškar, Debattista, & Loebman (2012)
   <http://arxiv.org/abs/1211.1982>`_
 * `Crossfield, Barman, Hansen, et al. (2012)
   <http://arxiv.org/abs/1210.4836>`_
