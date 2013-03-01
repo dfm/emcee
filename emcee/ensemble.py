@@ -73,13 +73,21 @@ class EnsembleSampler(Sampler):
         can be any object with a ``map`` method that follows the same
         calling sequence as the built-in ``map`` function.
 
+    :param bcast: (optional)
+        If set to ``True`` then ``lnpostfn`` acceptce subensemble of walkers
+        and returns natural logarithm of the posterior probability for each
+        walker in the subensemble.
+
+
+
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
-            threads=1, pool=None, live_dangerously=False):
+            threads=1, pool=None, bcast=False, live_dangerously=False):
         self.k = nwalkers
         self.a = a
         self.threads = threads
         self.pool = pool
+        self.bcast = bcast
 
         if postargs is not None:
             args = postargs
@@ -306,14 +314,18 @@ class EnsembleSampler(Sampler):
 
         # Generate the vectors of random numbers that will produce the
         # proposal.
+        #shape (50,)
         zz = ((self.a - 1.) * self._random.rand(Ns) + 1) ** 2. / self.a
+        #shape (50,))
         rint = self._random.randint(Nc, size=(Ns,))
 
         # Calculate the proposed positions and the log-probability there.
+        #shape (50,2,)
         q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
         newlnprob, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
+        #shape (50,))
         lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
         accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
 
@@ -345,13 +357,16 @@ class EnsembleSampler(Sampler):
         # If the `pool` property of the sampler has been set (i.e. we want
         # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
         # just use the built-in `map` function.
-        if self.pool is not None:
-            M = self.pool.map
+        if self.bcast:
+            results = self.lnprobfn(p)
         else:
-            M = map
+            if self.pool is not None:
+                M = self.pool.map
+            else:
+                M = map
 
-        # Run the log-probability calculations (optionally in parallel).
-        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
+            # Run the log-probability calculations (optionally in parallel).
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
             lnprob = np.array([float(l[0]) for l in results])

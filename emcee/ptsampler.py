@@ -24,7 +24,7 @@ class PTPost(object):
 
     """
 
-    def __init__(self, logl, logp, beta):
+    def __init__(self, logl, logp, beta, bcast=False):
         """
         :param logl:
             Function returning natural log of the likelihood.
@@ -35,11 +35,24 @@ class PTPost(object):
         :param beta:
             Inverse temperature of this chain: ``lnpost = beta*logl + logp``.
 
+        :param bcast: (optional)
+            If set to ``True`` then `logl`, `logp` and __call__ method accepts
+            ensemble of walkers and __call__ returns natural logarithm of the
+            posterior probability for each walker in the subensemble.
+
+        Note:
+            If using vectotized version (bcast=True in __init__ of PTSampler),
+            then __call__ method of PTPost instances will be called from
+            Ensemble.sample() method which knows about broadcasting as Ensemble
+            instances are initialized with bcast=True. But the very first time
+            PTPost.__call__ is called from PTPost.sample() so transponse of
+            argument p is explicit here.
         """
 
         self._logl = logl
         self._logp = logp
         self._beta = beta
+        self.bcast = bcast
 
     def __call__(self, x):
         """
@@ -51,18 +64,30 @@ class PTPost(object):
             \ln \pi(x) \equiv \beta \ln l(x) + \ln p(x)
 
         :param x:
-            The position in parameter space.
+            The position in parameter space. If bcast is `True`, the x -
+            subensemble of walkers.
 
         """
+
         lp = self._logp(x)
-
-        # If outside prior bounds, return 0.
-        if lp == float('-inf'):
-            return lp, lp
-
         ll = self._logl(x)
 
-        return self._beta * ll + lp, ll
+        # If outside prior bounds, return 0.
+
+        if self.bcast:
+
+            result1 = np.where(lp > float('-inf'), self._beta * ll + lp, lp)
+            result2 = np.where(lp > float('-inf'), ll, lp)
+            result = zip(result1, result2)
+
+        else:
+
+            if lp == float('-inf'):
+                result = lp, lp
+            else:
+                result = self._beta * ll + lp, ll
+
+        return result
 
 
 class PTSampler(em.Sampler):
@@ -100,7 +125,7 @@ class PTSampler(em.Sampler):
 
     """
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None):
+                 pool=None, betas=None, bcast=False):
         self.logl = logl
         self.logp = logp
 
@@ -117,6 +142,8 @@ class PTSampler(em.Sampler):
         else:
             self._betas = betas
 
+        self.bcast = bcast
+
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
 
@@ -125,8 +152,9 @@ class PTSampler(em.Sampler):
             self.pool = multi.Pool(threads)
 
         self.samplers = [em.EnsembleSampler(nwalkers, dim,
-                                            PTPost(logl, logp, b),
-                                            pool=self.pool)
+                                            PTPost(logl, logp, b, bcast=self.bcast),
+                                            pool=self.pool,
+                                            bcast=self.bcast)
                                     for b in self.betas]
 
     def exponential_beta_ladder(self, ntemps):
@@ -198,11 +226,15 @@ class PTSampler(em.Sampler):
             lnprob0 = np.zeros((self.ntemps, self.nwalkers))
             lnlike0 = np.zeros((self.ntemps, self.nwalkers))
             for i in range(self.ntemps):
-                fn = PTPost(self.logl, self.logp, self.betas[i])
-                if self.pool is None:
-                    results = list(map(fn, p[i, :, :]))
+                fn = PTPost(self.logl, self.logp, self.betas[i],
+                        bcast=self.bcast)
+                if self.bcast:
+                    results = fn(p[i])
                 else:
-                    results = list(self.pool.map(fn, p[i, :, :]))
+                    if self.pool is None:
+                        results = list(map(fn, p[i, :, :]))
+                    else:
+                        results = list(self.pool.map(fn, p[i, :, :]))
 
                 lnprob0[i, :] = np.array([r[0] for r in results])
                 lnlike0[i, :] = np.array([r[1] for r in results])

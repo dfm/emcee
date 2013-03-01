@@ -18,6 +18,11 @@ def lnprob_gaussian(x, icov):
     return -np.dot(x, np.dot(icov, x)) / 2.0
 
 
+def ndim_gauss_lnprob(ensemble, icov):
+    ensemble_t = ensemble.T
+    return -0.5 * np.einsum('i..., i...', ensemble_t, np.dot(icov, ensemble_t))
+
+
 def log_unit_sphere_volume(ndim):
     if ndim % 2 == 0:
         logfactorial = 0.0
@@ -56,8 +61,26 @@ class LnprobGaussian(object):
             return dist2
 
 
+class NdimLnprobGaussian(LnprobGaussian):
+    def __init__(self, icov, cutoff=None):
+        super(NdimLnprobGaussian, self).__init__(icov, cutoff)
+
+    def __call__(self, ensemble):
+
+        dists2 = ndim_gauss_lnprob(np.array(ensemble), self.icov)
+
+        if self.cutoff is not None:
+            return np.where(-dists2 > self.cutoff * self.cutoff / 2.0, float('-inf'), dists2)
+        else:
+            return dists2
+
+
 def ln_flat(x):
     return 0.0
+
+
+def vec_ln_flat(x):
+    return np.zeros(np.shape(x)[0])
 
 
 class Tests:
@@ -140,16 +163,30 @@ class Tests:
                             lnprob_gaussian, args=[self.icov])
         self.check_sampler()
 
+    def test_ensemble_bcast(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                ndim_gauss_lnprob, args=[self.icov], bcast=True)
+        self.check_sampler()
+
     def test_parallel(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-                lnprob_gaussian, args=[self.icov], threads=2)
+                lnprob_gaussian, args=[self.icov], threads=2, bcast=False)
         self.check_sampler()
 
     def test_pt_sampler(self):
         cutoff = 10.0
         self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim,
                                  LnprobGaussian(self.icov, cutoff=cutoff),
-                                 ln_flat)
+                                 ln_flat, bcast=False)
+        p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
+                                 size=(self.ntemp, self.nwalkers))
+        self.check_pt_sampler(cutoff, p0=p0, N=1000)
+
+    def test_pt_sampler_bcast(self):
+        cutoff = 10.0
+        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim,
+                                 NdimLnprobGaussian(self.icov, cutoff=cutoff),
+                                 vec_ln_flat, bcast=True)
         p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
                                  size=(self.ntemp, self.nwalkers))
         self.check_pt_sampler(cutoff, p0=p0, N=1000)
