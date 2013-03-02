@@ -86,21 +86,23 @@ vecsampler.reset()
 ##################################################################
 
 t1 = time.time()
-for pos, prob, rstate in sampler.sample(p0, iterations=1000):
+for pos, prob, rstate in sampler.sample(pos, prob, state, iterations=1000):
     pass
 dt = time.time() - t1
 print("time : " + str(dt))
 sampler.reset()
 
 t1 = time.time()
-for pos, prob, rstate in poolsampler.sample(p0, iterations=1000):
+for pos, prob, rstate in poolsampler.sample(ppos, pprob, pstate,
+        iterations=1000):
     pass
 dt = time.time() - t1
 print("threads=10 time : " + str(dt))
 poolsampler.reset()
 
 t1 = time.time()
-for pos, prob, rstate in vecsampler.sample(p0, iterations=1000):
+for pos, prob, rstate in vecsampler.sample(vpos, vprob, vstate,
+        iterations=1000):
     pass
 dt = time.time() - t1
 print("bcast=True time : " + str(dt))
