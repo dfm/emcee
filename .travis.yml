@@ -1,10 +1,12 @@
 language: python
+virtualenv:
+  system_site_packages: true
+before_install:
+ - sudo apt-get install -qq python-numpy python-scipy python3-numpy python3-scipy
 python:
   - "2.6"
   - "2.7"
   - "3.2"
 install:
-  - pip install numpy
-  - pip install scipy
   - pip install nose
 script:  nosetests
