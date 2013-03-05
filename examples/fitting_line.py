@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+from __future__ import print_function
 import numpy as np
 import scipy as sp
 import math
@@ -318,19 +319,19 @@ vecsampler.reset()
 t1 = time.time()
 sampler.run_mcmc(pos, 1000)
 dt = time.time() - t1
-print "time : " + str(dt)
+print("time : " + str(dt))
 #~400s on mobile i3 Sandy Bridge
 
 t1 = time.time()
 poolsampler.run_mcmc(ppos, 1000)
 dt = time.time() - t1
-print "threads=10 time : " + str(dt)
+print("threads=10 time : " + str(dt))
 #~200s
 
 t1 = time.time()
 vecsampler.run_mcmc(vpos, 1000)
 dt = time.time() - t1
-print "bcast=True time : " + str(dt)
+print("bcast=True time : " + str(dt))
 #~7s
 
 try:

@@ -4,6 +4,7 @@ Sample code for sampling the Rosenbrock density using emcee.
 
 """
 
+from __future__ import print_function
 import numpy as np
 import emcee
 import time
@@ -59,21 +60,21 @@ t1 = time.time()
 for pos, prob, rstate in sampler.sample(p0, iterations=2000):
     pass
 dt = time.time() - t1
-print "time : " + str(dt)
+print("time : " + str(dt))
 sampler.reset()
 
 t1 = time.time()
 for pos, prob, rstate in poolsampler.sample(p0, iterations=2000):
     pass
 dt = time.time() - t1
-print "threads=10 time : " + str(dt)
+print("threads=10 time : " + str(dt))
 poolsampler.reset()
 
 t1 = time.time()
 for pos, prob, rstate in vecsampler.sample(p0, iterations=2000):
     pass
 dt = time.time() - t1
-print "bcast=True time : " + str(dt)
+print("bcast=True time : " + str(dt))
 
 #plotting sampled density
 try:

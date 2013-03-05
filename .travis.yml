@@ -5,5 +5,6 @@ python:
   - "3.2"
 install:
   - pip install numpy
+  - pip install scipy
   - pip install nose
 script:  nosetests
