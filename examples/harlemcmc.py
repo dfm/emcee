@@ -53,14 +53,19 @@ ndim, nwalkers = 2, 100
 # Build the letters.
 mixes = []
 samplers = []
+mh_samps = []
 ics = []
+mh_ics = []
 
 
 def build_mixture(means, covs):
     m = Mixture(means, covs)
     mixes.append(m)
     samplers.append(emcee.EnsembleSampler(nwalkers, ndim, m))
+    mh_samps.append(emcee.MHSampler(0.005 * np.array([[1, 0], [0, 1]]),
+                                    ndim, m))
     ics.append(np.array([4 * np.random.rand(2) - 2 for n in range(nwalkers)]))
+    mh_ics.append(means[np.random.randint(len(means))])
 
 
 # The letter "H".
@@ -121,10 +126,15 @@ axes = [fig.add_axes((xi / nx, (ny - yi - 1) / ny, 1 / nx, 1 / ny),
                      frameon=True, xticks=[], yticks=[])
                 for yi, xi in itertools.product(range(ny), range(nx))]
 
+fig2 = pl.figure(figsize=[10 * nx / 3, 10 * ny / 3])
+axes2 = [fig2.add_axes((xi / nx, (ny - yi - 1) / ny, 1 / nx, 1 / ny),
+                     frameon=True, xticks=[], yticks=[])
+                for yi, xi in itertools.product(range(ny), range(nx))]
+
 # Plot the letters and initial coniditions.
 x, y = np.linspace(-2, 2, 100), np.linspace(-2, 2, 100)
 X, Y = np.meshgrid(x, y)
-points = []
+points, points2 = [], []
 for i, mix in enumerate(mixes):
     Z = np.exp([mix([a, b])
                 for a, b in zip(X.flatten(), Y.flatten())]).reshape(X.shape)
@@ -135,21 +145,37 @@ for i, mix in enumerate(mixes):
     axes[i].set_xlim(-2, 2)
     axes[i].set_ylim(-2, 2)
 
+    axes2[i].imshow(Z, interpolation="nearest", cmap="gray",
+                   extent=[-2, 2, 2, -2])
+    p, = axes2[i].plot(ics[i][0, 0], ics[i][0, 1], "or")
+    points2.append(p)
+    axes2[i].set_xlim(-2, 2)
+    axes2[i].set_ylim(-2, 2)
+
 # Start the samplers and iterators.
 iterations = 200
 gens = [s.sample(p, iterations=iterations) for s, p in zip(samplers, ics)]
+mh_gens = [s.sample(p[0], iterations=iterations)
+                                            for s, p in zip(mh_samps, ics)]
 
 # Iterate.
 try:
     os.makedirs("harlemcmc")
 except os.error:
     pass
-pl.savefig("harlemcmc/{0:04d}.png".format(0))
+fig.savefig("harlemcmc/{0:04d}.png".format(0))
+fig2.savefig("harlemcmc/mh-{0:04d}.png".format(0))
 for i in range(iterations):
     pos = [g.next()[0] for g in gens]
     [(el.set_xdata(p[:, 0]), el.set_ydata(p[:, 1]))
                 for el, p in zip(points, pos)]
+
+    pos = [g.next()[0] for g in mh_gens]
+    [(el.set_xdata(p[0]), el.set_ydata(p[1]))
+                for el, p in zip(points2, pos)]
+
     pl.draw()
-    pl.savefig("harlemcmc/{0:04d}.png".format(i + 1))
+    fig.savefig("harlemcmc/{0:04d}.png".format(i + 1))
+    fig2.savefig("harlemcmc/mh-{0:04d}.png".format(i + 1))
 
 # ffmpeg -i harlmcmc/%4d.png -r 12 -vcodec libx264 harlmcmc.mp4
