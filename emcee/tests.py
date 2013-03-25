@@ -18,6 +18,16 @@ def lnprob_gaussian(x, icov):
     return -np.dot(x, np.dot(icov, x)) / 2.0
 
 
+def lnprob_gaussian_nan(x, icov):
+    #if walker's parameters are zeros => return NaN
+    if not (np.array(x)).any():
+        result = np.nan
+    else:
+        result = -np.dot(x, np.dot(icov, x)) / 2.0
+
+    return result
+
+
 def log_unit_sphere_volume(ndim):
     if ndim % 2 == 0:
         logfactorial = 0.0
@@ -79,6 +89,9 @@ class Tests:
         self.icov = np.linalg.inv(self.cov)
         self.p0 = [0.1 * np.random.randn(self.ndim)
                 for i in range(self.nwalkers)]
+        #first walker has NaN lnprob
+        self.p0_nan = self.p0[:]
+        self.p0_nan[0] = np.zeros(self.ndim)
         self.truth = np.random.multivariate_normal(self.mean, self.cov, 100000)
 
     def check_sampler(self, N=None, p0=None):
@@ -91,6 +104,12 @@ class Tests:
             pass
 
         assert np.mean(self.sampler.acceptance_fraction) > 0.25
+        #to test initial parameters with lnprob0 = NaN
+        try:
+            assert (self.sampler.acceptance_fraction > 0).all()
+        #don't need if using MH
+        except AttributeError:
+            pass
         chain = self.sampler.flatchain
         maxdiff = 10. ** (logprecision)
         assert np.all((np.mean(chain, axis=0) - self.mean) ** 2 / self.N ** 2
@@ -139,6 +158,11 @@ class Tests:
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
                             lnprob_gaussian, args=[self.icov])
         self.check_sampler()
+
+    def test_ensemble_nan_lnprob0(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                            lnprob_gaussian_nan, args=[self.icov])
+        self.check_sampler(p0=self.p0_nan)
 
     # def test_parallel(self):
     #     self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
