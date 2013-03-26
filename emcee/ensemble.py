@@ -183,6 +183,11 @@ class EnsembleSampler(Sampler):
         if lnprob is None:
             lnprob, blobs = self._get_lnprob(p)
 
+        # Check to make sure that the probability function didn't return
+        # ``np.nan``.
+        if np.any(np.isnan(lnprob)):
+            raise ValueError("The initial lnprob was NaN.")
+
         # Store the initial size of the stored chain.
         i0 = self._chain.shape[1]
 
