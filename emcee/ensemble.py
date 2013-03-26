@@ -341,6 +341,12 @@ class EnsembleSampler(Sampler):
         else:
             p = pos
 
+        # Check that the parameters are in physical ranges.
+        if np.any(np.isinf(p)):
+            raise ValueError("At least one parameter value was infinite.")
+        if np.any(np.isnan(p)):
+            raise ValueError("At least one parameter value was NaN.")
+
         # If the `pool` property of the sampler has been set (i.e. we want
         # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
         # just use the built-in `map` function.
@@ -358,6 +364,10 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
+
+        # Check for lnprob returning NaN.
+        if np.any(np.isnan(lnprob)):
+            raise ValueError("lnprob returned NaN.")
 
         return lnprob, blob
 
