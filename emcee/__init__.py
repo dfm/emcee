@@ -20,7 +20,8 @@ def test():
                   ("Parallel Sampler",    "test_parallel"),
                   ("Ensemble Sampler",    "test_ensemble"),
                   ("Metropolis-Hastings", "test_mh"),
-                  ("Parallel Tempering", "test_pt_sampler")
+                  ("Parallel Tempering", "test_pt_sampler"),
+                  ("Pickling", "test_pickle")
                  ]
 
     print("Starting tests...")
