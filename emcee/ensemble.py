@@ -13,6 +13,7 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["EnsembleSampler"]
 
+import os
 import multiprocessing
 import numpy as np
 
@@ -448,6 +449,28 @@ class EnsembleSampler(Sampler):
             t[i] = acor.acor(self.chain[:, :, i])[0]
         return t
 
+    def pickle(self, filename, clobber=False):
+        """ Pickle the sampler. """
+        import cPickle as pickle
+
+        if os.path.exists(filename) and not clobber:
+            raise IOError("File '{0}' already exists! If you want to "
+                          "overwrite, use 'clobber=True'"
+                          .format(filename))
+
+        elif os.path.exists(filename) and clobber:
+            os.remove(filename)
+        
+        pool = None
+        if self.pool != None:
+            pool = self.pool
+            self.pool = None
+        
+        with open(filename, "w") as f:
+            pickle.dump(self,f)
+        
+        if pool != None:
+            self.pool = pool            
 
 class _function_wrapper(object):
     """

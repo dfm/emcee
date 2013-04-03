@@ -5,6 +5,7 @@ Defines various nose unit tests
 
 """
 
+import os
 import numpy as np
 
 from .mh import MHSampler
@@ -242,3 +243,30 @@ class Tests:
         # Make sure that the blobs aren't all the same.
         blobs = self.sampler.blobs
         assert np.any([blobs[-1] != blobs[i] for i in range(len(blobs) - 1)])
+
+    def test_pickle(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, args=[self.icov])
+        self.check_sampler()
+
+        test_pickle_filename = "/tmp/sampler_test.pickle"
+        self.sampler.pickle(test_pickle_filename, clobber=True)
+
+        assert os.path.exists(test_pickle_filename), "Pickle file not created!"
+
+        # -- Now try with multiple processors
+        import multiprocessing
+        if multiprocessing.cpu_count() == 1:
+            return
+
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, args=[self.icov],
+                                       threads=2)
+        self.check_sampler()
+
+        test_pickle_filename = "/tmp/sampler_test.pickle"
+        self.sampler.pickle(test_pickle_filename, clobber=True)
+
+        assert os.path.exists(test_pickle_filename), "Pickle file not created!"
+
+        os.remove(test_pickle_filename)
