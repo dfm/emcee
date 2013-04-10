@@ -347,11 +347,11 @@ class EnsembleSampler(Sampler):
         # just use the built-in `map` function.
         if self.pool is not None:
             M = self.pool.map
+            chunksize = int(len(p)/self.threads + 1)
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))], chunksize))
         else:
             M = map
-
-        # Run the log-probability calculations (optionally in parallel).
-        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
             lnprob = np.array([float(l[0]) for l in results])
