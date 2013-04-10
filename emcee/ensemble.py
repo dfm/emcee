@@ -75,7 +75,7 @@ class EnsembleSampler(Sampler):
 
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
-            threads=1, pool=None, live_dangerously=False):
+                 threads=1, pool=None, live_dangerously=False):
         self.k = nwalkers
         self.a = a
         self.threads = threads
@@ -92,9 +92,9 @@ class EnsembleSampler(Sampler):
         assert self.k % 2 == 0, "The number of walkers must be even."
         if not live_dangerously:
             assert self.k >= 2 * self.dim, (
-                    "The number of walkers needs to be more than twice the "
-                    + "dimension of your parameter space... unless you're "
-                    + "crazy!")
+                "The number of walkers needs to be more than twice the "
+                "dimension of your parameter space... unless you're "
+                "crazy!")
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
@@ -114,7 +114,7 @@ class EnsembleSampler(Sampler):
         self._blobs = []
 
     def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
-            iterations=1, thin=1, storechain=True, mh_proposal=None):
+               iterations=1, thin=1, storechain=True, mh_proposal=None):
         """
         Advance the chain ``iterations`` steps as a generator.
 
@@ -183,6 +183,11 @@ class EnsembleSampler(Sampler):
         if lnprob is None:
             lnprob, blobs = self._get_lnprob(p)
 
+        # Check to make sure that the probability function didn't return
+        # ``np.nan``.
+        if np.any(np.isnan(lnprob)):
+            raise ValueError("The initial lnprob was NaN.")
+
         # Store the initial size of the stored chain.
         i0 = self._chain.shape[1]
 
@@ -191,7 +196,8 @@ class EnsembleSampler(Sampler):
         if storechain:
             N = int(iterations / thin)
             self._chain = np.concatenate((self._chain,
-                    np.zeros((self.k, N, self.dim))), axis=1)
+                                          np.zeros((self.k, N, self.dim))),
+                                         axis=1)
             self._lnprob = np.concatenate((self._lnprob,
                                            np.zeros((self.k, N))), axis=1)
 
@@ -209,7 +215,7 @@ class EnsembleSampler(Sampler):
                 acc = (newlnp > lnprob)
 
                 # ... sometimes accept for steps that got worse
-                worse = np.flatnonzero(acc == False)
+                worse = np.flatnonzero(~acc)
                 acc[worse] = ((newlnp[worse] - lnprob[worse]) >
                               np.log(self._random.rand(len(worse))))
                 del worse
@@ -221,10 +227,9 @@ class EnsembleSampler(Sampler):
 
                 if blob is not None:
                     assert blobs is not None, (
-                            "If you start sampling "
-                        + "with a given lnprob, you also need to "
-                        + "provide the current list of blobs at that "
-                        + "position.")
+                        "If you start sampling with a given lnprob, you also "
+                        "need to provide the current list of blobs at that "
+                        "position.")
                     ind = np.arange(self.k)[acc]
                     for j in ind:
                         blobs[j] = blob[j]
@@ -237,7 +242,7 @@ class EnsembleSampler(Sampler):
                 first, second = slice(halfk), slice(halfk, self.k)
                 for S0, S1 in [(first, second), (second, first)]:
                     q, newlnp, acc, blob = self._propose_stretch(p[S0], p[S1],
-                                                        lnprob[S0])
+                                                                 lnprob[S0])
                     if np.any(acc):
                         # Update the positions, log probabilities and
                         # acceptance counts.
@@ -247,10 +252,9 @@ class EnsembleSampler(Sampler):
 
                         if blob is not None:
                             assert blobs is not None, (
-                                  "If you start sampling "
-                                + "with a given lnprob, you also need to "
-                                + "provide the current list of blobs at that "
-                                + "position.")
+                                "If you start sampling with a given lnprob, "
+                                "you also need to provide the current list of "
+                                "blobs at that position.")
                             ind = np.arange(len(acc))[acc]
                             indfull = np.arange(self.k)[S0][acc]
                             for j in range(len(ind)):
@@ -342,6 +346,12 @@ class EnsembleSampler(Sampler):
         else:
             p = pos
 
+        # Check that the parameters are in physical ranges.
+        if np.any(np.isinf(p)):
+            raise ValueError("At least one parameter value was infinite.")
+        if np.any(np.isnan(p)):
+            raise ValueError("At least one parameter value was NaN.")
+
         # If the `pool` property of the sampler has been set (i.e. we want
         # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
         # just use the built-in `map` function.
@@ -359,6 +369,10 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
+
+        # Check for lnprob returning NaN.
+        if np.any(np.isnan(lnprob)):
+            raise ValueError("lnprob returned NaN.")
 
         return lnprob, blob
 

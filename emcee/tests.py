@@ -18,6 +18,16 @@ def lnprob_gaussian(x, icov):
     return -np.dot(x, np.dot(icov, x)) / 2.0
 
 
+def lnprob_gaussian_nan(x, icov):
+    #if walker's parameters are zeros => return NaN
+    if not (np.array(x)).any():
+        result = np.nan
+    else:
+        result = -np.dot(x, np.dot(icov, x)) / 2.0
+
+    return result
+
+
 def log_unit_sphere_volume(ndim):
     if ndim % 2 == 0:
         logfactorial = 0.0
@@ -29,7 +39,7 @@ def log_unit_sphere_volume(ndim):
         for i in range(1, ndim + 1, 2):
             logfactorial += np.log(i)
         return (ndim + 1) / 2.0 * np.log(2.0) \
-                + (ndim - 1) / 2.0 * np.log(np.pi) - logfactorial
+            + (ndim - 1) / 2.0 * np.log(np.pi) - logfactorial
 
 
 class LnprobGaussian(object):
@@ -72,13 +82,13 @@ class Tests:
 
         self.mean = np.zeros(self.ndim)
         self.cov = 0.5 - np.random.rand(self.ndim ** 2) \
-                .reshape((self.ndim, self.ndim))
+            .reshape((self.ndim, self.ndim))
         self.cov = np.triu(self.cov)
         self.cov += self.cov.T - np.diag(self.cov.diagonal())
         self.cov = np.dot(self.cov, self.cov)
         self.icov = np.linalg.inv(self.cov)
         self.p0 = [0.1 * np.random.randn(self.ndim)
-                for i in range(self.nwalkers)]
+                   for i in range(self.nwalkers)]
         self.truth = np.random.multivariate_normal(self.mean, self.cov, 100000)
 
     def check_sampler(self, N=None, p0=None):
@@ -91,12 +101,14 @@ class Tests:
             pass
 
         assert np.mean(self.sampler.acceptance_fraction) > 0.25
+        assert np.all(self.sampler.acceptance_fraction > 0)
+
         chain = self.sampler.flatchain
         maxdiff = 10. ** (logprecision)
         assert np.all((np.mean(chain, axis=0) - self.mean) ** 2 / self.N ** 2
-                < maxdiff)
+                      < maxdiff)
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2 / self.N ** 2
-                < maxdiff)
+                      < maxdiff)
 
     def check_pt_sampler(self, cutoff, N=None, p0=None):
         if N is None:
@@ -117,10 +129,10 @@ class Tests:
                            (-1, self.sampler.chain.shape[-1]))
 
         log_volume = self.ndim * np.log(cutoff) \
-                     + log_unit_sphere_volume(self.ndim) \
-                     + 0.5 * np.log(np.linalg.det(self.cov))
+            + log_unit_sphere_volume(self.ndim) \
+            + 0.5 * np.log(np.linalg.det(self.cov))
         gaussian_integral = self.ndim / 2.0 * np.log(2.0 * np.pi) \
-                     + 0.5 * np.log(np.linalg.det(self.cov))
+            + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
 
@@ -132,18 +144,80 @@ class Tests:
 
     def test_mh(self):
         self.sampler = MHSampler(self.cov, self.ndim, lnprob_gaussian,
-                args=[self.icov])
+                                 args=[self.icov])
         self.check_sampler(N=self.N * self.nwalkers, p0=self.p0[0])
 
     def test_ensemble(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-                            lnprob_gaussian, args=[self.icov])
+                                       lnprob_gaussian, args=[self.icov])
         self.check_sampler()
 
-    def test_parallel(self):
+    def test_nan_lnprob(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-                lnprob_gaussian, args=[self.icov], threads=2)
-        self.check_sampler()
+                                       lnprob_gaussian_nan,
+                                       args=[self.icov])
+
+        # If a walker is right at zero, ``lnprobfn`` returns ``np.nan``.
+        p0 = self.p0
+        p0[0] = 0.0
+
+        try:
+            self.check_sampler(p0=p0)
+        except ValueError:
+            # This should fail *immediately* with a ``ValueError``.
+            return
+
+        assert False, "We should never get here."
+
+    def test_inf_nan_params(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, args=[self.icov])
+
+        # Set one of the walkers to have a ``np.nan`` value.
+        p0 = self.p0
+        p0[0][0] = np.nan
+
+        try:
+            self.check_sampler(p0=p0)
+
+        except ValueError:
+            # This should fail *immediately* with a ``ValueError``.
+            pass
+
+        else:
+            assert False, "The sampler should have failed by now."
+
+        # Set one of the walkers to have a ``np.inf`` value.
+        p0[0][0] = np.inf
+
+        try:
+            self.check_sampler(p0=p0)
+
+        except ValueError:
+            # This should fail *immediately* with a ``ValueError``.
+            pass
+
+        else:
+            assert False, "The sampler should have failed by now."
+
+        # Set one of the walkers to have a ``np.inf`` value.
+        p0[0][0] = -np.inf
+
+        try:
+            self.check_sampler(p0=p0)
+
+        except ValueError:
+            # This should fail *immediately* with a ``ValueError``.
+            pass
+
+        else:
+            assert False, "The sampler should have failed by now."
+
+    # def test_parallel(self):
+    #     self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+    #                                    lnprob_gaussian, args=[self.icov],
+    #                                    threads=2)
+    #     self.check_sampler()
 
     def test_pt_sampler(self):
         cutoff = 10.0
@@ -151,7 +225,7 @@ class Tests:
                                  LnprobGaussian(self.icov, cutoff=cutoff),
                                  ln_flat)
         p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
-                                 size=(self.ntemp, self.nwalkers))
+                                           size=(self.ntemp, self.nwalkers))
         self.check_pt_sampler(cutoff, p0=p0, N=1000)
 
     def test_blobs(self):
@@ -163,7 +237,7 @@ class Tests:
         assert (self.sampler.chain.shape == (self.nwalkers, self.N, self.ndim)
                 and len(self.sampler.blobs) == self.N
                 and len(self.sampler.blobs[0]) == self.nwalkers), \
-                        "The blob dimensions are wrong."
+            "The blob dimensions are wrong."
 
         # Make sure that the blobs aren't all the same.
         blobs = self.sampler.blobs

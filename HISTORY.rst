@@ -1,5 +1,12 @@
 .. :changelog:
 
+1.2.1 (upcoming)
+++++++++++++++++
+
+- Added checks for parameters becoming infinite or NaN.
+- Added checks for log-probability becoming NaN.
+
+
 1.2.0 (2013-01-30)
 ++++++++++++++++++
 
@@ -9,6 +16,7 @@
   to be consistent with the ``flatchain`` property.
 - Updated document for publication in PASP.
 - Various bug fixes.
+
 
 1.1.3 (2012-11-22)
 ++++++++++++++++++
