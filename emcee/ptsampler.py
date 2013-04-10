@@ -202,7 +202,8 @@ class PTSampler(em.Sampler):
                 if self.pool is None:
                     results = list(map(fn, p[i, :, :]))
                 else:
-                    chunksize = int(p.shape[1]/self.threads + 1)
+                    chunksize = int(p.shape[1]/(self.threads + 2))
+                    chunksize = max(chunksize, 1)
                     results = list(self.pool.map(fn, p[i, :, :], chunksize))
 
                 lnprob0[i, :] = np.array([r[0] for r in results])

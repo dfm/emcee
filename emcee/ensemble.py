@@ -357,7 +357,8 @@ class EnsembleSampler(Sampler):
         # just use the built-in `map` function.
         if self.pool is not None:
             M = self.pool.map
-            chunksize = int(len(p)/self.threads + 1)
+            chunksize = int(len(p)/(self.threads + 2))
+            chunksize = max(chunksize, 1)
             results = list(M(self.lnprobfn, [p[i] for i in range(len(p))], chunksize))
         else:
             M = map
