@@ -356,13 +356,13 @@ class EnsembleSampler(Sampler):
         # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
         # just use the built-in `map` function.
         if self.pool is not None:
-            chunksize = int(len(p)/self.threads)
+            M = self.pool.map
+            chunksize = int(len(p)/(self.threads + 2))
             chunksize = max(chunksize, 1)
-            M = lambda f, l: self.pool.map(f, l, chunksize)
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))], chunksize))
         else:
             M = map
-        
-        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
             lnprob = np.array([float(l[0]) for l in results])
