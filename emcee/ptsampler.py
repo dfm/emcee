@@ -17,6 +17,7 @@ import multiprocessing as multi
 import numpy as np
 import numpy.random as nr
 
+
 class PTPost(object):
     """
     Wrapper for posterior used with the :class:`PTSampler` in emcee.
@@ -120,7 +121,6 @@ class PTSampler(em.Sampler):
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
 
         self.pool = pool
-        self.threads = threads
         if threads > 1 and pool is None:
             self.pool = multi.Pool(threads)
 
@@ -202,8 +202,7 @@ class PTSampler(em.Sampler):
                 if self.pool is None:
                     results = list(map(fn, p[i, :, :]))
                 else:
-                    chunksize = int(p.shape[1]/self.threads + 1)
-                    results = list(self.pool.map(fn, p[i, :, :], chunksize))
+                    results = list(self.pool.map(fn, p[i, :, :]))
 
                 lnprob0[i, :] = np.array([r[0] for r in results])
                 lnlike0[i, :] = np.array([r[1] for r in results])
