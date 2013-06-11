@@ -11,6 +11,7 @@ Direct contributions to the code base:
 - `Phil Marshall (Oxford) <https://github.com/drphilmarshall>`_
 - `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
+- `Leo Singer (Caltech) <https://github.com/lpsinger>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
 
 Comments, corrections & suggestions:

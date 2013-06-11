@@ -283,7 +283,7 @@ class PTSampler(em.Sampler):
             self.nswap[i - 1] += self.nwalkers
 
             asel = (paccept > raccept)
-            nacc = np.count_nonzero(asel)
+            nacc = np.sum(asel)
 
             self.nswap_accepted[i] += nacc
             self.nswap_accepted[i - 1] += nacc
