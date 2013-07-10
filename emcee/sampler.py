@@ -13,6 +13,15 @@ __all__ = ["Sampler"]
 import numpy as np
 
 try:
+    from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+                            FileTransferSpeed, FormatLabel, Percentage, \
+                            ProgressBar, ReverseBar, RotatingMarker, \
+                            SimpleProgress, Timer    
+    progressbar = True
+except ImportError:
+    progressbar = None
+
+try:
     import acor
     acor = acor
 except ImportError:
@@ -157,7 +166,17 @@ class Sampler(object):
             Other parameters that are directly passed to :func:`sample`.
 
         """
-        for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
-                **kwargs):
-            pass
-        return results
+        if progressbar:
+            pbar = ProgressBar(widgets=[Counter(), "/"+str(N)+" " , Percentage(), Bar(), Timer(), " ", ETA()], maxval=N).start()
+            i = 0
+            for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
+                    **kwargs):
+                i += 1    
+                pbar.update(i)
+            print("\n")
+            return results
+        else:
+            for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
+                    **kwargs):
+                pass
+            return results
