@@ -19,7 +19,7 @@ def lnprob_gaussian(x, icov):
 
 
 def lnprob_gaussian_nan(x, icov):
-    #if walker's parameters are zeros => return NaN
+    # if walker's parameters are zeros => return NaN
     if not (np.array(x)).any():
         result = np.nan
     else:
@@ -58,6 +58,7 @@ class LogLikeGaussian(object):
 
         return dist2
 
+
 class LogPriorGaussian(object):
     def __init__(self, icov, cutoff=None):
         self.icov = icov
@@ -73,6 +74,7 @@ class LogPriorGaussian(object):
                 return 0.0
         else:
             return 0.0
+
 
 def ln_flat(x):
     return 0.0
@@ -128,8 +130,10 @@ class Tests:
             pass
 
         # Weaker assertions on acceptance fraction
-        assert np.mean(self.sampler.acceptance_fraction) > 0.1, 'acceptance fraction < 0.1'
-        assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1, 'tswap acceptance frac < 0.1'
+        assert np.mean(self.sampler.acceptance_fraction) > 0.1, \
+            "acceptance fraction < 0.1"
+        assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1, \
+            "tswap acceptance frac < 0.1"
 
         maxdiff = 10.0 ** logprecision
 
@@ -146,7 +150,9 @@ class Tests:
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
 
-        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, 'evidence incorrect: {0:g} versus correct {1:g} (uncertainty {2:g})'.format(lnZ, gaussian_integral - log_volume, dlnZ)
+        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
+            ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "
+             "{2:g})").format(lnZ, gaussian_integral - log_volume, dlnZ)
         assert np.all((np.mean(chain, axis=0) - self.mean) ** 2.0 / N ** 2.0
                       < maxdiff), 'mean incorrect'
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2.0 / N ** 2.0
