@@ -455,6 +455,17 @@ class PTSampler(em.Sampler):
         return self._chain
 
     @property
+    def flatchain(self):
+        """Returns the stored chain, but flattened along the walker axis, so
+        of shape ``(Ntemps, Nwalkers*Nsteps, Ndim)``.
+
+        """
+
+        s = self.chain.shape
+
+        return self._chain.reshape((s[0], -1, s[3]))
+
+    @property
     def lnprobability(self):
         """
         Matrix of lnprobability values; shape ``(Ntemps, Nwalkers, Nsteps)``.
