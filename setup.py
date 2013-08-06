@@ -14,10 +14,24 @@ if sys.argv[-1] == "publish":
     os.system("python setup.py sdist upload")
     sys.exit()
 
+# Handle encoding
+major, minor1, minor2, release, serial = sys.version_info
+if major >= 3:
+    def rd(filename):
+        f = open(filename, encoding="utf-8")
+        r = f.read()
+        f.close()
+        return r
+else:
+    def rd(filename):
+        f = open(filename)
+        r = f.read()
+        f.close()
+        return r
 
 vre = re.compile("__version__ = \"(.*?)\"")
-m = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                      "emcee", "__init__.py")).read()
+m = rd(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                    "emcee", "__init__.py"))
 version = vre.findall(m)[0]
 
 
@@ -30,10 +44,10 @@ setup(
     url="http://danfm.ca/emcee/",
     license="GPLv2",
     description="Kick ass affine-invariant ensemble MCMC sampling",
-    long_description=open("README.rst").read() + "\n\n"
+    long_description=rd("README.rst") + "\n\n"
                     + "Changelog\n"
                     + "---------\n\n"
-                    + open("HISTORY.rst").read(),
+                    + rd("HISTORY.rst"),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
     install_requires=["numpy"],
