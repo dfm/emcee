@@ -5,6 +5,7 @@
 
 - Added checks for parameters becoming infinite or NaN.
 - Added checks for log-probability becoming NaN.
+- Improved parallelization and various other tweaks in ``PTSampler``.
 
 
 1.2.0 (2013-01-30)
