@@ -12,7 +12,7 @@ try:
 except ImportError:
     acor = None
 
-import emcee as em
+from .sampler import Sampler
 import multiprocessing as multi
 import numpy as np
 import numpy.random as nr
@@ -36,7 +36,7 @@ class PTLikePrior(object):
         return self.logl(x), lp
 
 
-class PTSampler(em.Sampler):
+class PTSampler(Sampler):
     """A parallel-tempered ensemble sampler, using :class:`EnsembleSampler`
     for sampling within each parallel chain.
 
