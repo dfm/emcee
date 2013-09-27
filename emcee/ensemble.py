@@ -22,7 +22,7 @@ try:
 except ImportError:
     acor = None
 
-from emcee.sampler import Sampler
+from .sampler import Sampler
 
 
 class EnsembleSampler(Sampler):

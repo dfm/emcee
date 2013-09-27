@@ -12,7 +12,7 @@ __all__ = ["MHSampler"]
 
 import numpy as np
 
-from emcee.sampler import Sampler
+from .sampler import Sampler
 
 
 # === MHSampler ===

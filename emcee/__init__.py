@@ -3,11 +3,11 @@
 
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
-from emcee.sampler import *
-from emcee.mh import *
-from emcee.ensemble import *
-from emcee.ptsampler import *
-from emcee import utils
+from .sampler import *
+from .mh import *
+from .ensemble import *
+from .ptsampler import *
+from . import utils
 
 
 __version__ = "1.2.0"
