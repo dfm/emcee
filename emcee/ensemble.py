@@ -175,14 +175,15 @@ class EnsembleSampler(Sampler):
 
         p = np.array(p0)
         halfk = int(self.k / 2)
-
+        print("after halfk")
         # If the initial log-probabilities were not provided, calculate them
         # now.
         lnprob = lnprob0
         blobs = blobs0
         if lnprob is None:
-            lnprob, blobs = self._get_lnprob(p)
+            lnprob, p, blobs = self._get_lnprob(p)
 
+        print("after initial")
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
         if np.any(np.isnan(lnprob)):
@@ -191,6 +192,7 @@ class EnsembleSampler(Sampler):
         # Store the initial size of the stored chain.
         i0 = self._chain.shape[1]
 
+        print("i0")
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
@@ -201,6 +203,7 @@ class EnsembleSampler(Sampler):
             self._lnprob = np.concatenate((self._lnprob,
                                            np.zeros((self.k, N))), axis=1)
 
+        print("after storechain")
         for i in range(int(iterations)):
             self.iterations += 1
 
@@ -209,7 +212,7 @@ class EnsembleSampler(Sampler):
             if mh_proposal is not None:
                 # Draw proposed positions & evaluate lnprob there
                 q = mh_proposal(p)
-                newlnp, blob = self._get_lnprob(q)
+                newlnp, q, blob = self._get_lnprob(q)
 
                 # Accept if newlnp is better; and ...
                 acc = (newlnp > lnprob)
@@ -315,7 +318,7 @@ class EnsembleSampler(Sampler):
 
         # Calculate the proposed positions and the log-probability there.
         q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
-        newlnprob, blob = self._get_lnprob(q)
+        newlnprob, q, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
         lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
@@ -365,16 +368,18 @@ class EnsembleSampler(Sampler):
 
         try:
             lnprob = np.array([float(l[0]) for l in results])
-            blob = [l[1] for l in results]
+            p = np.array([l[1] for l in results])
+            blob = [l[2] for l in results]
         except (IndexError, TypeError):
-            lnprob = np.array([float(l) for l in results])
+            lnprob = np.array([float(l[0]) for l in results])
+            p = np.array([l[1] for l in results])
             blob = None
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
             raise ValueError("lnprob returned NaN.")
 
-        return lnprob, blob
+        return lnprob, p, blob
 
     @property
     def blobs(self):
