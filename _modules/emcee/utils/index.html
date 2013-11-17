@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>emcee.utils &mdash; emcee 1.2.0 documentation</title>
+    <title>emcee.utils &mdash; emcee 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '1.2.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.2.0 documentation" href="../../../" />
+    <link rel="top" title="emcee 2.0.0 documentation" href="../../../" />
     <link rel="up" title="emcee" href="../" />
      
     
@@ -49,7 +48,7 @@
         <li class="right" >
           <a href="../../../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../">emcee 1.2.0 documentation</a> &raquo;</li>
+        <li><a href="../../../">emcee 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../../" >Module code</a> &raquo;</li>
           <li><a href="../" accesskey="U">emcee</a> &raquo;</li> 
       </ul>
@@ -61,8 +60,11 @@
           <div class="body">
             
   <h1>Source code for emcee.utils</h1><div class="highlight"><pre>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="p">(</span><span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;sample_ball&quot;</span><span class="p">,</span> <span class="s">&quot;MH_proposal_axisaligned&quot;</span><span class="p">]</span>
 
@@ -110,15 +112,15 @@
 <span class="k">if</span> <span class="n">MPI</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
     <span class="k">class</span> <span class="nc">_close_pool_message</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s">u&quot;&lt;Close pool message&gt;&quot;</span>
+            <span class="k">return</span> <span class="s">&quot;&lt;Close pool message&gt;&quot;</span>
 
     <span class="k">class</span> <span class="nc">_function_wrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span>
 
     <span class="k">def</span> <span class="nf">_error_function</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">u&quot;Pool was sent tasks before being told what &quot;</span>
-                           <span class="s">u&quot;function to apply.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Pool was sent tasks before being told what &quot;</span>
+                           <span class="s">&quot;function to apply.&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MPIPool"><a class="viewcode-back" href="../../../api/#emcee.utils.MPIPool">[docs]</a>    <span class="k">class</span> <span class="nc">MPIPool</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -147,9 +149,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">_error_function</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">u&quot;Tried to create an MPI pool, but there &quot;</span>
-                                 <span class="s">u&quot;was only one MPI process available. &quot;</span>
-                                 <span class="s">u&quot;Need at least two.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Tried to create an MPI pool, but there &quot;</span>
+                                 <span class="s">&quot;was only one MPI process available. &quot;</span>
+                                 <span class="s">&quot;Need at least two.&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MPIPool.is_master"><a class="viewcode-back" href="../../../api/#emcee.utils.MPIPool.is_master">[docs]</a>        <span class="k">def</span> <span class="nf">is_master</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
@@ -164,7 +166,7 @@
 
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_master</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">u&quot;Master node told to await jobs.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Master node told to await jobs.&quot;</span><span class="p">)</span>
 
             <span class="n">status</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Status</span><span class="p">()</span>
 
@@ -172,19 +174,19 @@
                 <span class="c"># Event loop.</span>
                 <span class="c"># Sit here and await instructions.</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Worker {0} waiting for task.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Worker {0} waiting for task.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
 
                 <span class="c"># Blocking receive to wait for instructions.</span>
                 <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">ANY_TAG</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Worker {0} got task {1} with tag {2}.&quot;</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Worker {0} got task {1} with tag {2}.&quot;</span>
                                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">status</span><span class="o">.</span><span class="n">tag</span><span class="p">))</span>
 
                 <span class="c"># Check if message is special sentinel signaling end.</span>
                 <span class="c"># If so, stop.</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">_close_pool_message</span><span class="p">):</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Worker {0} told to quit.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Worker {0} told to quit.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
                     <span class="k">break</span>
 
                 <span class="c"># Check if message is special type containing new function</span>
@@ -192,7 +194,7 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">_function_wrapper</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">function</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Worker {0} replaced its task function: {1}.&quot;</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Worker {0} replaced its task function: {1}.&quot;</span>
                                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">))</span>
                     <span class="k">continue</span>
 
@@ -200,7 +202,7 @@
                 <span class="c"># the input and return it asynchronously.</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Worker {0} sending answer {1} with tag {2}.&quot;</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Worker {0} sending answer {1} with tag {2}.&quot;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">status</span><span class="o">.</span><span class="n">tag</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
 </div>
@@ -223,17 +225,23 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
                 <span class="k">return</span>
 
-            <span class="n">F</span> <span class="o">=</span> <span class="n">_function_wrapper</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Master replacing pool function with {0}.&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">function</span><span class="p">))</span>
 
-            <span class="c"># Tell all the workers what function to use.</span>
-            <span class="n">requests</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">requests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span>
+                <span class="n">F</span> <span class="o">=</span> <span class="n">_function_wrapper</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
 
-            <span class="c"># Wait until all of the workers have responded. See:</span>
-            <span class="c">#       https://gist.github.com/4176241</span>
-            <span class="n">MPI</span><span class="o">.</span><span class="n">Request</span><span class="o">.</span><span class="n">waitall</span><span class="p">(</span><span class="n">requests</span><span class="p">)</span>
+                <span class="c"># Tell all the workers what function to use.</span>
+                <span class="n">requests</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">requests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+                <span class="c"># Wait until all of the workers have responded. See:</span>
+                <span class="c">#       https://gist.github.com/4176241</span>
+                <span class="n">MPI</span><span class="o">.</span><span class="n">Request</span><span class="o">.</span><span class="n">waitall</span><span class="p">(</span><span class="n">requests</span><span class="p">)</span>
 
             <span class="c"># Send all the tasks off and wait for them to be received.</span>
             <span class="c"># Again, see the bug in the above gist.</span>
@@ -241,7 +249,7 @@
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
                 <span class="n">worker</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Sent task {0} to worker {1} with tag {2}.&quot;</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Sent task {0} to worker {1} with tag {2}.&quot;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">worker</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
                 <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">worker</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
                 <span class="n">requests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
@@ -252,7 +260,7 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntask</span><span class="p">):</span>
                 <span class="n">worker</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">u&quot;Master waiting for worker {0} with tag {1}&quot;</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Master waiting for worker {0} with tag {1}&quot;</span>
                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">worker</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>

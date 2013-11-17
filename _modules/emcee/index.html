@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>emcee &mdash; emcee 1.2.0 documentation</title>
+    <title>emcee &mdash; emcee 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.2.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.2.0 documentation" href="../../" />
+    <link rel="top" title="emcee 2.0.0 documentation" href="../../" />
     <link rel="up" title="Module code" href="../" />
      
     
@@ -49,7 +48,7 @@
         <li class="right" >
           <a href="../../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../">emcee 1.2.0 documentation</a> &raquo;</li>
+        <li><a href="../../">emcee 2.0.0 documentation</a> &raquo;</li>
           <li><a href="../" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -60,7 +59,11 @@
           <div class="body">
             
   <h1>Source code for emcee</h1><div class="highlight"><pre>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="p">(</span><span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.sampler</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.mh</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.ensemble</span> <span class="kn">import</span> <span class="o">*</span>
@@ -68,35 +71,29 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">utils</span>
 
 
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&quot;1.1.4-dev&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&quot;2.0.0&quot;</span>
 
 
 <span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getmembers</span><span class="p">,</span> <span class="n">ismethod</span>
     <span class="kn">from</span> <span class="nn">.tests</span> <span class="kn">import</span> <span class="n">Tests</span>
 
-    <span class="n">test_names</span> <span class="o">=</span> <span class="p">[</span>
-                  <span class="p">(</span><span class="s">&quot;Parallel Sampler&quot;</span><span class="p">,</span>    <span class="s">&quot;test_parallel&quot;</span><span class="p">),</span>
-                  <span class="p">(</span><span class="s">&quot;Ensemble Sampler&quot;</span><span class="p">,</span>    <span class="s">&quot;test_ensemble&quot;</span><span class="p">),</span>
-                  <span class="p">(</span><span class="s">&quot;Metropolis-Hastings&quot;</span><span class="p">,</span> <span class="s">&quot;test_mh&quot;</span><span class="p">),</span>
-                  <span class="p">(</span><span class="s">&quot;Parallel Tempering&quot;</span><span class="p">,</span> <span class="s">&quot;test_pt_sampler&quot;</span><span class="p">)</span>
-                 <span class="p">]</span>
-
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;Starting tests...&quot;</span><span class="p">)</span>
-
     <span class="n">failures</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">tests</span> <span class="o">=</span> <span class="n">Tests</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">test_names</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">getmembers</span><span class="p">(</span><span class="n">tests</span><span class="p">):</span>
         <span class="n">tests</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="nb">getattr</span><span class="p">(</span><span class="n">tests</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Test: {0} failed with error:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">{0}: {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
-            <span class="n">failures</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Test: {0} passed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">ismethod</span><span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span> <span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;test&quot;</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;{0} ...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">o</span><span class="p">[</span><span class="mi">1</span><span class="p">]()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Failed with:</span><span class="se">\n</span><span class="s">    {0.__class__.__name__}: {0}&quot;</span>
+                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="n">failures</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;    Passed.&quot;</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;{0} tests passed&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_names</span><span class="p">)</span> <span class="o">-</span> <span class="n">failures</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;{0} tests failed&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">failures</span><span class="p">))</span>
 </pre></div>
 

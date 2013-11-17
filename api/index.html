@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API &mdash; emcee 1.2.0 documentation</title>
+    <title>API &mdash; emcee 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.2.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +24,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.2.0 documentation" href="../" />
+    <link rel="top" title="emcee 2.0.0 documentation" href="../" />
     <link rel="prev" title="FAQ" href="../user/faq/" />
      
     
@@ -52,7 +51,7 @@
         <li class="right" >
           <a href="../user/faq/" title="FAQ"
              accesskey="P">previous</a> |</li>
-        <li><a href="../">emcee 1.2.0 documentation</a> &raquo;</li> 
+        <li><a href="../">emcee 2.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -285,7 +284,7 @@ temperature.  This sort of sampling is useful if you expect your
 distribution to be multi-modal. Take a look at <a class="reference internal" href="../user/pt/"><em>the documentation</em></a> to see how you might use this class.</p>
 <dl class="class">
 <dt id="emcee.PTSampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em>, <em>a=2.0</em><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A parallel-tempered ensemble sampler, using <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>
 for sampling within each parallel chain.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -305,9 +304,12 @@ Alternative to <tt class="docutils literal"><span class="pre">threads</span></tt
 <tt class="docutils literal"><span class="pre">map</span></tt> method compatible with the built-in <tt class="docutils literal"><span class="pre">map</span></tt> will do
 here.  For example, <tt class="xref py py-class docutils literal"><span class="pre">multi.Pool</span></tt> will do.</li>
 <li><strong>betas</strong> &#8211; (optional)
-Array giving the inverse temperatures, <span class="math">\(\beta=1/T\)</span>, used in the
-ladder.  The default is for an exponential ladder, with beta
-decreasing by a factor of <span class="math">\(1/\sqrt{2}\)</span> each rung.</li>
+Array giving the inverse temperatures, <span class="math">\(\beta=1/T\)</span>,
+used in the ladder.  The default is chosen so that a Gaussian
+posterior in the given number of dimensions will have a 0.25
+tswap acceptance rate.</li>
+<li><strong>a</strong> &#8211; (optional)
+Proposal scale factor.</li>
 </ul>
 </td>
 </tr>
@@ -347,10 +349,11 @@ parameter in each temperature of shape <tt class="docutils literal"><span class=
 </dd></dl>
 
 <dl class="method">
-<dt id="emcee.PTSampler.exponential_beta_ladder">
-<tt class="descname">exponential_beta_ladder</tt><big>(</big><em>ntemps</em><big>)</big><a class="headerlink" href="#emcee.PTSampler.exponential_beta_ladder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exponential ladder in <span class="math">\(1/T\)</span>, with <span class="math">\(T\)</span> increasing by
-<span class="math">\(\sqrt{2}\)</span> each step, with <tt class="docutils literal"><span class="pre">ntemps</span></tt> in total.</p>
+<dt id="emcee.PTSampler.default_beta_ladder">
+<tt class="descname">default_beta_ladder</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.PTSampler.default_beta_ladder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a ladder of <span class="math">\(eta \equiv 1/T\)</span> with temperatures
+geometrically spaced with spacing chosen so that a Gaussian
+posterior would have a 0.25 temperature swap acceptance rate.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -820,7 +823,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 
 <dl class="class">
 <dt id="emcee.utils.MPIPool">
-<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10f3c6b88&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x1060e1ba0&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
 API for distributed memory parallelism.  This pool will let you run
 emcee without shared memory, letting you use much larger machines

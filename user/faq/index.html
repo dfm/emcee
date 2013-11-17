@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>FAQ &mdash; emcee 1.2.0 documentation</title>
+    <title>FAQ &mdash; emcee 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.2.0',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +24,7 @@
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.2.0 documentation" href="../../" />
+    <link rel="top" title="emcee 2.0.0 documentation" href="../../" />
     <link rel="next" title="API" href="../../api/" />
     <link rel="prev" title="Parallel-Tempering Ensemble MCMC" href="../pt/" />
      
@@ -56,7 +55,7 @@
         <li class="right" >
           <a href="../pt/" title="Parallel-Tempering Ensemble MCMC"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../">emcee 1.2.0 documentation</a> &raquo;</li> 
+        <li><a href="../../">emcee 2.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -80,6 +79,34 @@ ensemble. See <a class="reference external" href="http://msp.berkeley.edu/camcos
 <p>The best technique seems to be to start in a small ball around the a priori
 preferred position. Don&#8217;t worry, the walkers quickly branch out and explore
 the rest of the space.</p>
+</div>
+<div class="section" id="wrapping-c-code">
+<h2>Wrapping C++ code<a class="headerlink" href="#wrapping-c-code" title="Permalink to this headline">¶</a></h2>
+<p>There are numerous ways to do it, see
+<a class="reference external" href="https://wiki.python.org/moin/IntegratingPythonWithOtherLanguages#C.2FC.2B-.2B-">the python wiki</a>.</p>
+<p>Extra care has to be taken if mpi support is needed as the mpi4py module used by
+emcee depends on the pickle module to send a function call to different
+processors/cores.</p>
+<p>A minimal extension of the mpi.py example in which the target density is coded
+in C++ and wrapped with the <a class="reference external" href="http://swig.org/">swig library</a> is shown in this
+<a class="reference external" href="https://gist.github.com/fredRos/7122649">gist</a>. It also demonstrates the hacks
+needed to get the pickling to work.</p>
+</div>
+<div class="section" id="parameter-limits">
+<h2>Parameter limits<a class="headerlink" href="#parameter-limits" title="Permalink to this headline">¶</a></h2>
+<p>In order to confine the walkers to a finite volume of the parameter space, have
+your function return negative infinity outside of the volume corresponding to
+the logarithm of 0 prior probability using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+</pre></div>
+</div>
+<p>Note: if your function is written in C++, use:</p>
+<div class="highlight-python"><pre>return -std::numeric_limits&lt;double&gt;::infinity();</pre>
+</div>
+<p>and avoid:</p>
+<div class="highlight-python"><pre>return -std::numeric_limits&lt;double&gt;::max();</pre>
+</div>
+<p>as it does not have the desired effect.</p>
 </div>
 <div class="section" id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
@@ -125,6 +152,8 @@ all benefit from any changes you come up with!</p>
 <li><a class="reference internal" href="#">FAQ</a><ul>
 <li><a class="reference internal" href="#what-are-walkers">What are &#8220;walkers&#8221;?</a></li>
 <li><a class="reference internal" href="#how-should-i-initialize-the-walkers">How should I initialize the walkers?</a></li>
+<li><a class="reference internal" href="#wrapping-c-code">Wrapping C++ code</a></li>
+<li><a class="reference internal" href="#parameter-limits">Parameter limits</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li><a class="reference internal" href="#attribution">Attribution</a></li>
 </ul>
