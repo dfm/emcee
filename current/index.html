@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>emcee &mdash; emcee 1.2.0-dev documentation</title>
+    <title>emcee &mdash; emcee 2.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.2.0-dev',
+        VERSION:     '2.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -25,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="emcee 1.2.0-dev documentation" href="#" />
+    <link rel="top" title="emcee 2.0.0 documentation" href="#" />
     <link rel="next" title="Installation" href="user/install/" />
      
     
@@ -52,7 +51,7 @@
         <li class="right" >
           <a href="user/install/" title="Installation"
              accesskey="N">next</a> |</li>
-        <li><a href="#">emcee 1.2.0-dev documentation</a> &raquo;</li> 
+        <li><a href="#">emcee 2.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -65,21 +64,14 @@
 <h1>emcee<a class="headerlink" href="#emcee" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="seriously-kick-ass-mcmc">
 <h2>Seriously Kick-Ass MCMC<a class="headerlink" href="#seriously-kick-ass-mcmc" title="Permalink to this headline">¶</a></h2>
-<p>Once upon a time, there was
-<a href="http://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm">an
-algorithm</a>. This algorithm became very popular but it turned out that
-there were better ones.
-<a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Some folks</a>
-came up with a better one and <a href="http://danfm.ca">some</a>
-<a href="http://www.astro.princeton.edu/~dstn">other</a>
-<a href="http://cosmo.nyu.edu/hogg">folks</a> implemented it in Python.
-It's a little crazy how much it rocks.</p><p><tt class="docutils literal"><span class="pre">emcee</span></tt> is a GPLv2 licensed pure-Python implementation of Goodman &amp; Weare&#8217;s
+<p><tt class="docutils literal"><span class="pre">emcee</span></tt> is an MIT licensed pure-Python implementation of Goodman &amp; Weare&#8217;s
 <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a> and these pages will
 show you how to use it.</p>
 <p>This documentation won&#8217;t teach you too much about MCMC but there are a lot
-of resources available for that (try <a class="reference external" href="http://www.inference.phy.cam.ac.uk/mackay/itila/book.html">this one</a>). We also
-posted <a class="reference external" href="http://arxiv.org/abs/1202.3665">a paper</a> to the arXiv explaining
-the <tt class="docutils literal"><span class="pre">emcee</span></tt> algorithm in much greater detail.</p>
+of resources available for that (try <a class="reference external" href="http://www.inference.phy.cam.ac.uk/mackay/itila/book.html">this one</a>).
+We also <a class="reference external" href="http://arxiv.org/abs/1202.3665">publlished a paper</a> explaining
+the <tt class="docutils literal"><span class="pre">emcee</span></tt> algorithm and implementation in detail.</p>
+<p>emcee has been used in <a class="reference external" href="testimonials">quite a few projects in the astrophysical literature</a> and it is being actively developed on <a class="reference external" href="https://github.com/dfm/emcee">GitHub</a>.</p>
 </div>
 <div class="section" id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
@@ -99,6 +91,7 @@ something like:</p>
 <span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>A more complete example is available in the <a class="reference external" href="user/quickstart">quickstart documentation</a>.</p>
 </div>
 <div class="section" id="user-guide">
 <h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
@@ -130,8 +123,10 @@ something like:</p>
 <li class="toctree-l1"><a class="reference internal" href="user/faq/">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#what-are-walkers">What are &#8220;walkers&#8221;?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#how-should-i-initialize-the-walkers">How should I initialize the walkers?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/faq/#wrapping-c-code">Wrapping C++ code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/faq/#parameter-limits">Parameter limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/faq/#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user/faq/#citation">Citation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/faq/#attribution">Attribution</a></li>
 </ul>
 </li>
 </ul>
@@ -160,13 +155,15 @@ something like:</p>
 </ul>
 <p>Direct contributions to the code base:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://github.com/aconley314">Alex Conley (U Colorado, Boulder)</a></li>
+<li><a class="reference external" href="https://github.com/fredRos">Frederik Beaujean (MPI for Physics)</a></li>
+<li><a class="reference external" href="https://github.com/aconley">Alex Conley (U Colorado, Boulder)</a></li>
 <li><a class="reference external" href="https://github.com/farr">Will Meierjurgen Farr (Northwestern)</a></li>
 <li><a class="reference external" href="https://github.com/davidwhogg">David W. Hogg (NYU)</a></li>
 <li><a class="reference external" href="https://github.com/dstndstn">Dustin Lang (Princeton/CMU)</a></li>
 <li><a class="reference external" href="https://github.com/drphilmarshall">Phil Marshall (Oxford)</a></li>
 <li><a class="reference external" href="https://github.com/adrn">Adrian Price-Whelan (Columbia)</a></li>
 <li><a class="reference external" href="https://github.com/jeremysanders">Jeremy Sanders (Cambridge)</a></li>
+<li><a class="reference external" href="https://github.com/lpsinger">Leo Singer (Caltech)</a></li>
 <li><a class="reference external" href="https://github.com/joezuntz">Joe Zuntz (Oxford)</a></li>
 </ul>
 <p>Comments, corrections &amp; suggestions:</p>
@@ -181,36 +178,51 @@ something like:</p>
 </div>
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="upcoming">
-<h3>1.2.0 (upcoming)<a class="headerlink" href="#upcoming" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h3>2.0.0 (2013-11-17)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Added a parallel tempering sampler <tt class="docutils literal"><span class="pre">PTSampler</span></tt>.</li>
+<li><strong>Re-licensed under the MIT license!</strong></li>
+<li>Clearer less verbose documentation.</li>
+<li>Added checks for parameters becoming infinite or NaN.</li>
+<li>Added checks for log-probability becoming NaN.</li>
+<li>Improved parallelization and various other tweaks in <tt class="docutils literal"><span class="pre">PTSampler</span></tt>.</li>
 </ul>
 </div>
-<div class="section" id="id1">
-<h3>1.1.3 (2012-11-22)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>1.2.0 (2013-01-30)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Added a parallel tempering sampler <tt class="docutils literal"><span class="pre">PTSampler</span></tt>.</li>
+<li>Added instructions and utilities for using <tt class="docutils literal"><span class="pre">emcee</span></tt> with <tt class="docutils literal"><span class="pre">MPI</span></tt>.</li>
+<li>Added <tt class="docutils literal"><span class="pre">flatlnprobability</span></tt> property to the <tt class="docutils literal"><span class="pre">EnsembleSampler</span></tt> object
+to be consistent with the <tt class="docutils literal"><span class="pre">flatchain</span></tt> property.</li>
+<li>Updated document for publication in PASP.</li>
+<li>Various bug fixes.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>1.1.3 (2012-11-22)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Made the packaging system more robust even when numpy is not installed.</li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h3>1.1.2 (2012-08-06)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>1.1.2 (2012-08-06)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Another bug fix related to metadata blobs: the shape of the final <cite>blobs</cite>
+<li>Another bug fix related to metadata blobs: the shape of the final <tt class="docutils literal"><span class="pre">blobs</span></tt>
 object was incorrect and all of the entries would generally be identical
 because we needed to copy the list that was appended at each step. Thanks
 goes to Jacqueline Chen (MIT) for catching this problem.</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>1.1.1 (2012-07-30)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed bug related to metadata blobs. The sample function was yielding
 the <tt class="docutils literal"><span class="pre">blobs</span></tt> object even when it wasn&#8217;t expected.</li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>1.1.0 (2012-07-28)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Allow the <tt class="docutils literal"><span class="pre">lnprobfn</span></tt> to return arbitrary &#8220;blobs&#8221; of data as well as the
 log-probability.</li>
@@ -219,14 +231,14 @@ log-probability.</li>
 <li>New documentation with better examples and more discussion.</li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>1.0.1 (2012-03-31)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Fixed transpose bug in the usage of <tt class="docutils literal"><span class="pre">acor</span></tt> in <tt class="docutils literal"><span class="pre">EnsembleSampler</span></tt>.</li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>1.0.0 (2012-02-15)<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Initial release.</li>
 </ul>
@@ -279,7 +291,7 @@ log-probability.</li>
     </div>
 
     <div class="footer">
-      &copy; Copyright 2012, Dan Foreman-Mackey.
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
     </div>
     <a href="https://github.com/dfm/emcee" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;"
@@ -296,6 +308,20 @@ log-probability.</li>
             ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
     </script>
   </body>
 </html>
