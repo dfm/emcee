@@ -1,8 +1,3 @@
-.. emcee documentation master file, created by
-   sphinx-quickstart on Fri Jul 27 11:29:38 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 emcee
 =====
 
@@ -21,7 +16,7 @@ Seriously Kick-Ass MCMC
     <a href="http://cosmo.nyu.edu/hogg">folks</a> implemented it in Python.
     It's a little crazy how much it rocks.</p>
 
-``emcee`` is a GPLv2 licensed pure-Python implementation of Goodman & Weare's
+``emcee`` is an MIT licensed pure-Python implementation of Goodman & Weare's
 `Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler
 <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and these pages will
 show you how to use it.
