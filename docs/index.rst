@@ -53,6 +53,7 @@ User Guide
 
    user/install
    user/quickstart
+   user/line
    user/advanced
    user/pt
    user/faq
