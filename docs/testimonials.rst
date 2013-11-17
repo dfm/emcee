@@ -40,6 +40,8 @@ scientific studies. Here is an incomplete list:
 * `Akeret, Seehars, Amara, et al. (2012) <http://arxiv.org/abs/1212.1721>`_
 * `Riechers, Bradford, Clements, et al. (2013) <http://arxiv.org/abs/1304.4256>`_
 * `Kamruddin & Dexter (2013) <http://arxiv.org/abs/1306.3226>`_
+* `Sparre et al. (2013)
+  <http://arxiv.org/abs/1309.2940>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add
