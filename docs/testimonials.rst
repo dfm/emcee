@@ -9,7 +9,11 @@ Testimonials
     -- Shane Bussmann (CfA)
 
 Since the initial release, ``emcee`` has been used in many published
-scientific studies. Here is an incomplete list:
+scientific studies.
+The most up-to-date list of citations to our paper—mostly positive ;-)—can be
+found on `The Astrophysics Data System (ADS)
+<http://adsabs.harvard.edu/cgi-bin/nph-ref_query?bibcode=2013PASP..125..306F&amp;refs=CITATIONS>`_.
+Here is a *very* incomplete list of users:
 
 * `Dorman, Guhathakurta, Fardal, et al. (2012)
   <http://arxiv.org/abs/1204.4455>`_
@@ -38,6 +42,11 @@ scientific studies. Here is an incomplete list:
 * `Reis, Miller, Reynolds, et al. (2013) <http://arxiv.org/abs/1208.3277>`_
 * `Sanders, & Fabian (2013) <http://arxiv.org/abs/1212.1259>`_
 * `Akeret, Seehars, Amara, et al. (2012) <http://arxiv.org/abs/1212.1721>`_
+* `Riechers, Bradford, Clements, et al. (2013)
+  <http://arxiv.org/abs/1304.4256>`_
+* `Kamruddin & Dexter (2013) <http://arxiv.org/abs/1306.3226>`_
+* `Sparre et al. (2013) <http://arxiv.org/abs/1309.2940>`_
+* `Price-Whelan & Johnston (2013) <http://arxiv.org/abs/1308.2670>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add

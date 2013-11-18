@@ -24,6 +24,41 @@ The best technique seems to be to start in a small ball around the a priori
 preferred position. Don't worry, the walkers quickly branch out and explore
 the rest of the space.
 
+Wrapping C++ code
+-----------------
+
+There are numerous ways to do it, see
+`the python wiki
+<https://wiki.python.org/moin/IntegratingPythonWithOtherLanguages#C.2FC.2B-.2B->`_.
+
+Extra care has to be taken if mpi support is needed as the mpi4py module used by
+emcee depends on the pickle module to send a function call to different
+processors/cores.
+
+A minimal extension of the mpi.py example in which the target density is coded
+in C++ and wrapped with the `swig library <http://swig.org/>`_ is shown in this
+`gist <https://gist.github.com/fredRos/7122649>`_. It also demonstrates the hacks
+needed to get the pickling to work.
+
+
+Parameter limits
+----------------
+
+In order to confine the walkers to a finite volume of the parameter space, have
+your function return negative infinity outside of the volume corresponding to
+the logarithm of 0 prior probability using::
+
+ return -numpy.inf
+
+Note: if your function is written in C++, use::
+
+ return -std::numeric_limits<double>::infinity();
+
+and avoid::
+
+ return -std::numeric_limits<double>::max();
+
+as it does not have the desired effect.
 
 Troubleshooting
 ---------------

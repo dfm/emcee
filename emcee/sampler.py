@@ -112,7 +112,8 @@ class Sampler(object):
 
         """
         if acor is None:
-            raise ImportError("acor")
+            raise ImportError("You need to install acor: "
+                              "https://github.com/dfm/acor")
         return acor.acor(self._chain.T)[0]
 
     def get_lnprob(self, p):
@@ -132,8 +133,8 @@ class Sampler(object):
         return self.reset()
 
     def sample(self, *args, **kwargs):
-        raise NotImplementedError("The sampling routine must be implemented "\
-                "by subclasses")
+        raise NotImplementedError("The sampling routine must be implemented "
+                                  "by subclasses")
 
     def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None, **kwargs):
         """
@@ -158,6 +159,6 @@ class Sampler(object):
 
         """
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
-                **kwargs):
+                                   **kwargs):
             pass
         return results
