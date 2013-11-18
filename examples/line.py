@@ -116,9 +116,7 @@ fig.savefig("line-time.png")
 
 # Make the triangle plot.
 burnin = 50
-samples = sampler.chain[:, burnin:, :]
-s = samples.shape
-samples = samples.reshape(s[0] * s[1], s[2])  # Flatten the sample list.
+samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
 
 fig = triangle.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
                       truths=[m_true, b_true, np.log(f_true)])
@@ -126,7 +124,7 @@ fig.savefig("line-triangle.png")
 
 # Plot some samples onto the data.
 pl.figure()
-for m, b, lns in samples[np.random.randint(len(samples), size=100)]:
+for m, b, lnf in samples[np.random.randint(len(samples), size=100)]:
     pl.plot(xl, m*xl+b, color="k", alpha=0.1)
 pl.plot(xl, m_true*xl+b_true, color="r", lw=2, alpha=0.8)
 pl.errorbar(x, y, yerr=yerr, fmt=".k")
