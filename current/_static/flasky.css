@@ -57,6 +57,10 @@ div.body {
     padding: 0 30px 0 30px;
 }
 
+.section img {
+    max-width: 100%;
+}
+
 img.floatingflask {
     padding: 0 0 10px 10px;
     float: right;
