@@ -5,6 +5,10 @@ emcee
 
 .. image:: https://secure.travis-ci.org/dfm/emcee.png?branch=master
         :target: http://travis-ci.org/dfm/emcee
+.. image:: https://pypip.in/d/emcee/badge.png
+        :target: https://pypi.python.org/pypi/emcee/
+.. image:: https://pypip.in/v/emcee/badge.png
+        :target: https://pypi.python.org/pypi/emcee/
 
 emcee is a stable, well tested Python implementation of the affine-invariant
 ensemble sampler for Markov chain Monte Carlo (MCMC)
