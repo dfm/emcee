@@ -48,6 +48,7 @@ Here is a *very* incomplete list of users:
 * `Sparre et al. (2013) <http://arxiv.org/abs/1309.2940>`_
 * `Price-Whelan & Johnston (2013) <http://arxiv.org/abs/1308.2670>`_
 * `Watkins, van de Ven, den Brok, et al. (2013) <http://arxiv.org/abs/1308.4789>`_
+* `Price-Whelan et al. (2013) <http://arxiv.org/abs/1311.3683>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add
