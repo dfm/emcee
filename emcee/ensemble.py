@@ -372,6 +372,12 @@ class EnsembleSampler(Sampler):
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
+            # Print some debugging stuff.
+            print("NaN value of lnprob for parameters: ")
+            for pars in p[np.isnan(lnprob)]:
+                print(pars)
+
+            # Finally raise exception.
             raise ValueError("lnprob returned NaN.")
 
         return lnprob, blob
