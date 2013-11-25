@@ -175,7 +175,7 @@ class EnsembleSampler(Sampler):
 
         p = np.array(p0)
         halfk = int(self.k / 2)
-        print("after halfk")
+
         # If the initial log-probabilities were not provided, calculate them
         # now.
         lnprob = lnprob0
@@ -183,7 +183,6 @@ class EnsembleSampler(Sampler):
         if lnprob is None:
             lnprob, p, blobs = self._get_lnprob(p)
 
-        print("after initial")
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
         if np.any(np.isnan(lnprob)):
@@ -192,7 +191,6 @@ class EnsembleSampler(Sampler):
         # Store the initial size of the stored chain.
         i0 = self._chain.shape[1]
 
-        print("i0")
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
@@ -203,7 +201,6 @@ class EnsembleSampler(Sampler):
             self._lnprob = np.concatenate((self._lnprob,
                                            np.zeros((self.k, N))), axis=1)
 
-        print("after storechain")
         for i in range(int(iterations)):
             self.iterations += 1
 
