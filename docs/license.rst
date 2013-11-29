@@ -3,7 +3,7 @@
 License
 =======
 
-.. code-block::
+.. code-block:: text
 
     The MIT License (MIT)
 
