@@ -317,6 +317,7 @@ and plot them on top of the data points:
 .. code-block:: python
 
     import matplotlib.pyplot as pl
+    xl = np.array([0, 10])
     for m, b, lnf in samples[np.random.randint(len(samples), size=100)]:
         pl.plot(xl, m*xl+b, color="k", alpha=0.1)
     pl.plot(xl, m_true*xl+b_true, color="r", lw=2, alpha=0.8)
