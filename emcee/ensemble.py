@@ -152,17 +152,17 @@ class EnsembleSampler(Sampler):
 
         At each iteration, this generator yields:
 
-        * ``pos`` — A list of the current positions of the walkers in the
+        * ``pos`` - A list of the current positions of the walkers in the
           parameter space. The shape of this object will be
           ``(nwalkers, dim)``.
 
-        * ``lnprob`` — The list of log posterior probabilities for the
+        * ``lnprob`` - The list of log posterior probabilities for the
           walkers at positions given by ``pos`` . The shape of this object
           is ``(nwalkers, dim)``.
 
-        * ``rstate`` — The current state of the random number generator.
+        * ``rstate`` - The current state of the random number generator.
 
-        * ``blobs`` — (optional) The metadata "blobs" associated with the
+        * ``blobs`` - (optional) The metadata "blobs" associated with the
           current position. The value is only returned if ``lnpostfn``
           returns blobs too.
 
@@ -291,15 +291,15 @@ class EnsembleSampler(Sampler):
 
         This method returns:
 
-        * ``q`` — The new proposed positions for the walkers in ``ensemble``.
+        * ``q`` - The new proposed positions for the walkers in ``ensemble``.
 
-        * ``newlnprob`` — The vector of log-probabilities at the positions
+        * ``newlnprob`` - The vector of log-probabilities at the positions
           given by ``q``.
 
-        * ``accept`` — A vector of type ``bool`` indicating whether or not
+        * ``accept`` - A vector of type ``bool`` indicating whether or not
           the proposed position for each walker should be accepted.
 
-        * ``blob`` — The new meta data blobs or ``None`` if nothing was
+        * ``blob`` - The new meta data blobs or ``None`` if nothing was
           returned by ``lnprobfn``.
 
         """
@@ -334,10 +334,10 @@ class EnsembleSampler(Sampler):
 
         This method returns:
 
-        * ``lnprob`` — A vector of log-probabilities with one entry for each
+        * ``lnprob`` - A vector of log-probabilities with one entry for each
           walker in this sub-ensemble.
 
-        * ``blob`` — The list of meta data returned by the ``lnpostfn`` at
+        * ``blob`` - The list of meta data returned by the ``lnpostfn`` at
           this position or ``None`` if nothing was returned.
 
         """

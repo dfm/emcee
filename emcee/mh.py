@@ -77,12 +77,12 @@ class MHSampler(Sampler):
 
         At each iteration, this generator yields:
 
-        * ``pos`` — The current positions of the chain in the parameter
+        * ``pos`` - The current positions of the chain in the parameter
           space.
 
-        * ``lnprob`` — The value of the log posterior at ``pos`` .
+        * ``lnprob`` - The value of the log posterior at ``pos`` .
 
-        * ``rstate`` — The current state of the random number generator.
+        * ``rstate`` - The current state of the random number generator.
 
         """
 
