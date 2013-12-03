@@ -122,8 +122,6 @@ class EnsembleSampler(Sampler):
             A list of the initial positions of the walkers in the
             parameter space. It should have the shape ``(nwalkers, dim)``.
 
-        -
-
         :param lnprob0: (optional)
             The list of log posterior probabilities for the walkers at
             positions given by ``p0``. If ``lnprob is None``, the initial
