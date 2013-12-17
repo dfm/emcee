@@ -105,9 +105,9 @@ and even though we&#8217;ve tried to make this feature as user-friendly as possi
 it can sometimes cause some headaches. One useful debugging tactic is to
 try running with 1 thread if your processes start to crash. This will
 generally provide much more illuminating error messages than in the parallel
-case. Note that the <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> sampler object itself is not
-pickleable, so if it or an object that contains it is passed to the lnpostfn
-function and multiprocessing is turned on, the code will fail.</p>
+case. Note that the parallelized <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> object is not
+pickleable. Therefore, if it (or an object that contains it) is passed to
+<tt class="docutils literal"><span class="pre">lnpostfn</span></tt> when multiprocessing is turned on, the code will fail.</p>
 <p>It is also important to note that the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> module works by
 spawning a large number of new <tt class="docutils literal"><span class="pre">python</span></tt> processes and running the code in
 isolation within those processes. This means that there is a significant

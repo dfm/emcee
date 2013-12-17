@@ -53,9 +53,9 @@ and even though we've tried to make this feature as user-friendly as possible,
 it can sometimes cause some headaches. One useful debugging tactic is to
 try running with 1 thread if your processes start to crash. This will
 generally provide much more illuminating error messages than in the parallel
-case. Note that the :class:`EnsembleSampler` sampler object itself is not
-pickleable, so if it or an object that contains it is passed to the lnpostfn
-function and multiprocessing is turned on, the code will fail.
+case. Note that the parallelized :class:`EnsembleSampler` object is not
+pickleable. Therefore, if it (or an object that contains it) is passed to
+``lnpostfn`` when multiprocessing is turned on, the code will fail.
 
 It is also important to note that the ``multiprocessing`` module works by
 spawning a large number of new ``python`` processes and running the code in
