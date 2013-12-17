@@ -8,6 +8,7 @@ Direct contributions to the code base:
 - `Frederik Beaujean (MPI for Physics) <https://github.com/fredRos>`_
 - `Alex Conley (U Colorado, Boulder) <https://github.com/aconley>`_
 - `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
+- `Demitri Muna (OSU) <https://github.com/demitri>`_
 - `David W. Hogg (NYU) <https://github.com/davidwhogg>`_
 - `Dustin Lang (Princeton/CMU) <https://github.com/dstndstn>`_
 - `Phil Marshall (Oxford) <https://github.com/drphilmarshall>`_
