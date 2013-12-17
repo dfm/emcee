@@ -260,14 +260,14 @@ walkers given a current list of positions of the same size. See
 </table>
 <p>At each iteration, this generator yields:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">pos</span></tt> — A list of the current positions of the walkers in the
+<li><tt class="docutils literal"><span class="pre">pos</span></tt> - A list of the current positions of the walkers in the
 parameter space. The shape of this object will be
 <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
-<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> — The list of log posterior probabilities for the
+<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> - The list of log posterior probabilities for the
 walkers at positions given by <tt class="docutils literal"><span class="pre">pos</span></tt> . The shape of this object
 is <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">dim)</span></tt>.</li>
-<li><tt class="docutils literal"><span class="pre">rstate</span></tt> — The current state of the random number generator.</li>
-<li><tt class="docutils literal"><span class="pre">blobs</span></tt> — (optional) The metadata &#8220;blobs&#8221; associated with the
+<li><tt class="docutils literal"><span class="pre">rstate</span></tt> - The current state of the random number generator.</li>
+<li><tt class="docutils literal"><span class="pre">blobs</span></tt> - (optional) The metadata &#8220;blobs&#8221; associated with the
 current position. The value is only returned if <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
 returns blobs too.</li>
 </ul>
@@ -666,10 +666,10 @@ for example) set <tt class="docutils literal"><span class="pre">storechain</span
 </table>
 <p>At each iteration, this generator yields:</p>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">pos</span></tt> — The current positions of the chain in the parameter
+<li><tt class="docutils literal"><span class="pre">pos</span></tt> - The current positions of the chain in the parameter
 space.</li>
-<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> — The value of the log posterior at <tt class="docutils literal"><span class="pre">pos</span></tt> .</li>
-<li><tt class="docutils literal"><span class="pre">rstate</span></tt> — The current state of the random number generator.</li>
+<li><tt class="docutils literal"><span class="pre">lnprob</span></tt> - The value of the log posterior at <tt class="docutils literal"><span class="pre">pos</span></tt> .</li>
+<li><tt class="docutils literal"><span class="pre">rstate</span></tt> - The current state of the random number generator.</li>
 </ul>
 </dd></dl>
 
@@ -823,7 +823,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 
 <dl class="class">
 <dt id="emcee.utils.MPIPool">
-<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10d377ba0&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x105100ba0&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
 API for distributed memory parallelism.  This pool will let you run
 emcee without shared memory, letting you use much larger machines

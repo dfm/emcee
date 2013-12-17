@@ -93,19 +93,21 @@ the end of a file, you could do something like:</p>
 <p>In principle, running <tt class="docutils literal"><span class="pre">emcee</span></tt> in parallel is as simple instantiating an
 <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> object with the <tt class="docutils literal"><span class="pre">threads</span></tt> argument set to an
 integer greater than 1:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprobfn</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnpostfn</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In practice, the parallelization is implemented using the built in Python
 <a class="reference external" href="http://docs.python.org/library/multiprocessing.html">multiprocessing</a>
-module. With this comes a few constraints. In particular, both <tt class="docutils literal"><span class="pre">lnprobfn</span></tt>
+module. With this comes a few constraints. In particular, both <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
 and <tt class="docutils literal"><span class="pre">args</span></tt> must be <a class="reference external" href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a>.
 The exceptions thrown while using <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> can be quite cryptic
 and even though we&#8217;ve tried to make this feature as user-friendly as possible,
 it can sometimes cause some headaches. One useful debugging tactic is to
 try running with 1 thread if your processes start to crash. This will
 generally provide much more illuminating error messages than in the parallel
-case.</p>
+case. Note that the <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> sampler object itself is not
+pickleable, so if it or an object that contains it is passed to the lnpostfn
+function and multiprocessing is turned on, the code will fail.</p>
 <p>It is also important to note that the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> module works by
 spawning a large number of new <tt class="docutils literal"><span class="pre">python</span></tt> processes and running the code in
 isolation within those processes. This means that there is a significant
