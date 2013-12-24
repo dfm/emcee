@@ -106,15 +106,8 @@ class Sampler(object):
 
     @property
     def acor(self):
-        """
-        The autocorrelation time of each parameter in the chain (length:
-        ``dim``) as estimated by the ``acor`` module.
-
-        """
-        if acor is None:
-            raise ImportError("You need to install acor: "
-                              "https://github.com/dfm/acor")
-        return acor.acor(self._chain.T)[0]
+        raise NotImplementedError("The acor method must be implemented "
+                                  "by subclasses")
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""

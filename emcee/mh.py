@@ -12,6 +12,12 @@ __all__ = ["MHSampler"]
 
 import numpy as np
 
+try:
+    import acor
+    acor = acor
+except ImportError:
+    acor = None
+
 from .sampler import Sampler
 
 
@@ -46,7 +52,7 @@ class MHSampler(Sampler):
         self._lnprob = np.empty(0)
 
     def sample(self, p0, lnprob=None, randomstate=None, thin=1,
-            storechain=True, iterations=1):
+               storechain=True, iterations=1):
         """
         Advances the chain ``iterations`` steps as an iterator
 
@@ -96,7 +102,7 @@ class MHSampler(Sampler):
         if storechain:
             N = int(iterations / thin)
             self._chain = np.concatenate((self._chain,
-                    np.zeros((N, self.dim))), axis=0)
+                                          np.zeros((N, self.dim))), axis=0)
             self._lnprob = np.append(self._lnprob, np.zeros(N))
 
         i0 = self.iterations
@@ -125,3 +131,16 @@ class MHSampler(Sampler):
 
             # Heavy duty iterator action going on right here...
             yield p, lnprob, self.random_state
+
+    @property
+    def acor(self):
+        """
+        The autocorrelation time of each parameter in the chain (length:
+        ``dim``) as estimated by the ``acor`` module.
+
+        """
+        if acor is None:
+            raise ImportError("You need to install acor: "
+                              "https://github.com/dfm/acor")
+        return np.array([acor.acor(self._chain[:, i])[0]
+                         for i in range(self._chain.shape[1])])
