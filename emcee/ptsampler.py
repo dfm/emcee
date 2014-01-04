@@ -23,18 +23,19 @@ class PTLikePrior(object):
 
     """
 
-    def __init__(self, logl, logp, args=[]):
+    def __init__(self, logl, logp, loglargs=[], logpargs=[]):
         self.logl = logl
         self.logp = logp
-        self.args = args
+        self.loglargs = loglargs
+        self.logpargs = logpargs
 
     def __call__(self, x):
-        lp = self.logp(x, *self.args)
+        lp = self.logp(x, *self.logpargs)
 
         if lp == float('-inf'):
             return lp, lp
 
-        return self.logl(x, *self.args), lp
+        return self.logl(x, *self.loglargs), lp
 
 
 class PTSampler(Sampler):
@@ -75,11 +76,12 @@ class PTSampler(Sampler):
 
     """
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None, a=2.0, args=[]):
+                 pool=None, betas=None, a=2.0, loglargs=[], logpargs=[]):
         self.logl = logl
         self.logp = logp
         self.a = a
-        self.args = args
+        self.loglargs = loglargs
+        self.logpargs = logpargs
 
         self.ntemps = ntemps
         self.nwalkers = nwalkers
@@ -208,7 +210,7 @@ class PTSampler(Sampler):
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
-            fn = PTLikePrior(self.logl, self.logp, self.args)
+            fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs)
             if self.pool is None:
                 results = list(map(fn, p.reshape((-1, self.dim))))
             else:
@@ -272,7 +274,7 @@ class PTSampler(Sampler):
                         (self.nwalkers / 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
 
-                fn = PTLikePrior(self.logl, self.logp, self.args)
+                fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs)
                 if self.pool is None:
                     results = list(map(fn, qs.reshape((-1, self.dim))))
                 else:
