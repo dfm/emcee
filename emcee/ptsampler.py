@@ -74,6 +74,12 @@ class PTSampler(Sampler):
     :param a: (optional)
         Proposal scale factor.
 
+    :param loglargs: (optional)
+        Arguments for the log-likelihood function.
+
+    :param logpargs: (optional)
+        Arguments for the log-prior function.
+
     """
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
                  pool=None, betas=None, a=2.0, loglargs=[], logpargs=[]):
