@@ -15,5 +15,5 @@ class Schedule(object):
     def sample(self, ensemble):
         while True:
             for prop in self.proposals:
-                ensemble, acceptance = prop.update(ensemble)
-                yield ensemble
+                prop.update(ensemble)
+                yield None

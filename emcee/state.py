@@ -9,12 +9,12 @@ __all__ = ["MemoizedState"]
 
 class MemoizedState(object):
 
-    def __init__(self, coords):
-        self.set_coords(coords)
+    def __init__(self, coords, lnprob=None):
+        self.update(coords, lnprob)
 
-    @property
-    def factory(self):
-        return self.__class__
+    def update(self, coords, lnprob):
+        self.coords = coords
+        self._lnprob = lnprob
 
     def get_coords(self):
         return self.coords
