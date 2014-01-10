@@ -16,13 +16,8 @@ __all__ = ["EnsembleSampler"]
 import multiprocessing
 import numpy as np
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
 from .sampler import Sampler
+from . import autocorr
 
 
 class EnsembleSampler(Sampler):
@@ -446,13 +441,11 @@ class EnsembleSampler(Sampler):
         ``dim``) as estimated by the ``acor`` module.
 
         """
-        if acor is None:
-            raise ImportError("acor")
-        s = self.dim
-        t = np.zeros(s)
-        for i in range(s):
-            t[i] = acor.acor(self.chain[:, :, i])[0]
-        return t
+        return self.get_autocorr_time()
+
+    def get_autocorr_time(self, window=50):
+        return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
+                                        window=window)
 
 
 class _function_wrapper(object):
