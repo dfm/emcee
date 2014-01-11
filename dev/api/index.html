@@ -836,6 +836,58 @@ Other parameters that are directly passed to <tt class="xref py py-func docutils
 </dd></dl>
 
 </div>
+<div class="section" id="autocorrelation-analysis">
+<h2>Autocorrelation Analysis<a class="headerlink" href="#autocorrelation-analysis" title="Permalink to this headline">¶</a></h2>
+<p>A good heuristic for assessing convergence of samplings is the integrated
+autocorrelation time. <tt class="docutils literal"><span class="pre">emcee</span></tt> includes (as of version 2.1.0) tools for
+computing this and the autocorrelation function itself.</p>
+<dl class="function">
+<dt id="emcee.autocorr.integrated_time">
+<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">integrated_time</tt><big>(</big><em>x</em>, <em>axis=0</em>, <em>window=50</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#integrated_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.integrated_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the integrated autocorrelation time of a time series.</p>
+<p>See <a class="reference external" href="http://www.stat.unc.edu/faculty/cji/Sokal.pdf">Sokal&#8217;s notes</a> on
+MCMC and sample estimators for autocorrelation times.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> &#8211; The time series. If multidimensional, set the time axis using the
+<tt class="docutils literal"><span class="pre">axis</span></tt> keyword argument and the function will be computed for every
+other axis.</li>
+<li><strong>axis</strong> &#8211; (optional)
+The time axis of <tt class="docutils literal"><span class="pre">x</span></tt>. Assumed to be the first axis if not specified.</li>
+<li><strong>window</strong> &#8211; (optional)
+The size of the window to use. (default: 50)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="emcee.autocorr.function">
+<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">function</tt><big>(</big><em>x</em>, <em>axis=0</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the autocorrelation function of a time series using the FFT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> &#8211; The time series. If multidimensional, set the time axis using the
+<tt class="docutils literal"><span class="pre">axis</span></tt> keyword argument and the function will be computed for every
+other axis.</li>
+<li><strong>axis</strong> &#8211; (optional)
+The time axis of <tt class="docutils literal"><span class="pre">x</span></tt>. Assumed to be the first axis if not specified.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -867,7 +919,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 
 <dl class="class">
 <dt id="emcee.utils.MPIPool">
-<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10db46bb8&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x107c92bb8&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
 API for distributed memory parallelism.  This pool will let you run
 emcee without shared memory, letting you use much larger machines
@@ -958,6 +1010,7 @@ of the values in a list and return the list of results.</p>
 <li><a class="reference internal" href="#the-parallel-tempered-ensemble-sampler">The Parallel-Tempered Ensemble Sampler</a></li>
 <li><a class="reference internal" href="#standard-metropolis-hastings-sampler">Standard Metropolis-Hastings Sampler</a></li>
 <li><a class="reference internal" href="#abstract-sampler-object">Abstract Sampler Object</a></li>
+<li><a class="reference internal" href="#autocorrelation-analysis">Autocorrelation Analysis</a></li>
 <li><a class="reference internal" href="#utilities">Utilities</a></li>
 </ul>
 </li>
