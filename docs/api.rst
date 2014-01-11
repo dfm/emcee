@@ -56,6 +56,18 @@ method.
    :inherited-members:
 
 
+Autocorrelation Analysis
+------------------------
+
+A good heuristic for assessing convergence of samplings is the integrated
+autocorrelation time. ``emcee`` includes (as of version 2.1.0) tools for
+computing this and the autocorrelation function itself.
+
+.. autofunction:: emcee.autocorr.integrated_time
+
+.. autofunction:: emcee.autocorr.function
+
+
 Utilities
 ---------
 
