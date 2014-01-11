@@ -52,7 +52,7 @@ print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 
 # Estimate the integrated autocorrelation time for the time series in each
 # parameter.
-print("Autocorrelation time:", sampler.acor)
+print("Autocorrelation time:", sampler.get_autocorr_time())
 
 # Finally, you can plot the projected histograms of the samples using
 # matplotlib as follows (as long as you have it installed).

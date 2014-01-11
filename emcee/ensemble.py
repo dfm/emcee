@@ -16,8 +16,8 @@ __all__ = ["EnsembleSampler"]
 import multiprocessing
 import numpy as np
 
-from .sampler import Sampler
 from . import autocorr
+from .sampler import Sampler
 
 
 class EnsembleSampler(Sampler):
@@ -437,13 +437,22 @@ class EnsembleSampler(Sampler):
     @property
     def acor(self):
         """
-        The autocorrelation time of each parameter in the chain (length:
-        ``dim``) as estimated by the ``acor`` module.
+        An estimate of the autocorrelation time for each parameter (length:
+        ``dim``).
 
         """
         return self.get_autocorr_time()
 
     def get_autocorr_time(self, window=50):
+        """
+        Compute an estimate of the autocorrelation time for each parameter
+        (length: ``dim``).
+
+        :param window: (optional)
+            The size of the windowing function. This is equivalent to the
+            maximum number of lags to use. (default: 50)
+
+        """
         return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
                                         window=window)
 

@@ -12,12 +12,7 @@ __all__ = ["MHSampler"]
 
 import numpy as np
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
+from . import autocorr
 from .sampler import Sampler
 
 
@@ -135,12 +130,20 @@ class MHSampler(Sampler):
     @property
     def acor(self):
         """
-        The autocorrelation time of each parameter in the chain (length:
-        ``dim``) as estimated by the ``acor`` module.
+        An estimate of the autocorrelation time for each parameter (length:
+        ``dim``).
 
         """
-        if acor is None:
-            raise ImportError("You need to install acor: "
-                              "https://github.com/dfm/acor")
-        return np.array([acor.acor(self._chain[:, i])[0]
-                         for i in range(self._chain.shape[1])])
+        return self.get_autocorr_time()
+
+    def get_autocorr_time(self, window=50):
+        """
+        Compute an estimate of the autocorrelation time for each parameter
+        (length: ``dim``).
+
+        :param window: (optional)
+            The size of the windowing function. This is equivalent to the
+            maximum number of lags to use. (default: 50)
+
+        """
+        return autocorr.integrated_time(self.chain, axis=0, window=window)

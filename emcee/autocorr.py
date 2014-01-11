@@ -48,7 +48,7 @@ def integrated_time(x, axis=0, window=50):
         The time axis of ``x``. Assumed to be the first axis if not specified.
 
     :param window: (optional)
-        The size of the window to use.
+        The size of the window to use. (default: 50)
 
     """
     # Compute the autocorrelation function.

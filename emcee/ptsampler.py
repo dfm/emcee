@@ -6,20 +6,17 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["PTSampler"]
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
-from .sampler import Sampler
-import multiprocessing as multi
 import numpy as np
 import numpy.random as nr
+import multiprocessing as multi
+
+from . import autocorr
+from .sampler import Sampler
 
 
 class PTLikePrior(object):
-    """Wrapper class for logl and logp.
+    """
+    Wrapper class for logl and logp.
 
     """
 
@@ -37,7 +34,8 @@ class PTLikePrior(object):
 
 
 class PTSampler(Sampler):
-    """A parallel-tempered ensemble sampler, using :class:`EnsembleSampler`
+    """
+    A parallel-tempered ensemble sampler, using :class:`EnsembleSampler`
     for sampling within each parallel chain.
 
     :param ntemps:
@@ -489,13 +487,21 @@ class PTSampler(Sampler):
         parameter in each temperature of shape ``(Ntemps, Ndim)``.
 
         """
-        if acor is None:
-            raise ImportError('acor')
-        else:
-            acors = np.zeros((self.ntemps, self.dim))
+        return self.get_autocorr_time()
 
-            for i in range(self.ntemps):
-                for j in range(self.dim):
-                    acors[i, j] = acor.acor(self._chain[i, :, :, j])[0]
+    def get_autocorr_time(self, window=50):
+        """
+        Returns a matrix of autocorrelation lengths for each
+        parameter in each temperature of shape ``(Ntemps, Ndim)``.
 
-            return acors
+        :param window: (optional)
+            The size of the windowing function. This is equivalent to the
+            maximum number of lags to use. (default: 50)
+
+        """
+        acors = np.zeros((self.ntemps, self.dim))
+
+        for i in range(self.ntemps):
+            x = np.mean(self._chain[i, :, :, :], axis=0)
+            acors[i, :] = autocorr.integrated_time(x, window=window)
+        return acors

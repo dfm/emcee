@@ -12,12 +12,6 @@ __all__ = ["Sampler"]
 
 import numpy as np
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
 
 class Sampler(object):
     """
@@ -106,6 +100,9 @@ class Sampler(object):
 
     @property
     def acor(self):
+        return self.get_autocorr_time()
+
+    def get_autocorr_time(self, window=50):
         raise NotImplementedError("The acor method must be implemented "
                                   "by subclasses")
 
