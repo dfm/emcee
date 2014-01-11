@@ -1,5 +1,11 @@
 .. :changelog:
 
+2.1.0 (upcoming)
+++++++++++++++++
+
+- Removing dependence on ``acor`` extension.
+
+
 2.0.0 (2013-11-17)
 ++++++++++++++++++
 
