@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Parallel-Tempering Ensemble MCMC &mdash; emcee 2.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 2.1.0 documentation" href="../../" />
+    <link rel="next" title="FAQ" href="../faq/" />
+    <link rel="prev" title="Advanced Patterns" href="../advanced/" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../faq/" title="FAQ"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../advanced/" title="Advanced Patterns"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../">emcee 2.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-emcee"><span id="pt"></span></span><div class="section" id="parallel-tempering-ensemble-mcmc">
+<h1>Parallel-Tempering Ensemble MCMC<a class="headerlink" href="#parallel-tempering-ensemble-mcmc" title="Permalink to this headline">¶</a></h1>
+<p><em>Added in version 1.2.0</em></p>
+<p>When your posterior is multi-modal or otherwise hard to sample with a
+standard MCMC, a good option to try is <a class="reference external" href="http://en.wikipedia.org/wiki/Parallel_tempering">parallel-tempered MCMC (PTMCMC)</a>.
+PTMCMC runs multiple MCMC&#8217;s at different temperatures, <span class="math">\(T\)</span>.  Each MCMC
+samples from a modified posterior, given by</p>
+<div class="math">
+\[\pi_T(x) = \left[ l(x) \right]^{\frac{1}{T}} p(x)\]</div>
+<p>As <span class="math">\(T \to \infty\)</span>, the posterior becomes the prior, which is
+hopefully easy to sample.  If the likelihood is a Gaussian with
+standard deviation <span class="math">\(\sigma\)</span>, then the tempered likelihood is
+proportional to a Gaussian with standard deviation <span class="math">\(\sigma
+\sqrt{T}\)</span>.</p>
+<p>Periodically during the run, the different temperatures swap members
+of their ensemble in a way that preserves detailed balance.  The hot
+chains can more easily explore parameter space because the likelihood
+is flatter and broader, while the cold chains do a good job of
+exploring the peaks of the likelihood.  This can <strong>dramatically</strong>
+improve convergence if your likelihood function has many
+well-separated modes.</p>
+<div class="section" id="how-to-sample-a-multi-modal-gaussian">
+<h2>How To Sample a Multi-Modal Gaussian<a class="headerlink" href="#how-to-sample-a-multi-modal-gaussian" title="Permalink to this headline">¶</a></h2>
+<p>Suppose we want to sample from the posterior given by</p>
+<div class="math">
+\[\pi(\vec{x}) \propto \exp\left[ - \frac{1}{2}
+     \left( \vec{x} - \vec{\mu}_1 \right)^T \Sigma^{-1}_1
+     \left( \vec{x} - \vec{\mu}_1 \right) \right]
+     + \exp\left[ -\frac{1}{2} \left( \vec{x} - \vec{\mu}_2 \right)^T
+       \Sigma^{-1}_2 \left( \vec{x} - \vec{\mu}_2 \right) \right]\]</div>
+<p>If the modes <span class="math">\(\mu_{1,2}\)</span> are well-separated with respect to the
+scale of <span class="math">\(\Sigma_{1,2}\)</span>, then this distribution will be hard to
+sample with the <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>.  Here is how we would sample
+from it using the <a class="reference internal" href="../../api/#emcee.PTSampler" title="emcee.PTSampler"><tt class="xref py py-class docutils literal"><span class="pre">PTSampler</span></tt></a>.</p>
+<p>First, some preliminaries:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">emcee</span> <span class="kn">import</span> <span class="n">PTSampler</span>
+</pre></div>
+</div>
+<p>Define the means and standard deviations of our multi-modal likelihood:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># mu1 = [1, 1], mu2 = [-1, -1]</span>
+<span class="n">mu1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">mu2</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c"># Width of 0.1 in each dimension</span>
+<span class="n">sigma1inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>
+<span class="n">sigma2inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">logl</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">dx1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mu1</span>
+    <span class="n">dx2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mu2</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dx1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sigma1inv</span><span class="p">,</span> <span class="n">dx1</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">,</span>
+                        <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dx2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sigma2inv</span><span class="p">,</span> <span class="n">dx2</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+
+<span class="c"># Use a flat prior</span>
+<span class="k">def</span> <span class="nf">logp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>Now we can construct a sampler object that will drive the PTMCMC;
+arbitrarily, we choose to use 20 temperatures (the default is for each
+temperature to increase by a factor of <span class="math">\(\sqrt{2}\)</span>, so the
+highest temperature will be <span class="math">\(T = 1024\)</span>, resulting in an
+effective <span class="math">\(\sigma_T = 32 \sigma = 3.2\)</span>, which is about the
+separation of our modes).  Let&#8217;s use 100 walkers in the ensemble at
+each temperature:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ntemps</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">sampler</span><span class="o">=</span><span class="n">PTSampler</span><span class="p">(</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">logl</span><span class="p">,</span> <span class="n">logp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Making the sampling multi-threaded is as simple as adding the
+<tt class="docutils literal"><span class="pre">threads=Nthreads</span></tt> argument to <a class="reference internal" href="../../api/#emcee.PTSampler" title="emcee.PTSampler"><tt class="xref py py-class docutils literal"><span class="pre">PTSampler</span></tt></a>.  We could have
+modified the temperature ladder using the <tt class="docutils literal"><span class="pre">betas</span></tt> optional argument
+(which should be an array of <span class="math">\(\beta \equiv 1/T\)</span> values).  The
+<tt class="docutils literal"><span class="pre">pool</span></tt> argument also allows to specify our own pool of worker
+threads if we wanted fine-grained control over the parallelism.</p>
+<p>First, we run the sampler for 1000 burn-in iterations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">lnlike</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="k">pass</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now we sample for 10000 iterations, recording every 10th sample:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">lnlike</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">lnprob0</span><span class="o">=</span><span class="n">lnprob</span><span class="p">,</span>
+                                           <span class="n">lnlike0</span><span class="o">=</span><span class="n">lnlike</span><span class="p">,</span>
+                                           <span class="n">iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">thin</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>The resulting samples (1000 of them) are stored as the
+<tt class="docutils literal"><span class="pre">sampler.chain</span></tt> property:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">assert</span> <span class="n">sampler</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">ntemps</span><span class="p">,</span> <span class="n">nwalkers</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span>
+
+<span class="c"># Chain has shape (ntemps, nwalkers, nsteps, ndim)</span>
+<span class="c"># Zero temperature mean:</span>
+<span class="n">mu0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">chain</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c"># Longest autocorrelation length (over any temperature)</span>
+<span class="n">max_acl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">acor</span><span class="p">)</span>
+
+<span class="c"># etc</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="implementation-notes">
+<h2>Implementation Notes<a class="headerlink" href="#implementation-notes" title="Permalink to this headline">¶</a></h2>
+<p>For a description of the parallel-tempering algorithm, see, e.g. <a class="reference external" href="http://adsabs.harvard.edu/abs/2005PCCP....7.3910E">Earl
+&amp; Deem (2010), Phys Chem Chem Phys, 7, 23, 3910</a>. The algorithm
+has some tunable parameters:</p>
+<dl class="docutils">
+<dt>Temperature Ladder</dt>
+<dd>The choice of temperature for the chains will strongly influence
+the rate of convergence of the sampling.  By default, the
+<a class="reference internal" href="../../api/#emcee.PTSampler" title="emcee.PTSampler"><tt class="xref py py-class docutils literal"><span class="pre">PTSampler</span></tt></a> class uses an exponential ladder, with each
+temperature increasing by a factor of <span class="math">\(\sqrt{2}\)</span>.  The user
+can supply their own ladder using the <tt class="docutils literal"><span class="pre">beta</span></tt> optional argument
+in the constructor.</dd>
+<dt>Rate of Temperature Swaps</dt>
+<dd>The rate at which temperature swaps are proposed can, to a lesser
+extent, also influence the rate of convergence of the sampling.
+The goal is to make sure that good positions found by the high
+temperatures can propogate to the lower temperatures, but still
+ensure that the high-temperatures do not lose all memory of good
+locations.  Here we choose to implement one temperature swap
+proposal per walker per rung on the temperature ladder after each
+ensemble update.  This is not user-tunable, but seems to work well
+in practice.</dd>
+</dl>
+<p>The <tt class="docutils literal"><span class="pre">args</span></tt> optional argument is not available in the
+<a class="reference internal" href="../../api/#emcee.PTSampler" title="emcee.PTSampler"><tt class="xref py py-class docutils literal"><span class="pre">PTSampler</span></tt></a> constructor; use a custom class with a <tt class="docutils literal"><span class="pre">__call__</span></tt>
+method if you need to pass arguments to the <tt class="docutils literal"><span class="pre">lnlike</span></tt> or <tt class="docutils literal"><span class="pre">lnprior</span></tt>
+functions and do not want to use a global variable.</p>
+<p>The <tt class="docutils literal"><span class="pre">thermodynamic_integration_log_evidence</span></tt> uses thermodynamic
+integration (see, e.g., <a class="reference external" href="http://dx.doi.org/10.1063/1.1751356">Goggans &amp; Chi (2004), AIP Conf Proc, 707, 59</a>) to estimate the evidence
+integral.  Define the evidence as a function of inverse temperature:</p>
+<div class="math">
+\[Z(\beta) \equiv \int dx\, l^\beta(x) p(x)\]</div>
+<p>We want to compute <span class="math">\(Z(1)\)</span>.  <span class="math">\(Z\)</span> satisfies the following
+differential equation</p>
+<div class="math">
+\[\frac{d \ln Z}{d\beta}
+    = \frac{1}{Z(\beta)} \int dx\, \ln l(x) l^\beta(x) p(x)
+    = \left \langle \ln l \right\rangle_\beta\]</div>
+<p>where <span class="math">\(\left\langle \ldots \right\rangle_\beta\)</span> is the average
+of a quantity over the posterior at temperature <span class="math">\(T = 1/\beta\)</span>.
+Integrating (note that <span class="math">\(Z(0) = 1\)</span> because the prior is
+normalized), we have</p>
+<div class="math">
+\[\ln Z(1) = \int_0^1 d\beta \left \langle \ln l \right\rangle_\beta\]</div>
+<p>This quantity can be estimated from a PTMCMC by computing the average
+<span class="math">\(\ln l\)</span> within each chain and applying a quadrature formula to
+estimate the integral.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Parallel-Tempering Ensemble MCMC</a><ul>
+<li><a class="reference internal" href="#how-to-sample-a-multi-modal-gaussian">How To Sample a Multi-Modal Gaussian</a></li>
+<li><a class="reference internal" href="#implementation-notes">Implementation Notes</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../advanced/" title="previous chapter">Advanced Patterns</a></li>
+      <li>Next: <a href="../faq/" title="next chapter">FAQ</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
+    </script>
+  </body>
+</html>
