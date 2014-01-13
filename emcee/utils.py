@@ -79,13 +79,18 @@ if MPI is not None:
         :param debug: (optional)
             If ``True``, print out a lot of status updates at each step.
 
+        :param loadbalance: (optional) 
+            if ``True`` and ntask > Ncpus, tries to loadbalance by sending 
+            out one task to each cpu first and then sending out the rest 
+            as the cpus get done. 
         """
-        def __init__(self, comm=MPI.COMM_WORLD, debug=False):
+        def __init__(self, comm=MPI.COMM_WORLD, debug=False, loadbalance=False):
             self.comm = comm
             self.rank = comm.Get_rank()
             self.size = comm.Get_size() - 1
             self.debug = debug
             self.function = _error_function
+            self.loadbalance = loadbalance
             if self.size == 0:
                 raise ValueError("Tried to create an MPI pool, but there "
                                  "was only one MPI process available. "
@@ -181,28 +186,78 @@ if MPI is not None:
                 #       https://gist.github.com/4176241
                 MPI.Request.waitall(requests)
 
-            # Send all the tasks off and wait for them to be received.
-            # Again, see the bug in the above gist.
-            requests = []
-            for i, task in enumerate(tasks):
-                worker = i % self.size + 1
-                if self.debug:
-                    print("Sent task {0} to worker {1} with tag {2}."
-                            .format(task, worker, i))
-                r = self.comm.isend(task, dest=worker, tag=i)
-                requests.append(r)
-            MPI.Request.waitall(requests)
+            if (not self.loadbalance) or (ntask <= self.size):
+                # Do not perform load-balancing - the default loadbalancing scheme emcee uses
+                # Send all the tasks off and wait for them to be received.
+                # Again, see the bug in the above gist.
+                requests = []
+                for i, task in enumerate(tasks):
+                    worker = i % self.size + 1
+                    if self.debug:
+                        print("Sent task {0} to worker {1} with tag {2}."
+                              .format(task, worker, i))
+                    r = self.comm.isend(task, dest=worker, tag=i)
+                    requests.append(r)
+                    
+                MPI.Request.waitall(requests)
 
-            # Now wait for the answers.
-            results = []
-            for i in range(ntask):
-                worker = i % self.size + 1
-                if self.debug:
-                    print("Master waiting for worker {0} with tag {1}"
-                            .format(worker, i))
-                result = self.comm.recv(source=worker, tag=i)
-                results.append(result)
-            return results
+                # Now wait for the answers.
+                results = []
+                for i in range(ntask):
+                    worker = i % self.size + 1
+                    if self.debug:
+                        print("Master waiting for worker {0} with tag {1}"
+                              .format(worker, i))
+                    result = self.comm.recv(source=worker, tag=i)
+                    results.append(result)
+                    
+                return results
+            else:
+                # Perform load-balancing. The order of the results are likely to be different
+                # from the previous case
+
+                for i,task in enumerate(tasks[0:self.size]):
+                    worker = i+1
+                    if self.debug:
+                        print("Sent task {0} to worker {1} with tag {2}."
+                              .format(task, worker, i))
+                    # Send out the tasks asynchronously
+                    self.comm.isend(task, dest=worker,tag=i)
+
+
+                ntasks_dispatched=self.size
+                results = []
+                idx = np.empty(ntask,dtype=np.int32)
+                for itask in xrange(ntask):
+                    status = MPI.Status()
+                    # Receive input from workers.
+                    result = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+                    worker = status.source
+                    i = status.tag
+                    results.append(result)
+                    idx[itask] = i
+                    if self.debug:
+                        print("Master received from worker {0} with tag {1}"
+                              .format(worker, i))
+
+                    # Now send the next task to this idle worker (if there is any left)
+                    if ntasks_dispatched < ntask:
+                        task = tasks[ntasks_dispatched]
+                        i = ntasks_dispatched 
+                        if self.debug:
+                            print("Sent task {0} to worker {1} with tag {2}."
+                                  .format(task, worker, i))
+                        # Send out the tasks asynchronously
+                        self.comm.isend(task, dest=worker,tag=i)
+                        ntasks_dispatched+=1
+                try:
+                    orig_idx = np.argsort(idx)
+                    results = [ results[i] for i in orig_idx ]
+                except :
+                    print("Error in mpipool object. Can not re-order tasks. results[0] = {} index[0] = {} idx.shape = {}".format(results[0],idx[0],idx.shape),file=sys.stderr)
+                    raise 
+                    
+                return results
 
         def close(self):
             """
