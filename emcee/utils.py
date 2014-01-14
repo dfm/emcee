@@ -226,16 +226,14 @@ if MPI is not None:
 
 
                 ntasks_dispatched=self.size
-                results = []
-                idx = np.empty(ntask,dtype=np.int32)
+                results = [None]*ntask
                 for itask in xrange(ntask):
                     status = MPI.Status()
                     # Receive input from workers.
                     result = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
                     worker = status.source
                     i = status.tag
-                    results.append(result)
-                    idx[itask] = i
+                    results[i] = result
                     if self.debug:
                         print("Master received from worker {0} with tag {1}"
                               .format(worker, i))
@@ -250,13 +248,7 @@ if MPI is not None:
                         # Send out the tasks asynchronously
                         self.comm.isend(task, dest=worker,tag=i)
                         ntasks_dispatched+=1
-                try:
-                    orig_idx = np.argsort(idx)
-                    results = [ results[i] for i in orig_idx ]
-                except :
-                    print("Error in mpipool object. Can not re-order tasks. results[0] = {} index[0] = {} idx.shape = {}".format(results[0],idx[0],idx.shape),file=sys.stderr)
-                    raise 
-                    
+
                 return results
 
         def close(self):
