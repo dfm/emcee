@@ -94,6 +94,13 @@ class EnsembleSampler(Sampler):
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
 
+    def clear_blobs(self):
+        """
+        Clear the ``blobs`` list. 
+
+        """
+        self._blobs = []
+
     def reset(self):
         """
         Clear the ``chain`` and ``lnprobability`` array. Also reset the
@@ -106,7 +113,7 @@ class EnsembleSampler(Sampler):
         self._lnprob = np.empty((self.k, 0))
 
         # Initialize list for storing optional metadata blobs.
-        self._blobs = []
+        self.clear_blobs()
 
     def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
                iterations=1, thin=1, storechain=True, mh_proposal=None):
