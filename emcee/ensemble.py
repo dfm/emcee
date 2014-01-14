@@ -443,7 +443,7 @@ class EnsembleSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, window=50):
+    def get_autocorr_time(self, window=50, fast=False):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
@@ -454,7 +454,7 @@ class EnsembleSampler(Sampler):
 
         """
         return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
-                                        window=window)
+                                        window=window, fast=fast)
 
 
 class _function_wrapper(object):
