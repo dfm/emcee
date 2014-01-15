@@ -1,8 +1,16 @@
 .. :changelog:
 
-1.2.1 (upcoming)
+2.1.0 (upcoming)
 ++++++++++++++++
 
+- Removing dependence on ``acor`` extension.
+
+
+2.0.0 (2013-11-17)
+++++++++++++++++++
+
+- **Re-licensed under the MIT license!**
+- Clearer less verbose documentation.
 - Added checks for parameters becoming infinite or NaN.
 - Added checks for log-probability becoming NaN.
 - Improved parallelization and various other tweaks in ``PTSampler``.

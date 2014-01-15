@@ -50,13 +50,9 @@ sampler.run_mcmc(pos, 1000, rstate0=state)
 # vector.
 print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 
-# If you have installed acor (http://github.com/dfm/acor), you can estimate
-# the autocorrelation time for the chain. The autocorrelation time is also
-# a vector with 10 entries (one for each dimension of parameter space).
-try:
-    print("Autocorrelation time:", sampler.acor)
-except ImportError:
-    print("You can install acor: http://github.com/dfm/acor")
+# Estimate the integrated autocorrelation time for the time series in each
+# parameter.
+print("Autocorrelation time:", sampler.get_autocorr_time())
 
 # Finally, you can plot the projected histograms of the samples using
 # matplotlib as follows (as long as you have it installed).

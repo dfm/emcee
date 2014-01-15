@@ -140,7 +140,7 @@ class Tests:
         chain = np.reshape(self.sampler.chain[0, ...],
                            (-1, self.sampler.chain.shape[-1]))
 
-        np.savetxt('/tmp/chain.dat', chain)
+        # np.savetxt('/tmp/chain.dat', chain)
 
         log_volume = self.ndim * np.log(cutoff) \
             + log_unit_sphere_volume(self.ndim) \
@@ -149,6 +149,7 @@ class Tests:
             + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
+        print(self.sampler.get_autocorr_time())
 
         assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
             ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "

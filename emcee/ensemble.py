@@ -16,12 +16,7 @@ __all__ = ["EnsembleSampler"]
 import multiprocessing
 import numpy as np
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
+from . import autocorr
 from .sampler import Sampler
 
 
@@ -152,17 +147,17 @@ class EnsembleSampler(Sampler):
 
         At each iteration, this generator yields:
 
-        * ``pos`` — A list of the current positions of the walkers in the
+        * ``pos`` - A list of the current positions of the walkers in the
           parameter space. The shape of this object will be
           ``(nwalkers, dim)``.
 
-        * ``lnprob`` — The list of log posterior probabilities for the
+        * ``lnprob`` - The list of log posterior probabilities for the
           walkers at positions given by ``pos`` . The shape of this object
           is ``(nwalkers, dim)``.
 
-        * ``rstate`` — The current state of the random number generator.
+        * ``rstate`` - The current state of the random number generator.
 
-        * ``blobs`` — (optional) The metadata "blobs" associated with the
+        * ``blobs`` - (optional) The metadata "blobs" associated with the
           current position. The value is only returned if ``lnpostfn``
           returns blobs too.
 
@@ -291,15 +286,15 @@ class EnsembleSampler(Sampler):
 
         This method returns:
 
-        * ``q`` — The new proposed positions for the walkers in ``ensemble``.
+        * ``q`` - The new proposed positions for the walkers in ``ensemble``.
 
-        * ``newlnprob`` — The vector of log-probabilities at the positions
+        * ``newlnprob`` - The vector of log-probabilities at the positions
           given by ``q``.
 
-        * ``accept`` — A vector of type ``bool`` indicating whether or not
+        * ``accept`` - A vector of type ``bool`` indicating whether or not
           the proposed position for each walker should be accepted.
 
-        * ``blob`` — The new meta data blobs or ``None`` if nothing was
+        * ``blob`` - The new meta data blobs or ``None`` if nothing was
           returned by ``lnprobfn``.
 
         """
@@ -334,10 +329,10 @@ class EnsembleSampler(Sampler):
 
         This method returns:
 
-        * ``lnprob`` — A vector of log-probabilities with one entry for each
+        * ``lnprob`` - A vector of log-probabilities with one entry for each
           walker in this sub-ensemble.
 
-        * ``blob`` — The list of meta data returned by the ``lnpostfn`` at
+        * ``blob`` - The list of meta data returned by the ``lnpostfn`` at
           this position or ``None`` if nothing was returned.
 
         """
@@ -372,6 +367,12 @@ class EnsembleSampler(Sampler):
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
+            # Print some debugging stuff.
+            print("NaN value of lnprob for parameters: ")
+            for pars in p[np.isnan(lnprob)]:
+                print(pars)
+
+            # Finally raise exception.
             raise ValueError("lnprob returned NaN.")
 
         return lnprob, blob
@@ -436,17 +437,24 @@ class EnsembleSampler(Sampler):
     @property
     def acor(self):
         """
-        The autocorrelation time of each parameter in the chain (length:
-        ``dim``) as estimated by the ``acor`` module.
+        An estimate of the autocorrelation time for each parameter (length:
+        ``dim``).
 
         """
-        if acor is None:
-            raise ImportError("acor")
-        s = self.dim
-        t = np.zeros(s)
-        for i in range(s):
-            t[i] = acor.acor(self.chain[:, :, i])[0]
-        return t
+        return self.get_autocorr_time()
+
+    def get_autocorr_time(self, window=50, fast=False):
+        """
+        Compute an estimate of the autocorrelation time for each parameter
+        (length: ``dim``).
+
+        :param window: (optional)
+            The size of the windowing function. This is equivalent to the
+            maximum number of lags to use. (default: 50)
+
+        """
+        return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
+                                        window=window, fast=fast)
 
 
 class _function_wrapper(object):
