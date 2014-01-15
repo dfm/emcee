@@ -192,10 +192,11 @@ When ``emcee`` is being used in a multi-processing mode (``multiprocessing`` or
 cores. ``emcee`` uses a ``map`` function to distribute the jobs over the available
 cores. In case of ``multiprocessing``, the ``map`` function is in-built and 
 dynamically schedules the tasks. In order to get a similar dynamic 
-scheduling in the ``map`` when using :class:`utils.MPIPool` , use the following
+scheduling in ``map`` when using :class:`utils.MPIPool` , use the following
 invocation:
 
 ::
+
     pool = MPIPool(loadbalance=True)
 
 
@@ -214,15 +215,17 @@ parameter, the longer the runtime. The :func:`sort_on_runtime` returns the
 re-ordered list and the corresponding index. 
 
 ::
+
     def sort_on_runtime(pos):
-	    p = np.array(pos)
-		idx = (np.argsort(p[:, 0]))[::-1]
-		return p[idx],idx
+	p = np.array(pos)
+	idx = (np.argsort(p[:,0]))[::-1]
+	return p[idx],idx
 
 In order to use this function, you will have to instantiate an 
 :class:`EnsembleSampler` object with: 
 
 ::
+
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool,runtime_sortingfn=sort_on_runtime)
 
 
