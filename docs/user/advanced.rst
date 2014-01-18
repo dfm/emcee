@@ -189,8 +189,10 @@ with the command:
 
 for local testing.
 
-Loadbalancing in multi-process runs
------------------------------------
+.. _loadbalance:
+
+Loadbalancing in parallel runs
+------------------------------
 
 *Added in version 2.1.0*
 
@@ -223,8 +225,8 @@ re-ordered list and the corresponding index.
 .. code-block:: python
 
     def sort_on_runtime(pos):
-        p = np.array(pos)
-        idx = (np.argsort(p[:, 0]))[::-1]
+        p = np.atleast_2d(p)
+        idx = np.argsort(p[:, 0])[::-1]
         return p[idx], idx
 
 In order to use this function, you will have to instantiate an

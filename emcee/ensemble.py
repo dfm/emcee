@@ -68,14 +68,19 @@ class EnsembleSampler(Sampler):
         can be any object with a ``map`` method that follows the same
         calling sequence as the built-in ``map`` function.
 
+    :param runtime_sortingfn: (optional)
+        A function implementing custom runtime load-balancing. See
+        :ref:`loadbalance` for more information.
+
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
-                 threads=1, pool=None, live_dangerously=False,runtime_sortingfn=None):
+                 threads=1, pool=None, live_dangerously=False,
+                 runtime_sortingfn=None):
         self.k = nwalkers
         self.a = a
         self.threads = threads
         self.pool = pool
-        self.runtime_sortingfn=runtime_sortingfn
+        self.runtime_sortingfn = runtime_sortingfn
 
         if postargs is not None:
             args = postargs
@@ -97,7 +102,7 @@ class EnsembleSampler(Sampler):
 
     def clear_blobs(self):
         """
-        Clear the ``blobs`` list. 
+        Clear the ``blobs`` list.
 
         """
         self._blobs = []
@@ -362,10 +367,10 @@ class EnsembleSampler(Sampler):
             M = self.pool.map
         else:
             M = map
-            
-        # sort the tasks according to (user-defined) some runtime guess    
+
+        # sort the tasks according to (user-defined) some runtime guess
         if self.runtime_sortingfn is not None:
-            p,idx=self.runtime_sortingfn(p)
+            p, idx = self.runtime_sortingfn(p)
 
         # Run the log-probability calculations (optionally in parallel).
         results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
@@ -376,16 +381,15 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
-            
+
         # sort it back according to the original order - get the same
         # chain irrespective of the runtime sorting fn
         if self.runtime_sortingfn is not None:
-            orig_idx=np.argsort(idx)
+            orig_idx = np.argsort(idx)
             lnprob = lnprob[orig_idx]
-            p = [ p[i] for i in orig_idx]
+            p = [p[i] for i in orig_idx]
             if blob is not None:
                 blob = [blob[i] for i in orig_idx]
-
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
