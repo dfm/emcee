@@ -197,12 +197,58 @@ set up the sampler providing this pool object to do the parallelization:</p>
 <p>and then run and analyse as usual. The key here is that only the master
 chain should <em>actually</em> directly interact with the sampler and the other
 processes should only wait for instructions.</p>
+<p><em>Note</em>: don&#8217;t forget to close the pool if you don&#8217;t want the processes to
+hang forever:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
 <p>The full source code for this example is available <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/mpi.py">on Github</a>.</p>
 <p>If we save this script to the file <tt class="docutils literal"><span class="pre">mpi.py</span></tt>, we can then run this example
 with the command:</p>
-<div class="highlight-python"><pre>mpirun -np 2 python mpi.py</pre>
+<div class="highlight-bash"><div class="highlight"><pre>mpirun -np 2 python mpi.py
+</pre></div>
 </div>
 <p>for local testing.</p>
+</div>
+<div class="section" id="loadbalancing-in-parallel-runs">
+<span id="loadbalance"></span><h2>Loadbalancing in parallel runs<a class="headerlink" href="#loadbalancing-in-parallel-runs" title="Permalink to this headline">¶</a></h2>
+<p><em>Added in version 2.1.0</em></p>
+<p>When <tt class="docutils literal"><span class="pre">emcee</span></tt> is being used in a multi-processing mode (<tt class="docutils literal"><span class="pre">multiprocessing</span></tt> or
+<tt class="docutils literal"><span class="pre">mpi4py</span></tt>), the parameters need to distributed evenly over all the available
+cores. <tt class="docutils literal"><span class="pre">emcee</span></tt> uses a <tt class="docutils literal"><span class="pre">map</span></tt> function to distribute the jobs over the available
+cores. In case of <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>, the <tt class="docutils literal"><span class="pre">map</span></tt> function is in-built and
+dynamically schedules the tasks. In order to get a similar dynamic
+scheduling in <tt class="docutils literal"><span class="pre">map</span></tt> when using <a class="reference internal" href="../../api/#emcee.utils.MPIPool" title="emcee.utils.MPIPool"><tt class="xref py py-class docutils literal"><span class="pre">utils.MPIPool</span></tt></a> , use the following
+invocation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span> <span class="o">=</span> <span class="n">MPIPool</span><span class="p">(</span><span class="n">loadbalance</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, <tt class="docutils literal"><span class="pre">loadbalance</span></tt> is set to <tt class="docutils literal"><span class="pre">False</span></tt>. If your jobs have a lot of
+variance in run-time, then setting the <tt class="docutils literal"><span class="pre">loadbalance</span></tt> option will improve
+the overall run-time.</p>
+<p>If your problem is such that the runtime for each invocation of the
+log-probability function scales with one/some of the parameters, then you can
+improve load-balancing even further. By sorting the jobs in decreasing order
+of (expected) run-time, the longest jobs get run simultaneously and you only
+have the wait for the duration of the longest job. In the following example,
+the first parameter strongly determines the run-time &#8211; larger the first
+parameter, the longer the runtime. The <tt class="docutils literal"><span class="pre">sort_on_runtime</span></tt> returns the
+re-ordered list and the corresponding index.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">sort_on_runtime</span><span class="p">(</span><span class="n">pos</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">idx</span>
+</pre></div>
+</div>
+<p>In order to use this function, you will have to instantiate an
+<a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a> object with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
+                                <span class="n">runtime_sortingfn</span><span class="o">=</span><span class="n">sort_on_runtime</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Such a <tt class="docutils literal"><span class="pre">sort_on_runtime</span></tt> can be applied to both <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>
+and <tt class="docutils literal"><span class="pre">mpi4py</span></tt> invocations for <tt class="docutils literal"><span class="pre">emcee</span></tt>. You can see a benchmarking
+routine using the <tt class="docutils literal"><span class="pre">mpi4py</span></tt> module <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/loadbalance.py">on Github</a>.</p>
 </div>
 </div>
 
@@ -231,6 +277,7 @@ with the command:</p>
 <li><a class="reference internal" href="#multiprocessing">Multiprocessing</a></li>
 <li><a class="reference internal" href="#arbitrary-metadata-blobs">Arbitrary metadata blobs</a></li>
 <li><a class="reference internal" href="#using-mpi-to-distribute-the-computations">Using MPI to distribute the computations</a></li>
+<li><a class="reference internal" href="#loadbalancing-in-parallel-runs">Loadbalancing in parallel runs</a></li>
 </ul>
 </li>
 </ul>

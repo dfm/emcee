@@ -70,7 +70,7 @@ The main entry point is through the <a class="reference internal" href="#emcee.E
 <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>.</p>
 <dl class="class">
 <dt id="emcee.EnsembleSampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">EnsembleSampler</tt><big>(</big><em>nwalkers</em>, <em>dim</em>, <em>lnpostfn</em>, <em>a=2.0</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>postargs=None</em>, <em>threads=1</em>, <em>pool=None</em>, <em>live_dangerously=False</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">EnsembleSampler</tt><big>(</big><em>nwalkers</em>, <em>dim</em>, <em>lnpostfn</em>, <em>a=2.0</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>postargs=None</em>, <em>threads=1</em>, <em>pool=None</em>, <em>live_dangerously=False</em>, <em>runtime_sortingfn=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.
 The <tt class="docutils literal"><span class="pre">__init__</span></tt> function will raise an <tt class="docutils literal"><span class="pre">AssertionError</span></tt> if
 <tt class="docutils literal"><span class="pre">k</span> <span class="pre">&lt;</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">dim</span></tt> (and you haven&#8217;t set the <tt class="docutils literal"><span class="pre">live_dangerously</span></tt> parameter)
@@ -109,6 +109,9 @@ provided, the value of <tt class="docutils literal"><span class="pre">threads</s
 object provided by <tt class="docutils literal"><span class="pre">pool</span></tt> is used for all parallelization. It
 can be any object with a <tt class="docutils literal"><span class="pre">map</span></tt> method that follows the same
 calling sequence as the built-in <tt class="docutils literal"><span class="pre">map</span></tt> function.</li>
+<li><strong>runtime_sortingfn</strong> &#8211; (optional)
+A function implementing custom runtime load-balancing. See
+<a class="reference internal" href="../user/advanced/#loadbalance"><em>Loadbalancing in parallel runs</em></a> for more information.</li>
 </ul>
 </td>
 </tr>
@@ -145,6 +148,12 @@ your <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> doesn&#
 </dd></dl>
 
 <dl class="method">
+<dt id="emcee.EnsembleSampler.clear_blobs">
+<tt class="descname">clear_blobs</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.clear_blobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the <tt class="docutils literal"><span class="pre">blobs</span></tt> list.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="emcee.EnsembleSampler.clear_chain">
 <tt class="descname">clear_chain</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.clear_chain" title="Permalink to this definition">¶</a></dt>
 <dd><p>An alias for <a class="reference internal" href="#emcee.EnsembleSampler.reset" title="emcee.EnsembleSampler.reset"><tt class="xref py py-func docutils literal"><span class="pre">reset()</span></tt></a> kept for backwards compatibility.</p>
@@ -166,7 +175,7 @@ to <tt class="docutils literal"><span class="pre">flatchain</span></tt> rather t
 
 <dl class="method">
 <dt id="emcee.EnsembleSampler.get_autocorr_time">
-<tt class="descname">get_autocorr_time</tt><big>(</big><em>window=50</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.get_autocorr_time" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_autocorr_time</tt><big>(</big><em>window=50</em>, <em>fast=False</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler.get_autocorr_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute an estimate of the autocorrelation time for each parameter
 (length: <tt class="docutils literal"><span class="pre">dim</span></tt>).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -301,7 +310,7 @@ temperature.  This sort of sampling is useful if you expect your
 distribution to be multi-modal. Take a look at <a class="reference internal" href="../user/pt/"><em>the documentation</em></a> to see how you might use this class.</p>
 <dl class="class">
 <dt id="emcee.PTSampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em>, <em>a=2.0</em><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em>, <em>a=2.0</em>, <em>loglargs=</em><span class="optional">[</span><span class="optional">]</span>, <em>logpargs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A parallel-tempered ensemble sampler, using <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>
 for sampling within each parallel chain.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -327,6 +336,10 @@ posterior in the given number of dimensions will have a 0.25
 tswap acceptance rate.</li>
 <li><strong>a</strong> &#8211; (optional)
 Proposal scale factor.</li>
+<li><strong>loglargs</strong> &#8211; (optional)
+Arguments for the log-likelihood function.</li>
+<li><strong>logpargs</strong> &#8211; (optional)
+Arguments for the log-prior function.</li>
 </ul>
 </td>
 </tr>
@@ -843,7 +856,7 @@ autocorrelation time. <tt class="docutils literal"><span class="pre">emcee</span
 computing this and the autocorrelation function itself.</p>
 <dl class="function">
 <dt id="emcee.autocorr.integrated_time">
-<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">integrated_time</tt><big>(</big><em>x</em>, <em>axis=0</em>, <em>window=50</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#integrated_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.integrated_time" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">integrated_time</tt><big>(</big><em>x</em>, <em>axis=0</em>, <em>window=50</em>, <em>fast=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#integrated_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.integrated_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the integrated autocorrelation time of a time series.</p>
 <p>See <a class="reference external" href="http://www.stat.unc.edu/faculty/cji/Sokal.pdf">Sokal&#8217;s notes</a> on
 MCMC and sample estimators for autocorrelation times.</p>
@@ -859,6 +872,9 @@ other axis.</li>
 The time axis of <tt class="docutils literal"><span class="pre">x</span></tt>. Assumed to be the first axis if not specified.</li>
 <li><strong>window</strong> &#8211; (optional)
 The size of the window to use. (default: 50)</li>
+<li><strong>fast</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt>, only use the largest <tt class="docutils literal"><span class="pre">2^n</span></tt> entries for efficiency.
+(default: False)</li>
 </ul>
 </td>
 </tr>
@@ -868,7 +884,7 @@ The size of the window to use. (default: 50)</li>
 
 <dl class="function">
 <dt id="emcee.autocorr.function">
-<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">function</tt><big>(</big><em>x</em>, <em>axis=0</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.function" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">emcee.autocorr.</tt><tt class="descname">function</tt><big>(</big><em>x</em>, <em>axis=0</em>, <em>fast=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/autocorr/#function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.autocorr.function" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the autocorrelation function of a time series using the FFT.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -880,6 +896,9 @@ The size of the window to use. (default: 50)</li>
 other axis.</li>
 <li><strong>axis</strong> &#8211; (optional)
 The time axis of <tt class="docutils literal"><span class="pre">x</span></tt>. Assumed to be the first axis if not specified.</li>
+<li><strong>fast</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt>, only use the largest <tt class="docutils literal"><span class="pre">2^n</span></tt> entries for efficiency.
+(default: False)</li>
 </ul>
 </td>
 </tr>
@@ -919,7 +938,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 
 <dl class="class">
 <dt id="emcee.utils.MPIPool">
-<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x107c92bb8&gt;</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10b586bb8&gt;</em>, <em>debug=False</em>, <em>loadbalance=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
 API for distributed memory parallelism.  This pool will let you run
 emcee without shared memory, letting you use much larger machines
@@ -937,6 +956,10 @@ this pool is fairly general and it could be used for other purposes.</p>
 The <tt class="docutils literal"><span class="pre">mpi4py</span></tt> communicator.</li>
 <li><strong>debug</strong> &#8211; (optional)
 If <tt class="docutils literal"><span class="pre">True</span></tt>, print out a lot of status updates at each step.</li>
+<li><strong>loadbalance</strong> &#8211; (optional) 
+if <tt class="docutils literal"><span class="pre">True</span></tt> and ntask &gt; Ncpus, tries to loadbalance by sending 
+out one task to each cpu first and then sending out the rest 
+as the cpus get done.</li>
 </ul>
 </td>
 </tr>

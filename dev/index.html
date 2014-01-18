@@ -120,6 +120,7 @@ something like:</p>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#multiprocessing">Multiprocessing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#arbitrary-metadata-blobs">Arbitrary metadata blobs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user/advanced/#using-mpi-to-distribute-the-computations">Using MPI to distribute the computations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/advanced/#loadbalancing-in-parallel-runs">Loadbalancing in parallel runs</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="user/pt/">Parallel-Tempering Ensemble MCMC</a><ul>
@@ -163,6 +164,7 @@ something like:</p>
 <p>Direct contributions to the code base:</p>
 <ul class="simple">
 <li><a class="reference external" href="https://github.com/RuthAngus">Ruth Angus (Oxford)</a></li>
+<li><a class="reference external" href="https://github.com/bencebeky">Bence Béky (Harvard)</a></li>
 <li><a class="reference external" href="https://github.com/fredRos">Frederik Beaujean (MPI for Physics)</a></li>
 <li><a class="reference external" href="https://github.com/aconley">Alex Conley (U Colorado, Boulder)</a></li>
 <li><a class="reference external" href="https://github.com/farr">Will Meierjurgen Farr (Northwestern)</a></li>
@@ -173,6 +175,7 @@ something like:</p>
 <li><a class="reference external" href="https://github.com/adrn">Adrian Price-Whelan (Columbia)</a></li>
 <li><a class="reference external" href="https://github.com/jeremysanders">Jeremy Sanders (Cambridge)</a></li>
 <li><a class="reference external" href="https://github.com/lpsinger">Leo Singer (Caltech)</a></li>
+<li><a class="reference external" href="https://bitbucket.org/manodeep/">Manodeep Sinha (Vanderbilt)</a></li>
 <li><a class="reference external" href="mindriot101">Simon Walker</a></li>
 <li><a class="reference external" href="https://github.com/joezuntz">Joe Zuntz (Oxford)</a></li>
 </ul>
@@ -203,6 +206,9 @@ and consider adding your paper to the <a class="reference internal" href="testim
 <h3>2.1.0 (upcoming)<a class="headerlink" href="#upcoming" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Removing dependence on <tt class="docutils literal"><span class="pre">acor</span></tt> extension.</li>
+<li>Added arguments to <tt class="docutils literal"><span class="pre">PTSampler</span></tt> function.</li>
+<li>Added automatic load-balancing for MPI runs.</li>
+<li>Added custom load-balancing for MPI and multiprocessing.</li>
 </ul>
 </div>
 <div class="section" id="id1">
