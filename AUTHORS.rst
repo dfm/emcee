@@ -18,6 +18,7 @@ Direct contributions to the code base:
 - `Leo Singer (Caltech) <https://github.com/lpsinger>`_
 - `Simon Walker <mindriot101>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
+- `Manodeep Sinha (Vanderbilt) <https://bitbucket.org/manodeep/>`_
 
 Comments, corrections & suggestions:
 

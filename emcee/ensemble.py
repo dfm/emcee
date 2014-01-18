@@ -70,11 +70,12 @@ class EnsembleSampler(Sampler):
 
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
-                 threads=1, pool=None, live_dangerously=False):
+                 threads=1, pool=None, live_dangerously=False,runtime_sortingfn=None):
         self.k = nwalkers
         self.a = a
         self.threads = threads
         self.pool = pool
+        self.runtime_sortingfn=runtime_sortingfn
 
         if postargs is not None:
             args = postargs
@@ -361,6 +362,10 @@ class EnsembleSampler(Sampler):
             M = self.pool.map
         else:
             M = map
+            
+        # sort the tasks according to (user-defined) some runtime guess    
+        if self.runtime_sortingfn is not None:
+            p,idx=self.runtime_sortingfn(p)
 
         # Run the log-probability calculations (optionally in parallel).
         results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
@@ -371,6 +376,16 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
+            
+        # sort it back according to the original order - get the same
+        # chain irrespective of the runtime sorting fn
+        if self.runtime_sortingfn is not None:
+            orig_idx=np.argsort(idx)
+            lnprob = lnprob[orig_idx]
+            p = [ p[i] for i in orig_idx]
+            if blob is not None:
+                blob = [blob[i] for i in orig_idx]
+
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
