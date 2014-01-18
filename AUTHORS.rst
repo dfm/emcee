@@ -5,6 +5,7 @@ Author:
 Direct contributions to the code base:
 
 - `Ruth Angus (Oxford) <https://github.com/RuthAngus>`_
+- `Bence Béky (Harvard) <https://github.com/bencebeky>`_
 - `Frederik Beaujean (MPI for Physics) <https://github.com/fredRos>`_
 - `Alex Conley (U Colorado, Boulder) <https://github.com/aconley>`_
 - `Will Meierjurgen Farr (Northwestern) <https://github.com/farr>`_
