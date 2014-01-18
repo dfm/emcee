@@ -39,7 +39,7 @@ In principle, running ``emcee`` in parallel is as simple instantiating an
 :class:`EnsembleSampler` object with the ``threads`` argument set to an
 integer greater than 1:
 
-::
+.. code-block:: python
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpostfn, threads=15)
 
@@ -100,7 +100,7 @@ As an absolutely trivial example, let's say that we wanted to store the
 sum of cubes of the input parameters as a string at each position in the
 chain. To do this we could simply sample a function like:
 
-::
+.. code-block:: python
 
     def lnprobfn(p):
         return -0.5 * np.sum(p ** 2), str(np.sum(p ** 3))
@@ -129,7 +129,7 @@ first you'll need to `install mpi4py
 The :class:`utils.MPIPool` object provides most of the needed functionality
 so we'll start by importing that and the other needed modules:
 
-::
+.. code-block:: python
 
     import sys
     import numpy as np
@@ -140,7 +140,7 @@ This time, we'll just sample a simple isotropic Gaussian (remember that the
 ``emcee`` algorithm *doesn't care about covariances between parameters
 because it is affine-invariant*):
 
-::
+.. code-block:: python
 
     ndim = 50
     nwalkers = 250
