@@ -151,7 +151,7 @@ because it is affine-invariant*):
 
 Now, this is where things start to change:
 
-::
+.. code-block:: python
 
     pool = MPIPool()
     if not pool.is_master():
@@ -162,7 +162,7 @@ First, we're initializing the pool object and then---if the process isn't
 running as master---we wait for instructions and then exit. Then, we can
 set up the sampler providing this pool object to do the parallelization:
 
-::
+.. code-block:: python
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)
 
@@ -170,13 +170,20 @@ and then run and analyse as usual. The key here is that only the master
 chain should *actually* directly interact with the sampler and the other
 processes should only wait for instructions.
 
+*Note*: don't forget to close the pool if you don't want the processes to
+hang forever:
+
+.. code-block:: python
+
+    pool.close()
+
 The full source code for this example is available `on Github
 <https://github.com/dfm/emcee/blob/master/examples/mpi.py>`_.
 
 If we save this script to the file ``mpi.py``, we can then run this example
 with the command:
 
-::
+.. code-block:: bash
 
     mpirun -np 2 python mpi.py
 
