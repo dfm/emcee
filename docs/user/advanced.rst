@@ -19,7 +19,7 @@ little less disastrous if your code/computer crashes somewhere in the middle
 of an expensive MCMC run. If you just want to append the walker positions to
 the end of a file, you could do something like:
 
-::
+.. code-block:: python
 
     f = open("chain.dat", "w")
     f.close()
@@ -187,50 +187,49 @@ Loadbalancing in multi-process runs
 
 *Added in version 2.1.0*
 
-When ``emcee`` is being used in a multi-processing mode (``multiprocessing`` or 
-``mpi4py``), the parameters need to distributed evenly over all the available 
+When ``emcee`` is being used in a multi-processing mode (``multiprocessing`` or
+``mpi4py``), the parameters need to distributed evenly over all the available
 cores. ``emcee`` uses a ``map`` function to distribute the jobs over the available
-cores. In case of ``multiprocessing``, the ``map`` function is in-built and 
-dynamically schedules the tasks. In order to get a similar dynamic 
+cores. In case of ``multiprocessing``, the ``map`` function is in-built and
+dynamically schedules the tasks. In order to get a similar dynamic
 scheduling in ``map`` when using :class:`utils.MPIPool` , use the following
 invocation:
 
-::
+.. code-block:: python
 
     pool = MPIPool(loadbalance=True)
 
 
-By default, :attr:`loadbalance` is set to `False`. If your jobs have a lot of 
-variance in run-time, then setting the :attr:`loadbalance` option will improve 
+By default, ``loadbalance`` is set to ``False``. If your jobs have a lot of
+variance in run-time, then setting the ``loadbalance`` option will improve
 the overall run-time.
 
+If your problem is such that the runtime for each invocation of the
+log-probability function scales with one/some of the parameters, then you can
+improve load-balancing even further. By sorting the jobs in decreasing order
+of (expected) run-time, the longest jobs get run simultaneously and you only
+have the wait for the duration of the longest job. In the following example,
+the first parameter strongly determines the run-time -- larger the first
+parameter, the longer the runtime. The ``sort_on_runtime`` returns the
+re-ordered list and the corresponding index.
 
-If your problem is such that the runtime for each invocation of ``lnprob`` 
-scales with one/some of the parameters, then you can improve loadbalancing 
-even further. By sorting the jobs in decreasing order of (expected) run-time, 
-the longest jobs get run simultaneously and you only have the 
-wait for the duration of the longest job. In the following example, 
-the first parameter strongly determines the run-time -- larger the first 
-parameter, the longer the runtime. The :func:`sort_on_runtime` returns the 
-re-ordered list and the corresponding index. 
-
-::
+.. code-block:: python
 
     def sort_on_runtime(pos):
-	p = np.array(pos)
-	idx = (np.argsort(p[:,0]))[::-1]
-	return p[idx],idx
+        p = np.array(pos)
+        idx = (np.argsort(p[:, 0]))[::-1]
+        return p[idx], idx
 
-In order to use this function, you will have to instantiate an 
-:class:`EnsembleSampler` object with: 
+In order to use this function, you will have to instantiate an
+:class:`EnsembleSampler` object with:
 
-::
+.. code-block:: python
 
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool,runtime_sortingfn=sort_on_runtime)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool,
+                                    runtime_sortingfn=sort_on_runtime)
 
 
-Such a :func:`sort_on_runtime` can be applied to both ``multi-processing`` 
-and ``mpi4py`` invocations for ``emcee``. You can see a benchmarking 
+Such a ``sort_on_runtime`` can be applied to both ``multiprocessing``
+and ``mpi4py`` invocations for ``emcee``. You can see a benchmarking
 routine using the ``mpi4py`` module `on Github
 <https://github.com/dfm/emcee/blob/master/examples/loadbalance.py>`_.
-
