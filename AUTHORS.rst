@@ -16,9 +16,9 @@ Direct contributions to the code base:
 - `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Leo Singer (Caltech) <https://github.com/lpsinger>`_
+- `Manodeep Sinha (Vanderbilt) <https://bitbucket.org/manodeep/>`_
 - `Simon Walker <mindriot101>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
-- `Manodeep Sinha (Vanderbilt) <https://bitbucket.org/manodeep/>`_
 
 Comments, corrections & suggestions:
 
