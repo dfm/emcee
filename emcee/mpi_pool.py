@@ -53,11 +53,11 @@ class MPIPool(object):
         out one task to each cpu first and then sending out the rest
         as the cpus get done.
     """
-    def __init__(self, comm=MPI.COMM_WORLD, debug=False, loadbalance=False):
+    def __init__(self, comm=None, debug=False, loadbalance=False):
         if MPI is None:
             raise ImportError("Please install mpi4py")
 
-        self.comm = comm
+        self.comm = MPI.COMM_WORLD if comm is None else comm
         self.rank = comm.Get_rank()
         self.size = comm.Get_size() - 1
         self.debug = debug
