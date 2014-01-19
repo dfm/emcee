@@ -76,7 +76,7 @@ probability function:
 It's probably overkill this time but how about we use 250 :ref:`walkers
 <walkers>`? Before we go on, we need to guess a starting point for each
 of the 250 walkers. This position will be a 50-dimensional vector so the
-the initial guess should be a 250-by-50 array—or a list of 250 arrays that
+initial guess should be a 250-by-50 array—or a list of 250 arrays that
 each have 50 elements. It's not a very good guess but we'll just guess a
 random number between 0 and 1 for each component:
 
