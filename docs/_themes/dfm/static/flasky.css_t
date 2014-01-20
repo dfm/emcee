@@ -20,7 +20,7 @@
 }
 
 body {
-    font-family: "abril-text", serif;
+    font-family: "Buenard", serif;
     font-size: 16px;
     line-height: 1.8em;
     background-color: white;
