@@ -58,8 +58,8 @@ class MPIPool(object):
             raise ImportError("Please install mpi4py")
 
         self.comm = MPI.COMM_WORLD if comm is None else comm
-        self.rank = comm.Get_rank()
-        self.size = comm.Get_size() - 1
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size() - 1
         self.debug = debug
         self.function = _error_function
         self.loadbalance = loadbalance
