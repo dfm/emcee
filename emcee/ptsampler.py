@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
@@ -20,19 +21,21 @@ class PTLikePrior(object):
 
     """
 
-    def __init__(self, logl, logp, loglargs=[], logpargs=[]):
+    def __init__(self, logl, logp, loglargs=[], logpargs=[], loglkwargs={}, logpkwargs={}):
         self.logl = logl
         self.logp = logp
         self.loglargs = loglargs
         self.logpargs = logpargs
+        self.loglkwargs = loglkwargs
+        self.logpkwargs = logpkwargs
 
     def __call__(self, x):
-        lp = self.logp(x, *self.logpargs)
+        lp = self.logp(x, *self.logpargs, **self.logpkwargs)
 
         if lp == float('-inf'):
             return lp, lp
 
-        return self.logl(x, *self.loglargs), lp
+        return self.logl(x, *self.loglargs, **self.loglkwargs), lp
 
 
 class PTSampler(Sampler):
@@ -73,19 +76,27 @@ class PTSampler(Sampler):
         Proposal scale factor.
 
     :param loglargs: (optional)
-        Arguments for the log-likelihood function.
+        Positional arguments for the log-likelihood function.
 
     :param logpargs: (optional)
-        Arguments for the log-prior function.
+        Positional arguments for the log-prior function.
+
+    :param loglkwargs: (optional)
+        Keyword arguments for the log-likelihood function.
+
+    :param logpkwargs: (optional)
+        Keyword arguments for the log-prior function.
 
     """
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None, a=2.0, loglargs=[], logpargs=[]):
+                 pool=None, betas=None, a=2.0, loglargs=[], logpargs=[], loglkwargs={}, logpkwargs={}):
         self.logl = logl
         self.logp = logp
         self.a = a
         self.loglargs = loglargs
         self.logpargs = logpargs
+        self.loglkwargs = loglkwargs
+        self.logpkwargs = logpkwargs
 
         self.ntemps = ntemps
         self.nwalkers = nwalkers
@@ -214,7 +225,7 @@ class PTSampler(Sampler):
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
-            fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs)
+            fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs, self.loglkwargs, self.logpkwargs)
             if self.pool is None:
                 results = list(map(fn, p.reshape((-1, self.dim))))
             else:
@@ -278,7 +289,7 @@ class PTSampler(Sampler):
                         (self.nwalkers / 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
 
-                fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs)
+                fn = PTLikePrior(self.logl, self.logp, self.loglargs, self.logpargs, self.loglkwargs, self.logpkwargs)
                 if self.pool is None:
                     results = list(map(fn, qs.reshape((-1, self.dim))))
                 else:
