@@ -15,6 +15,7 @@ Direct contributions to the code base:
 - `Adrian Price-Whelan (Columbia) <https://github.com/adrn>`_
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Leo Singer (Caltech) <https://github.com/lpsinger>`_
+- `Marco Tazzari (ESO) <https://github.com/mtazzari>`_
 - `Simon Walker <mindriot101>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
 
