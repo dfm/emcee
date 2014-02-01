@@ -17,6 +17,7 @@ Direct contributions to the code base:
 - `Jeremy Sanders (Cambridge) <https://github.com/jeremysanders>`_
 - `Leo Singer (Caltech) <https://github.com/lpsinger>`_
 - `Manodeep Sinha (Vanderbilt) <https://bitbucket.org/manodeep/>`_
+- `Marco Tazzari (ESO) <https://github.com/mtazzari>`_
 - `Simon Walker <mindriot101>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
 
@@ -24,6 +25,7 @@ Comments, corrections & suggestions:
 
 - Eric Agol (UWash)
 - Jo Bovy (IAS)
+- Andrew Bradshaw (UC Davis)
 - Jacqueline Chen (MIT)
 - John Gizis (Delaware)
 - Jonathan Goodman (NYU)
