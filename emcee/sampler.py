@@ -26,14 +26,19 @@ class Sampler(object):
         position.
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     """
-    def __init__(self, dim, lnprobfn, args=[]):
+    def __init__(self, dim, lnprobfn, args=[], kwargs={}):
         self.dim = dim
         self.lnprobfn = lnprobfn
         self.args = args
+        self.kwargs = kwargs
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -108,7 +113,7 @@ class Sampler(object):
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""
-        return self.lnprobfn(p, *self.args)
+        return self.lnprobfn(p, *self.args, **self.kwargs)
 
     def reset(self):
         """

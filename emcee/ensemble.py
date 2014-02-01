@@ -49,8 +49,12 @@ class EnsembleSampler(Sampler):
         The proposal scale parameter. (default: ``2.0``)
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     :param postargs: (optional)
         Alias of ``args`` for backwards compatibility.
@@ -73,7 +77,7 @@ class EnsembleSampler(Sampler):
         :ref:`loadbalance` for more information.
 
     """
-    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
+    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={}, postargs=None,
                  threads=1, pool=None, live_dangerously=False,
                  runtime_sortingfn=None):
         self.k = nwalkers
@@ -84,11 +88,11 @@ class EnsembleSampler(Sampler):
 
         if postargs is not None:
             args = postargs
-        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args)
+        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args, kwargs=kwargs)
 
         # Do a little bit of _magic_ to make the likelihood call with
-        # ``args`` pickleable.
-        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args)
+        # ``args`` and ``kwargs`` pickleable.
+        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args, self.kwargs)
 
         assert self.k % 2 == 0, "The number of walkers must be even."
         if not live_dangerously:
@@ -486,21 +490,23 @@ class EnsembleSampler(Sampler):
 class _function_wrapper(object):
     """
     This is a hack to make the likelihood function pickleable when ``args``
-    are also included.
+    or ``kwargs`` are also included.
 
     """
-    def __init__(self, f, args):
+    def __init__(self, f, args, kwargs):
         self.f = f
         self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, x):
         try:
-            return self.f(x, *self.args)
+            return self.f(x, *self.args, **self.kwargs)
         except:
             import traceback
             print("emcee: Exception while calling your likelihood function:")
             print("  params:", x)
             print("  args:", self.args)
+            print("  kwargs:", self.kwargs)
             print("  exception:")
             traceback.print_exc()
             raise
