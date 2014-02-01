@@ -77,8 +77,8 @@ class EnsembleSampler(Sampler):
         :ref:`loadbalance` for more information.
 
     """
-    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={}, postargs=None,
-                 threads=1, pool=None, live_dangerously=False,
+    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={},
+                 postargs=None, threads=1, pool=None, live_dangerously=False,
                  runtime_sortingfn=None):
         self.k = nwalkers
         self.a = a
@@ -88,11 +88,13 @@ class EnsembleSampler(Sampler):
 
         if postargs is not None:
             args = postargs
-        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args, kwargs=kwargs)
+        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args,
+                                              kwargs=kwargs)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
-        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args, self.kwargs)
+        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args,
+                                          self.kwargs)
 
         assert self.k % 2 == 0, "The number of walkers must be even."
         if not live_dangerously:
