@@ -49,8 +49,9 @@ Here is a *very* incomplete list of users:
 * `Price-Whelan & Johnston (2013) <http://arxiv.org/abs/1308.2670>`_
 * `Watkins, van de Ven, den Brok, et al. (2013) <http://arxiv.org/abs/1308.4789>`_
 * `Price-Whelan et al. (2013) <http://arxiv.org/abs/1311.3683>`_
-* `Guillochon, Manukian & Ramirez-Ruiz <http://arxiv.org/abs/1304.6397>`_
-* `Guillochon, Loeb, MacLeod & Ramirez-Ruiz <http://arxiv.org/abs/1401.2990>`_
+* `Guillochon, Manukian & Ramirez-Ruiz (2013) <http://arxiv.org/abs/1304.6397>`_
+* `Guillochon, Loeb, MacLeod & Ramirez-Ruiz (2014) <http://arxiv.org/abs/1401.2990>`_
+* `Cargile, James, Pepper, et al. (2014) <http://arxiv.org/abs/1312.3946>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add
