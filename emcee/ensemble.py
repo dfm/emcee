@@ -332,8 +332,8 @@ class EnsembleSampler(Sampler):
         newlnprob, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
-        lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
-        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
+        accept = ((self.dim - 1.) * np.log(zz) + newlnprob >
+                  lnprob0 + np.log(self._random.rand(len(lnprob0))))
 
         return q, newlnprob, accept, blob
 
