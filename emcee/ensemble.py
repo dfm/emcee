@@ -337,6 +337,47 @@ class EnsembleSampler(Sampler):
 
         return q, newlnprob, accept, blob
 
+    def check_state(self, p0, check_inf=False):
+       """
+       Method that checks initial state of walkers to ensure all walkers
+       have finite ``lnprob``.
+       
+       :param p0:
+           The initial positions of walkers.
+           
+       :param check_inf (optional):
+           Should we check for walkers at given state being infinite?
+           (default: ``False``)
+       """
+       
+        # Check that the parameters are in physical ranges.
+        if np.any(np.isinf(p)):
+            raise ValueError("At least one parameter value was infinite.")
+        if np.any(np.isnan(p)):
+            raise ValueError("At least one parameter value was NaN.")
+            
+        lnprob, blob = self._get_lnprob(q)
+       
+        # Check for lnprob returning NaN.
+        if np.any(np.isnan(lnprob)):
+            # Print some debugging stuff.
+            print("NaN value of lnprob for parameters: ")
+            for pars in p[np.isnan(lnprob)]:
+                print(pars)
+
+            # Finally raise exception.
+            raise ValueError("lnprob returned NaN.")
+            
+        # Check fo infinite lnprob.
+        if check_inf:
+            if np.any(np.isinf(lnprob)):
+            # Print some debugging stuff.
+            print("Inf value of lnprob for parameters: ")
+            for pars in p[np.isinf(lnprob)]:
+                print(pars)
+        # Finally raise exception.
+            raise ValueError("lnprob returned Inf.")
+
     def _get_lnprob(self, pos=None):
         """
         Calculate the vector of log-probability for the walkers.
@@ -408,7 +449,37 @@ class EnsembleSampler(Sampler):
             raise ValueError("lnprob returned NaN.")
 
         return lnprob, blob
+        
+        def run_mcmc(self, pos0, N, check_inf=False, rstate0=None, lnprob0=None, **kwargs):
+        """
+        Iterate :func:`sample` for ``N`` iterations and return the result.
 
+        :param p0:
+            The initial position vector.
+
+        :param N:
+            The number of steps to run.
+            
+        :param check_inf (optional):
+            Should we check for walkers at given state being infinite?
+            (default: ``False``)
+        
+        :param lnprob0: (optional)
+            The log posterior probability at position ``p0``. If ``lnprob``
+            is not provided, the initial value is calculated.
+
+        :param rstate0: (optional)
+            The state of the random number generator. See the
+            :func:`random_state` property for details.
+
+        :param kwargs: (optional)
+            Other parameters that are directly passed to :func:`sample`.
+        """
+        
+        self.check_state(self, pos0, check_inf=check_inf)
+        super(EnsembleSampler, self).run_mcmc(pos0, N, rstate0=rstate0, lnprob0=lnprob0,
+              **kwargs)
+        
     @property
     def blobs(self):
         """
