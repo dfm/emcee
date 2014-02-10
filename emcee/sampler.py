@@ -135,7 +135,7 @@ class Sampler(object):
         """
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
-        :param p0:
+        :param pos0:
             The initial position vector.
 
         :param N:
