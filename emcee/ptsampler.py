@@ -120,6 +120,9 @@ class PTSampler(Sampler):
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
 
+        self.nswap_between = np.zeros(ntemps - 1, dtype=np.float)
+        self.nswap_between_accepted = np.zeros(ntemps - 1, dtype=np.float)
+
         self.nprop = np.zeros((self.ntemps, self.nwalkers), dtype=np.float)
         self.nprop_accepted = np.zeros((self.ntemps, self.nwalkers),
                                        dtype=np.float)
@@ -176,6 +179,9 @@ class PTSampler(Sampler):
         """
         self.nswap = np.zeros(self.ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(self.ntemps, dtype=np.float)
+
+        self.nswap_between = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_between_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
         self.nprop = np.zeros((self.ntemps, self.nwalkers), dtype=np.float)
         self.nprop_accepted = np.zeros((self.ntemps, self.nwalkers),
@@ -362,11 +368,15 @@ class PTSampler(Sampler):
             self.nswap[i] += self.nwalkers
             self.nswap[i - 1] += self.nwalkers
 
+            self.nswap_between[i - 1] += self.nwalkers
+
             asel = (paccept > raccept)
             nacc = np.sum(asel)
 
             self.nswap_accepted[i] += nacc
             self.nswap_accepted[i - 1] += nacc
+
+            self.nswap_between_accepted[i - 1] += nacc
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -495,6 +505,15 @@ class PTSampler(Sampler):
 
         """
         return self.nswap_accepted / self.nswap
+
+    @property
+    def tswap_acceptance_fraction_between(self):
+        """
+        Returns an array of accepted temperature swap fractions for
+        each temperature; shape ``(ntemps, )``.
+
+        """
+        return self.nswap_between_accepted / self.nswap_between
 
     @property
     def acceptance_fraction(self):
