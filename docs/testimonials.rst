@@ -52,6 +52,7 @@ Here is a *very* incomplete list of users:
 * `Guillochon, Manukian & Ramirez-Ruiz (2013) <http://arxiv.org/abs/1304.6397>`_
 * `Guillochon, Loeb, MacLeod & Ramirez-Ruiz (2014) <http://arxiv.org/abs/1401.2990>`_
 * `Cargile, James, Pepper, et al. (2014) <http://arxiv.org/abs/1312.3946>`_
+* `Keller et al. (2014) <http://arxiv.org/abs/1402.1517>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add
