@@ -31,8 +31,9 @@ sampler.run_mcmc(p0, N)
 print(time.time() - strt)
 
 
-schedule = Schedule([GaussianProposal(np.eye(ndim))])
-ensemble = [MyState(np.random.rand(ndim)) for i in range(nwalkers)]
+schedule = Schedule(MyState(None), [GaussianProposal(np.eye(ndim))])
+ensemble = [np.random.rand(ndim) for i in range(nwalkers)]
+
 samples = []
 strt = time.time()
 for i, ensemble in enumerate(schedule.sample(ensemble)):
