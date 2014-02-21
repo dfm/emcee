@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -30,10 +31,7 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
-    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
-    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-
-    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="../_static/favicon.png">
 
 
@@ -70,7 +68,7 @@ The main entry point is through the <a class="reference internal" href="#emcee.E
 <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>.</p>
 <dl class="class">
 <dt id="emcee.EnsembleSampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">EnsembleSampler</tt><big>(</big><em>nwalkers</em>, <em>dim</em>, <em>lnpostfn</em>, <em>a=2.0</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>postargs=None</em>, <em>threads=1</em>, <em>pool=None</em>, <em>live_dangerously=False</em>, <em>runtime_sortingfn=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">EnsembleSampler</tt><big>(</big><em>nwalkers</em>, <em>dim</em>, <em>lnpostfn</em>, <em>a=2.0</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>kwargs={}</em>, <em>postargs=None</em>, <em>threads=1</em>, <em>pool=None</em>, <em>live_dangerously=False</em>, <em>runtime_sortingfn=None</em><big>)</big><a class="headerlink" href="#emcee.EnsembleSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A generalized Ensemble sampler that uses 2 ensembles for parallelization.
 The <tt class="docutils literal"><span class="pre">__init__</span></tt> function will raise an <tt class="docutils literal"><span class="pre">AssertionError</span></tt> if
 <tt class="docutils literal"><span class="pre">k</span> <span class="pre">&lt;</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">dim</span></tt> (and you haven&#8217;t set the <tt class="docutils literal"><span class="pre">live_dangerously</span></tt> parameter)
@@ -94,8 +92,11 @@ position.</li>
 <li><strong>a</strong> &#8211; (optional)
 The proposal scale parameter. (default: <tt class="docutils literal"><span class="pre">2.0</span></tt>)</li>
 <li><strong>args</strong> &#8211; (optional)
-A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
-called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+A list of extra positional arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+A list of extra keyword arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
 <li><strong>postargs</strong> &#8211; (optional)
 Alias of <tt class="docutils literal"><span class="pre">args</span></tt> for backwards compatibility.</li>
 <li><strong>threads</strong> &#8211; (optional)
@@ -229,7 +230,7 @@ bookkeeping parameters.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>pos0</strong> &#8211; The initial position vector.</li>
 <li><strong>N</strong> &#8211; The number of steps to run.</li>
 <li><strong>lnprob0</strong> &#8211; (optional)
 The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
@@ -310,7 +311,7 @@ temperature.  This sort of sampling is useful if you expect your
 distribution to be multi-modal. Take a look at <a class="reference internal" href="../user/pt/"><em>the documentation</em></a> to see how you might use this class.</p>
 <dl class="class">
 <dt id="emcee.PTSampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em>, <em>a=2.0</em>, <em>loglargs=</em><span class="optional">[</span><span class="optional">]</span>, <em>logpargs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">PTSampler</tt><big>(</big><em>ntemps</em>, <em>nwalkers</em>, <em>dim</em>, <em>logl</em>, <em>logp</em>, <em>threads=1</em>, <em>pool=None</em>, <em>betas=None</em>, <em>a=2.0</em>, <em>loglargs=</em><span class="optional">[</span><span class="optional">]</span>, <em>logpargs=</em><span class="optional">[</span><span class="optional">]</span>, <em>loglkwargs={}</em>, <em>logpkwargs={}</em><big>)</big><a class="headerlink" href="#emcee.PTSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A parallel-tempered ensemble sampler, using <a class="reference internal" href="#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt></a>
 for sampling within each parallel chain.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -337,9 +338,13 @@ tswap acceptance rate.</li>
 <li><strong>a</strong> &#8211; (optional)
 Proposal scale factor.</li>
 <li><strong>loglargs</strong> &#8211; (optional)
-Arguments for the log-likelihood function.</li>
+Positional arguments for the log-likelihood function.</li>
 <li><strong>logpargs</strong> &#8211; (optional)
-Arguments for the log-prior function.</li>
+Positional arguments for the log-prior function.</li>
+<li><strong>loglkwargs</strong> &#8211; (optional)
+Keyword arguments for the log-likelihood function.</li>
+<li><strong>logpkwargs</strong> &#8211; (optional)
+Keyword arguments for the log-prior function.</li>
 </ul>
 </td>
 </tr>
@@ -454,7 +459,7 @@ properties.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>pos0</strong> &#8211; The initial position vector.</li>
 <li><strong>N</strong> &#8211; The number of steps to run.</li>
 <li><strong>lnprob0</strong> &#8211; (optional)
 The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
@@ -592,8 +597,11 @@ testing and comparison.</p>
 returns the natural logarithm of the posterior probability for that
 position.</li>
 <li><strong>args</strong> &#8211; (optional)
-A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
-called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+A list of extra positional arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+A list of extra keyword arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
 </ul>
 </td>
 </tr>
@@ -679,7 +687,7 @@ so silently.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>pos0</strong> &#8211; The initial position vector.</li>
 <li><strong>N</strong> &#8211; The number of steps to run.</li>
 <li><strong>lnprob0</strong> &#8211; (optional)
 The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
@@ -748,7 +756,7 @@ to subclass the sampler object and override the <tt class="xref py py-func docut
 method.</p>
 <dl class="class">
 <dt id="emcee.Sampler">
-<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">Sampler</tt><big>(</big><em>dim</em>, <em>lnprobfn</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#emcee.Sampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">Sampler</tt><big>(</big><em>dim</em>, <em>lnprobfn</em>, <em>args=</em><span class="optional">[</span><span class="optional">]</span>, <em>kwargs={}</em><big>)</big><a class="headerlink" href="#emcee.Sampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>An abstract sampler object that implements various helper functions</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -760,8 +768,11 @@ method.</p>
 returns the natural logarithm of the posterior probability for that
 position.</li>
 <li><strong>args</strong> &#8211; (optional)
-A list of extra arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt> will be
-called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args)</span></tt>.</li>
+A list of extra positional arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
+<li><strong>kwargs</strong> &#8211; (optional)
+A list of extra keyword arguments for <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>. <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+will be called with the sequence <tt class="docutils literal"><span class="pre">lnpostfn(p,</span> <span class="pre">*args,</span> <span class="pre">**kwargs)</span></tt>.</li>
 </ul>
 </td>
 </tr>
@@ -829,7 +840,7 @@ so silently.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>p0</strong> &#8211; The initial position vector.</li>
+<li><strong>pos0</strong> &#8211; The initial position vector.</li>
 <li><strong>N</strong> &#8211; The number of steps to run.</li>
 <li><strong>lnprob0</strong> &#8211; (optional)
 The log posterior probability at position <tt class="docutils literal"><span class="pre">p0</span></tt>. If <tt class="docutils literal"><span class="pre">lnprob</span></tt>
@@ -938,7 +949,7 @@ for convenient use as the <tt class="docutils literal"><span class="pre">mh_prop
 
 <dl class="class">
 <dt id="emcee.utils.MPIPool">
-<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=&lt;mpi4py.MPI.Intracomm object at 0x10b586bb8&gt;</em>, <em>debug=False</em>, <em>loadbalance=False</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">emcee.utils.</tt><tt class="descname">MPIPool</tt><big>(</big><em>comm=None</em>, <em>debug=False</em>, <em>loadbalance=False</em><big>)</big><a class="headerlink" href="#emcee.utils.MPIPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pool that distributes tasks over a set of MPI processes. MPI is an
 API for distributed memory parallelism.  This pool will let you run
 emcee without shared memory, letting you use much larger machines
@@ -956,9 +967,9 @@ this pool is fairly general and it could be used for other purposes.</p>
 The <tt class="docutils literal"><span class="pre">mpi4py</span></tt> communicator.</li>
 <li><strong>debug</strong> &#8211; (optional)
 If <tt class="docutils literal"><span class="pre">True</span></tt>, print out a lot of status updates at each step.</li>
-<li><strong>loadbalance</strong> &#8211; (optional) 
-if <tt class="docutils literal"><span class="pre">True</span></tt> and ntask &gt; Ncpus, tries to loadbalance by sending 
-out one task to each cpu first and then sending out the rest 
+<li><strong>loadbalance</strong> &#8211; (optional)
+if <tt class="docutils literal"><span class="pre">True</span></tt> and ntask &gt; Ncpus, tries to loadbalance by sending
+out one task to each cpu first and then sending out the rest
 as the cpus get done.</li>
 </ul>
 </td>
@@ -967,20 +978,20 @@ as the cpus get done.</li>
 </table>
 <dl class="method">
 <dt id="emcee.utils.MPIPool.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.close" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.utils.MPIPool.close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Just send a message off to all the pool members which contains
 the special <tt class="xref py py-class docutils literal"><span class="pre">_close_pool_message</span></tt> sentinel.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="emcee.utils.MPIPool.is_master">
-<tt class="descname">is_master</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.is_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.is_master" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">is_master</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.utils.MPIPool.is_master" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the current process the master?</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="emcee.utils.MPIPool.map">
-<tt class="descname">map</tt><big>(</big><em>function</em>, <em>tasks</em><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.map" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">map</tt><big>(</big><em>function</em>, <em>tasks</em><big>)</big><a class="headerlink" href="#emcee.utils.MPIPool.map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Like the built-in <tt class="xref py py-func docutils literal"><span class="pre">map()</span></tt> function, apply a function to all
 of the values in a list and return the list of results.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -999,7 +1010,7 @@ of the values in a list and return the list of results.</p>
 
 <dl class="method">
 <dt id="emcee.utils.MPIPool.wait">
-<tt class="descname">wait</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/emcee/utils/#MPIPool.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#emcee.utils.MPIPool.wait" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.utils.MPIPool.wait" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this isn&#8217;t the master process, wait for instructions.</p>
 </dd></dl>
 

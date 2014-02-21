@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -31,10 +32,7 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
-    <script type="text/javascript" src="//use.typekit.com/phg8fgl.js"></script>
-    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-
-    <link href="http://fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="../../_static/favicon.png">
 
 
@@ -120,7 +118,7 @@ probability function:</p>
 </div>
 <p>It&#8217;s probably overkill this time but how about we use 250 <a class="reference internal" href="../faq/#walkers"><em>walkers</em></a>? Before we go on, we need to guess a starting point for each
 of the 250 walkers. This position will be a 50-dimensional vector so the
-the initial guess should be a 250-by-50 array—or a list of 250 arrays that
+initial guess should be a 250-by-50 array—or a list of 250 arrays that
 each have 50 elements. It&#8217;s not a very good guess but we&#8217;ll just guess a
 random number between 0 and 1 for each component:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">250</span>
