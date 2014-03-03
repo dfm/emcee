@@ -99,7 +99,6 @@ class PTSampler(Sampler):
         self.loglkwargs = loglkwargs
         self.logpkwargs = logpkwargs
 
-        self.ntemps = ntemps
         self.nwalkers = nwalkers
         self.dim = dim
 
@@ -113,7 +112,7 @@ class PTSampler(Sampler):
         self._lnlikelihood = None
 
         if betas is None:
-            self._betas = self.default_beta_ladder()
+            self._betas = self.default_beta_ladder(ntemps)
         else:
             self._betas = betas
 
@@ -123,15 +122,15 @@ class PTSampler(Sampler):
         self.nswap_between = np.zeros(ntemps - 1, dtype=np.float)
         self.nswap_between_accepted = np.zeros(ntemps - 1, dtype=np.float)
 
-        self.nprop = np.zeros((self.ntemps, self.nwalkers), dtype=np.float)
-        self.nprop_accepted = np.zeros((self.ntemps, self.nwalkers),
+        self.nprop = np.zeros((ntemps, self.nwalkers), dtype=np.float)
+        self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
                                        dtype=np.float)
 
         self.pool = pool
         if threads > 1 and pool is None:
             self.pool = multi.Pool(threads)
 
-    def default_beta_ladder(self):
+    def default_beta_ladder(self, ntemps):
         """Returns a ladder of :math:`\beta \equiv 1/T` with temperatures
         geometrically spaced with spacing chosen so that a Gaussian
         posterior would have a 0.25 temperature swap acceptance rate.
@@ -167,8 +166,7 @@ class PTSampler(Sampler):
         else:
             tstep = tstep[self.dim-1]
 
-        return np.exp(np.linspace(0, -(self.ntemps-1)*np.log(tstep),
-                                  self.ntemps))
+        return np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
 
     def reset(self):
         """
@@ -514,6 +512,14 @@ class PTSampler(Sampler):
 
         """
         return self.nswap_between_accepted / self.nswap_between
+
+    @property
+    def ntemps(self):
+        """
+        The number of temperature chains.
+
+        """
+        return len(self.betas)
 
     @property
     def acceptance_fraction(self):
