@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["PTSampler"]
+__all__ = ["AdaptivePTSampler"]
 
 import sys
 import numpy as np
@@ -24,13 +24,13 @@ class AdaptivePTSampler(PTSampler):
                       pool=pool, betas=betas, a=a, loglargs=loglargs, logpargs=logpargs,
                       loglkwargs=loglkwargs, logpkwargs=logpkwargs)
 
+        self.evolution_time = 100
         self.nswap_between_recent = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_between_recent_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def reset(self):
         super(AdaptivePTSampler, self).reset()
 
-        self.evolution_time = 100
         self.nswap_between_recent = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_between_recent_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
@@ -179,7 +179,7 @@ class AdaptivePTSampler(PTSampler):
 
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
-            if (i + 1) % evolution_time == 0:
+            if (i + 1) % self.evolution_time == 0:
                 self.evolve_ladder()
 
             if (i + 1) % thin == 0:
@@ -193,12 +193,14 @@ class AdaptivePTSampler(PTSampler):
 
     def evolve_ladder(self):
         print('Evolving temperature ladder...', file=sys.stderr)
-        As = self.tswap_acceptance_fraction_between_recent()
+        As = self.tswap_acceptance_fraction_between_recent
         gammas = np.exp(np.diff(np.log(self.betas)))
 
+        print('Gamma0 = {:}'.format(gammas), file=sys.stderr)
         # Compute forcing terms for each gamma.
         A0 = 0.25
         gammas += (As - A0) / self.evolution_time
+        print('Gamma1 = {:}'.format(gammas), file=sys.stderr)
         
         # Work upwards from the bottom to adjust temperature ladder.
         for i in range(len(self.betas) - 2, -1, -1):
