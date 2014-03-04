@@ -17,25 +17,24 @@ from .ptsampler import PTSampler
 from .ptsampler import PTLikePrior
 
 class AdaptivePTSampler(PTSampler):
-    def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, logpkwargs={}):
-        super(AdaptivePTSampler, self).__init__(ntemps, nwalkers, dim, logl, logp, threads=threads,
-                      pool=pool, betas=betas, a=a, loglargs=loglargs, logpargs=logpargs,
-                      loglkwargs=loglkwargs, logpkwargs=logpkwargs)
+    def __init__(self, *args, adjust_callback=None, target_acceptance=0.25, evolution_time=100, forcing_constant=20, **kwargs):
+        super(AdaptivePTSampler, self).__init__(*args, **kwargs)
 
-        self.evolution_time = 100
-        self.nswap_between_recent = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_between_recent_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.adjust_callback = adjust_callback
+        self.evolution_time = evolution_time
+        self.forcing_constant = forcing_constant
+        self.target_acceptance = target_acceptance
+        self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def reset(self):
         super(AdaptivePTSampler, self).reset()
 
-        self.nswap_between_recent = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_between_recent_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-               thin=1, storechain=True):
+            thin=1, storechain=True):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -95,31 +94,7 @@ class AdaptivePTSampler(PTSampler):
 
         # Expand the chain in advance of the iterations
         if storechain:
-            nsave = iterations / thin
-            if self._chain is None:
-                isave = 0
-                self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
-                                        self.dim))
-                self._lnprob = np.zeros((self.ntemps, self.nwalkers, nsave))
-                self._lnlikelihood = np.zeros((self.ntemps, self.nwalkers,
-                                               nsave))
-            else:
-                isave = self._chain.shape[2]
-                self._chain = np.concatenate((self._chain,
-                                              np.zeros((self.ntemps,
-                                                        self.nwalkers,
-                                                        nsave, self.dim))),
-                                             axis=2)
-                self._lnprob = np.concatenate((self._lnprob,
-                                               np.zeros((self.ntemps,
-                                                         self.nwalkers,
-                                                         nsave))),
-                                              axis=2)
-                self._lnlikelihood = np.concatenate((self._lnlikelihood,
-                                                     np.zeros((self.ntemps,
-                                                               self.nwalkers,
-                                                               nsave))),
-                                                    axis=2)
+            isave = self._update_chain(iterations / thin)
 
         for i in range(iterations):
             for j in [0, 1]:
@@ -192,72 +167,65 @@ class AdaptivePTSampler(PTSampler):
             yield p, lnprob, logl
 
     def evolve_ladder(self):
-        print('Evolving temperature ladder...', file=sys.stderr)
-        As = self.tswap_acceptance_fraction_between_recent
-        gammas = np.exp(np.diff(np.log(self.betas)))
+        descending = self.betas[-1] == 1
+        if descending:
+            # Temperatures are desending, so reverse them.
+            self.betas = self.betas[::-1]
 
-        print('Gamma0 = {:}'.format(gammas), file=sys.stderr)
+        As = self.tswap_acceptance_fraction_between_recent
+        gammas = np.exp(-np.diff(np.log(self.betas)))
+
+        #print('Gamma0 = {:}'.format(gammas), file=sys.stderr)
+        print('Acceptances: {:}'.format(', '.join('{:.3g}'.format(A) for A in As)), file=sys.stderr)
         # Compute forcing terms for each gamma.
-        A0 = 0.25
-        gammas += (As - A0) / self.evolution_time
-        print('Gamma1 = {:}'.format(gammas), file=sys.stderr)
+        A0 = self.target_acceptance
+        k = self.forcing_constant
+        gammas = (gammas - 1) * np.exp(k * (As - A0) / self.evolution_time) + 1
+        #print('Gamma1 = {:}'.format(gammas), file=sys.stderr)
         
         # Work upwards from the bottom to adjust temperature ladder.
-        for i in range(len(self.betas) - 2, -1, -1):
-            self.betas[i + 1] = self.betas[i] * gammas[i]
+        for i in range(len(self.betas) - 1):
+            self.betas[i + 1] = self.betas[i] / gammas[i]
 
-        self.nswap_between_recent = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_between_recent_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+        if descending:
+            self.betas = self.betas[::-1]
 
-        print('New ladder: {:}'.format(', '.join('{:.3g}'.format(T) for T in (1 / self.betas))), file=sys.stderr)
+        if callable(self.adjust_callback):
+            self.adjust_callback(self)
 
-    def _temperature_swaps(self, p, lnprob, logl):
-        """
-        Perform parallel-tempering temperature swaps on the state
-        in ``p`` with associated ``lnprob`` and ``logl``.
+        self.nswap_between_old = self.nswap_between.copy()
+        self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
 
-        """
-        ntemps = self.ntemps
+        print('Temperatures: = {:}'.format(', '.join('{:.3g}'.format(T) for T in (1 / self.betas))), file=sys.stderr)
+        print('----', file=sys.stderr)
 
-        for i in range(ntemps - 1, 0, -1):
-            bi = self.betas[i]
-            bi1 = self.betas[i - 1]
+    def _update_chain(self, nsave):
+        if self._chain is None:
+            isave = 0
+            self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
+                                    self.dim))
+            self._lnprob = np.zeros((self.ntemps, self.nwalkers, nsave))
+            self._lnlikelihood = np.zeros((self.ntemps, self.nwalkers,
+                                           nsave))
+        else:
+            isave = self._chain.shape[2]
+            self._chain = np.concatenate((self._chain,
+                                          np.zeros((self.ntemps,
+                                                    self.nwalkers,
+                                                    nsave, self.dim))),
+                                         axis=2)
+            self._lnprob = np.concatenate((self._lnprob,
+                                           np.zeros((self.ntemps,
+                                                     self.nwalkers,
+                                                     nsave))),
+                                          axis=2)
+            self._lnlikelihood = np.concatenate((self._lnlikelihood,
+                                                 np.zeros((self.ntemps,
+                                                           self.nwalkers,
+                                                           nsave))),
+                                                axis=2)
 
-            dbeta = bi1 - bi
-
-            iperm = nr.permutation(self.nwalkers)
-            i1perm = nr.permutation(self.nwalkers)
-
-            raccept = np.log(nr.uniform(size=self.nwalkers))
-            paccept = dbeta * (logl[i, iperm] - logl[i - 1, i1perm])
-
-            self.nswap[i] += self.nwalkers
-            self.nswap[i - 1] += self.nwalkers
-
-            self.nswap_between[i - 1] += self.nwalkers
-
-            asel = (paccept > raccept)
-            nacc = np.sum(asel)
-
-            self.nswap_accepted[i] += nacc
-            self.nswap_accepted[i - 1] += nacc
-
-            self.nswap_between_accepted[i - 1] += nacc
-
-            ptemp = np.copy(p[i, iperm[asel], :])
-            ltemp = np.copy(logl[i, iperm[asel]])
-            prtemp = np.copy(lnprob[i, iperm[asel]])
-
-            p[i, iperm[asel], :] = p[i - 1, i1perm[asel], :]
-            logl[i, iperm[asel]] = logl[i - 1, i1perm[asel]]
-            lnprob[i, iperm[asel]] = lnprob[i - 1, i1perm[asel]] \
-                - dbeta * logl[i - 1, i1perm[asel]]
-
-            p[i - 1, i1perm[asel], :] = ptemp
-            logl[i - 1, i1perm[asel]] = ltemp
-            lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
-
-        return p, lnprob, logl
+        return isave
 
     def _add_temperature(self, beta):
         # First, reset the sampler. 
@@ -282,5 +250,6 @@ class AdaptivePTSampler(PTSampler):
         each pair of temperatures; shape ``(ntemps, )``.
 
         """
-        return self.nswap_between_recent_accepted / self.nswap_between_recent
+        return (self.nswap_between_accepted - self.nswap_between_old_accepted) /\
+               (self.nswap_between - self.nswap_between_old)
 
