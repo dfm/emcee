@@ -34,7 +34,7 @@ class AdaptivePTSampler(PTSampler):
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-            thin=1, storechain=True):
+            thin=1, storechain=True, evolve_t=True):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -154,7 +154,7 @@ class AdaptivePTSampler(PTSampler):
 
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
-            if (i + 1) % self.evolution_time == 0:
+            if evolve_t and (i + 1) % self.evolution_time == 0:
                 self.evolve_ladder()
 
             if (i + 1) % thin == 0:
@@ -186,7 +186,7 @@ class AdaptivePTSampler(PTSampler):
 
         # Adjust log(gamma) by difference between corresponding acceptance and next lowest
         # acceptance. Cut off below 1 to prevent weird temperature behavior.
-        dloggammas = kappa / float(stepCount) * (As[1:] - As[:-1])
+        dloggammas = kappa * (As[1:] - As[:-1])
         gammas *= np.maximum(np.exp(dloggammas), 1)
         print('d(log(gamma)): {:}'.format(', '.join('{:.3g}'.format(x) for x in dloggammas)), file=sys.stderr)
 
