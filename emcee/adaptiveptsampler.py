@@ -172,17 +172,24 @@ class AdaptivePTSampler(PTSampler):
             # Temperatures are desending, so reverse them.
             self.betas = self.betas[::-1]
 
-        As = self.tswap_acceptance_fraction_between_recent
+        # Compute forcing terms for each gamma.
+        stepCount = self.evolution_time
+        #stepCount = self._chain.shape[2]
+        A0 = self.target_acceptance
+        kappa = self.forcing_constant
+
+        # Get swap acceptance fractions (prepending target fraction) and temperature ratios.
+        As = np.concatenate(([A0], self.tswap_acceptance_fraction_between_recent))
         gammas = np.exp(-np.diff(np.log(self.betas)))
 
-        #print('Gamma0 = {:}'.format(gammas), file=sys.stderr)
-        print('Acceptances: {:}'.format(', '.join('{:.3g}'.format(A) for A in As)), file=sys.stderr)
-        # Compute forcing terms for each gamma.
-        A0 = self.target_acceptance
-        k = self.forcing_constant
-        gammas = (gammas - 1) * np.exp(k * (As - A0) / self.evolution_time) + 1
-        #print('Gamma1 = {:}'.format(gammas), file=sys.stderr)
-        
+        print('Acceptances: {:}'.format(', '.join('{:.3g}'.format(A) for A in As[1:])), file=sys.stderr)
+
+        # Adjust log(gamma) by difference between corresponding acceptance and next lowest
+        # acceptance. Cut off below 1 to prevent weird temperature behavior.
+        dloggammas = kappa / float(stepCount) * (As[1:] - As[:-1])
+        gammas *= np.maximum(np.exp(dloggammas), 1)
+        print('d(log(gamma)): {:}'.format(', '.join('{:.3g}'.format(x) for x in dloggammas)), file=sys.stderr)
+
         # Work upwards from the bottom to adjust temperature ladder.
         for i in range(len(self.betas) - 1):
             self.betas[i + 1] = self.betas[i] / gammas[i]
