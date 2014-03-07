@@ -155,7 +155,7 @@ class AdaptivePTSampler(PTSampler):
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
-                self.evolve_ladder()
+                self._evolve_ladder()
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -166,7 +166,7 @@ class AdaptivePTSampler(PTSampler):
 
             yield p, lnprob, logl
 
-    def evolve_ladder(self):
+    def _evolve_ladder(self):
         descending = self.betas[-1] == 1
         if descending:
             # Temperatures are desending, so reverse them.
