@@ -91,11 +91,6 @@ class EnsembleSampler(Sampler):
         super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args,
                                               kwargs=kwargs)
 
-        # Do a little bit of _magic_ to make the likelihood call with
-        # ``args`` and ``kwargs`` pickleable.
-        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args,
-                                          self.kwargs)
-
         assert self.k % 2 == 0, "The number of walkers must be even."
         if not live_dangerously:
             assert self.k >= 2 * self.dim, (
@@ -487,28 +482,3 @@ class EnsembleSampler(Sampler):
         """
         return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
                                         window=window, fast=fast)
-
-
-class _function_wrapper(object):
-    """
-    This is a hack to make the likelihood function pickleable when ``args``
-    or ``kwargs`` are also included.
-
-    """
-    def __init__(self, f, args, kwargs):
-        self.f = f
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, x):
-        try:
-            return self.f(x, *self.args, **self.kwargs)
-        except:
-            import traceback
-            print("emcee: Exception while calling your likelihood function:")
-            print("  params:", x)
-            print("  args:", self.args)
-            print("  kwargs:", self.kwargs)
-            print("  exception:")
-            traceback.print_exc()
-            raise
