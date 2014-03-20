@@ -152,6 +152,11 @@ class Sampler(object):
         :param kwargs: (optional)
             Other parameters that are directly passed to :func:`sample`.
 
+        This method returns the most recent result from :func:`sample`. The
+        particular values vary from sampler to sampler, but the result is
+        generally a tuple ``t`` where ``t[0]`` is the most recent position
+        vector (or ensemble thereof) and ``t[1]`` is the most recent
+        log posterior probability (or ensemble thereof).
         """
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
                                    **kwargs):
