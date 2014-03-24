@@ -226,6 +226,12 @@ class MPIPool(object):
 
             return results
 
+    def bcast(self, *args, **kwargs):
+        """
+        Equivalent to mpi4py :func:`bcast` collective operation.
+        """
+        return self.comm.bcast(*args, **kwargs)
+
     def close(self):
         """
         Just send a message off to all the pool members which contains
