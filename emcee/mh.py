@@ -33,8 +33,12 @@ class MHSampler(Sampler):
         position.
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     """
     def __init__(self, cov, *args, **kwargs):

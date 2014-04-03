@@ -78,17 +78,22 @@ class PTLikePrior(object):
 
     """
 
-    def __init__(self, logl, logp):
+    def __init__(self, logl, logp, loglargs=[], logpargs=[], loglkwargs={},
+                 logpkwargs={}):
         self.logl = logl
         self.logp = logp
+        self.loglargs = loglargs
+        self.logpargs = logpargs
+        self.loglkwargs = loglkwargs
+        self.logpkwargs = logpkwargs
 
     def __call__(self, x):
-        lp = self.logp(x)
+        lp = self.logp(x, *self.logpargs, **self.logpkwargs)
 
         if lp == float('-inf'):
             return lp, lp
 
-        return self.logl(x), lp
+        return self.logl(x, *self.loglargs, **self.loglkwargs), lp
 
 
 class PTSampler(Sampler):
@@ -133,12 +138,29 @@ class PTSampler(Sampler):
         Maximum temperature for the ladder.  If ``ntemps`` is
         ``None``, this argument is used to set the temperature ladder.
 
+    :param loglargs: (optional)
+        Positional arguments for the log-likelihood function.
+
+    :param logpargs: (optional)
+        Positional arguments for the log-prior function.
+
+    :param loglkwargs: (optional)
+        Keyword arguments for the log-likelihood function.
+
+    :param logpkwargs: (optional)
+        Keyword arguments for the log-prior function.
+
     """
     def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None, a=2.0, Tmax=None):
+                 pool=None, betas=None, a=2.0, Tmax=None, loglargs=[], logpargs=[],
+                 loglkwargs={}, logpkwargs={}):
         self.logl = logl
         self.logp = logp
         self.a = a
+        self.loglargs = loglargs
+        self.logpargs = logpargs
+        self.loglkwargs = loglkwargs
+        self.logpkwargs = logpkwargs
 
         self.nwalkers = nwalkers
         self.dim = dim
@@ -148,10 +170,10 @@ class PTSampler(Sampler):
         else:
             self._betas = betas
 
-        self.ntemps = len(self.betas)
-
-        assert self.nwalkers % 2 == 0, 'The number of walkers must be even.'
-        assert self.nwalkers >= 2*self.dim, 'The number of walkers must be greater than 2*dimension.'
+        assert self.nwalkers % 2 == 0, \
+            "The number of walkers must be even."
+        assert self.nwalkers >= 2*self.dim, \
+            "The number of walkers must be greater than 2*dimension."
 
         self._chain = None
         self._lnprob = None
@@ -227,7 +249,8 @@ class PTSampler(Sampler):
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
-            fn = PTLikePrior(self.logl, self.logp)
+            fn = PTLikePrior(self.logl, self.logp, self.loglargs,
+                             self.logpargs, self.loglkwargs, self.logpkwargs)
             if self.pool is None:
                 results = list(map(fn, p.reshape((-1, self.dim))))
             else:
@@ -291,7 +314,9 @@ class PTSampler(Sampler):
                         (self.nwalkers / 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
 
-                fn = PTLikePrior(self.logl, self.logp)
+                fn = PTLikePrior(self.logl, self.logp, self.loglargs,
+                                 self.logpargs, self.loglkwargs,
+                                 self.logpkwargs)
                 if self.pool is None:
                     results = list(map(fn, qs.reshape((-1, self.dim))))
                 else:

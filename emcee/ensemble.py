@@ -49,8 +49,12 @@ class EnsembleSampler(Sampler):
         The proposal scale parameter. (default: ``2.0``)
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     :param postargs: (optional)
         Alias of ``args`` for backwards compatibility.
@@ -68,21 +72,29 @@ class EnsembleSampler(Sampler):
         can be any object with a ``map`` method that follows the same
         calling sequence as the built-in ``map`` function.
 
+    :param runtime_sortingfn: (optional)
+        A function implementing custom runtime load-balancing. See
+        :ref:`loadbalance` for more information.
+
     """
-    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], postargs=None,
-                 threads=1, pool=None, live_dangerously=False):
+    def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={},
+                 postargs=None, threads=1, pool=None, live_dangerously=False,
+                 runtime_sortingfn=None):
         self.k = nwalkers
         self.a = a
         self.threads = threads
         self.pool = pool
+        self.runtime_sortingfn = runtime_sortingfn
 
         if postargs is not None:
             args = postargs
-        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args)
+        super(EnsembleSampler, self).__init__(dim, lnpostfn, args=args,
+                                              kwargs=kwargs)
 
         # Do a little bit of _magic_ to make the likelihood call with
-        # ``args`` pickleable.
-        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args)
+        # ``args`` and ``kwargs`` pickleable.
+        self.lnprobfn = _function_wrapper(self.lnprobfn, self.args,
+                                          self.kwargs)
 
         assert self.k % 2 == 0, "The number of walkers must be even."
         if not live_dangerously:
@@ -93,6 +105,13 @@ class EnsembleSampler(Sampler):
 
         if self.threads > 1 and self.pool is None:
             self.pool = multiprocessing.Pool(self.threads)
+
+    def clear_blobs(self):
+        """
+        Clear the ``blobs`` list.
+
+        """
+        self._blobs = []
 
     def reset(self):
         """
@@ -106,7 +125,7 @@ class EnsembleSampler(Sampler):
         self._lnprob = np.empty((self.k, 0))
 
         # Initialize list for storing optional metadata blobs.
-        self._blobs = []
+        self.clear_blobs()
 
     def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
                iterations=1, thin=1, storechain=True, mh_proposal=None):
@@ -355,6 +374,10 @@ class EnsembleSampler(Sampler):
         else:
             M = map
 
+        # sort the tasks according to (user-defined) some runtime guess
+        if self.runtime_sortingfn is not None:
+            p, idx = self.runtime_sortingfn(p)
+
         # Run the log-probability calculations (optionally in parallel).
         results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
@@ -364,6 +387,15 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
+
+        # sort it back according to the original order - get the same
+        # chain irrespective of the runtime sorting fn
+        if self.runtime_sortingfn is not None:
+            orig_idx = np.argsort(idx)
+            lnprob = lnprob[orig_idx]
+            p = [p[i] for i in orig_idx]
+            if blob is not None:
+                blob = [blob[i] for i in orig_idx]
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
@@ -460,21 +492,23 @@ class EnsembleSampler(Sampler):
 class _function_wrapper(object):
     """
     This is a hack to make the likelihood function pickleable when ``args``
-    are also included.
+    or ``kwargs`` are also included.
 
     """
-    def __init__(self, f, args):
+    def __init__(self, f, args, kwargs):
         self.f = f
         self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, x):
         try:
-            return self.f(x, *self.args)
+            return self.f(x, *self.args, **self.kwargs)
         except:
             import traceback
             print("emcee: Exception while calling your likelihood function:")
             print("  params:", x)
             print("  args:", self.args)
+            print("  kwargs:", self.kwargs)
             print("  exception:")
             traceback.print_exc()
             raise

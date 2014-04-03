@@ -12,7 +12,7 @@ show you how to use it.
 This documentation won't teach you too much about MCMC but there are a lot
 of resources available for that (try `this one
 <http://www.inference.phy.cam.ac.uk/mackay/itila/book.html>`_).
-We also `publlished a paper <http://arxiv.org/abs/1202.3665>`_ explaining
+We also `published a paper <http://arxiv.org/abs/1202.3665>`_ explaining
 the ``emcee`` algorithm and implementation in detail.
 
 emcee has been used in `quite a few projects in the astrophysical literature
