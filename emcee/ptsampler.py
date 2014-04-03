@@ -170,6 +170,8 @@ class PTSampler(Sampler):
         else:
             self._betas = betas
 
+        self.ntemps = self.betas.shape[0]
+
         assert self.nwalkers % 2 == 0, \
             "The number of walkers must be even."
         assert self.nwalkers >= 2*self.dim, \
