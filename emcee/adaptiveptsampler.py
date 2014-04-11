@@ -185,8 +185,6 @@ class AdaptivePTSampler(PTSampler):
         As = np.concatenate(([A0], self.tswap_acceptance_fraction_between_recent))
         gammas = np.exp(-np.diff(np.log(self.betas)))
 
-        print('Acceptances: {:}'.format(', '.join('{:.3g}'.format(A) for A in As[1:])), file=sys.stderr)
-
         # Adjust log(gamma) by difference between corresponding acceptance and next lowest
         # acceptance. Cut off below 1 to prevent weird temperature behavior.
         dloggammas = kappa * (As[1:] - As[:-1])
@@ -208,9 +206,6 @@ class AdaptivePTSampler(PTSampler):
 
         self.nswap_between_old = self.nswap_between.copy()
         self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
-
-        print('Temperatures: = {:}'.format(', '.join('{:.3g}'.format(T) for T in (1 / self.betas))), file=sys.stderr)
-        print('----', file=sys.stderr)
 
     def _update_chain(self, nsave):
         if self._chain is None:
