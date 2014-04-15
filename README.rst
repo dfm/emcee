@@ -36,10 +36,10 @@ The BibTeX entry for the paper is::
        author = {{Foreman-Mackey}, D. and {Hogg}, D.~W. and {Lang}, D. and {Goodman}, J.},
         title = {emcee: The MCMC Hammer},
       journal = {PASP},
-       eprint = {1202.3665},
          year = 2013,
        volume = 125,
         pages = {306-312},
+       eprint = {1202.3665},
           doi = {10.1086/670067}
     }
 
