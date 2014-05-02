@@ -76,10 +76,8 @@ class AdaptivePTSampler(PTSampler):
         if lnprob0 is None or lnlike0 is None:
             fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                              self.logpargs, self.loglkwargs, self.logpkwargs)
-            if self.pool is None:
-                results = list(map(fn, p.reshape((-1, self.dim))))
-            else:
-                results = list(self.pool.map(fn, p.reshape((-1, self.dim))))
+            mapf = map if self.pool is None else self.pool.map
+            results = list(mapf(fn, p.reshape((-1, self.dim))))
 
             logls = np.array([r[0] for r in results]).reshape((self.ntemps,
                                                                self.nwalkers))
