@@ -185,7 +185,7 @@ class AdaptivePTSampler(PTSampler):
         # Compute new temperature spacings and ensure that they're all positive.
         loggammas = -(np.diff(np.log(self.betas) + dlogbetas))
         loggammas = np.maximum(loggammas, 0)
-        self.betas[1:] = np.cumsum(loggammas)
+        self.betas[1:] = np.exp(np.cumsum(loggammas))
 
         # Un-reverse the ladder if need be.
         if descending:
