@@ -17,12 +17,13 @@ from .ptsampler import PTSampler
 from .ptsampler import PTLikePrior
 
 class AdaptivePTSampler(PTSampler):
-    def __init__(self, *args, ladder_callback=None, evolution_time=100, forcing_constant=20, **kwargs):
+    def __init__(self, *args, ladder_callback=None, evolution_time=100, forcing_constant=20, target_acceptance=0.25, **kwargs):
         super(AdaptivePTSampler, self).__init__(*args, **kwargs)
 
         self.ladder_callback = ladder_callback
         self.evolution_time = evolution_time
         self.forcing_constant = forcing_constant
+        self.target_acceptance = target_acceptance
         self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
@@ -176,14 +177,26 @@ class AdaptivePTSampler(PTSampler):
         lag = 120
         kappa = self.forcing_constant * lag / (t + lag)
 
-        # Compute changes in log(beta) according to acceptance fractions.
         As = self.tswap_acceptance_fraction_between_recent
-        dlogbetas = np.zeros(len(self.betas))
-        dlogbetas[1:-1] = -kappa * (As[:-1] - As[1:])
-        dlogbetas[-1] = -kappa * (abs(As[-1] - As[-2]) - 0.1)
+        loggammas = -np.diff(np.log(self.betas))
+        if self.target_acceptance != None:
+            # Drive the chains to a specified acceptance ratio.
 
-        # Compute new temperature spacings and ensure that they're all positive.
-        loggammas = -(np.diff(np.log(self.betas) + dlogbetas))
+            # Compute new temperature spacings from acceptance spacings.
+            As = np.concatenate(([self.target_acceptance], As))
+            loggammas += kappa * (As[1:] - As[:-1])
+        else:
+            # Allow the chains to equilibrate to even acceptance-spacing for all chains.
+
+            # Compute changes in log(beta) according to acceptance fractions.
+            dlogbetas = np.zeros(len(self.betas))
+            dlogbetas[1:-1] = -kappa * (As[:-1] - As[1:])
+            dlogbetas[-1] = -kappa * (abs(As[-1] - As[-2]) - 0.1)
+
+            # Compute new temperature spacings.
+            loggammas += -np.diff(dlogbetas)
+
+        # Ensure log-spacings are positive and adjust temperature chain.
         loggammas = np.maximum(loggammas, 0)
         self.betas[1:] = np.exp(np.cumsum(loggammas))
 
