@@ -17,13 +17,12 @@ from .ptsampler import PTSampler
 from .ptsampler import PTLikePrior
 
 class AdaptivePTSampler(PTSampler):
-    def __init__(self, *args, ladder_callback=None, target_acceptance=0.25, evolution_time=100, forcing_constant=20, **kwargs):
+    def __init__(self, *args, ladder_callback=None, evolution_time=100, forcing_constant=20, **kwargs):
         super(AdaptivePTSampler, self).__init__(*args, **kwargs)
 
         self.ladder_callback = ladder_callback
         self.evolution_time = evolution_time
         self.forcing_constant = forcing_constant
-        self.target_acceptance = target_acceptance
         self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
@@ -76,10 +75,8 @@ class AdaptivePTSampler(PTSampler):
         if lnprob0 is None or lnlike0 is None:
             fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                              self.logpargs, self.loglkwargs, self.logpkwargs)
-            if self.pool is None:
-                results = list(map(fn, p.reshape((-1, self.dim))))
-            else:
-                results = list(self.pool.map(fn, p.reshape((-1, self.dim))))
+            mapf = map if self.pool is None else self.pool.map
+            results = list(mapf(fn, p.reshape((-1, self.dim))))
 
             logls = np.array([r[0] for r in results]).reshape((self.ntemps,
                                                                self.nwalkers))
@@ -170,37 +167,32 @@ class AdaptivePTSampler(PTSampler):
 
             yield p, lnprob, logl
 
-    def _evolve_ladder(self, step):
+    def _evolve_ladder(self, t):
         descending = self.betas[-1] == 1
         if descending:
             # Temperatures are desending, so reverse them.
             self.betas = self.betas[::-1]
 
-        # Compute forcing terms for each gamma.
-        A0 = self.target_acceptance
         lag = 120
-        kappa = self.forcing_constant * lag / (step + lag)
+        kappa = self.forcing_constant * lag / (t + lag)
 
-        # Get swap acceptance fractions (prepending target fraction) and temperature ratios.
-        As = np.concatenate(([A0], self.tswap_acceptance_fraction_between_recent))
-        gammas = np.exp(-np.diff(np.log(self.betas)))
+        # Compute changes in log(beta) according to acceptance fractions.
+        As = self.tswap_acceptance_fraction_between_recent
+        dlogbetas = np.zeros(len(self.betas))
+        dlogbetas[1:-1] = -kappa * (As[:-1] - As[1:])
+        dlogbetas[-1] = -kappa * (abs(As[-1] - As[-2]) - 0.1)
 
-        # Adjust log(gamma) by difference between corresponding acceptance and next lowest
-        # acceptance. Cut off below 1 to prevent weird temperature behavior.
-        dloggammas = kappa * (As[1:] - As[:-1])
-        gammas *= np.exp(dloggammas)
-        gammas = np.maximum(gammas, 1)
-
-        # Work upwards from the bottom to adjust temperature ladder.
-        for i in range(len(self.betas) - 1):
-            self.betas[i + 1] = self.betas[i] / gammas[i]
+        # Compute new temperature spacings and ensure that they're all positive.
+        loggammas = -(np.diff(np.log(self.betas) + dlogbetas))
+        loggammas = np.maximum(loggammas, 0)
+        self.betas[1:] = np.cumsum(loggammas)
 
         # Un-reverse the ladder if need be.
         if descending:
             self.betas = self.betas[::-1]
 
         # Store the ladder for reference.
-        self._beta_history[:, step] = self.betas
+        self._beta_history[:, t] = self.betas
         if callable(self.ladder_callback):
             self.ladder_callback(self)
 
