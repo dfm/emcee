@@ -235,22 +235,6 @@ class AdaptivePTSampler(PTSampler):
 
         return isave
 
-    def _add_temperature(self, beta):
-        # First, reset the sampler.
-        self.reset()
-
-        # Add the new beta wherever it needs to be.
-        indices = np.where(self.betas > beta)[0]
-        if len(index) > 0:
-            np.insert(self.betas, indices[0], beta)
-        else:
-            np.append(self.betas, beta)
-
-        # Place the new chain in a point sampled from the prior.
-        raise Exception
-
-        return
-
     @property
     def tswap_acceptance_fraction_between_recent(self):
         """
