@@ -305,8 +305,7 @@ class PTSampler(Sampler):
                 pupdate = p[:, jupdate::2, :]
                 psample = p[:, jsample::2, :]
 
-                us = np.random.uniform(size=(self.ntemps, self.nwalkers/2))
-                zs = np.square(1.0 + (self.a-1.0)*us)/self.a
+                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers/2)))
 
                 qs = np.zeros((self.ntemps, self.nwalkers/2, self.dim))
                 for k in range(self.ntemps):
@@ -332,7 +331,7 @@ class PTSampler(Sampler):
                 qslnprob = qslogls * self.betas.reshape((self.ntemps, 1)) \
                     + qslogps
 
-                logpaccept = (self.dim-1)*np.log(zs) + qslnprob \
+                logpaccept = self.dim*np.log(zs) + qslnprob \
                     - lnprob[:, jupdate::2]
                 logrs = np.log(np.random.uniform(low=0.0, high=1.0,
                                                  size=(self.ntemps,
