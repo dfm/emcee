@@ -71,12 +71,12 @@ class AdaptivePTSampler(PTSampler):
 
         """
         p = np.copy(np.array(p0))
+        mapf = map if self.pool is None else self.pool.map
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
             fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                              self.logpargs, self.loglkwargs, self.logpkwargs)
-            mapf = map if self.pool is None else self.pool.map
             results = list(mapf(fn, p.reshape((-1, self.dim))))
 
             logls = np.array([r[0] for r in results]).reshape((self.ntemps,
@@ -100,9 +100,9 @@ class AdaptivePTSampler(PTSampler):
 
         for i in range(iterations):
             for j in [0, 1]:
+                # Get positions of walkers to be updated and walker to be sampled.
                 jupdate = j
                 jsample = (j + 1) % 2
-
                 pupdate = p[:, jupdate::2, :]
                 psample = p[:, jsample::2, :]
 
@@ -120,11 +120,7 @@ class AdaptivePTSampler(PTSampler):
                 fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                                  self.logpargs, self.loglkwargs,
                                  self.logpkwargs)
-                if self.pool is None:
-                    results = list(map(fn, qs.reshape((-1, self.dim))))
-                else:
-                    results = list(self.pool.map(fn, qs.reshape((-1,
-                                                                 self.dim))))
+                results = list(mapf(fn, qs.reshape((-1, self.dim))))
 
                 qslogls = np.array([r[0] for r in results]).reshape(
                     (self.ntemps, self.nwalkers/2))
@@ -158,6 +154,7 @@ class AdaptivePTSampler(PTSampler):
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
                 self._evolve_ladder(int(i / self.evolution_time))
+                #pass
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -171,11 +168,12 @@ class AdaptivePTSampler(PTSampler):
     def _evolve_ladder(self, t):
         descending = self.betas[-1] == 1
         if descending:
-            # Temperatures are desending, so reverse them.
+            # Temperatures are descending, so reverse them.
             self.betas = self.betas[::-1]
 
-        lag = 120
+        lag = 500
         kappa = self.forcing_constant * lag / (t + lag)
+        betas = self.betas.copy()
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(self.betas))
@@ -187,17 +185,25 @@ class AdaptivePTSampler(PTSampler):
             loggammas += kappa * (As[1:] - As[:-1])
         else:
             # Allow the chains to equilibrate to even acceptance-spacing for all chains.
-
-            # Compute changes in log(beta) according to acceptance fractions.
             dlogbetas = np.zeros(len(self.betas))
-            dlogbetas[1:-1] = -kappa * (As[:-1] - As[1:])
-            dlogbetas[-1] = -kappa * (abs(As[-1] - As[-2]) - 0.1)
+            kappa = -kappa
+
+            # Drive chains 1 to N-2 toward even sapcing
+            dlogbetas[1:-2] = kappa * (As[:-1] - As[1:])
+            #dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
+
+            # Require top two chains to achieve 100% acceptance with each other, but prevent them
+            # from coalescing by driving upper chain faster.
+            dlogbetas[-2:] = kappa * np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1])
 
             # Compute new temperature spacings.
             loggammas += -np.diff(dlogbetas)
 
-        # Ensure log-spacings are positive and adjust temperature chain.
-        loggammas = np.maximum(loggammas, 0)
+        # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative spacing is
+        # replaced by zero, must compensate by increasing subsequent spacing in order to preserve
+        # higher temperatures.
+        gaps = np.concatenate((-np.minimum(loggammas, 0)[:-1], [0]))
+        loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
         self.betas[1:] = np.exp(-np.cumsum(loggammas))
 
         # Un-reverse the ladder if need be.
