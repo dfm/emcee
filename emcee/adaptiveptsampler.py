@@ -72,6 +72,7 @@ class AdaptivePTSampler(PTSampler):
         """
         p = np.copy(np.array(p0))
         mapf = map if self.pool is None else self.pool.map
+        betas = self.betas.reshape((-1, 1))
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
@@ -85,7 +86,7 @@ class AdaptivePTSampler(PTSampler):
                                                                self.nwalkers))
 
             lnlike0 = logls
-            lnprob0 = logls * self.betas.reshape((self.ntemps, 1)) + logps
+            lnprob0 = logls * betas + logps
 
         lnprob = lnprob0
         logl = lnlike0
@@ -126,8 +127,7 @@ class AdaptivePTSampler(PTSampler):
                     (self.ntemps, self.nwalkers/2))
                 qslogps = np.array([r[1] for r in results]).reshape(
                     (self.ntemps, self.nwalkers/2))
-                qslnprob = qslogls * self.betas.reshape((self.ntemps, 1)) \
-                    + qslogps
+                qslnprob = qslogls * betas + qslogps
 
                 logpaccept = (self.dim-1)*np.log(zs) + qslnprob \
                     - lnprob[:, jupdate::2]
@@ -153,8 +153,8 @@ class AdaptivePTSampler(PTSampler):
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
-                self._evolve_ladder(int(i / self.evolution_time))
-                #pass
+                dbetas = self._evolve_ladder(int(i / self.evolution_time))
+                lnprob += dbetas.reshape((-1, 1)) * logl
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -166,6 +166,7 @@ class AdaptivePTSampler(PTSampler):
             yield p, lnprob, logl
 
     def _evolve_ladder(self, t):
+        betas = self.betas.copy()
         descending = self.betas[-1] == 1
         if descending:
             # Temperatures are descending, so reverse them.
@@ -173,7 +174,6 @@ class AdaptivePTSampler(PTSampler):
 
         lag = 500
         kappa = self.forcing_constant * lag / (t + lag)
-        betas = self.betas.copy()
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(self.betas))
@@ -190,7 +190,7 @@ class AdaptivePTSampler(PTSampler):
 
             # Drive chains 1 to N-2 toward even sapcing
             dlogbetas[1:-2] = kappa * (As[:-1] - As[1:])
-            #dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
+            dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
 
             # Require top two chains to achieve 100% acceptance with each other, but prevent them
             # from coalescing by driving upper chain faster.
@@ -202,8 +202,8 @@ class AdaptivePTSampler(PTSampler):
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative spacing is
         # replaced by zero, must compensate by increasing subsequent spacing in order to preserve
         # higher temperatures.
-        gaps = np.concatenate((-np.minimum(loggammas, 0)[:-1], [0]))
-        loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
+        gaps = np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
+        loggammas = np.maximum(loggammas, 0) - np.roll(gaps, 1)
         self.betas[1:] = np.exp(-np.cumsum(loggammas))
 
         # Un-reverse the ladder if need be.
@@ -217,6 +217,8 @@ class AdaptivePTSampler(PTSampler):
 
         self.nswap_between_old = self.nswap_between.copy()
         self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
+
+        return self.betas - betas
 
     def _update_chain(self, nsave):
         if self._chain is None:
