@@ -189,7 +189,7 @@ class AdaptivePTSampler(PTSampler):
             kappa = -kappa
 
             # Drive chains 1 to N-2 toward even sapcing
-            dlogbetas[1:-2] = kappa * (As[:-1] - As[1:])
+            dlogbetas[1:-2] = kappa * (As[:-2] - As[1:-1])
             dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
 
             # Require top two chains to achieve 100% acceptance with each other, but prevent them
