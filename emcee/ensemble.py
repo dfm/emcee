@@ -324,7 +324,7 @@ class EnsembleSampler(Sampler):
 
         # Generate the vectors of random numbers that will produce the
         # proposal.
-        zz = ((self.a - 1.) * self._random.rand(Ns) + 1) ** 2. / self.a
+        zz = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=Ns))
         rint = self._random.randint(Nc, size=(Ns,))
 
         # Calculate the proposed positions and the log-probability there.
@@ -332,7 +332,7 @@ class EnsembleSampler(Sampler):
         newlnprob, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
-        lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
+        lnpdiff = self.dim * np.log(zz) + newlnprob - lnprob0
         accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
 
         return q, newlnprob, accept, blob
