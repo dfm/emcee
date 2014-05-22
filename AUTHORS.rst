@@ -19,7 +19,7 @@ Direct contributions to the code base:
 - `Manodeep Sinha (Vanderbilt) <https://bitbucket.org/manodeep/>`_
 - `Marco Tazzari (ESO) <https://github.com/mtazzari>`_
 - `Simon Walker <https://github.com/mindriot101>`_
-- `Peter K. G. Williams (CfA) <https://github.com/pkgw>`
+- `Peter K. G. Williams (CfA) <https://github.com/pkgw>`_
 - `Joe Zuntz (Oxford) <https://github.com/joezuntz>`_
 
 Comments, corrections & suggestions:
