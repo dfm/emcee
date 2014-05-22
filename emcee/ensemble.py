@@ -104,7 +104,8 @@ class EnsembleSampler(Sampler):
                 "crazy!")
 
         if self.threads > 1 and self.pool is None:
-            self.pool = multiprocessing.Pool(self.threads)
+            from .interruptible_pool import InterruptiblePool
+            self.pool = InterruptiblePool(self.threads)
 
     def clear_blobs(self):
         """
