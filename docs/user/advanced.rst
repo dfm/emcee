@@ -110,6 +110,7 @@ function, we also change the output of :func:`EnsembleSampler.sample` and
 :func:`EnsembleSampler.run_mcmc` to return 4 values (position, probability,
 random number generator state and blobs) instead of just the first three.
 
+.. _mpi:
 
 Using MPI to distribute the computations
 ----------------------------------------

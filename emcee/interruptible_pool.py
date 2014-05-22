@@ -11,12 +11,14 @@ Python's multiprocessing.Pool class doesn't interact well with
 Various workarounds have been shared. Here, we adapt the one proposed in the
 last link above, by John Reese, and shared as
 
-  https://github.com/jreese/multiprocessing-keyboardinterrupt/
+* `<https://github.com/jreese/multiprocessing-keyboardinterrupt/>`_
 
 Our version is a drop-in replacement for multiprocessing.Pool ... as long as
 the map() method is the only one that needs to be interrupt-friendly.
 
 Contributed by Peter K. G. Williams <peter@newton.cx>.
+
+*Added in version 2.1.0*
 
 """
 
@@ -27,7 +29,8 @@ __all__ = ["InterruptiblePool"]
 
 import signal
 import functools
-from multiprocessing import Pool, TimeoutError
+from multiprocessing.pool import Pool
+from multiprocessing import TimeoutError
 
 
 def _initializer_wrapper(actual_initializer, *rest):
@@ -43,8 +46,9 @@ def _initializer_wrapper(actual_initializer, *rest):
 
 
 class InterruptiblePool(Pool):
-    """A modified version of :class:`multiprocessing.pool.Pool` that has better
-    behavior with regard to KeyboardInterrupts in the :func:`map` method.
+    """
+    A modified version of :class:`multiprocessing.pool.Pool` that has better
+    behavior with regard to ``KeyboardInterrupts`` in the :func:`map` method.
 
     :param processes: (optional)
         The number of worker processes to use; defaults to the number of CPUs.
