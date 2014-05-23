@@ -3,7 +3,7 @@ emcee
 
 **The Python ensemble sampling toolkit for affine-invariant MCMC**
 
-.. image:: https://secure.travis-ci.org/dfm/emcee.png?branch=master
+.. image:: https://secure.travis-ci.org/dfm/emcee.svg?branch=master
         :target: http://travis-ci.org/dfm/emcee
 .. image:: https://pypip.in/d/emcee/badge.png
         :target: https://pypi.python.org/pypi/emcee/
