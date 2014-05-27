@@ -34,7 +34,7 @@ class AdaptivePTSampler(PTSampler):
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-            thin=1, storechain=True, evolve_t=True):
+            thin=1, storechain=True, evolve_t=True, fix_tmax=False):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -153,7 +153,7 @@ class AdaptivePTSampler(PTSampler):
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
-                dbetas = self._evolve_ladder(int(i / self.evolution_time))
+                dbetas = self._evolve_ladder(int(i / self.evolution_time), fix_tmax=fix_tmax)
                 lnprob += dbetas.reshape((-1, 1)) * logl
 
             if (i + 1) % thin == 0:
@@ -165,7 +165,7 @@ class AdaptivePTSampler(PTSampler):
 
             yield p, lnprob, logl
 
-    def _evolve_ladder(self, t):
+    def _evolve_ladder(self, t, fix_tmax=False):
         betas = self.betas.copy()
         descending = self.betas[-1] == 1
         if descending:
@@ -184,17 +184,24 @@ class AdaptivePTSampler(PTSampler):
             As = np.concatenate(([self.target_acceptance], As))
             loggammas += kappa * (As[1:] - As[:-1])
         else:
-            # Allow the chains to equilibrate to even acceptance-spacing for all chains.
+            # Allow the chains to equilibrate to even acceptance-spacing for all chains. Work in
+            # log(beta) rather than log(gamma).
             dlogbetas = np.zeros(len(self.betas))
             kappa = -kappa
 
-            # Drive chains 1 to N-2 toward even sapcing
-            dlogbetas[1:-2] = kappa * (As[:-2] - As[1:-1])
-            #dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
+            if not fix_tmax:
+                #dlogbetas[1:-1] = kappa * (As[:-1] - As[1:])
+                #dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
 
-            # Require top two chains to achieve 100% acceptance with each other, but prevent them
-            # from coalescing by driving upper chain faster.
-            dlogbetas[-2:] = kappa * np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1])
+                # Drive chains 1 to N-2 toward even sapcing
+                dlogbetas[1:-2] = kappa * (As[:-2] - As[1:-1])
+
+                # Require top two chains to achieve 100% acceptance with each other, but prevent them
+                # from coalescing by driving upper chain faster.
+                dlogbetas[-2:] = kappa * np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1])
+            else:
+                # Drive all chains except the topmost (which is fixed).
+                dlogbetas[1:-1] = kappa * (As[:-1] - As[1:])
 
             # Compute new temperature spacings.
             loggammas += -np.diff(dlogbetas)
