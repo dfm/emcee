@@ -70,9 +70,14 @@ class AdaptivePTSampler(PTSampler):
         * ``lnlike`` the current likelihood values for the walkers.
 
         """
+
+        # Sanity-check temperature ladder if necessary.
+        if evolve_t and not np.all(np.diff(self.betas) < 0) and not np.all(np.diff(self.betas) > 0):
+            raise ValueError('Temperature ladder must be either ascending or descending.')
+
         p = np.copy(np.array(p0))
         mapf = map if self.pool is None else self.pool.map
-        betas = self.betas.reshape((-1, 1))
+        betas = self._betas.reshape((-1, 1))
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
@@ -90,6 +95,7 @@ class AdaptivePTSampler(PTSampler):
 
         lnprob = lnprob0
         logl = lnlike0
+        logp = logps
 
         # Expand the chain in advance of the iterations
         if storechain:
@@ -144,6 +150,8 @@ class AdaptivePTSampler(PTSampler):
                     qslnprob.reshape((-1,))[accepts]
                 logl[:, jupdate::2].reshape((-1,))[accepts] = \
                     qslogls.reshape((-1,))[accepts]
+                logp[:, jupdate::2].reshape((-1,))[accepts] = \
+                    qslogps.reshape((-1,))[accepts]
 
                 accepts = accepts.reshape((self.ntemps, self.nwalkers/2))
 
@@ -153,8 +161,25 @@ class AdaptivePTSampler(PTSampler):
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
-                dbetas = self._evolve_ladder(int(i / self.evolution_time), fix_tmax=fix_tmax)
+                t = int(i / self.evolution_time)
+                dbetas = self._evolve_ladder(t, fix_tmax)
+                self._betas += dbetas
+                betas = self.betas.reshape((-1, 1))
                 lnprob += dbetas.reshape((-1, 1)) * logl
+
+                # Store the new ladder for reference.
+                self._beta_history[:, t] = self.betas
+                if callable(self.ladder_callback):
+                    self.ladder_callback(self)
+
+                self.nswap_between_old = self.nswap_between.copy()
+                self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
+
+            # Check that posterior is correct.
+            values = lnprob - (betas * logl + logp)
+            condition = np.abs(values) < 1e-10
+            assert condition.all(), \
+                    'Posterior does not match likelihood and prior at step {:}: {:}'.format(i, values[np.logical_not(condition)])
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -165,18 +190,18 @@ class AdaptivePTSampler(PTSampler):
 
             yield p, lnprob, logl
 
-    def _evolve_ladder(self, t, fix_tmax=False):
-        betas = self.betas.copy()
-        descending = self.betas[-1] == 1
+    def _evolve_ladder(self, t, fix_tmax):
+        betas = self._betas.copy()
+        descending = betas[-1] > betas[0]
         if descending:
-            # Temperatures are descending, so reverse them.
-            self.betas = self.betas[::-1]
+            betas = betas[::-1]
+        betaMin = betas[-1]
 
         lag = 500
         kappa = self.forcing_constant * lag / (t + lag)
 
         As = self.tswap_acceptance_fraction_between_recent
-        loggammas = -np.diff(np.log(self.betas))
+        loggammas = -np.diff(np.log(betas))
         if self.target_acceptance != None:
             # Drive the chains to a specified acceptance ratio.
 
@@ -186,7 +211,7 @@ class AdaptivePTSampler(PTSampler):
         else:
             # Allow the chains to equilibrate to even acceptance-spacing for all chains. Work in
             # log(beta) rather than log(gamma).
-            dlogbetas = np.zeros(len(self.betas))
+            dlogbetas = np.zeros(len(betas))
             kappa = -kappa
 
             if not fix_tmax:
@@ -204,28 +229,26 @@ class AdaptivePTSampler(PTSampler):
                 dlogbetas[1:-1] = kappa * (As[:-1] - As[1:])
 
             # Compute new temperature spacings.
-            loggammas += -np.diff(dlogbetas)
+            loggammas -= np.diff(dlogbetas)
 
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative spacing is
         # replaced by zero, must compensate by increasing subsequent spacing in order to preserve
         # higher temperatures.
         gaps = np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
         loggammas = np.maximum(loggammas, 0) - np.roll(gaps, 1)
-        self.betas[1:] = np.exp(-np.cumsum(loggammas))
+
+        # Finally, update the ladder.
+        betas[1:] = np.exp(-np.cumsum(loggammas))
+        if fix_tmax:
+            # Clip ladder at max temperature.
+            betas = np.maximum(betas, betaMin)
 
         # Un-reverse the ladder if need be.
         if descending:
-            self.betas = self.betas[::-1]
+            betas = betas[::-1]
 
-        # Store the ladder for reference.
-        self._beta_history[:, t] = self.betas
-        if callable(self.ladder_callback):
-            self.ladder_callback(self)
-
-        self.nswap_between_old = self.nswap_between.copy()
-        self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
-
-        return self.betas - betas
+        # Let the client update the ladder.
+        return betas - self._betas
 
     def _update_chain(self, nsave):
         if self._chain is None:
