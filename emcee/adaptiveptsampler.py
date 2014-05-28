@@ -230,7 +230,7 @@ class AdaptivePTSampler(PTSampler):
 
                 # Require top two chains to achieve 100% acceptance with each other, but prevent them
                 # from coalescing by driving upper chain faster.
-                dlogbetas[-2:] = np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1]) - np.array([0, 0.1])
+                dlogbetas[-2:] = (np.abs(1 - np.repeat(As[-1], 2)) - 0.05) * np.array([0.5, 1])
             else:
                 # Drive all chains except the topmost (which is fixed).
                 dlogbetas[1:-1] = As[:-1] - As[1:]
