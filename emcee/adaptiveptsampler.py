@@ -198,10 +198,17 @@ class AdaptivePTSampler(PTSampler):
         betaMin = betas[-1]
 
         lag = 500
-        kappa = self.forcing_constant * lag / (t + lag)
+        a = 0.75
+        #kappa = self.forcing_constant * lag / (t + lag)
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(betas))
+
+        # Ignore two largest spacings (these can be arbitrarily large for chains that have diverged
+        # toward sampling the prior).
+        kappa = a * np.sort(loggammas)[:-2].mean()
+        kappa *= lag / (t + lag)
+
         if self.target_acceptance != None:
             # Drive the chains to a specified acceptance ratio.
 
@@ -215,18 +222,20 @@ class AdaptivePTSampler(PTSampler):
             kappa = -kappa
 
             if not fix_tmax:
-                #dlogbetas[1:-1] = kappa * (As[:-1] - As[1:])
-                #dlogbetas[-1] = kappa * (abs(As[-1] - As[-2]) - 0.1)
+                #dlogbetas[1:-1] = As[:-1] - As[1:]
+                #dlogbetas[-1] = abs(As[-1] - As[-2]) - 0.1
 
                 # Drive chains 1 to N-2 toward even sapcing
-                dlogbetas[1:-2] = kappa * (As[:-2] - As[1:-1])
+                dlogbetas[1:-2] = As[:-2] - As[1:-1]
 
                 # Require top two chains to achieve 100% acceptance with each other, but prevent them
                 # from coalescing by driving upper chain faster.
-                dlogbetas[-2:] = kappa * np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1])
+                dlogbetas[-2:] = np.abs(1 - np.repeat(As[-1], 2)) * np.array([0.5, 1]) - np.array([0, 0.1])
             else:
                 # Drive all chains except the topmost (which is fixed).
-                dlogbetas[1:-1] = kappa * (As[:-1] - As[1:])
+                dlogbetas[1:-1] = As[:-1] - As[1:]
+
+            dlogbetas *= kappa
 
             # Compute new temperature spacings.
             loggammas -= np.diff(dlogbetas)
