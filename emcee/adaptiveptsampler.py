@@ -199,6 +199,7 @@ class AdaptivePTSampler(PTSampler):
 
         lag = 500
         a = 0.75
+        A0 = 0.99
         #kappa = self.forcing_constant * lag / (t + lag)
 
         As = self.tswap_acceptance_fraction_between_recent
@@ -222,15 +223,12 @@ class AdaptivePTSampler(PTSampler):
             kappa = -kappa
 
             if not fix_tmax:
-                #dlogbetas[1:-1] = As[:-1] - As[1:]
-                #dlogbetas[-1] = abs(As[-1] - As[-2]) - 0.1
-
                 # Drive chains 1 to N-2 toward even sapcing
                 dlogbetas[1:-2] = As[:-2] - As[1:-1]
 
-                # Require top two chains to achieve 100% acceptance with each other, but prevent them
-                # from coalescing by driving upper chain faster.
-                dlogbetas[-2:] = (np.abs(1 - np.repeat(As[-1], 2)) - 0.05) * np.array([0.5, 1])
+                # Topmost two chains are "pinned" to each other. Drive them upward until they reach
+                # nearly 100% acceptance.
+                dlogbetas[-2:] = np.repeat(A0 - As[-1], 2)
             else:
                 # Drive all chains except the topmost (which is fixed).
                 dlogbetas[1:-1] = As[:-1] - As[1:]
@@ -242,9 +240,10 @@ class AdaptivePTSampler(PTSampler):
 
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative spacing is
         # replaced by zero, must compensate by increasing subsequent spacing in order to preserve
-        # higher temperatures.
-        gaps = np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
-        loggammas = np.maximum(loggammas, 0) - np.roll(gaps, 1)
+        # higher temperatures. Top two chains are exempt from spacing preservation, since their
+        # spacing is fixed by construction.
+        gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
+        loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
 
         # Finally, update the ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
