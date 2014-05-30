@@ -20,16 +20,16 @@ f_true = 0.534
 
 # Generate some synthetic data from the model.
 N = 50
-x = np.sort(10*np.random.rand(N))
-yerr = 0.1+0.5*np.random.rand(N)
-y = m_true*x+b_true
-y += np.abs(f_true*y) * np.random.randn(N)
+x = np.sort(10 * np.random.rand(N))
+yerr = 0.1 + 0.5 * np.random.rand(N)
+y = m_true * x + b_true
+y += np.abs(f_true * y) * np.random.randn(N)
 y += yerr * np.random.randn(N)
 
 # Plot the dataset and the true model.
 xl = np.array([0, 10])
 pl.errorbar(x, y, yerr=yerr, fmt=".k")
-pl.plot(xl, m_true*xl+b_true, "k", lw=3, alpha=0.6)
+pl.plot(xl, m_true * xl + b_true, "k", lw=3, alpha=0.6)
 pl.ylim(-9, 9)
 pl.xlabel("$x$")
 pl.ylabel("$y$")
@@ -47,8 +47,9 @@ print("""Least-squares results:
 """.format(m_ls, np.sqrt(cov[1, 1]), m_true, b_ls, np.sqrt(cov[0, 0]), b_true))
 
 # Plot the least-squares result.
-pl.plot(xl, m_ls*xl+b_ls, "--k")
+pl.plot(xl, m_ls * xl + b_ls, "--k")
 pl.savefig("line-least-squares.png")
+
 
 # Define the probability function as likelihood * prior.
 def lnprior(theta):
@@ -57,11 +58,13 @@ def lnprior(theta):
         return 0.0
     return -np.inf
 
+
 def lnlike(theta, x, y, yerr):
     m, b, lnf = theta
     model = m * x + b
-    inv_sigma2 = 1.0/(yerr**2 + model**2*np.exp(2*lnf))
-    return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
+    inv_sigma2 = 1.0 / (yerr ** 2 + model ** 2 * np.exp(2 * lnf))
+    return -0.5 * (np.sum((y - model) ** 2 * inv_sigma2 - np.log(inv_sigma2)))
+
 
 def lnprob(theta, x, y, yerr):
     lp = lnprior(theta)
@@ -80,12 +83,12 @@ print("""Maximum likelihood result:
 """.format(m_ml, m_true, b_ml, b_true, np.exp(lnf_ml), f_true))
 
 # Plot the maximum likelihood result.
-pl.plot(xl, m_ml*xl+b_ml, "k", lw=2)
+pl.plot(xl, m_ml * xl + b_ml, "k", lw=2)
 pl.savefig("line-max-likelihood.png")
 
 # Set up the sampler.
 ndim, nwalkers = 3, 100
-pos = [result["x"] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+pos = [result["x"] + 1e-4 * np.random.randn(ndim) for i in range(nwalkers)]
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
 
 # Clear and run the production chain.
@@ -125,8 +128,8 @@ fig.savefig("line-triangle.png")
 # Plot some samples onto the data.
 pl.figure()
 for m, b, lnf in samples[np.random.randint(len(samples), size=100)]:
-    pl.plot(xl, m*xl+b, color="k", alpha=0.1)
-pl.plot(xl, m_true*xl+b_true, color="r", lw=2, alpha=0.8)
+    pl.plot(xl, m * xl + b, color="k", alpha=0.1)
+pl.plot(xl, m_true * xl + b_true, color="r", lw=2, alpha=0.8)
 pl.errorbar(x, y, yerr=yerr, fmt=".k")
 pl.ylim(-9, 9)
 pl.xlabel("$x$")
@@ -136,7 +139,7 @@ pl.savefig("line-mcmc.png")
 
 # Compute the quantiles.
 samples[:, 2] = np.exp(samples[:, 2])
-m_mcmc, b_mcmc, f_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+m_mcmc, b_mcmc, f_mcmc = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]),
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
 print("""MCMC result:

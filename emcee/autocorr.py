@@ -32,14 +32,14 @@ def function(x, axis=0, fast=False):
     # For computational efficiency, crop the chain to the largest power of
     # two if requested.
     if fast:
-        n = int(2**np.floor(np.log2(x.shape[axis])))
+        n = int(2 ** np.floor(np.log2(x.shape[axis])))
         m[axis] = slice(0, n)
         x = x
     else:
         n = x.shape[axis]
 
     # Compute the FFT and then (from that) the auto-correlation function.
-    f = np.fft.fft(x-np.mean(x, axis=axis), n=2*n, axis=axis)
+    f = np.fft.fft(x - np.mean(x, axis=axis), n=2 * n, axis=axis)
     m[axis] = slice(0, n)
     acf = np.fft.ifft(f * np.conjugate(f), axis=axis)[m].real
     m[axis] = 0
@@ -74,12 +74,12 @@ def integrated_time(x, axis=0, window=50, fast=False):
 
     # Special case 1D for simplicity.
     if len(f.shape) == 1:
-        return 1 + 2*np.sum(f[1:window])
+        return 1 + 2 * np.sum(f[1:window])
 
     # N-dimensional case.
     m = [slice(None), ] * len(f.shape)
     m[axis] = slice(1, window)
-    tau = 1 + 2*np.sum(f[m], axis=axis)
+    tau = 1 + 2 * np.sum(f[m], axis=axis)
 
     return tau
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     x = np.empty((N, d))
     x[0] = np.zeros(d)
     for i in xrange(1, N):
-        x[i] = x[i-1] * a + np.random.rand(d)
+        x[i] = x[i - 1] * a + np.random.rand(d)
 
     strt = time.time()
     print(integrated_time(x))

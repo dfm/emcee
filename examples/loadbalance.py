@@ -37,7 +37,7 @@ def lnprob(x):
     if x[0] >= 0.0:
         time.sleep(x[0])
 
-    return -0.5*x[0]*x[0]
+    return -0.5 * x[0] * x[0]
 
 
 # The typical run-time for the application
@@ -63,7 +63,7 @@ f.write("#######################################################################
 for mean_time in mean_times:
     for variance_fac in xrange(len(variances)):
         first = 0
-        variance = variances[variance_fac]*mean_time
+        variance = variances[variance_fac] * mean_time
         for loadbalance in loadbalancing_options:
             for runtime_sorting_option in runtime_sorting_options:
 
@@ -100,24 +100,24 @@ for mean_time in mean_times:
                 first = 1
                 t0 = time.time()
                 cumulative_time = 0.0
-                ideal_time = pos[pos > 0].sum()/(pool.comm.Get_size()-1)
-                for iternum, (pos, prob, rstate) in enumerate(sampler.sample(pos,prob,rstate,iterations=niters,storechain=False)):
+                ideal_time = pos[pos > 0].sum() / (pool.comm.Get_size() - 1)
+                for iternum, (pos, prob, rstate) in enumerate(sampler.sample(pos, prob, rstate, iterations=niters, storechain=False)):
                     t1 = time.time()
-                    print("Done with iteration {0:2d}. time = {1:8.3f} seconds. perfect scaling  = {2:8.3f} ".format(iternum, t1-t0, ideal_time))
+                    print("Done with iteration {0:2d}. time = {1:8.3f} seconds. perfect scaling  = {2:8.3f} ".format(iternum, t1 - t0, ideal_time))
 
                     if runtime_sorting_option is None:
                         integer_runtime_sort = 0
                     else:
                         integer_runtime_sort = 1
-                    f.write(" {0:11b}  {1:14d}       {2:9d}       {3:9.1f}      {4:8.2f}      {5:6.2f}       {6:6.2f}\n".format(loadbalance, integer_runtime_sort, iternum+1, mean_time, variance, ideal_time, t1-t0))
+                    f.write(" {0:11b}  {1:14d}       {2:9d}       {3:9.1f}      {4:8.2f}      {5:6.2f}       {6:6.2f}\n".format(loadbalance, integer_runtime_sort, iternum + 1, mean_time, variance, ideal_time, t1 - t0))
                     f.flush()
-                    cumulative_time = cumulative_time + t1-t0
+                    cumulative_time = cumulative_time + t1 - t0
                     t0 = t1
                     # This is how long the next iteration should take.
-                    ideal_time = pos[pos > 0].sum()/(pool.comm.Get_size()-1)
+                    ideal_time = pos[pos > 0].sum() / (pool.comm.Get_size() - 1)
 
                 t1 = time.time()
-                print("Loadbalancing = {0}, time variance = {1}. Total Time taken = {2:0.2f} seconds (avg = {3:0.3f})".format(loadbalance, variance, cumulative_time, cumulative_time/niters))
+                print("Loadbalancing = {0}, time variance = {1}. Total Time taken = {2:0.2f} seconds (avg = {3:0.3f})".format(loadbalance, variance, cumulative_time, cumulative_time / niters))
 
         f.write("\n")
 

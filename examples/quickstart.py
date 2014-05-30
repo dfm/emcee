@@ -8,20 +8,21 @@ from __future__ import print_function
 import numpy as np
 import emcee
 
+
 # First, define the probability distribution that you would like to sample.
 def lnprob(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0
+    diff = x - mu
+    return -np.dot(diff, np.dot(icov, diff)) / 2.0
 
 # We'll sample a 50-dimensional Gaussian...
 ndim = 50
 # ...with randomly chosen mean position...
 means = np.random.rand(ndim)
 # ...and a positive definite, non-trivial covariance matrix.
-cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov  = np.triu(cov)
+cov = 0.5 - np.random.rand(ndim ** 2).reshape((ndim, ndim))
+cov = np.triu(cov)
 cov += cov.T - np.diag(cov.diagonal())
-cov  = np.dot(cov,cov)
+cov = np.dot(cov, cov)
 
 # Invert the covariance matrix first.
 icov = np.linalg.inv(cov)
@@ -61,5 +62,5 @@ try:
 except ImportError:
     print("Try installing matplotlib to generate some sweet plots...")
 else:
-    pl.hist(sampler.flatchain[:,0], 100)
+    pl.hist(sampler.flatchain[:, 0], 100)
     pl.show()
