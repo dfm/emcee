@@ -191,7 +191,7 @@ class MPIPool(object):
             # Perform load-balancing. The order of the results are likely to
             # be different from the previous case.
             for i, task in enumerate(tasks[0:self.size]):
-                worker = i+1
+                worker = i + 1
                 if self.debug:
                     print("Sent task {0} to worker {1} with tag {2}."
                           .format(task, worker, i))
@@ -199,7 +199,7 @@ class MPIPool(object):
                 self.comm.isend(task, dest=worker, tag=i)
 
             ntasks_dispatched = self.size
-            results = [None]*ntask
+            results = [None] * ntask
             for itask in range(ntask):
                 status = MPI.Status()
                 # Receive input from workers.

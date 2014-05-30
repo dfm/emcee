@@ -16,18 +16,18 @@ import emcee
 # Define the posterior density to be sampled:
 class Eggbox(object):
     def __init__(self):
-        self.tmax = 10.0*np.pi
-        self.constant = np.log(1.0/(self.tmax*self.tmax))
+        self.tmax = 10.0 * np.pi
+        self.constant = np.log(1.0 / (self.tmax * self.tmax))
 
-    def logprior(self,t):
+    def logprior(self, t):
         if (t[0] > self.tmax or t[0] < -self.tmax or \
             t[1] > self.tmax or t[1] < -self.tmax):
-          return -np.inf
+            return -np.inf
         else:
-          return self.constant
+            return self.constant
 
-    def loglhood(self,t):
-        return (2.0 + np.cos(t[0]/2.0)*np.cos(t[1]/2.0))**5.0
+    def loglhood(self, t):
+        return (2.0 + np.cos(t[0] / 2.0) * np.cos(t[1] / 2.0)) ** 5.0
 
     def __call__(self, t):
         return self.logprior(t) + self.loglhood(t)
@@ -40,8 +40,8 @@ nwalkers = 500
 # Make an initial guess for the positions - uniformly
 # distributed between +/- 10pi:
 
-p0 = 10.0*np.pi*(2.0*np.random.rand(nwalkers*2)-1.0)
-p0 = p0.reshape(nwalkers,2)
+p0 = 10.0 * np.pi * (2.0 * np.random.rand(nwalkers * 2) - 1.0)
+p0 = p0.reshape(nwalkers, 2)
 
 # Instantiate the class
 logposterior = Eggbox()
@@ -79,8 +79,8 @@ else:
     pl.xlabel("time")
     pl.savefig("eggbox_time.png")
 
-    pl.figure(figsize=(8,8))
-    x, y = sampler.flatchain[:,0], sampler.flatchain[:,1]
+    pl.figure(figsize=(8, 8))
+    x, y = sampler.flatchain[:, 0], sampler.flatchain[:, 1]
     pl.plot(x, y, "ok", ms=1, alpha=0.1)
     pl.savefig("eggbox_2d.png")
 
@@ -88,8 +88,8 @@ else:
     ax = fig.add_subplot(111, projection="3d")
 
     for k in range(nwalkers):
-        x, y = sampler.chain[k,:,0], sampler.chain[k,:,1]
-        z = sampler.lnprobability[k,:]
+        x, y = sampler.chain[k, :, 0], sampler.chain[k, :,1]
+        z = sampler.lnprobability[k, :]
         ax.scatter(x, y, z, marker="o", c="k", alpha=0.5, s=10)
     pl.savefig("eggbox_3d.png")
 
