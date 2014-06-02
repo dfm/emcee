@@ -226,9 +226,13 @@ class AdaptivePTSampler(PTSampler):
                 # Drive chains 1 to N-2 toward even sapcing
                 dlogbetas[1:-2] = As[:-2] - As[1:-1]
 
-                # Topmost two chains are "pinned" to each other. Drive them upward until they reach
-                # nearly 100% acceptance.
-                dlogbetas[-2:] = np.repeat(A0 - As[-1], 2)
+                ## Topmost two chains are "pinned" to each other. Drive them upward until they reach
+                ## nearly 100% acceptance.
+                #dlogbetas[-2:] = np.repeat(A0 - As[-1], 2)
+
+                # Drive second-topmost chain until it reaches specified acceptance with topmost
+                # chain. Topmost chain is dealt with later.
+                dlogbetas[-2] = A0 - As[-1]
             else:
                 # Drive all chains except the topmost (which is fixed).
                 dlogbetas[1:-1] = As[:-1] - As[1:]
@@ -244,6 +248,11 @@ class AdaptivePTSampler(PTSampler):
         # spacing is fixed by construction.
         gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
         loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
+
+        if not fix_tmax:
+            # Now fix the top spacing at much more than whatever the next one down is, to ensure
+            # good prior sampling.
+            loggammas[-1] = np.log(1e2) + loggammas[-2]
 
         # Finally, update the ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
