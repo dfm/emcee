@@ -17,12 +17,11 @@ from .ptsampler import PTSampler
 from .ptsampler import PTLikePrior
 
 class AdaptivePTSampler(PTSampler):
-    def __init__(self, *args, ladder_callback=None, evolution_time=100, forcing_constant=20, target_acceptance=0.25, **kwargs):
+    def __init__(self, *args, ladder_callback=None, evolution_time=100, target_acceptance=0.25, **kwargs):
         super(AdaptivePTSampler, self).__init__(*args, **kwargs)
 
         self.ladder_callback = ladder_callback
         self.evolution_time = evolution_time
-        self.forcing_constant = forcing_constant
         self.target_acceptance = target_acceptance
         self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
@@ -34,7 +33,7 @@ class AdaptivePTSampler(PTSampler):
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-            thin=1, storechain=True, evolve_t=True, fix_tmax=False):
+            thin=1, storechain=True, evolve_t=True):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -162,7 +161,7 @@ class AdaptivePTSampler(PTSampler):
 
             if evolve_t and (i + 1) % self.evolution_time == 0:
                 t = int(i / self.evolution_time)
-                dbetas = self._evolve_ladder(t, fix_tmax)
+                dbetas = self._evolve_ladder(t)
                 self._betas += dbetas
                 betas = self.betas.reshape((-1, 1))
                 lnprob += dbetas.reshape((-1, 1)) * logl
@@ -190,7 +189,7 @@ class AdaptivePTSampler(PTSampler):
 
             yield p, lnprob, logl
 
-    def _evolve_ladder(self, t, fix_tmax):
+    def _evolve_ladder(self, t):
         betas = self._betas.copy()
         descending = betas[-1] > betas[0]
         if descending:
@@ -200,7 +199,6 @@ class AdaptivePTSampler(PTSampler):
         lag = 500
         a = 0.75
         A0 = 0.99
-        #kappa = self.forcing_constant * lag / (t + lag)
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(betas))
@@ -220,24 +218,13 @@ class AdaptivePTSampler(PTSampler):
             # Allow the chains to equilibrate to even acceptance-spacing for all chains. Work in
             # log(beta) rather than log(gamma).
             dlogbetas = np.zeros(len(betas))
-            kappa = -kappa
 
-            if not fix_tmax:
-                # Drive chains 1 to N-2 toward even sapcing
-                dlogbetas[1:-2] = As[:-2] - As[1:-1]
+            # Drive chains 1 to N-2 toward even sapcing
+            dlogbetas[1:-2] = -kappa * (As[:-2] - As[1:-1])
 
-                ## Topmost two chains are "pinned" to each other. Drive them upward until they reach
-                ## nearly 100% acceptance.
-                #dlogbetas[-2:] = np.repeat(A0 - As[-1], 2)
-
-                # Drive second-topmost chain until it reaches specified acceptance with topmost
-                # chain. Topmost chain is dealt with later.
-                dlogbetas[-2] = A0 - As[-1]
-            else:
-                # Drive all chains except the topmost (which is fixed).
-                dlogbetas[1:-1] = As[:-1] - As[1:]
-
-            dlogbetas *= kappa
+            # Drive second-topmost chain until it reaches specified acceptance with topmost
+            # chain. Topmost chain is dealt with later.
+            dlogbetas[-2] = -kappa * (A0 - As[-1])
 
             # Compute new temperature spacings.
             loggammas -= np.diff(dlogbetas)
@@ -249,16 +236,12 @@ class AdaptivePTSampler(PTSampler):
         gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
         loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
 
-        if not fix_tmax:
-            # Now fix the top spacing at much more than whatever the next one down is, to ensure
-            # good prior sampling.
-            loggammas[-1] = np.log(1e2) + loggammas[-2]
+        # Now fix the top spacing at much more than whatever the next one down is, to ensure
+        # good prior sampling.
+        loggammas[-1] = np.log(1e2) + loggammas[-2]
 
         # Finally, update the ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
-        if fix_tmax:
-            # Clip ladder at max temperature.
-            betas = np.maximum(betas, betaMin)
 
         # Un-reverse the ladder if need be.
         if descending:
