@@ -70,7 +70,7 @@ class AdaptivePTSampler(PTSampler):
 
         """
 
-        # Sanity-check temperature ladder if necessary.
+        # Check temperature ladder for (in)sanity.
         if evolve_t and not np.all(np.diff(self.betas) < 0) and not np.all(np.diff(self.betas) > 0):
             raise ValueError('Temperature ladder must be either ascending or descending.')
 
@@ -199,6 +199,7 @@ class AdaptivePTSampler(PTSampler):
         lag = 500
         a = 0.75
         A0 = 0.99
+        sigma = 1e2
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(betas))
@@ -238,16 +239,16 @@ class AdaptivePTSampler(PTSampler):
 
         # Now fix the top spacing at much more than whatever the next one down is, to ensure
         # good prior sampling.
-        loggammas[-1] = np.log(1e2) + loggammas[-2]
+        loggammas[-1] = np.log(sigma) + loggammas[-2]
 
-        # Finally, update the ladder.
+        # Finally, compute the new ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
 
         # Un-reverse the ladder if need be.
         if descending:
             betas = betas[::-1]
 
-        # Let the client update the ladder.
+        # Don't mutate the ladder here; let the client code do that.
         return betas - self._betas
 
     def _update_chain(self, nsave):
@@ -287,4 +288,3 @@ class AdaptivePTSampler(PTSampler):
         """
         return (self.nswap_between_accepted - self.nswap_between_old_accepted) /\
                (self.nswap_between - self.nswap_between_old)
-
