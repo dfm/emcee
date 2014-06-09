@@ -197,8 +197,7 @@ class AdaptivePTSampler(PTSampler):
         betaMin = betas[-1]
 
         lag = 500
-        a = 0.75
-        A0 = 0.99
+        a = 0.45
         sigma = 1e2
 
         As = self.tswap_acceptance_fraction_between_recent
@@ -206,34 +205,49 @@ class AdaptivePTSampler(PTSampler):
 
         # Ignore two largest spacings (these can be arbitrarily large for chains that have diverged
         # toward sampling the prior).
-        kappa = a * np.sort(loggammas)[:-2].mean()
-        kappa *= lag / (t + lag)
+        kappa0 = a * lag / (t + lag)
 
+        kappa = np.zeros(len(betas))
+        dlogbetas = np.zeros(len(betas))
+        top = len(betas) - 1
         if self.target_acceptance != None:
             # Drive the chains to a specified acceptance ratio.
+            A0 = self.target_acceptance
 
             # Compute new temperature spacings from acceptance spacings.
-            As = np.concatenate(([self.target_acceptance], As))
-            loggammas += kappa * (As[1:] - As[:-1])
-        else:
-            # Allow the chains to equilibrate to even acceptance-spacing for all chains. Work in
-            # log(beta) rather than log(gamma).
-            dlogbetas = np.zeros(len(betas))
+            As = np.concatenate(([ A0 ], As))
+            dlogbetas = -(As - A0)
 
-            # Drive chains 1 to N-2 toward even sapcing
-            dlogbetas[1:-2] = -kappa * (As[:-2] - As[1:-1])
+            # Topmost chain shouldn't change by more than the gap between it and the next lowest.
+            kappa[-1] = loggammas[-1]
+        else:
+            # Allow the chains to equilibrate to even acceptance-spacing for all chains. Topmost
+            # chains aim for this acceptance ratio:
+            A0 = 0.99
+            top -= 1
+
+            # Drive chains 1 to N-2 toward even spacing.
+            dlogbetas[1:-2] = -(As[:-2] - As[1:-1])
 
             # Drive second-topmost chain until it reaches specified acceptance with topmost
             # chain. Topmost chain is dealt with later.
-            dlogbetas[-2] = -kappa * (A0 - As[-1])
+            kappa[-2] = loggammas[-2]
+            dlogbetas[-2] = -(A0 - As[-1])
 
-            # Compute new temperature spacings.
-            loggammas -= np.diff(dlogbetas)
+        # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to the size of
+        # the gap in the direction in which the chain is moving (to avoid the chains bouncing off
+        # each other).
+        kappa[1:top - 1] = np.select([ dlogbetas < 0, dlogbetas > 0 ], [ loggammas[:top - 1], loggammas[1:top] ])
+        kappa *= kappa0
 
-        # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative spacing is
-        # replaced by zero, must compensate by increasing subsequent spacing in order to preserve
-        # higher temperatures. Top two chains are exempt from spacing preservation, since their
-        # spacing is fixed by construction.
+        # Compute new temperature spacings.
+        dlogbetas *= kappa
+        loggammas -= np.diff(dlogbetas)
+
+        # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
+        # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
+        # preserve higher temperatures. Top two chains are exempt from spacing preservation, since
+        # their spacing is fixed by construction.
         gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
         loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
 
