@@ -248,14 +248,19 @@ class AdaptivePTSampler(PTSampler):
 
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
         # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
-        # preserve higher temperatures. Top two chains are exempt from spacing preservation, since
-        # their spacing is fixed by construction.
-        gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
+        # preserve higher temperatures.
+        if self.target_acceptance == None:
+            # Top two chains are exempt from spacing preservation, since their spacing is fixed by
+            # construction.
+            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
+        else:
+            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
         loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
 
-        # Now fix the top spacing at much more than whatever the next one down is, to ensure
-        # good prior sampling.
-        loggammas[-1] = np.log(sigma) + loggammas[-2]
+        if self.target_acceptance == None:
+            # Now fix the top spacing at much more than whatever the next one down is, to ensure
+            # good prior sampling.
+            loggammas[-1] = np.log(sigma) + loggammas[-2]
 
         # Finally, compute the new ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
