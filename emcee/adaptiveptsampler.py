@@ -194,22 +194,21 @@ class AdaptivePTSampler(PTSampler):
         descending = betas[-1] > betas[0]
         if descending:
             betas = betas[::-1]
-        betaMin = betas[-1]
 
         lag = 500
-        a = 0.45
         sigma = 1e2
+
+        # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
+        # avoid collisions).
+        a = 0.45
+        kappa0 = a * lag / (t + lag)
 
         As = self.tswap_acceptance_fraction_between_recent
         loggammas = -np.diff(np.log(betas))
 
-        # Ignore two largest spacings (these can be arbitrarily large for chains that have diverged
-        # toward sampling the prior).
-        kappa0 = a * lag / (t + lag)
-
         kappa = np.zeros(len(betas))
         dlogbetas = np.zeros(len(betas))
-        top = len(betas) - 1
+        top = len(betas) - 2 # The index of the topmost chain subject to the "normal" dynamics.
         if self.target_acceptance != None:
             # Drive the chains to a specified acceptance ratio.
             A0 = self.target_acceptance
@@ -234,13 +233,16 @@ class AdaptivePTSampler(PTSampler):
             kappa[-2] = loggammas[-2]
             dlogbetas[-2] = -(A0 - As[-1])
 
-        # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to the size of
-        # the gap in the direction in which the chain is moving (to avoid the chains bouncing off
-        # each other).
-        kappa[1:top - 1] = np.select([ dlogbetas < 0, dlogbetas > 0 ], [ loggammas[:top - 1], loggammas[1:top] ])
+        # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
+        # the size of the gap in the direction in which the chain is moving (to avoid the chains
+        # bouncing off each other). If log(beta) is decreasing, chain is ascending, so use gap with
+        # next-highest chain (and vice versa).
+        kappa[1:top + 1] = np.select([ -dlogbetas[1:top + 1] < 0, -dlogbetas[1:top + 1] > 0 ],
+                                     [ loggammas[:top], loggammas[1:top + 1] ])
         kappa *= kappa0
 
         # Compute new temperature spacings.
+        self.kappa = kappa
         dlogbetas *= kappa
         loggammas -= np.diff(dlogbetas)
 
