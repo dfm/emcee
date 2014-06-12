@@ -16,6 +16,12 @@ from .sampler import Sampler
 from .ptsampler import PTSampler
 from .ptsampler import PTLikePrior
 
+class AdaptivePTState:
+    def __init__(self, time, p, betas):
+        self.time = time
+        self.p = p
+        self.betas = betas
+
 class AdaptivePTSampler(PTSampler):
     def __init__(self, *args, ladder_callback=None, evolution_time=100, target_acceptance=0.25, **kwargs):
         super(AdaptivePTSampler, self).__init__(*args, **kwargs)
@@ -31,6 +37,13 @@ class AdaptivePTSampler(PTSampler):
 
         self.nswap_pairs_old = np.zeros(self.ntemps - 1, dtype=np.float)
         self.nswap_pairs_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+
+    def serialize(self):
+        """
+        Serializes the current sampler object to a string.
+
+        """
+        return AdaptivePTState()
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
             thin=1, storechain=True, evolve_t=True, t0=0):
