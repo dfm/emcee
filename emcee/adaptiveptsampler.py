@@ -23,14 +23,14 @@ class AdaptivePTSampler(PTSampler):
         self.ladder_callback = ladder_callback
         self.evolution_time = evolution_time
         self.target_acceptance = target_acceptance
-        self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_pairs_old = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_pairs_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def reset(self):
         super(AdaptivePTSampler, self).reset()
 
-        self.nswap_between_old = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_pairs_old = np.zeros(self.ntemps - 1, dtype=np.float)
+        self.nswap_pairs_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
             thin=1, storechain=True, evolve_t=True, t0=0):
@@ -169,17 +169,18 @@ class AdaptivePTSampler(PTSampler):
             t = i + t0
             if evolve_t and (t + 1) % self.evolution_time == 0:
                 dbetas = self._evolve_ladder(t)
-                self._betas += dbetas
-                betas = self.betas.reshape((-1, 1))
-                lnprob += dbetas.reshape((-1, 1)) * logl
+                if dbetas != None:
+                    self._betas += dbetas
+                    betas = self.betas.reshape((-1, 1))
+                    lnprob += dbetas.reshape((-1, 1)) * logl
 
-                # Store the new ladder for reference.
-                self._beta_history[:, t] = self.betas
-                if callable(self.ladder_callback):
-                    self.ladder_callback(self)
+                    # Store the new ladder for reference.
+                    self._beta_history[:, t] = self.betas
+                    if callable(self.ladder_callback):
+                        self.ladder_callback(self)
 
-                self.nswap_between_old = self.nswap_between.copy()
-                self.nswap_between_old_accepted = self.nswap_between_accepted.copy()
+                self.nswap_pairs_old = self.nswap_pairs.copy()
+                self.nswap_pairs_old_accepted = self.nswap_pairs_accepted.copy()
 
             # Check that posterior is correct.
             values = lnprob - (betas * logl + logp)
@@ -210,7 +211,10 @@ class AdaptivePTSampler(PTSampler):
         a = 0.45
         kappa0 = a * lag / (t + lag)
 
-        As = self.tswap_acceptance_fraction_between_recent
+        if np.any(self.nswap_pairs - self.nswap_pairs_old < self.evolution_time):
+            # Not enough swaps accumulated; abort.
+            return None
+        As = self.tswap_acceptance_fraction_pairs_recent
         loggammas = -np.diff(np.log(betas))
 
         kappa = np.zeros(len(betas))
@@ -308,11 +312,13 @@ class AdaptivePTSampler(PTSampler):
         return isave
 
     @property
-    def tswap_acceptance_fraction_between_recent(self):
+    def tswap_acceptance_fraction_pairs_recent(self):
         """
         Returns an array of recently accepted temperature swap fractions for
-        each pair of temperatures; shape ``(ntemps, )``.
+        each pair of temperatures; shape ``(ntemps - 1, )``. If no swaps have
+        been accumulated in at least one chain, returns ``None``.
 
         """
-        return (self.nswap_between_accepted - self.nswap_between_old_accepted) /\
-               (self.nswap_between - self.nswap_between_old)
+        accepted = self.nswap_pairs_accepted - self.nswap_pairs_old_accepted
+        swaps =  self.nswap_pairs - self.nswap_pairs_old
+        return accepted / swaps if np.all(swaps > 0) else None
