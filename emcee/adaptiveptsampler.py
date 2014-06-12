@@ -33,7 +33,7 @@ class AdaptivePTSampler(PTSampler):
         self.nswap_between_old_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
 
     def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-            thin=1, storechain=True, evolve_t=True):
+            thin=1, storechain=True, evolve_t=True, t0=0):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -59,6 +59,13 @@ class AdaptivePTSampler(PTSampler):
         :param storechain: (optional)
             If ``True`` store the iterations in the ``chain``
             property.
+
+        :param evolve_t: (optional)
+            If ``True``, optimise the temperature ladder over time.
+
+        :param t0: (optional)
+            A value with which to initialise the iteration counter;
+            only necessary if continuing an old run and evolve_t=True.
 
         At each iteration, this generator yields
 
@@ -159,8 +166,8 @@ class AdaptivePTSampler(PTSampler):
 
             p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
 
-            if evolve_t and (i + 1) % self.evolution_time == 0:
-                t = int(i / self.evolution_time)
+            t = i + t0
+            if evolve_t and (t + 1) % self.evolution_time == 0:
                 dbetas = self._evolve_ladder(t)
                 self._betas += dbetas
                 betas = self.betas.reshape((-1, 1))
@@ -195,7 +202,7 @@ class AdaptivePTSampler(PTSampler):
         if descending:
             betas = betas[::-1]
 
-        lag = 500
+        lag = 500 * self.evolution_time
         sigma = 1e2
 
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
