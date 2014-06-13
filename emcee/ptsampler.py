@@ -72,7 +72,9 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None):
     return np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
 
 class PTState:
-    # TODO: docstring.
+    """
+    Class representing the run state of ``PTSampler``. Used for resuming runs.
+    """
     def __init__(self, p, betas, time=0):
         self.time = time
         self.p = np.array(p).copy()
@@ -141,12 +143,26 @@ class PTSampler(Sampler):
     :param logpkwargs: (optional)
         Keyword arguments for the log-prior function.
 
+    :param ladder_callback: (optional)
+        A function that is called when the temperature ladder is
+        updates. The current ``PTSampler`` object is passed as an
+        argument.
+
+    :param evolution_time: (optional)
+        The number of iterations between temperature ladder
+        adjustments.  Too low a value will lead to erratic sampling.
+        Default: 100.
+
+    :param target_acceptance: (optional)
+        If specified, the sampler will attempt to achieve the given
+        swap acceptance fraction between chains. Otherwise, chains are
+        driven to equal acceptance fractions.
+
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, ladder_callback=None,
-                 evolution_time=100, target_acceptance=None, logpkwargs={}):
-        # TODO: Update docstring.
+                 loglkwargs={}, logpkwargs={}, ladder_callback=None,
+                 evolution_time=100, target_acceptance=None):
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -181,12 +197,14 @@ class PTSampler(Sampler):
 
     def reset(self):
         """
-        Clear the ``chain``, ``lnprobability``, ``lnlikelihood``,
-        ``acceptance_fraction``, ``tswap_acceptance_fraction`` stored
+        Clear the ``time``, ``chain``, ``lnprobability``,
+        ``lnlikelihood``,  ``acceptance_fraction``,
+        ``tswap_acceptance_fraction``,
+        ``tswap_acceptance_fraction_pairs``, and
+        ``tswap_acceptance_fraction_pairs_recent`` stored
         properties.
 
         """
-        # TODO: Update docstring.
 
         self.time = 0
         self._chain = None
@@ -195,7 +213,10 @@ class PTSampler(Sampler):
         self._initialize(self.ntemps)
 
     def _initialize(self, ntemps):
-        # TODO: Add docstring.
+        """
+        Initialize fields that require ``ntemps``.
+
+        """
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
 
@@ -213,7 +234,7 @@ class PTSampler(Sampler):
 
     def get_state(self):
         """
-        Serializes the current sampler object to a ``PTState`` object.
+        Gets a ``PTState`` object representing the current state of the sampler.
 
         """
         return PTState(time=self.time, p=self.p, betas=self.betas)
@@ -264,6 +285,10 @@ class PTSampler(Sampler):
         :param storechain: (optional)
             If ``True`` store the iterations in the ``chain``
             property.
+
+        :param evolve_ladder: (optional)
+            If ``True``, the temperature ladder is dynamically adjusted as the
+            sampler runs.
 
         At each iteration, this generator yields
 
@@ -653,7 +678,7 @@ class PTSampler(Sampler):
     def beta_history(self):
         """
         Returns the stored history of temperatures; shape ``(Ntemps,
-        floor(Nsteps / tau)``.
+        floor(Nsteps / tau))``.
         """
         return self._beta_history
 
