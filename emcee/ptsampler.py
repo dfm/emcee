@@ -281,18 +281,19 @@ class PTSampler(Sampler):
             self.betas = state.betas.copy()
             self.time = state.time
         else:
-            if self.p is None:
-                if p0 is None:
-                    raise ValueError('Initial walker positions not specified.')
-                else:
-                    self.p = p0.copy()
-            if self.betas is None:
-                if betas is not None:
-                    self.betas = betas
-                elif ntemps is not None or Tmax is not None:
-                    self.betas = self.default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
-                else:
-                    raise ValueError('Neither betas nor ntemps nor Tmax specified.')
+            # Set initial walker positions.
+            if p0 is not None:
+                self.p = np.array(p0).copy()
+            elif self.p is None:
+                raise ValueError('Initial walker positions not specified.')
+
+            # Set temperature ladder.
+            if betas is not None:
+                self.betas = np.array(betas).copy()
+            elif ntemps is not None or Tmax is not None:
+                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
+            elif self.betas is None:
+                raise ValueError('Temperature ladder not specified.')
 
         if not self._initialized:
             self._initialize(self.ntemps)
