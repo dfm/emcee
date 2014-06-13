@@ -7,6 +7,7 @@
 - Added arguments to ``PTSampler`` function.
 - Added automatic load-balancing for MPI runs.
 - Added custom load-balancing for MPI and multiprocessing.
+- New default multiprocessing pool that supports ``^C``.
 
 
 2.0.0 (2013-11-17)

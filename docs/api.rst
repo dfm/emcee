@@ -75,5 +75,27 @@ Utilities
 
 .. autoclass:: emcee.utils.MH_proposal_axisaligned
 
+Pools
+-----
+
+These are some helper classes for using the built-in parallel version of the
+algorithm. These objects can be initialized and then passed into the
+constructor for the :class:`EnsembleSampler` object using the ``pool`` keyword
+argument.
+
+Interruptible Pool
+++++++++++++++++++
+
+.. automodule:: emcee.interruptible_pool
+
+.. autoclass:: emcee.interruptible_pool.InterruptiblePool
+   :members:
+
+MPI Pool
+++++++++
+
+Built-in support for MPI distributed systems. See the documentation:
+:ref:`mpi`.
+
 .. autoclass:: emcee.utils.MPIPool
    :members:
