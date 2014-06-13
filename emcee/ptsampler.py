@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["PTSampler", "PTState"]
+__all__ = ["PTSampler", "PTState", "default_beta_ladder"]
 
 import numpy as np
 import numpy.random as nr
@@ -355,7 +355,7 @@ class PTSampler(Sampler):
 
         # Start recording temperatures.
         if evolve_ladder:
-            self._beta_history = np.zeros((self.ntemps, int(np.floor(iterations / self.evolution_time))))
+            self._beta_history = np.zeros((self.ntemps, np.floor(iterations)))
 
         for i in range(iterations):
             for j in [0, 1]:
