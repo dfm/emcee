@@ -355,7 +355,7 @@ class PTSampler(Sampler):
 
         # Start recording temperatures.
         if evolve_ladder:
-            self._beta_history = np.zeros((self.ntemps, np.floor(iterations)))
+            self._beta_history = np.zeros((self.ntemps, int(np.floor(iterations / self.evolution_time))))
 
         for i in range(iterations):
             for j in [0, 1]:
@@ -418,7 +418,7 @@ class PTSampler(Sampler):
                     lnprob += dbetas.reshape((-1, 1)) * logl
 
                     # Store the new ladder for reference.
-                    self._beta_history[:, self.time] = self.betas
+                    self._beta_history[:, int(i / self.evolution_time)] = self.betas
                     if callable(self.ladder_callback):
                         self.ladder_callback(self)
 
