@@ -13,11 +13,11 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["EnsembleSampler"]
 
-import multiprocessing
 import numpy as np
 
 from . import autocorr
 from .sampler import Sampler
+from .interruptible_pool import InterruptiblePool
 
 
 class EnsembleSampler(Sampler):
@@ -104,7 +104,7 @@ class EnsembleSampler(Sampler):
                 "crazy!")
 
         if self.threads > 1 and self.pool is None:
-            self.pool = multiprocessing.Pool(self.threads)
+            self.pool = InterruptiblePool(self.threads)
 
     def clear_blobs(self):
         """
