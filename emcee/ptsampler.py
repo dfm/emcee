@@ -56,14 +56,14 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None):
                       1.26579, 1.26424, 1.26271, 1.26121,
                       1.25973])
     dmax = tstep.shape[0]
-        
+
     if ndim > dmax:
         # An approximation to the temperature step at large
         # dimension
         tstep = 1.0 + 2.0*np.sqrt(np.log(4.0))/np.sqrt(ndim)
     else:
         tstep = tstep[ndim-1]
-        
+
     if ntemps is None and Tmax is None:
         raise ValueError('must specify one of ``ntemps`` and ``Tmax``')
     elif ntemps is None:
