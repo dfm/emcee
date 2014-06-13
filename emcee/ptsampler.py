@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["PTSampler"]
+__all__ = ["PTSampler", "PTState"]
 
 import numpy as np
 import numpy.random as nr
@@ -13,6 +13,12 @@ import multiprocessing as multi
 from . import autocorr
 from .sampler import Sampler
 
+class PTState:
+    # TODO: docstring.
+    def __init__(self, p, betas, time=0):
+        self.time = time
+        self.p = np.array(p).copy()
+        self.betas = np.array(betas).copy()
 
 class PTLikePrior(object):
     """
@@ -37,14 +43,10 @@ class PTLikePrior(object):
 
         return self.logl(x, *self.loglargs, **self.loglkwargs), lp
 
-
 class PTSampler(Sampler):
     """
     A parallel-tempered ensemble sampler, using :class:`EnsembleSampler`
     for sampling within each parallel chain.
-
-    :param ntemps:
-        The number of temperatures.
 
     :param nwalkers:
         The number of ensemble walkers at each temperature.
@@ -66,12 +68,6 @@ class PTSampler(Sampler):
         ``map`` method compatible with the built-in ``map`` will do
         here.  For example, :class:`multi.Pool` will do.
 
-    :param betas: (optional)
-        Array giving the inverse temperatures, :math:`\\beta=1/T`,
-        used in the ladder.  The default is chosen so that a Gaussian
-        posterior in the given number of dimensions will have a 0.25
-        tswap acceptance rate.
-
     :param a: (optional)
         Proposal scale factor.
 
@@ -88,9 +84,11 @@ class PTSampler(Sampler):
         Keyword arguments for the log-prior function.
 
     """
-    def __init__(self, ntemps, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, betas=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, logpkwargs={}):
+    def __init__(self, nwalkers, dim, logl, logp, threads=1,
+                 pool=None, a=2.0, loglargs=[], logpargs=[],
+                 loglkwargs={}, ladder_callback=None,
+                 evolution_time=100, target_acceptance=None, logpkwargs={}):
+        # TODO: Update docstring.
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -99,36 +97,29 @@ class PTSampler(Sampler):
         self.loglkwargs = loglkwargs
         self.logpkwargs = logpkwargs
 
+        self._initialized = False
         self.nwalkers = nwalkers
         self.dim = dim
 
-        assert self.nwalkers % 2 == 0, \
-            "The number of walkers must be even."
-        assert self.nwalkers >= 2*self.dim, \
-            "The number of walkers must be greater than 2*dimension."
+        if self.nwalkers % 2 != 0:
+            raise ValueError('The number of walkers must be even.')
+        if self.nwalkers < 2 * self.dim:
+            raise ValueError('The number of walkers must be greater than 2*dimension.')
 
         self._chain = None
         self._lnprob = None
         self._lnlikelihood = None
 
-        if betas is None:
-            self._betas = self.default_beta_ladder(ntemps)
-        else:
-            self._betas = betas
-
-        self.nswap = np.zeros(ntemps, dtype=np.float)
-        self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
-
-        self.nswap_pairs = np.zeros(ntemps - 1, dtype=np.float)
-        self.nswap_pairs_accepted = np.zeros(ntemps - 1, dtype=np.float)
-
-        self.nprop = np.zeros((ntemps, self.nwalkers), dtype=np.float)
-        self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
-                                       dtype=np.float)
-
         self.pool = pool
         if threads > 1 and pool is None:
             self.pool = multi.Pool(threads)
+
+        self.p = None
+        self.betas = None
+        self.time = 0
+        self.ladder_callback = ladder_callback
+        self.evolution_time = evolution_time
+        self.target_acceptance = target_acceptance
 
     def default_beta_ladder(self, ntemps):
         """Returns a ladder of :math:`\beta \equiv 1/T` with temperatures
@@ -175,28 +166,60 @@ class PTSampler(Sampler):
         properties.
 
         """
-        self.nswap = np.zeros(self.ntemps, dtype=np.float)
-        self.nswap_accepted = np.zeros(self.ntemps, dtype=np.float)
+        # TODO: Update docstring.
 
-        self.nswap_pairs = np.zeros(self.ntemps - 1, dtype=np.float)
-        self.nswap_pairs_accepted = np.zeros(self.ntemps - 1, dtype=np.float)
-
-        self.nprop = np.zeros((self.ntemps, self.nwalkers), dtype=np.float)
-        self.nprop_accepted = np.zeros((self.ntemps, self.nwalkers),
-                                       dtype=np.float)
-
+        self.time = 0
         self._chain = None
         self._lnprob = None
         self._lnlikelihood = None
+        self._initialize(self.ntemps)
 
-    def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
-               thin=1, storechain=True):
+    def _initialize(self, ntemps):
+        # TODO: Add docstring.
+        self.nswap = np.zeros(ntemps, dtype=np.float)
+        self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
+
+        self.nswap_pairs = np.zeros(ntemps - 1, dtype=np.float)
+        self.nswap_pairs_accepted = np.zeros(ntemps - 1, dtype=np.float)
+
+        self.nswap_pairs_old = np.zeros(ntemps - 1, dtype=np.float)
+        self.nswap_pairs_old_accepted = np.zeros(ntemps - 1, dtype=np.float)
+
+        self.nprop = np.zeros((ntemps, self.nwalkers), dtype=np.float)
+        self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
+                                       dtype=np.float)
+
+        self._initialized = True
+
+    def get_state(self):
+        """
+        Serializes the current sampler object to a ``PTState`` object.
+
+        """
+        return PTState(time=self.time, p=self.p, betas=self.betas)
+
+    def sample(self, p0=None, betas=None, ntemps=None, state=None, lnprob0=None, lnlike0=None,
+               iterations=1, thin=1, storechain=True, evolve_ladder=False):
         """
         Advance the chains ``iterations`` steps as a generator.
 
         :param p0:
             The initial positions of the walkers.  Shape should be
             ``(ntemps, nwalkers, dim)``.
+
+        :param betas: (optional)
+            Array giving the inverse temperatures, :math:`\\beta=1/T`,
+            used in the ladder.  The default is chosen so that a Gaussian
+            posterior in the given number of dimensions will have a 0.25
+            tswap acceptance rate.
+
+        :param ntemps:
+            If ``betas`` is not given, specifies the number of temperatures for
+            an automatically generated ladder.
+
+        :param state: (optional)
+            A ``PTState`` object containing the state of a previous run,
+            from which to resume.  If given, ``p0`` and ``betas`` are ignored.
 
         :param lnprob0: (optional)
             The initial posterior values for the ensembles.  Shape
@@ -226,16 +249,42 @@ class PTSampler(Sampler):
         * ``lnlike`` the current likelihood values for the walkers.
 
         """
-        p = np.copy(np.array(p0))
+
+        # Set up sampler state.
+        if state is not None:
+            self.p = state.p.copy()
+            self.betas = state.betas.copy()
+            self.time = state.time
+        else:
+            if self.p is None:
+                if p0 is None:
+                    raise ValueError('Initial walker positions not specified.')
+                else:
+                    self.p = p0.copy()
+            if self.betas is None:
+                if betas is not None:
+                    self.betas = betas
+                elif ntemps is not None:
+                    self.betas = self.default_beta_ladder(ntemps)
+                else:
+                    raise ValueError('Neither betas nor ntemps specified.')
+
+        if not self._initialized:
+            self._initialize(self.ntemps)
+
+        # TODO: Is this necessary?
+        # Check temperature ladder for (in)sanity.
+        if evolve_ladder and not np.all(np.diff(self.betas) < 0) and not np.all(np.diff(self.betas) > 0):
+            raise ValueError('Temperature ladder must be either ascending or descending.')
+
+        mapf = map if self.pool is None else self.pool.map
+        betas = self.betas.reshape((-1, 1))
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
             fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                              self.logpargs, self.loglkwargs, self.logpkwargs)
-            if self.pool is None:
-                results = list(map(fn, p.reshape((-1, self.dim))))
-            else:
-                results = list(self.pool.map(fn, p.reshape((-1, self.dim))))
+            results = list(mapf(fn, self.p.reshape((-1, self.dim))))
 
             logls = np.array([r[0] for r in results]).reshape((self.ntemps,
                                                                self.nwalkers))
@@ -243,46 +292,27 @@ class PTSampler(Sampler):
                                                                self.nwalkers))
 
             lnlike0 = logls
-            lnprob0 = logls * self.betas.reshape((self.ntemps, 1)) + logps
+            lnprob0 = logls * betas + logps
 
         lnprob = lnprob0
         logl = lnlike0
+        logp = logps
 
         # Expand the chain in advance of the iterations
         if storechain:
-            nsave = iterations / thin
-            if self._chain is None:
-                isave = 0
-                self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
-                                        self.dim))
-                self._lnprob = np.zeros((self.ntemps, self.nwalkers, nsave))
-                self._lnlikelihood = np.zeros((self.ntemps, self.nwalkers,
-                                               nsave))
-            else:
-                isave = self._chain.shape[2]
-                self._chain = np.concatenate((self._chain,
-                                              np.zeros((self.ntemps,
-                                                        self.nwalkers,
-                                                        nsave, self.dim))),
-                                             axis=2)
-                self._lnprob = np.concatenate((self._lnprob,
-                                               np.zeros((self.ntemps,
-                                                         self.nwalkers,
-                                                         nsave))),
-                                              axis=2)
-                self._lnlikelihood = np.concatenate((self._lnlikelihood,
-                                                     np.zeros((self.ntemps,
-                                                               self.nwalkers,
-                                                               nsave))),
-                                                    axis=2)
+            isave = self._update_chain(iterations / thin)
+
+        # Start recording temperatures.
+        if evolve_ladder:
+            self._beta_history = np.zeros((self.ntemps, int(np.floor(iterations / self.evolution_time))))
 
         for i in range(iterations):
             for j in [0, 1]:
+                # Get positions of walkers to be updated and walker to be sampled.
                 jupdate = j
                 jsample = (j + 1) % 2
-
-                pupdate = p[:, jupdate::2, :]
-                psample = p[:, jsample::2, :]
+                pupdate = self.p[:, jupdate::2, :]
+                psample = self.p[:, jsample::2, :]
 
                 us = np.random.uniform(size=(self.ntemps, self.nwalkers/2))
                 zs = np.square(1.0 + (self.a-1.0)*us)/self.a
@@ -298,18 +328,13 @@ class PTSampler(Sampler):
                 fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                                  self.logpargs, self.loglkwargs,
                                  self.logpkwargs)
-                if self.pool is None:
-                    results = list(map(fn, qs.reshape((-1, self.dim))))
-                else:
-                    results = list(self.pool.map(fn, qs.reshape((-1,
-                                                                 self.dim))))
+                results = list(mapf(fn, qs.reshape((-1, self.dim))))
 
                 qslogls = np.array([r[0] for r in results]).reshape(
                     (self.ntemps, self.nwalkers/2))
                 qslogps = np.array([r[1] for r in results]).reshape(
                     (self.ntemps, self.nwalkers/2))
-                qslnprob = qslogls * self.betas.reshape((self.ntemps, 1)) \
-                    + qslogps
+                qslnprob = qslogls * betas + qslogps
 
                 logpaccept = (self.dim-1)*np.log(zs) + qslnprob \
                     - lnprob[:, jupdate::2]
@@ -326,22 +351,45 @@ class PTSampler(Sampler):
                     qslnprob.reshape((-1,))[accepts]
                 logl[:, jupdate::2].reshape((-1,))[accepts] = \
                     qslogls.reshape((-1,))[accepts]
+                logp[:, jupdate::2].reshape((-1,))[accepts] = \
+                    qslogps.reshape((-1,))[accepts]
 
                 accepts = accepts.reshape((self.ntemps, self.nwalkers/2))
 
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
 
-            p, lnprob, logl = self._temperature_swaps(p, lnprob, logl)
+            self.p, lnprob, logl = self._temperature_swaps(self.p, lnprob, logl)
+
+            if evolve_ladder and (self.time + 1) % self.evolution_time == 0:
+                dbetas = self._evolve_ladder()
+                if dbetas is not None:
+                    self.betas += dbetas
+                    lnprob += dbetas.reshape((-1, 1)) * logl
+
+                    # Store the new ladder for reference.
+                    self._beta_history[:, self.time] = self.betas
+                    if callable(self.ladder_callback):
+                        self.ladder_callback(self)
+
+                self.nswap_pairs_old = self.nswap_pairs.copy()
+                self.nswap_pairs_old_accepted = self.nswap_pairs_accepted.copy()
+
+            # Check that posterior is correct.
+            values = lnprob - (betas * logl + logp)
+            condition = np.abs(values) < 1e-10
+            assert condition.all(), \
+                    'Posterior does not match likelihood and prior at step {:}: {:}'.format(i, values[np.logical_not(condition)])
 
             if (i + 1) % thin == 0:
                 if storechain:
-                    self._chain[:, :, isave, :] = p
+                    self._chain[:, :, isave, :] = self.p
                     self._lnprob[:, :, isave, ] = lnprob
                     self._lnlikelihood[:, :, isave] = logl
                     isave += 1
 
-            yield p, lnprob, logl
+            yield self.p, lnprob, logl
+            self.time += 1
 
     def _temperature_swaps(self, p, lnprob, logl):
         """
@@ -390,6 +438,120 @@ class PTSampler(Sampler):
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
 
         return p, lnprob, logl
+
+    def _evolve_ladder(self):
+        betas = self.betas.copy()
+        descending = betas[-1] > betas[0]
+        if descending:
+            betas = betas[::-1]
+
+        lag = 500 * self.evolution_time
+        sigma = 1e2
+
+        # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
+        # avoid collisions).
+        a = 0.45
+        kappa0 = a * lag / (self.time + lag)
+
+        if np.any(self.nswap_pairs - self.nswap_pairs_old < self.evolution_time):
+            # Not enough swaps accumulated; abort.
+            return None
+        As = self.tswap_acceptance_fraction_pairs_recent
+        loggammas = -np.diff(np.log(betas))
+
+        kappa = np.zeros(len(betas))
+        dlogbetas = np.zeros(len(betas))
+        top = len(betas) - 2 # The index of the topmost chain subject to the "normal" dynamics.
+        if self.target_acceptance is not None:
+            # Drive the chains to a specified acceptance ratio.
+            A0 = self.target_acceptance
+
+            # Compute new temperature spacings from acceptance spacings.
+            As = np.concatenate(([ A0 ], As))
+            dlogbetas = -(As - A0)
+
+            # Topmost chain shouldn't change by more than the gap between it and the next lowest.
+            kappa[-1] = loggammas[-1]
+        else:
+            # Allow the chains to equilibrate to even acceptance-spacing for all chains. Topmost
+            # chains aim for this acceptance ratio:
+            A0 = 0.99
+            top -= 1
+
+            # Drive chains 1 to N-2 toward even spacing.
+            dlogbetas[1:-2] = -(As[:-2] - As[1:-1])
+
+            # Drive second-topmost chain until it reaches specified acceptance with topmost
+            # chain. Topmost chain is dealt with later.
+            kappa[-2] = loggammas[-2]
+            dlogbetas[-2] = -(A0 - As[-1])
+
+        # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
+        # the size of the gap in the direction in which the chain is moving (to avoid the chains
+        # bouncing off each other). If log(beta) is decreasing, chain is ascending, so use gap with
+        # next-highest chain (and vice versa).
+        kappa[1:top + 1] = np.select([ -dlogbetas[1:top + 1] < 0, -dlogbetas[1:top + 1] > 0 ],
+                                     [ loggammas[:top], loggammas[1:top + 1] ])
+        kappa *= kappa0
+
+        # Compute new temperature spacings.
+        self.kappa = kappa
+        dlogbetas *= kappa
+        loggammas -= np.diff(dlogbetas)
+
+        # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
+        # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
+        # preserve higher temperatures.
+        if self.target_acceptance is None:
+            # Top two chains are exempt from spacing preservation, since their spacing is fixed by
+            # construction.
+            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
+        else:
+            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
+        loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
+
+        if self.target_acceptance is None:
+            # Now fix the top spacing at much more than whatever the next one down is, to ensure
+            # good prior sampling.
+            loggammas[-1] = np.log(sigma) + loggammas[-2]
+
+        # Finally, compute the new ladder.
+        betas[1:] = np.exp(-np.cumsum(loggammas))
+
+        # Un-reverse the ladder if need be.
+        if descending:
+            betas = betas[::-1]
+
+        # Don't mutate the ladder here; let the client code do that.
+        return betas - self.betas
+
+    def _expand_chain(self, nsave):
+        if self._chain is None:
+            isave = 0
+            self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
+                                    self.dim))
+            self._lnprob = np.zeros((self.ntemps, self.nwalkers, nsave))
+            self._lnlikelihood = np.zeros((self.ntemps, self.nwalkers,
+                                           nsave))
+        else:
+            isave = self._chain.shape[2]
+            self._chain = np.concatenate((self._chain,
+                                          np.zeros((self.ntemps,
+                                                    self.nwalkers,
+                                                    nsave, self.dim))),
+                                         axis=2)
+            self._lnprob = np.concatenate((self._lnprob,
+                                           np.zeros((self.ntemps,
+                                                     self.nwalkers,
+                                                     nsave))),
+                                          axis=2)
+            self._lnlikelihood = np.concatenate((self._lnlikelihood,
+                                                 np.zeros((self.ntemps,
+                                                           self.nwalkers,
+                                                           nsave))),
+                                                axis=2)
+
+        return isave
 
     def thermodynamic_integration_log_evidence(self, logls=None, fburnin=0.1):
         """
@@ -463,12 +625,12 @@ class PTSampler(Sampler):
             return lnZ, np.abs(lnZ - lnZ2)
 
     @property
-    def betas(self):
+    def beta_history(self):
         """
-        Returns the sequence of inverse temperatures in the ladder.
-
+        Returns the stored history of temperatures; shape ``(Ntemps,
+        floor(Nsteps / tau)``.
         """
-        return self._betas
+        return self._beta_history
 
     @property
     def chain(self):
@@ -512,6 +674,18 @@ class PTSampler(Sampler):
 
         """
         return self.nswap_pairs_accepted / self.nswap_pairs
+
+    @property
+    def tswap_acceptance_fraction_pairs_recent(self):
+        """
+        Returns an array of recently accepted temperature swap fractions for
+        each pair of temperatures; shape ``(ntemps - 1, )``. If no swaps have
+        been accumulated in at least one chain, returns ``None``.
+
+        """
+        accepted = self.nswap_pairs_accepted - self.nswap_pairs_old_accepted
+        swaps =  self.nswap_pairs - self.nswap_pairs_old
+        return accepted / swaps if np.all(swaps > 0) else None
 
     @property
     def ntemps(self):
