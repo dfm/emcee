@@ -353,10 +353,6 @@ class PTSampler(Sampler):
         if storechain:
             isave = self._update_chain(iterations / thin)
 
-        # Start recording temperatures.
-        if evolve_ladder:
-            self._beta_history = np.zeros((self.ntemps, int(np.floor(iterations / self.evolution_time))))
-
         for i in range(iterations):
             for j in [0, 1]:
                 # Get positions of walkers to be updated and walker to be sampled.
@@ -417,8 +413,6 @@ class PTSampler(Sampler):
                     self.betas += dbetas
                     lnprob += dbetas.reshape((-1, 1)) * logl
 
-                    # Store the new ladder for reference.
-                    self._beta_history[:, int(i / self.evolution_time)] = self.betas
                     if callable(self.ladder_callback):
                         self.ladder_callback(self)
 
@@ -673,14 +667,6 @@ class PTSampler(Sampler):
             lnZ2 = -np.dot(mean_logls2, np.diff(betas2))
 
             return lnZ, np.abs(lnZ - lnZ2)
-
-    @property
-    def beta_history(self):
-        """
-        Returns the stored history of temperatures; shape ``(Ntemps,
-        floor(Nsteps / tau))``.
-        """
-        return self._beta_history
 
     @property
     def chain(self):
