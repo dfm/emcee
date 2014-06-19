@@ -312,13 +312,21 @@ class PTSampler(Sampler):
             elif self.p is None:
                 raise ValueError('Initial walker positions not specified.')
 
-            # Set temperature ladder.
-            if betas is not None:
-                self.betas = np.array(betas).copy()
-            elif ntemps is not None or Tmax is not None:
-                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
-            elif self.betas is None:
-                raise ValueError('Temperature ladder not specified.')
+            # Set temperature ladder. If evolve_ladder, only accept ntemps.
+            if evolve_ladder:
+                if ntemps is None:
+                    raise ValueError('Number of temperatured required if evolving ladder.')
+
+                # Automatically select first N-1 temperatures, and use beta=0 as top
+                # temperature (for prior sampling).
+                self.betas = np.concatenate((default_beta_ladder(self.dim, ntemps - 1), [0]))
+            else:
+                if betas is not None:
+                    self.betas = np.array(betas).copy()
+                elif ntemps is not None or Tmax is not None:
+                    self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
+                elif self.betas is None:
+                    raise ValueError('Temperature ladder not specified.')
 
         if not self._initialized:
             self._initialize(self.ntemps)
@@ -517,18 +525,15 @@ class PTSampler(Sampler):
             # Topmost chain shouldn't change by more than the gap between it and the next lowest.
             kappa[-1] = loggammas[-1]
         else:
-            # Allow the chains to equilibrate to even acceptance-spacing for all chains. Topmost
-            # chains aim for this acceptance ratio:
-            A0 = 0.99
+            # Allow the chains to equilibrate to even acceptance-spacing for all chains.
             top -= 1
 
             # Drive chains 1 to N-2 toward even spacing.
-            dlogbetas[1:-2] = -(As[:-2] - As[1:-1])
+            dlogbetas[1:-1] = -(As[:-1] - As[1:])
 
-            # Drive second-topmost chain until it reaches specified acceptance with topmost
-            # chain. Topmost chain is dealt with later.
+            # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!)
+            # and just use lower gap instead.
             kappa[-2] = loggammas[-2]
-            dlogbetas[-2] = -(A0 - As[-1])
 
         # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
         # the size of the gap in the direction in which the chain is moving (to avoid the chains
@@ -553,11 +558,7 @@ class PTSampler(Sampler):
         else:
             gaps = -np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
         loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
-
-        if self.target_acceptance is None:
-            # Now fix the top spacing at much more than whatever the next one down is, to ensure
-            # good prior sampling.
-            loggammas[-1] = np.log(sigma) + loggammas[-2]
+        print(loggammas[-1])
 
         # Finally, compute the new ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
