@@ -99,7 +99,8 @@ class PTLikePrior(object):
         lp = self.logp(x, *self.logpargs, **self.logpkwargs)
 
         if lp == float('-inf'):
-            return lp, lp
+            # Can't return -inf, since this messes with beta=0 behaviour.
+            return 0, lp
 
         return self.logl(x, *self.loglargs, **self.loglkwargs), lp
 
@@ -153,16 +154,11 @@ class PTSampler(Sampler):
         adjustments.  Too low a value will lead to erratic sampling.
         Default: 100.
 
-    :param target_acceptance: (optional)
-        If specified, the sampler will attempt to achieve the given
-        swap acceptance fraction between chains. Otherwise, chains are
-        driven to equal acceptance fractions.
-
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
                  loglkwargs={}, logpkwargs={}, ladder_callback=None,
-                 evolution_time=100, target_acceptance=None):
+                 evolution_time=100):
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -193,7 +189,6 @@ class PTSampler(Sampler):
         self.time = 0
         self.ladder_callback = ladder_callback
         self.evolution_time = evolution_time
-        self.target_acceptance = target_acceptance
 
     def reset(self):
         """
@@ -312,29 +307,20 @@ class PTSampler(Sampler):
             elif self.p is None:
                 raise ValueError('Initial walker positions not specified.')
 
-            # Set temperature ladder. If evolve_ladder, only accept ntemps.
-            if evolve_ladder:
-                if ntemps is None:
-                    raise ValueError('Number of temperatured required if evolving ladder.')
+            # Set temperature ladder.  Only allow ntemps or Tmax if ladder is being evolved.  Append
+            # beta=0 to generated ladder.
+            if not evolve_ladder and betas is not None:
+                self.betas = np.array(betas).copy()
+            elif ntemps is not None or Tmax is not None:
+                self.betas = default_beta_ladder(self.dim, ntemps=((ntemps - 1) if ntemps is not None else None), Tmax=Tmax)
+                self.betas = np.concatenate((self.betas, [0]))
+            elif self.betas is None:
+                raise ValueError('Temperature ladder not specified.')
 
-                # Automatically select first N-1 temperatures, and use beta=0 as top
-                # temperature (for prior sampling).
-                self.betas = np.concatenate((default_beta_ladder(self.dim, ntemps - 1), [0]))
-            else:
-                if betas is not None:
-                    self.betas = np.array(betas).copy()
-                elif ntemps is not None or Tmax is not None:
-                    self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
-                elif self.betas is None:
-                    raise ValueError('Temperature ladder not specified.')
+            self.betas[::-1].sort()
 
         if not self._initialized:
             self._initialize(self.ntemps)
-
-        # TODO: Is this necessary?
-        # Check temperature ladder for (in)sanity.
-        if evolve_ladder and not np.all(np.diff(self.betas) < 0) and not np.all(np.diff(self.betas) > 0):
-            raise ValueError('Temperature ladder must be either ascending or descending.')
 
         mapf = map if self.pool is None else self.pool.map
         betas = self.betas.reshape((-1, 1))
@@ -493,12 +479,8 @@ class PTSampler(Sampler):
 
     def _evolve_ladder(self):
         betas = self.betas.copy()
-        descending = betas[-1] > betas[0]
-        if descending:
-            betas = betas[::-1]
 
         lag = 500 * self.evolution_time
-        sigma = 1e2
 
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
@@ -509,38 +491,32 @@ class PTSampler(Sampler):
             # Not enough swaps accumulated; abort.
             return None
         As = self.tswap_acceptance_fraction_pairs_recent
+
+        # Hack to avoid erroneous divide by zero warning.
+        old = np.seterr(divide='ignore')
         loggammas = -np.diff(np.log(betas))
+        np.seterr(**old)
 
         kappa = np.zeros(len(betas))
         dlogbetas = np.zeros(len(betas))
         top = len(betas) - 2 # The index of the topmost chain subject to the "normal" dynamics.
-        if self.target_acceptance is not None:
-            # Drive the chains to a specified acceptance ratio.
-            A0 = self.target_acceptance
 
-            # Compute new temperature spacings from acceptance spacings.
-            As = np.concatenate(([ A0 ], As))
-            dlogbetas = -(As - A0)
+        # Allow the chains to equilibrate to even acceptance-spacing for all chains.
+        top -= 1
 
-            # Topmost chain shouldn't change by more than the gap between it and the next lowest.
-            kappa[-1] = loggammas[-1]
-        else:
-            # Allow the chains to equilibrate to even acceptance-spacing for all chains.
-            top -= 1
+        # Drive chains 1 to N-2 toward even spacing.
+        dlogbetas[1:-1] = -(As[:-1] - As[1:])
 
-            # Drive chains 1 to N-2 toward even spacing.
-            dlogbetas[1:-1] = -(As[:-1] - As[1:])
-
-            # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!)
-            # and just use lower gap instead.
-            kappa[-2] = loggammas[-2]
+        # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!) and
+        # just use lower gap instead.
+        kappa[-2] = loggammas[-2]
 
         # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
         # the size of the gap in the direction in which the chain is moving (to avoid the chains
         # bouncing off each other). If log(beta) is decreasing, chain is ascending, so use gap with
         # next-highest chain (and vice versa).
-        kappa[1:top + 1] = np.select([ -dlogbetas[1:top + 1] < 0, -dlogbetas[1:top + 1] > 0 ],
-                                     [ loggammas[:top], loggammas[1:top + 1] ])
+        kappa[1:-2] = np.select([ -dlogbetas[1:-2] < 0, -dlogbetas[1:-2] > 0 ],
+                                [  loggammas[ :-2],      loggammas[1:-1]     ])
         kappa *= kappa0
 
         # Compute new temperature spacings.
@@ -551,21 +527,11 @@ class PTSampler(Sampler):
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
         # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
         # preserve higher temperatures.
-        if self.target_acceptance is None:
-            # Top two chains are exempt from spacing preservation, since their spacing is fixed by
-            # construction.
-            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-2], [0, 0]))
-        else:
-            gaps = -np.concatenate((np.minimum(loggammas, 0)[:-1], [0]))
-        loggammas = np.maximum(loggammas, 0) + np.roll(gaps, 1)
-        print(loggammas[-1])
+        offsets = -np.concatenate(([0], np.minimum(loggammas, 0)[:-1]))
+        loggammas = np.maximum(loggammas, 0) + offsets
 
         # Finally, compute the new ladder.
         betas[1:] = np.exp(-np.cumsum(loggammas))
-
-        # Un-reverse the ladder if need be.
-        if descending:
-            betas = betas[::-1]
 
         # Don't mutate the ladder here; let the client code do that.
         return betas - self.betas
