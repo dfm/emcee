@@ -13,7 +13,7 @@ import multiprocessing as multi
 from . import autocorr
 from .sampler import Sampler
 
-def default_beta_ladder(ndim, ntemps=None, Tmax=None):
+def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
     """Returns a ladder of :math:`\beta \equiv 1/T` with temperatures
     geometrically spaced with spacing chosen so that a Gaussian
     posterior would have a 0.25 temperature swap acceptance rate.
@@ -69,7 +69,11 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None):
     elif ntemps is None:
         ntemps = int(np.log(Tmax)/np.log(tstep)+2)
 
-    return np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
+    if include_inf:
+        ntemps -= 1
+
+    betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
+    return np.concatenate((betas, [0])) if include_inf else betas
 
 class PTState:
     """
@@ -312,8 +316,7 @@ class PTSampler(Sampler):
             if not evolve_ladder and betas is not None:
                 self.betas = np.array(betas).copy()
             elif ntemps is not None or Tmax is not None:
-                self.betas = default_beta_ladder(self.dim, ntemps=((ntemps - 1) if ntemps is not None else None), Tmax=Tmax)
-                self.betas = np.concatenate((self.betas, [0]))
+                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=True)
             elif self.betas is None:
                 raise ValueError('Temperature ladder not specified.')
 
