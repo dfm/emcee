@@ -527,14 +527,13 @@ class PTSampler(Sampler):
         dlogbetas *= kappa0 * kappa
         loggammas -= np.diff(dlogbetas[:-1])
 
-        # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
-        # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
-        # preserve higher temperatures.
-        offsets = -np.concatenate(([0], np.minimum(loggammas, 0)[:-1]))
-        loggammas = np.maximum(loggammas, 0) + offsets
-
         # Finally, compute the new ladder.
         betas[1:-1] = np.exp(-np.cumsum(loggammas))
+
+        # Temperatures should still be in the correct order (and distinct), unless something has
+        # gone wrong.
+        assert np.all(np.diff(betas) < 0), \
+                'Temperatures not correctly ordered following temperature dynamics.'
 
         # Don't mutate the ladder here; let the client code do that.
         return betas - self.betas
