@@ -503,36 +503,29 @@ class PTSampler(Sampler):
             return None
         As = self.tswap_acceptance_fraction_pairs_recent
 
-        # Manually add final (infinite) gap to avoid divide by zero warning in np.log.
+        # Ignore topmost chain, since it's at T=infinity.
         loggammas = -np.diff(np.log(betas[:-1]))
-        loggammas = np.concatenate((loggammas, [np.inf]))
 
         kappa = np.zeros(len(betas))
         dlogbetas = np.zeros(len(betas))
-        top = len(betas) - 2 # The index of the topmost chain subject to the "normal" dynamics.
-
-        # Allow the chains to equilibrate to even acceptance-spacing for all chains.
-        top -= 1
 
         # Drive chains 1 to N-2 toward even spacing.
         dlogbetas[1:-1] = -(As[:-1] - As[1:])
-
-        # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!) and
-        # just use lower gap instead.
-        kappa[-2] = loggammas[-2]
 
         # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
         # the size of the gap in the direction in which the chain is moving (to avoid the chains
         # bouncing off each other). If log(beta) is decreasing, chain is ascending, so use gap with
         # next-highest chain (and vice versa).
         kappa[1:-2] = np.select([ -dlogbetas[1:-2] < 0, -dlogbetas[1:-2] > 0 ],
-                                [  loggammas[ :-2],      loggammas[1:-1]     ])
-        kappa *= kappa0
+                                [  loggammas[ :-1],      loggammas[1:  ]     ])
+
+        # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!) and
+        # just use lower gap instead.
+        kappa[-2] = loggammas[-1]
 
         # Compute new temperature spacings.
-        self.kappa = kappa
-        dlogbetas *= kappa
-        loggammas -= np.diff(dlogbetas)
+        dlogbetas *= kappa0 * kappa
+        loggammas -= np.diff(dlogbetas[:-1])
 
         # Ensure log-spacings are positive and adjust temperature chain. Whereever a negative
         # spacing is replaced by zero, must compensate by increasing subsequent spacing in order to
@@ -541,7 +534,7 @@ class PTSampler(Sampler):
         loggammas = np.maximum(loggammas, 0) + offsets
 
         # Finally, compute the new ladder.
-        betas[1:] = np.exp(-np.cumsum(loggammas))
+        betas[1:-1] = np.exp(-np.cumsum(loggammas))
 
         # Don't mutate the ladder here; let the client code do that.
         return betas - self.betas
