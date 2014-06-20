@@ -481,6 +481,14 @@ class PTSampler(Sampler):
         return p, lnprob, logl
 
     def _evolve_ladder(self):
+        # Some sanity checks on the ladder...
+        assert np.all(np.diff(self.betas) < 1), \
+                'Temperatures should be in ascending order.'
+        assert self.betas[0] == 1, \
+                'Bottom temperature should be 1.'
+        assert self.betas[-1] == 0, \
+                'Top temperature should be inf.'
+
         betas = self.betas.copy()
 
         lag = 500 * self.evolution_time
@@ -495,10 +503,9 @@ class PTSampler(Sampler):
             return None
         As = self.tswap_acceptance_fraction_pairs_recent
 
-        # Hack to avoid erroneous divide by zero warning.
-        old = np.seterr(divide='ignore')
-        loggammas = -np.diff(np.log(betas))
-        np.seterr(**old)
+        # Manually add final (infinite) gap to avoid divide by zero warning in np.log.
+        loggammas = -np.diff(np.log(betas[:-1]))
+        loggammas = np.concatenate((loggammas, [np.inf]))
 
         kappa = np.zeros(len(betas))
         dlogbetas = np.zeros(len(betas))
