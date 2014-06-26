@@ -46,36 +46,21 @@ class GaussianProposal(Proposal):
         # Call the superclass initialization.
         super(GaussianProposal, self).__init__(**kwargs)
 
-    def update(self, ens_lnprob_fn, coords_in, lnprior_in, lnlike_in,
-               coords_out, lnprior_out, lnlike_out):
-        # Parse the dimensions of the input coordinates.
-        coords_in = np.atleast_2d(coords_in)
-        nens, ndim = coords_in.shape
-        if ndim != len(self.cov):
-            raise ValueError("Dimension mismatch between coordinates and "
-                             "proposal")
-
+    def update(self, state_in, state_out):
         # Generate a proposal coordinate.
-        q = self.random.multivariate_normal(self.zero, self.cov, size=nens)
-        q += coords_in
+        q = self.random.multivariate_normal(self.zero, self.cov, len(state_in))
+        state_out.update(state_in + q)
 
         # Compute the lnprior and lnlikelihood at the new positions.
-        lnprior, lnlike = ens_lnprob_fn(q)
+        state_out.compute_lnprob()
 
         # Compute the acceptance probability and accept or reject on that
         # basis.
-        acc_lp = (lnprior + lnlike) - (lnprior_in + lnlike_in)
+        acc_lp = state_out.lnprob - state_in.lnprob
         nacc = acc_lp < 0.0
         nacc[nacc] = self.random.rand(sum(nacc)) >= np.exp(acc_lp[nacc])
 
         # Update the output coordinates.
-        q[nacc] = coords_in[nacc, :]
-        lnprior[nacc] = lnprior_in[nacc]
-        lnlike[nacc] = lnlike_in[nacc]
-
-        # Save the output coordinates in place.
-        coords_out[:] = q
-        lnprior_out[:] = lnprior
-        lnlike_out[:] = lnlike
+        state_out.update(state_in, nacc)
 
         return ~nacc

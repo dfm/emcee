@@ -15,7 +15,6 @@ class Proposal(object):
         else:
             self.random = random
 
-    def update(self, ens_lnprob_fn, coords_in, lnlike_in, lnprior_in,
-               coords_out, lnlike_out, lnprior_out):
+    def update(self, lnprob_fn, state_in, state_out):
         raise NotImplementedError("Subclasses must implement the update "
                                   "method")
