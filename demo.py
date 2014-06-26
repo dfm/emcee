@@ -21,11 +21,12 @@ def lnlike(p):
 
 
 ndim = 10
-sampler = Sampler(lnprior, lnlike, proposals.StretchProposal())
+sampler = Sampler(lnprior, lnlike, [proposals.StretchProposal(),
+                                    proposals.GaussianProposal(ndim, 0.2)])
 p0 = 1.0 + 0.1 * np.random.randn(100, ndim)
 
 for i, (p, lp, ll) in enumerate(sampler.sample(p0)):
-    if i >= 5000:
+    if i >= 100:
         break
 
 print(sampler.acceptance_fraction)
@@ -39,3 +40,7 @@ x = np.linspace(-6, 6, 5000)
 pl.plot(x, np.exp(-0.5 * x**2) / np.sqrt(2*np.pi))
 
 pl.savefig("dude.png")
+
+pl.clf()
+pl.plot(sampler.chain[:, :, 0])
+pl.savefig("dude2.png")

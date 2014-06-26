@@ -57,7 +57,11 @@ class Sampler(object):
     def acceptance_fraction(self):
         return self.naccepted / self.step
 
-    def initialize_chain(self, nwalkers, ndim):
+    def initialize_chain(self, initial_coords):
+        # Parse the dimensions.
+        initial_coords = np.atleast_2d(initial_coords)
+        nwalkers, ndim = initial_coords.shape
+
         self.ensemble_size = nwalkers
         self._chain = np.empty((0, nwalkers, ndim))
         self._lnprior = np.empty((0, nwalkers))
@@ -75,10 +79,6 @@ class Sampler(object):
 
     def sample(self, initial_coords, initial_lnprior=None, initial_lnlike=None,
                nstep=None, chunksize=128, mapper=map):
-        # Parse the dimensions.
-        initial_coords = np.atleast_2d(initial_coords)
-        nwalkers, ndim = initial_coords.shape
-
         # Wrap the lnprob function in an ensemble mapper.
         lnprob_fn = _ensemble_lnprob(self.lnprob_fn, mapper)
 
@@ -88,13 +88,14 @@ class Sampler(object):
 
         # Sanity check the metadata lists and all of the dimensions.
         if self.step > 0:
-            if self._chain is None or nwalkers != self.ensemble_size:
+            if (self._chain is None or
+                    len(initial_coords) != self.ensemble_size):
                 raise RuntimeError("The chain dimensions are incompatible "
                                    "with the initial coordinates")
 
         # Initialize the metadata containers.
         else:
-            self.initialize_chain(nwalkers, ndim)
+            self.initialize_chain(initial_coords)
 
         # Resize the metadata objects.
         if nstep is not None:
