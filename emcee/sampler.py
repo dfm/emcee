@@ -7,6 +7,7 @@ __all__ = ["Sampler"]
 import traceback
 import numpy as np
 
+from . import autocorr
 from .state import State
 
 
@@ -115,6 +116,10 @@ class SimpleSampler(Sampler):
     @property
     def lnprob(self):
         return self.lnprior + self.lnlike
+
+    def get_autocorr_time(self, window=50, fast=False):
+        return autocorr.integrated_time(np.mean(self.chain, axis=1), axis=0,
+                                        window=window, fast=fast)
 
     def get_state(self, base, step=None):
         if step is None:

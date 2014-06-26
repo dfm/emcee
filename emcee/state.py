@@ -9,12 +9,13 @@ import copy
 
 class State(object):
 
-    def __init__(self, lnprob_fn, coords, lnprior, lnlike):
+    def __init__(self, lnprob_fn, coords, lnprior, lnlike, blob=None):
         self.lnprob_fn = lnprob_fn
 
         self.coords = coords
         self.lnprior = lnprior
         self.lnlike = lnlike
+        self.blob = blob
 
     def copy(self):
         return State(self.lnprob_fn, copy.copy(self.coords), None, None)
@@ -58,14 +59,6 @@ class State(object):
             new.coords *= other
         return new
 
-    def __rmul__(self, other):
-        new = self.copy()
-        if hasattr(other, "coords"):
-            new.coords *= other.coords
-        else:
-            new.coords *= other
-        return new
-
     def __getitem__(self, s):
         lp = self.lnprior[s] if self.lnprior is not None else None
         ll = self.lnlike[s] if self.lnlike is not None else None
@@ -83,8 +76,12 @@ class State(object):
             self.coords[:] = other.coords
             self.lnprior[:] = other.lnprior
             self.lnlike[:] = other.lnlike
+            if other.blob is not None:
+                self.blob[:] = other.blob
             return
 
         self.coords[m] = other.coords[m]
         self.lnprior[m] = other.lnprior[m]
         self.lnlike[m] = other.lnlike[m]
+        if self.blob is not None:
+            self.blob[m] = other.blob[m]
