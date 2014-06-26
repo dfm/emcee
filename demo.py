@@ -9,7 +9,7 @@ import matplotlib.pyplot as pl
 from emcee import proposals
 from emcee.sampler import Sampler
 
-np.random.seed(123)
+np.random.seed(1234)
 
 
 def lnprior(p):
@@ -22,14 +22,16 @@ def lnlike(p):
 
 ndim = 10
 sampler = Sampler(lnprior, lnlike, proposals.StretchProposal())
-p0 = 1.0 + 0.1 * np.random.randn(32, ndim)
+p0 = 1.0 + 0.1 * np.random.randn(100, ndim)
 
-for p0 in sampler.sample(p0, nstep=10000):
-    pass
+for i, (p, lp, ll) in enumerate(sampler.sample(p0)):
+    if i >= 5000:
+        break
 
+print(sampler.acceptance_fraction)
 print(sampler.chain.shape)
-print(np.mean(sampler.chain[:, :, 0]))
-print(np.std(sampler.chain[:, :, 0]))
+print(np.mean(sampler.chain, axis=(0, 1)))
+print(np.std(sampler.chain, axis=(0, 1)))
 
 pl.hist(sampler.chain[:, :, 0].flatten(), 50, histtype="step", color="k",
         normed=True)

@@ -32,10 +32,46 @@ class Sampler(object):
 
         # Initialize the metadata lists as None; they will be created before
         # the first step.
-        self.chain = None
-        self.lnprior = None
-        self.lnlike = None
+        self._chain = None
+        self._lnprior = None
+        self._lnlike = None
         self.naccepted = None
+
+    @property
+    def chain(self):
+        return self._chain[:self.step]
+
+    @property
+    def lnprior(self):
+        return self._lnprior[:self.step]
+
+    @property
+    def lnlike(self):
+        return self._lnlike[:self.step]
+
+    @property
+    def lnprob(self):
+        return self.lnprior + self.lnlike
+
+    @property
+    def acceptance_fraction(self):
+        return self.naccepted / self.step
+
+    def initialize_chain(self, nwalkers, ndim):
+        self.ensemble_size = nwalkers
+        self._chain = np.empty((0, nwalkers, ndim))
+        self._lnprior = np.empty((0, nwalkers))
+        self._lnlike = np.empty((0, nwalkers))
+        self.naccepted = np.zeros(nwalkers, dtype=int)
+
+    def grow_chain(self, N):
+        _, nwalkers, ndim = self._chain.shape
+        self._chain = np.concatenate((self._chain[:self.step],
+                                     np.empty((N, nwalkers, ndim))), axis=0)
+        self._lnprior = np.concatenate((self._lnprior[:self.step],
+                                        np.empty((N, nwalkers))), axis=0)
+        self._lnlike = np.concatenate((self._lnlike[:self.step],
+                                       np.empty((N, nwalkers))), axis=0)
 
     def sample(self, initial_coords, initial_lnprior=None, initial_lnlike=None,
                nstep=None, chunksize=128, mapper=map):
@@ -52,49 +88,48 @@ class Sampler(object):
 
         # Sanity check the metadata lists and all of the dimensions.
         if self.step > 0:
-            if self.chain is None or nwalkers != self.ensemble_size:
+            if self._chain is None or nwalkers != self.ensemble_size:
                 raise RuntimeError("The chain dimensions are incompatible "
                                    "with the initial coordinates")
 
         # Initialize the metadata containers.
         else:
-            self.chain = np.empty((0, nwalkers, ndim))
-            self.lnprior = np.empty((0, nwalkers))
-            self.lnlike = np.empty((0, nwalkers))
-            self.naccepted = np.zeros(nwalkers, dtype=int)
+            self.initialize_chain(nwalkers, ndim)
 
         # Resize the metadata objects.
-        assert nstep is not None
-        self.chain = np.concatenate((self.chain[:self.step],
-                                    np.empty((nstep, nwalkers, ndim))), axis=0)
-        self.lnprior = np.concatenate((self.lnprior[:self.step],
-                                       np.empty((nstep, nwalkers))), axis=0)
-        self.lnlike = np.concatenate((self.lnlike[:self.step],
-                                      np.empty((nstep, nwalkers))), axis=0)
+        if nstep is not None:
+            self.grow_chain(nstep)
 
         # Start sampling.
         initial = int(self.step)
         while True:
+            # Grow the chain if needed.
+            if self.step >= len(self._chain):
+                self.grow_chain(chunksize)
+
+            # Iterate over proposals.
             p = self.schedule[self.step % len(self.schedule)]
 
+            # Run the update.
             acc = p.update(lnprob_fn, initial_coords, initial_lnprior,
-                           initial_lnlike, self.chain[self.step],
-                           self.lnprior[self.step],
-                           self.lnlike[self.step])
+                           initial_lnlike, self._chain[self.step],
+                           self._lnprior[self.step],
+                           self._lnlike[self.step])
+
+            # Update the acceptance count.
             self.naccepted += acc
 
-            yield self.chain[self.step]
+            yield (self._chain[self.step], self._lnprior[self.step],
+                   self._lnlike[self.step])
 
-            initial_coords = self.chain[self.step]
-            initial_lnprior = self.lnprior[self.step]
-            initial_lnlike = self.lnlike[self.step]
+            initial_coords = self._chain[self.step]
+            initial_lnprior = self._lnprior[self.step]
+            initial_lnlike = self._lnlike[self.step]
 
             # Break when the requested number of steps is reached.
             self.step += 1
-            if self.step - initial >= nstep:
+            if nstep is not None and self.step - initial >= nstep:
                 break
-
-        print(self.naccepted / self.step)
 
 
 class _ensemble_lnprob(object):
