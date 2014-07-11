@@ -6,9 +6,9 @@ from __future__ import division, print_function
 import numpy as np
 import matplotlib.pyplot as pl
 
+from emcee import autocorr
 from emcee import proposals
 from emcee.sampler import SimpleSampler
-from emcee.autocorr import integrated_time
 
 np.random.seed(1234)
 
@@ -17,23 +17,29 @@ def lnprior(p):
     return 0.0
 
 
-def lnlike(p):
-    return -0.5 * np.dot(p, np.linalg.solve(m, p))
+class Rosenbrock(object):
+    def __init__(self):
+        self.a1 = 100.0
+        self.a2 = 20.0
 
-ndim = 10
-var = np.random.randn(ndim, 1)
-m = np.dot(var, var.T) + ndim * np.eye(ndim)
+    def __call__(self, p):
+        return -(self.a1 * (p[1] - p[0] ** 2) ** 2 + (1 - p[0]) ** 2) / self.a2
 
+ndim = 2
+lnlike = Rosenbrock()
 # sampler = SimpleSampler(lnprior, lnlike, proposals.StretchProposal())
-sampler = SimpleSampler(lnprior, lnlike, proposals.GaussianProposal(ndim, 1.0))
-p0 = 0.1 * np.random.randn(100, ndim)
+sampler = SimpleSampler(lnprior, lnlike, proposals.GaussianProposal(ndim, 0.0001))
+p0 = 0.1 * np.random.randn(32, ndim)
 
 for i, state in enumerate(sampler.sample(p0, nstep=5000)):
     pass
 
-# print(sampler.acceptance_fraction)
+print(sampler.acceptance_fraction)
 print(sampler.get_autocorr_time())
-print(integrated_time(sampler.chain[:, 0], axis=0))
+f = autocorr.function(sampler.chain[:, 0], axis=0)
+pl.plot(f)
+pl.savefig("blah.png")
+assert 0
 # print(sampler.chain.shape)
 # print(np.mean(sampler.chain, axis=(0, 1)))
 # print(np.std(sampler.chain, axis=(0, 1)))
