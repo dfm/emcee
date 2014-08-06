@@ -152,6 +152,9 @@ class Sampler(object):
         :param kwargs: (optional)
             Other parameters that are directly passed to :func:`sample`.
 
+        This returns the results of the final sample in whatever form
+        :func:`sample` yields.  Usually, that's:
+        ``pos``, ``lnprob``, ``rstate``, ``blobs`` (blobs optional)
         """
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
                                    **kwargs):
