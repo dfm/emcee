@@ -136,7 +136,8 @@ class Sampler(object):
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
         :param pos0:
-            The initial position vector.
+            The initial position vector.  Can also be None to resume from
+            where :func:``run_mcmc`` left off the last time it executed.
 
         :param N:
             The number of steps to run.
@@ -156,7 +157,22 @@ class Sampler(object):
         :func:`sample` yields.  Usually, that's:
         ``pos``, ``lnprob``, ``rstate``, ``blobs`` (blobs optional)
         """
+        if pos0 is None:
+            if not getattr(self, "_last_run_mcmc_result", None):
+                raise ValueError("Cannot have pos0=None if run_mcmc has never "
+                                 "been called.")
+            pos0 = self._last_run_mcmc_result[0]
+            if lnprob0 is None:
+                rstate0 = self._last_run_mcmc_result[1]
+            if rstate0 is None:
+                rstate0 = self._last_run_mcmc_result[2]
+
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
                                    **kwargs):
             pass
+
+        # store so that the ``pos0=None`` case will work.  We throw out the blob
+        # if it's there because we don't need it
+        self._last_run_mcmc_result = results[:3]
+
         return results
