@@ -122,6 +122,7 @@ class Sampler(object):
         """
         self.iterations = 0
         self.naccepted = 0
+        self._last_run_mcmc_result = None
 
     def clear_chain(self):
         """An alias for :func:`reset` kept for backwards compatibility."""
@@ -158,7 +159,7 @@ class Sampler(object):
         ``pos``, ``lnprob``, ``rstate``, ``blobs`` (blobs optional)
         """
         if pos0 is None:
-            if not getattr(self, "_last_run_mcmc_result", None):
+            if self._last_run_mcmc_result is None:
                 raise ValueError("Cannot have pos0=None if run_mcmc has never "
                                  "been called.")
             pos0 = self._last_run_mcmc_result[0]
