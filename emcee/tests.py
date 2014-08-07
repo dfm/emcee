@@ -259,3 +259,23 @@ class Tests:
         # Make sure that the blobs aren't all the same.
         blobs = self.sampler.blobs
         assert np.any([blobs[-1] != blobs[i] for i in range(len(blobs) - 1)])
+
+    def test_run_mcmc_resume(self):
+
+        self.sampler = s = EnsembleSampler(self.nwalkers, self.ndim,
+                                           lnprob_gaussian, args=[self.icov])
+
+        # first time around need to specify p0
+        try:
+            s.run_mcmc(None, self.N)
+        except ValueError:
+            pass
+
+        s.run_mcmc(self.p0, N=self.N)
+        assert s.chain.shape[1] == self.N
+
+        # this doesn't actually check that it resumes with the right values, as
+        # that's non-trivial... so we just make sure it does *something* when
+        # None is given and that it records whatever it does
+        s.run_mcmc(None, N=self.N)
+        assert s.chain.shape[1] == 2 * self.N

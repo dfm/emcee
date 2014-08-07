@@ -358,14 +358,14 @@ class PTSampler(Sampler):
                 pupdate = self.p[:, jupdate::2, :]
                 psample = self.p[:, jsample::2, :]
 
-                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers/2)))
+                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers//2)))
 
-                qs = np.zeros((self.ntemps, self.nwalkers/2, self.dim))
+                qs = np.zeros((self.ntemps, self.nwalkers//2, self.dim))
                 for k in range(self.ntemps):
-                    js = np.random.randint(0, high=self.nwalkers / 2,
-                                           size=self.nwalkers / 2)
+                    js = np.random.randint(0, high=self.nwalkers // 2,
+                                           size=self.nwalkers // 2)
                     qs[k, :, :] = psample[k, js, :] + zs[k, :].reshape(
-                        (self.nwalkers / 2, 1)) * (pupdate[k, :, :] -
+                        (self.nwalkers // 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
 
                 fn = PTLikePrior(self.logl, self.logp, self.loglargs,
@@ -374,7 +374,7 @@ class PTSampler(Sampler):
                 results = list(mapf(fn, qs.reshape((-1, self.dim))))
 
                 qslogls = np.array([r[0] for r in results]).reshape(
-                    (self.ntemps, self.nwalkers/2))
+                    (self.ntemps, self.nwalkers//2))
                 qslogps = np.array([r[1] for r in results]).reshape(
                     (self.ntemps, self.nwalkers/2))
                 qslnprob = qslogls * betas + qslogps
@@ -383,7 +383,7 @@ class PTSampler(Sampler):
                     - lnprob[:, jupdate::2]
                 logrs = np.log(np.random.uniform(low=0.0, high=1.0,
                                                  size=(self.ntemps,
-                                                       self.nwalkers/2)))
+                                                       self.nwalkers//2)))
 
                 accepts = logrs < logpaccept
                 accepts = accepts.flatten()
@@ -397,7 +397,7 @@ class PTSampler(Sampler):
                 logp[:, jupdate::2].reshape((-1,))[accepts] = \
                     qslogps.reshape((-1,))[accepts]
 
-                accepts = accepts.reshape((self.ntemps, self.nwalkers/2))
+                accepts = accepts.reshape((self.ntemps, self.nwalkers//2))
 
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
