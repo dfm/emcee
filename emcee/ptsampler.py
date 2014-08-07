@@ -56,14 +56,14 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None):
                       1.26579, 1.26424, 1.26271, 1.26121,
                       1.25973])
     dmax = tstep.shape[0]
-        
+
     if ndim > dmax:
         # An approximation to the temperature step at large
         # dimension
         tstep = 1.0 + 2.0*np.sqrt(np.log(4.0))/np.sqrt(ndim)
     else:
         tstep = tstep[ndim-1]
-        
+
     if ntemps is None and Tmax is None:
         raise ValueError('must specify one of ``ntemps`` and ``Tmax``')
     elif ntemps is None:
@@ -164,7 +164,7 @@ class PTSampler(Sampler):
 
         self.nwalkers = nwalkers
         self.dim = dim
-        
+
         if betas is None:
             self._betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
         else:
@@ -305,14 +305,14 @@ class PTSampler(Sampler):
                 pupdate = p[:, jupdate::2, :]
                 psample = p[:, jsample::2, :]
 
-                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers/2)))
+                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers//2)))
 
-                qs = np.zeros((self.ntemps, self.nwalkers/2, self.dim))
+                qs = np.zeros((self.ntemps, self.nwalkers//2, self.dim))
                 for k in range(self.ntemps):
-                    js = np.random.randint(0, high=self.nwalkers / 2,
-                                           size=self.nwalkers / 2)
+                    js = np.random.randint(0, high=self.nwalkers // 2,
+                                           size=self.nwalkers // 2)
                     qs[k, :, :] = psample[k, js, :] + zs[k, :].reshape(
-                        (self.nwalkers / 2, 1)) * (pupdate[k, :, :] -
+                        (self.nwalkers // 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
 
                 fn = PTLikePrior(self.logl, self.logp, self.loglargs,
@@ -325,9 +325,9 @@ class PTSampler(Sampler):
                                                                  self.dim))))
 
                 qslogls = np.array([r[0] for r in results]).reshape(
-                    (self.ntemps, self.nwalkers/2))
+                    (self.ntemps, self.nwalkers//2))
                 qslogps = np.array([r[1] for r in results]).reshape(
-                    (self.ntemps, self.nwalkers/2))
+                    (self.ntemps, self.nwalkers//2))
                 qslnprob = qslogls * self.betas.reshape((self.ntemps, 1)) \
                     + qslogps
 
@@ -335,7 +335,7 @@ class PTSampler(Sampler):
                     - lnprob[:, jupdate::2]
                 logrs = np.log(np.random.uniform(low=0.0, high=1.0,
                                                  size=(self.ntemps,
-                                                       self.nwalkers/2)))
+                                                       self.nwalkers//2)))
 
                 accepts = logrs < logpaccept
                 accepts = accepts.flatten()
@@ -347,7 +347,7 @@ class PTSampler(Sampler):
                 logl[:, jupdate::2].reshape((-1,))[accepts] = \
                     qslogls.reshape((-1,))[accepts]
 
-                accepts = accepts.reshape((self.ntemps, self.nwalkers/2))
+                accepts = accepts.reshape((self.ntemps, self.nwalkers//2))
 
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
