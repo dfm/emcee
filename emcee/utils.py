@@ -25,6 +25,27 @@ def sample_ball(p0, std, size=1):
     return np.vstack([p0 + std * np.random.normal(size=len(p0))
                       for i in range(size)])
 
+def sample_ellipsoid(p0, covmat, size=1):
+    """
+    Produce an ellipsoid of walkers around an initial parameter value,
+    according to a covariance matrix.
+
+    :param p0: The initial parameter value.
+    :param covmat:
+        The covariance matrix.  Must be symmetric-positive definite or
+        it will raise the exception numpy.linalg.LinAlgError
+    :param size: The number of samples to produce.
+
+    """
+    covmat = np.array(covmat)
+    assert covmat.ndim==2
+    nparam = len(p0)
+    assert covmat.shape == (nparam,nparam)
+    L = np.linalg.cholesky(covmat)
+    return np.vstack([p0 + np.dot(L, np.random.normal(size=nparam))
+                      for i in xrange(size)])
+
+
 
 class MH_proposal_axisaligned(object):
     """
