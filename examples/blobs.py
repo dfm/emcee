@@ -27,7 +27,7 @@ def lnprob(p):
 # Set up the sampler and randomly select a starting position.
 nwalkers, ndim = 100, 50
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob)
-p0 = emcee.EnsembleSampler.sampleBall(np.zeros(ndim), np.random.rand(ndim),
+p0 = emcee.utils.sample_ball(np.zeros(ndim), np.random.rand(ndim),
         nwalkers)
 
 # Sample for a few iterations.
