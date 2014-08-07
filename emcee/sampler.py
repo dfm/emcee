@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["Sampler"]
+__all__ = ["StateSampler", "Sampler"]
 
 import traceback
 import numpy as np
@@ -11,7 +11,7 @@ from . import autocorr
 from .state import State
 
 
-class Sampler(object):
+class StateSampler(object):
 
     def __init__(self, proposal):
         # Save the proposal or list of proposals.
@@ -96,14 +96,19 @@ class Sampler(object):
             if nstep is not None and self.step - initial >= nstep:
                 break
 
+    def run_mcmc(self, initial_state, nstep, **kwargs):
+        for val in self.sample(initial_state, nstep=nstep, **kwargs):
+            pass
+        return val
 
-class SimpleSampler(Sampler):
+
+class Sampler(StateSampler):
 
     def __init__(self, lnprior_fn, lnlike_fn, proposal, args=[], kwargs={}):
         # Wrap the ln-priod and ln-likelihood functions for pickling.
         self.lnprob_fn = _lnprob_fn_wrapper(lnprior_fn, lnlike_fn, args,
                                             kwargs)
-        super(SimpleSampler, self).__init__(proposal)
+        super(Sampler, self).__init__(proposal)
 
     @property
     def lnprior(self):
@@ -147,20 +152,24 @@ class SimpleSampler(Sampler):
         self._lnlike = np.concatenate((self._lnlike[:self.step],
                                        np.empty((N, nwalkers))), axis=0)
 
-    def sample(self, initial_coords, initial_lnprior=None, initial_lnlike=None,
-               mapper=map, **kwargs):
-        # Wrap the lnprob function in an ensemble mapper.
-        lnprob_fn = _ensemble_lnprob(self.lnprob_fn, mapper)
+    def sample(self, initial_coords_or_state, initial_lnprior=None,
+               initial_lnlike=None, mapper=map, **kwargs):
+        if hasattr(initial_coords_or_state, "lnprob_fn"):
+            initial_state = initial_coords_or_state
 
-        # Set up the initial state.
-        initial_state = State(lnprob_fn, initial_coords, initial_lnprior,
-                              initial_lnlike)
+        else:
+            # Wrap the lnprob function in an ensemble mapper.
+            lnprob_fn = _ensemble_lnprob(self.lnprob_fn, mapper)
+
+            # Set up the initial state.
+            initial_state = State(lnprob_fn, initial_coords_or_state,
+                                  initial_lnprior, initial_lnlike)
 
         # Compute the initial lnprobability.
-        if initial_lnprior is None or initial_lnlike is None:
+        if initial_state.lnprior is None or initial_state.lnlike is None:
             initial_state.compute_lnprob()
 
-        return super(SimpleSampler, self).sample(initial_state, **kwargs)
+        return super(Sampler, self).sample(initial_state, **kwargs)
 
 
 class _ensemble_lnprob(object):
