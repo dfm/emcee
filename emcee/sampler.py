@@ -122,6 +122,7 @@ class Sampler(object):
         """
         self.iterations = 0
         self.naccepted = 0
+        self._last_run_mcmc_result = None
 
     def clear_chain(self):
         """An alias for :func:`reset` kept for backwards compatibility."""
@@ -136,7 +137,8 @@ class Sampler(object):
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
         :param pos0:
-            The initial position vector.
+            The initial position vector.  Can also be None to resume from
+            where :func:``run_mcmc`` left off the last time it executed.
 
         :param N:
             The number of steps to run.
@@ -152,8 +154,26 @@ class Sampler(object):
         :param kwargs: (optional)
             Other parameters that are directly passed to :func:`sample`.
 
+        This returns the results of the final sample in whatever form
+        :func:`sample` yields.  Usually, that's:
+        ``pos``, ``lnprob``, ``rstate``, ``blobs`` (blobs optional)
         """
+        if pos0 is None:
+            if self._last_run_mcmc_result is None:
+                raise ValueError("Cannot have pos0=None if run_mcmc has never "
+                                 "been called.")
+            pos0 = self._last_run_mcmc_result[0]
+            if lnprob0 is None:
+                rstate0 = self._last_run_mcmc_result[1]
+            if rstate0 is None:
+                rstate0 = self._last_run_mcmc_result[2]
+
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
                                    **kwargs):
             pass
+
+        # store so that the ``pos0=None`` case will work.  We throw out the blob
+        # if it's there because we don't need it
+        self._last_run_mcmc_result = results[:3]
+
         return results
