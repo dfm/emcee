@@ -265,7 +265,12 @@ class Tests:
         self.sampler = s = EnsembleSampler(self.nwalkers, self.ndim,
                                            lnprob_gaussian, args=[self.icov])
 
-        #first time around need to specify p0
+        # first time around need to specify p0
+        try:
+            s.run_mcmc(None, self.N)
+        except ValueError:
+            pass
+
         s.run_mcmc(self.p0, N=self.N)
         assert s.chain.shape[1] == self.N
 
