@@ -124,6 +124,15 @@ class Sampler(object):
         self.naccepted = 0
         self._last_run_mcmc_result = None
 
+    def reset_burn_in(self):
+        """
+        Clear the chain, while remember the last result from ``run_mcmc``.  This
+        allows running for a burnin period and then resuming with
+        ``sampler.run_mcmc(None, niters)``.
+        """
+        self.iterations = 0
+        self.naccepted = 0
+
     def clear_chain(self):
         """An alias for :func:`reset` kept for backwards compatibility."""
         return self.reset()
