@@ -130,8 +130,9 @@ class Sampler(object):
         allows running for a burnin period and then resuming with
         ``sampler.run_mcmc(None, niters)``.
         """
-        self.iterations = 0
-        self.naccepted = 0
+        temp_last_run_mcmc_result = self._last_run_mcmc_result
+        self.reset()
+        self._last_run_mcmc_result = temp_last_run_mcmc_result
 
     def clear_chain(self):
         """An alias for :func:`reset` kept for backwards compatibility."""
