@@ -509,7 +509,7 @@ class PTSampler(Sampler):
         kappa = np.zeros(len(betas))
         dlogbetas = np.zeros(len(betas))
 
-        # Drive chains 1 to N-2 toward even spacing.
+        # Drive the non-extremal chains toward even spacing.
         dlogbetas[1:-1] = -(As[:-1] - As[1:])
 
         # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
