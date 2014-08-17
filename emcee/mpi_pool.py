@@ -9,7 +9,6 @@ __all__ = ["MPIPool"]
 # If mpi4py is installed, import it.
 try:
     from mpi4py import MPI
-    MPI = MPI
 except ImportError:
     MPI = None
 
