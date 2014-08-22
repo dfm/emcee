@@ -79,10 +79,12 @@ class PTState:
     """
     Class representing the run state of ``PTSampler``. Used for resuming runs.
     """
-    def __init__(self, p, betas, time=0):
+    def __init__(self, p, betas, time=0, ratios=None, alpha=alpha):
         self.time = time
         self.p = np.array(p).copy()
         self.betas = np.array(betas).copy()
+        self.ratios = ratios
+        self.alpha = alpha
 
 class PTLikePrior(object):
     """
@@ -153,16 +155,10 @@ class PTSampler(Sampler):
         updates. The current ``PTSampler`` object is passed as an
         argument.
 
-    :param evolution_time: (optional)
-        The number of iterations between temperature ladder
-        adjustments.  Too low a value will lead to erratic sampling.
-        Default: 100.
-
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, logpkwargs={}, ladder_callback=None,
-                 evolution_time=100):
+                 loglkwargs={}, logpkwargs={}, ladder_callback=None):
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -192,7 +188,8 @@ class PTSampler(Sampler):
         self.betas = None
         self.time = 0
         self.ladder_callback = ladder_callback
-        self.evolution_time = evolution_time
+
+        self._alpha = None
 
     def reset(self):
         """
@@ -200,8 +197,7 @@ class PTSampler(Sampler):
         ``lnlikelihood``,  ``acceptance_fraction``,
         ``tswap_acceptance_fraction``,
         ``tswap_acceptance_fraction_pairs``, and
-        ``tswap_acceptance_fraction_pairs_recent`` stored
-        properties.
+        stored properties.
 
         """
 
@@ -210,6 +206,8 @@ class PTSampler(Sampler):
         self._lnprob = None
         self._lnlikelihood = None
         self._initialize(self.ntemps)
+        self._ratios = None
+        self._alpha = None
 
     def _initialize(self, ntemps):
         """
@@ -236,7 +234,7 @@ class PTSampler(Sampler):
         Gets a ``PTState`` object representing the current state of the sampler.
 
         """
-        return PTState(time=self.time, p=self.p, betas=self.betas)
+        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self._ratios, alphs=self._alpha)
 
     def sample(self, p0=None, betas=None, ntemps=None, Tmax=None, state=None, lnprob0=None, lnlike0=None,
                iterations=1, thin=1, storechain=True, evolve_ladder=False):
@@ -304,6 +302,8 @@ class PTSampler(Sampler):
             self.p = state.p.copy()
             self.betas = state.betas.copy()
             self.time = state.time
+            self.ratios = state.ratios
+            self.alpha = state.alpha
         else:
             # Set initial walker positions.
             if p0 is not None:
@@ -404,7 +404,7 @@ class PTSampler(Sampler):
 
             self.p, lnprob, logl = self._temperature_swaps(self.p, lnprob, logl)
 
-            if evolve_ladder and (self.time + 1) % self.evolution_time == 0:
+            if evolve_ladder:
                 dbetas = self._evolve_ladder()
                 if dbetas is not None:
                     self.betas += dbetas
@@ -440,6 +440,7 @@ class PTSampler(Sampler):
         """
         ntemps = self.ntemps
 
+        ratios = np.zeros(ntemps - 1)
         for i in range(ntemps - 1, 0, -1):
             bi = self.betas[i]
             bi1 = self.betas[i - 1]
@@ -464,6 +465,7 @@ class PTSampler(Sampler):
             self.nswap_accepted[i - 1] += nacc
 
             self.nswap_pairs_accepted[i - 1] += nacc
+            ratios[i - 1] = nacc / self.nwalkers
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -478,6 +480,11 @@ class PTSampler(Sampler):
             logl[i - 1, i1perm[asel]] = ltemp
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
 
+        if self._ratios is None or self._alpha is None:
+            self._ratios = ratios
+        else:
+            self._ratios = self._alpha * ratios + (1 - self._alpha) * self._ratios
+
         return p, lnprob, logl
 
     def _evolve_ladder(self):
@@ -491,17 +498,12 @@ class PTSampler(Sampler):
 
         betas = self.betas.copy()
 
-        lag = 500 * self.evolution_time
-
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
+        lag = 50000
         a = 0.45
         kappa0 = a * lag / (self.time + lag)
-
-        if np.any(self.nswap_pairs - self.nswap_pairs_old < self.evolution_time):
-            # Not enough swaps accumulated; abort.
-            return None
-        As = self.tswap_acceptance_fraction_pairs_recent
+        As = self._ratios
 
         # Ignore topmost chain, since it's at T=infinity.
         loggammas = -np.diff(np.log(betas[:-1]))
@@ -525,7 +527,12 @@ class PTSampler(Sampler):
 
         # Compute new temperature spacings.
         dlogbetas *= kappa0 * kappa
-        loggammas -= np.diff(dlogbetas[:-1])
+        dloggammas = -np.diff(dlogbetas[:-1])
+        loggammas += dloggammas
+
+        # Determine smoothing constant for acceptance ratio accumulation.  For
+        # now, use just use average of neighbouring kappas.
+        self._alpha = (kappa[1:] + kappa[:-1]) / 2
 
         # Finally, compute the new ladder.
         betas[1:-1] = np.exp(-np.cumsum(loggammas))
@@ -690,18 +697,6 @@ class PTSampler(Sampler):
 
         """
         return self.nswap_pairs_accepted / self.nswap_pairs
-
-    @property
-    def tswap_acceptance_fraction_pairs_recent(self):
-        """
-        Returns an array of recently accepted temperature swap fractions for
-        each pair of temperatures; shape ``(ntemps - 1, )``. If no swaps have
-        been accumulated in at least one chain, returns ``None``.
-
-        """
-        accepted = self.nswap_pairs_accepted - self.nswap_pairs_old_accepted
-        swaps =  self.nswap_pairs - self.nswap_pairs_old
-        return accepted / swaps if np.all(swaps > 0) else None
 
     @property
     def ntemps(self):
