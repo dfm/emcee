@@ -9,6 +9,7 @@ __all__ = ["PTSampler", "PTState", "default_beta_ladder"]
 import numpy as np
 import numpy.random as nr
 import multiprocessing as multi
+from scipy.special import gamma as Gamma
 
 from . import autocorr
 from .sampler import Sampler
@@ -75,11 +76,15 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
     betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
     return np.concatenate((betas, [0])) if include_inf else betas
 
+def _acceptance_derivative_gauss(gamma, n):
+    return -(2 * (1 + gamma) / (np.sqrt(gamma) * (2 + 1 / gamma + gamma))) * \
+            Gamma((n + 1) / 2.) / (gamma * np.sqrt(np.pi) * Gamma(n / 2.))
+
 class PTState:
     """
     Class representing the run state of ``PTSampler``. Used for resuming runs.
     """
-    def __init__(self, p, betas, time=0, ratios=None, alpha=alpha):
+    def __init__(self, p, betas, time=0, ratios=None, alpha=None):
         self.time = time
         self.p = np.array(p).copy()
         self.betas = np.array(betas).copy()
@@ -190,6 +195,7 @@ class PTSampler(Sampler):
         self.ladder_callback = ladder_callback
 
         self._alpha = None
+        self._ratios = None
 
     def reset(self):
         """
@@ -234,7 +240,7 @@ class PTSampler(Sampler):
         Gets a ``PTState`` object representing the current state of the sampler.
 
         """
-        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self._ratios, alphs=self._alpha)
+        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self._ratios, alpha=self._alpha)
 
     def sample(self, p0=None, betas=None, ntemps=None, Tmax=None, state=None, lnprob0=None, lnlike0=None,
                iterations=1, thin=1, storechain=True, evolve_ladder=False):
@@ -480,6 +486,7 @@ class PTSampler(Sampler):
             logl[i - 1, i1perm[asel]] = ltemp
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
 
+        self._alpha = 0
         if self._ratios is None or self._alpha is None:
             self._ratios = ratios
         else:
@@ -529,6 +536,12 @@ class PTSampler(Sampler):
         dlogbetas *= kappa0 * kappa
         dloggammas = -np.diff(dlogbetas[:-1])
         loggammas += dloggammas
+
+        # To estimate the change in acceptance ratio due to this adjustment, use a Gaussian
+        # approximation to the target distribution.
+        gammas = np.exp(loggammas)
+        dAs = gammas * dloggammas * _acceptance_derivative_gauss(gammas, self.dim)
+        self._alpha = dAs
 
         # Determine smoothing constant for acceptance ratio accumulation.  For
         # now, use just use average of neighbouring kappas.
