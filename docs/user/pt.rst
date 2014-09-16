@@ -123,7 +123,16 @@ The resulting samples (1000 of them) are stored as the
     # Longest autocorrelation length (over any temperature)
     max_acl = np.max(sampler.acor)
 
-    # etc
+    # log evidence estimation
+    lnZ, dlnZ = sampler.thermodynamic_integration_log_evidence()
+
+    # Analytic log evidence, for comparison
+    lnZtrue = np.log(2.0*np.pi*0.1 * 2.0)
+
+
+The code for this example is available 
+`here
+<https://github.com/dfm/emcee/blob/master/examples/multimodal.py>`_.
 
 
 Implementation Notes
