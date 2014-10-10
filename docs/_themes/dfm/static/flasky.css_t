@@ -20,7 +20,7 @@
 }
 
 body {
-    font-family: "abril-text", serif;
+    font-family: "Buenard", serif;
     font-size: 16px;
     line-height: 1.8em;
     background-color: white;
@@ -55,6 +55,10 @@ div.body {
     background-color: #ffffff;
     color: #3E4349;
     padding: 0 30px 0 30px;
+}
+
+.section img {
+    max-width: 100%;
 }
 
 img.floatingflask {

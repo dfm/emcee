@@ -1,8 +1,20 @@
 .. :changelog:
 
-1.2.1 (upcoming)
+2.1.0 (upcoming)
 ++++++++++++++++
 
+- Removing dependence on ``acor`` extension.
+- Added arguments to ``PTSampler`` function.
+- Added automatic load-balancing for MPI runs.
+- Added custom load-balancing for MPI and multiprocessing.
+- New default multiprocessing pool that supports ``^C``.
+
+
+2.0.0 (2013-11-17)
+++++++++++++++++++
+
+- **Re-licensed under the MIT license!**
+- Clearer less verbose documentation.
 - Added checks for parameters becoming infinite or NaN.
 - Added checks for log-probability becoming NaN.
 - Improved parallelization and various other tweaks in ``PTSampler``.

@@ -12,6 +12,7 @@ __all__ = ["MHSampler"]
 
 import numpy as np
 
+from . import autocorr
 from .sampler import Sampler
 
 
@@ -32,8 +33,12 @@ class MHSampler(Sampler):
         position.
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     """
     def __init__(self, cov, *args, **kwargs):
@@ -46,7 +51,7 @@ class MHSampler(Sampler):
         self._lnprob = np.empty(0)
 
     def sample(self, p0, lnprob=None, randomstate=None, thin=1,
-            storechain=True, iterations=1):
+               storechain=True, iterations=1):
         """
         Advances the chain ``iterations`` steps as an iterator
 
@@ -77,12 +82,12 @@ class MHSampler(Sampler):
 
         At each iteration, this generator yields:
 
-        * ``pos`` — The current positions of the chain in the parameter
+        * ``pos`` - The current positions of the chain in the parameter
           space.
 
-        * ``lnprob`` — The value of the log posterior at ``pos`` .
+        * ``lnprob`` - The value of the log posterior at ``pos`` .
 
-        * ``rstate`` — The current state of the random number generator.
+        * ``rstate`` - The current state of the random number generator.
 
         """
 
@@ -96,7 +101,7 @@ class MHSampler(Sampler):
         if storechain:
             N = int(iterations / thin)
             self._chain = np.concatenate((self._chain,
-                    np.zeros((N, self.dim))), axis=0)
+                                          np.zeros((N, self.dim))), axis=0)
             self._lnprob = np.append(self._lnprob, np.zeros(N))
 
         i0 = self.iterations
@@ -125,3 +130,24 @@ class MHSampler(Sampler):
 
             # Heavy duty iterator action going on right here...
             yield p, lnprob, self.random_state
+
+    @property
+    def acor(self):
+        """
+        An estimate of the autocorrelation time for each parameter (length:
+        ``dim``).
+
+        """
+        return self.get_autocorr_time()
+
+    def get_autocorr_time(self, window=50):
+        """
+        Compute an estimate of the autocorrelation time for each parameter
+        (length: ``dim``).
+
+        :param window: (optional)
+            The size of the windowing function. This is equivalent to the
+            maximum number of lags to use. (default: 50)
+
+        """
+        return autocorr.integrated_time(self.chain, axis=0, window=window)

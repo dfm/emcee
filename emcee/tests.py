@@ -140,7 +140,7 @@ class Tests:
         chain = np.reshape(self.sampler.chain[0, ...],
                            (-1, self.sampler.chain.shape[-1]))
 
-        np.savetxt('/tmp/chain.dat', chain)
+        # np.savetxt('/tmp/chain.dat', chain)
 
         log_volume = self.ndim * np.log(cutoff) \
             + log_unit_sphere_volume(self.ndim) \
@@ -149,6 +149,7 @@ class Tests:
             + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
+        print(self.sampler.get_autocorr_time())
 
         assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
             ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "
@@ -229,11 +230,11 @@ class Tests:
         else:
             assert False, "The sampler should have failed by now."
 
-    # def test_parallel(self):
-    #     self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-    #                                    lnprob_gaussian, args=[self.icov],
-    #                                    threads=2)
-    #     self.check_sampler()
+    def test_parallel(self):
+        self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, args=[self.icov],
+                                       threads=2)
+        self.check_sampler()
 
     def test_pt_sampler(self):
         cutoff = 10.0
@@ -258,3 +259,23 @@ class Tests:
         # Make sure that the blobs aren't all the same.
         blobs = self.sampler.blobs
         assert np.any([blobs[-1] != blobs[i] for i in range(len(blobs) - 1)])
+
+    def test_run_mcmc_resume(self):
+
+        self.sampler = s = EnsembleSampler(self.nwalkers, self.ndim,
+                                           lnprob_gaussian, args=[self.icov])
+
+        # first time around need to specify p0
+        try:
+            s.run_mcmc(None, self.N)
+        except ValueError:
+            pass
+
+        s.run_mcmc(self.p0, N=self.N)
+        assert s.chain.shape[1] == self.N
+
+        # this doesn't actually check that it resumes with the right values, as
+        # that's non-trivial... so we just make sure it does *something* when
+        # None is given and that it records whatever it does
+        s.run_mcmc(None, N=self.N)
+        assert s.chain.shape[1] == 2 * self.N

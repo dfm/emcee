@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import re
@@ -41,8 +44,8 @@ setup(
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     packages=["emcee"],
-    url="http://danfm.ca/emcee/",
-    license="GPLv2",
+    url="http://dan.iel.fm/emcee/",
+    license="MIT",
     description="Kick ass affine-invariant ensemble MCMC sampling",
     long_description=rd("README.rst") + "\n\n"
                     + "Changelog\n"
@@ -55,7 +58,7 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
     ],

@@ -12,12 +12,6 @@ __all__ = ["Sampler"]
 
 import numpy as np
 
-try:
-    import acor
-    acor = acor
-except ImportError:
-    acor = None
-
 
 class Sampler(object):
     """
@@ -32,14 +26,19 @@ class Sampler(object):
         position.
 
     :param args: (optional)
-        A list of extra arguments for ``lnpostfn``. ``lnpostfn`` will be
-        called with the sequence ``lnpostfn(p, *args)``.
+        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
+
+    :param kwargs: (optional)
+        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
+        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
 
     """
-    def __init__(self, dim, lnprobfn, args=[]):
+    def __init__(self, dim, lnprobfn, args=[], kwargs={}):
         self.dim = dim
         self.lnprobfn = lnprobfn
         self.args = args
+        self.kwargs = kwargs
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -106,19 +105,15 @@ class Sampler(object):
 
     @property
     def acor(self):
-        """
-        The autocorrelation time of each parameter in the chain (length:
-        ``dim``) as estimated by the ``acor`` module.
+        return self.get_autocorr_time()
 
-        """
-        if acor is None:
-            raise ImportError("You need to install acor: "
-                              "https://github.com/dfm/acor")
-        return acor.acor(self._chain.T)[0]
+    def get_autocorr_time(self, window=50):
+        raise NotImplementedError("The acor method must be implemented "
+                                  "by subclasses")
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""
-        return self.lnprobfn(p, *self.args)
+        return self.lnprobfn(p, *self.args, **self.kwargs)
 
     def reset(self):
         """
@@ -127,6 +122,7 @@ class Sampler(object):
         """
         self.iterations = 0
         self.naccepted = 0
+        self._last_run_mcmc_result = None
 
     def clear_chain(self):
         """An alias for :func:`reset` kept for backwards compatibility."""
@@ -140,8 +136,9 @@ class Sampler(object):
         """
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
-        :param p0:
-            The initial position vector.
+        :param pos0:
+            The initial position vector.  Can also be None to resume from
+            where :func:``run_mcmc`` left off the last time it executed.
 
         :param N:
             The number of steps to run.
@@ -157,8 +154,26 @@ class Sampler(object):
         :param kwargs: (optional)
             Other parameters that are directly passed to :func:`sample`.
 
+        This returns the results of the final sample in whatever form
+        :func:`sample` yields.  Usually, that's:
+        ``pos``, ``lnprob``, ``rstate``, ``blobs`` (blobs optional)
         """
+        if pos0 is None:
+            if self._last_run_mcmc_result is None:
+                raise ValueError("Cannot have pos0=None if run_mcmc has never "
+                                 "been called.")
+            pos0 = self._last_run_mcmc_result[0]
+            if lnprob0 is None:
+                rstate0 = self._last_run_mcmc_result[1]
+            if rstate0 is None:
+                rstate0 = self._last_run_mcmc_result[2]
+
         for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
                                    **kwargs):
             pass
+
+        # store so that the ``pos0=None`` case will work.  We throw out the blob
+        # if it's there because we don't need it
+        self._last_run_mcmc_result = results[:3]
+
         return results

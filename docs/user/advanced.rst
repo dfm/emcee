@@ -19,7 +19,7 @@ little less disastrous if your code/computer crashes somewhere in the middle
 of an expensive MCMC run. If you just want to append the walker positions to
 the end of a file, you could do something like:
 
-::
+.. code-block:: python
 
     f = open("chain.dat", "w")
     f.close()
@@ -39,13 +39,13 @@ In principle, running ``emcee`` in parallel is as simple instantiating an
 :class:`EnsembleSampler` object with the ``threads`` argument set to an
 integer greater than 1:
 
-::
+.. code-block:: python
 
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn, threads=15)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnpostfn, threads=15)
 
 In practice, the parallelization is implemented using the built in Python
 `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
-module. With this comes a few constraints. In particular, both ``lnprobfn``
+module. With this comes a few constraints. In particular, both ``lnpostfn``
 and ``args`` must be `pickleable
 <http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled>`_.
 The exceptions thrown while using ``multiprocessing`` can be quite cryptic
@@ -53,7 +53,9 @@ and even though we've tried to make this feature as user-friendly as possible,
 it can sometimes cause some headaches. One useful debugging tactic is to
 try running with 1 thread if your processes start to crash. This will
 generally provide much more illuminating error messages than in the parallel
-case.
+case. Note that the parallelized :class:`EnsembleSampler` object is not
+pickleable. Therefore, if it (or an object that contains it) is passed to
+``lnpostfn`` when multiprocessing is turned on, the code will fail.
 
 It is also important to note that the ``multiprocessing`` module works by
 spawning a large number of new ``python`` processes and running the code in
@@ -98,7 +100,7 @@ As an absolutely trivial example, let's say that we wanted to store the
 sum of cubes of the input parameters as a string at each position in the
 chain. To do this we could simply sample a function like:
 
-::
+.. code-block:: python
 
     def lnprobfn(p):
         return -0.5 * np.sum(p ** 2), str(np.sum(p ** 3))
@@ -108,6 +110,7 @@ function, we also change the output of :func:`EnsembleSampler.sample` and
 :func:`EnsembleSampler.run_mcmc` to return 4 values (position, probability,
 random number generator state and blobs) instead of just the first three.
 
+.. _mpi:
 
 Using MPI to distribute the computations
 ----------------------------------------
@@ -127,7 +130,7 @@ first you'll need to `install mpi4py
 The :class:`utils.MPIPool` object provides most of the needed functionality
 so we'll start by importing that and the other needed modules:
 
-::
+.. code-block:: python
 
     import sys
     import numpy as np
@@ -138,7 +141,7 @@ This time, we'll just sample a simple isotropic Gaussian (remember that the
 ``emcee`` algorithm *doesn't care about covariances between parameters
 because it is affine-invariant*):
 
-::
+.. code-block:: python
 
     ndim = 50
     nwalkers = 250
@@ -149,7 +152,7 @@ because it is affine-invariant*):
 
 Now, this is where things start to change:
 
-::
+.. code-block:: python
 
     pool = MPIPool()
     if not pool.is_master():
@@ -160,7 +163,7 @@ First, we're initializing the pool object and then---if the process isn't
 running as master---we wait for instructions and then exit. Then, we can
 set up the sampler providing this pool object to do the parallelization:
 
-::
+.. code-block:: python
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)
 
@@ -168,14 +171,75 @@ and then run and analyse as usual. The key here is that only the master
 chain should *actually* directly interact with the sampler and the other
 processes should only wait for instructions.
 
+*Note*: don't forget to close the pool if you don't want the processes to
+hang forever:
+
+.. code-block:: python
+
+    pool.close()
+
 The full source code for this example is available `on Github
 <https://github.com/dfm/emcee/blob/master/examples/mpi.py>`_.
 
 If we save this script to the file ``mpi.py``, we can then run this example
 with the command:
 
-::
+.. code-block:: bash
 
     mpirun -np 2 python mpi.py
 
 for local testing.
+
+.. _loadbalance:
+
+Loadbalancing in parallel runs
+------------------------------
+
+*Added in version 2.1.0*
+
+When ``emcee`` is being used in a multi-processing mode (``multiprocessing`` or
+``mpi4py``), the parameters need to distributed evenly over all the available
+cores. ``emcee`` uses a ``map`` function to distribute the jobs over the available
+cores. In case of ``multiprocessing``, the ``map`` function is in-built and
+dynamically schedules the tasks. In order to get a similar dynamic
+scheduling in ``map`` when using :class:`utils.MPIPool` , use the following
+invocation:
+
+.. code-block:: python
+
+    pool = MPIPool(loadbalance=True)
+
+
+By default, ``loadbalance`` is set to ``False``. If your jobs have a lot of
+variance in run-time, then setting the ``loadbalance`` option will improve
+the overall run-time.
+
+If your problem is such that the runtime for each invocation of the
+log-probability function scales with one/some of the parameters, then you can
+improve load-balancing even further. By sorting the jobs in decreasing order
+of (expected) run-time, the longest jobs get run simultaneously and you only
+have the wait for the duration of the longest job. In the following example,
+the first parameter strongly determines the run-time -- larger the first
+parameter, the longer the runtime. The ``sort_on_runtime`` returns the
+re-ordered list and the corresponding index.
+
+.. code-block:: python
+
+    def sort_on_runtime(pos):
+        p = np.atleast_2d(p)
+        idx = np.argsort(p[:, 0])[::-1]
+        return p[idx], idx
+
+In order to use this function, you will have to instantiate an
+:class:`EnsembleSampler` object with:
+
+.. code-block:: python
+
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool,
+                                    runtime_sortingfn=sort_on_runtime)
+
+
+Such a ``sort_on_runtime`` can be applied to both ``multiprocessing``
+and ``mpi4py`` invocations for ``emcee``. You can see a benchmarking
+routine using the ``mpi4py`` module `on Github
+<https://github.com/dfm/emcee/blob/master/examples/loadbalance.py>`_.
