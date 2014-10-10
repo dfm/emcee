@@ -429,7 +429,7 @@ class EnsembleSampler(Sampler):
         ``(k, iterations, dim)``.
 
         """
-        return super(EnsembleSampler, self).chain
+        return super(EnsembleSampler, self).chain[:, :self.iterations, :]
 
     @property
     def flatchain(self):
@@ -448,7 +448,7 @@ class EnsembleSampler(Sampler):
         step for each walker. The shape is ``(k, iterations)``.
 
         """
-        return super(EnsembleSampler, self).lnprobability
+        return super(EnsembleSampler, self).lnprobability[:, :self.iterations]
 
     @property
     def flatlnprobability(self):
