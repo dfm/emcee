@@ -195,7 +195,7 @@ class PTSampler(Sampler):
         self.ladder_callback = ladder_callback
 
         self._alpha = None
-        self._ratios = None
+        self.ratios = None
 
     def reset(self):
         """
@@ -212,7 +212,7 @@ class PTSampler(Sampler):
         self._lnprob = None
         self._lnlikelihood = None
         self._initialize(self.ntemps)
-        self._ratios = None
+        self.ratios = None
         self._alpha = None
 
     def _initialize(self, ntemps):
@@ -240,7 +240,7 @@ class PTSampler(Sampler):
         Gets a ``PTState`` object representing the current state of the sampler.
 
         """
-        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self._ratios, alpha=self._alpha)
+        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self.ratios, alpha=self._alpha)
 
     def sample(self, p0=None, betas=None, ntemps=None, Tmax=None, state=None, lnprob0=None, lnlike0=None,
                iterations=1, thin=1, storechain=True, evolve_ladder=False):
@@ -486,11 +486,10 @@ class PTSampler(Sampler):
             logl[i - 1, i1perm[asel]] = ltemp
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
 
-        self._alpha = 0
-        if self._ratios is None or self._alpha is None:
-            self._ratios = ratios
+        if self.ratios is None or self._alpha is None:
+            self.ratios = ratios
         else:
-            self._ratios = self._alpha * ratios + (1 - self._alpha) * self._ratios
+            self.ratios = self._alpha * ratios + (1 - self._alpha) * self.ratios
 
         return p, lnprob, logl
 
@@ -505,12 +504,19 @@ class PTSampler(Sampler):
 
         betas = self.betas.copy()
 
+        # Determine smoothing constant for acceptance ratio accumulation.  For now, use just use
+        # average of neighbouring kappas.  The coefficient mu is chosen empirically (defines what
+        # the smoothing constant starts at).
+        lag = 50000
+        tau = (self.time + lag) / lag
+        alpha0 = 0.5
+        self._alpha = np.exp(-mu * tau)
+
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
-        lag = 50000
         a = 0.45
-        kappa0 = a * lag / (self.time + lag)
-        As = self._ratios
+        kappa0 = a / tau
+        As = self.ratios
 
         # Ignore topmost chain, since it's at T=infinity.
         loggammas = -np.diff(np.log(betas[:-1]))
@@ -536,16 +542,6 @@ class PTSampler(Sampler):
         dlogbetas *= kappa0 * kappa
         dloggammas = -np.diff(dlogbetas[:-1])
         loggammas += dloggammas
-
-        # To estimate the change in acceptance ratio due to this adjustment, use a Gaussian
-        # approximation to the target distribution.
-        gammas = np.exp(loggammas)
-        dAs = gammas * dloggammas * _acceptance_derivative_gauss(gammas, self.dim)
-        self._alpha = dAs
-
-        # Determine smoothing constant for acceptance ratio accumulation.  For
-        # now, use just use average of neighbouring kappas.
-        self._alpha = (kappa[1:] + kappa[:-1]) / 2
 
         # Finally, compute the new ladder.
         betas[1:-1] = np.exp(-np.cumsum(loggammas))
