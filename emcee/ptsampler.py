@@ -506,18 +506,20 @@ class PTSampler(Sampler):
 
         betas = self.betas.copy()
 
-        # Determine smoothing constant for acceptance ratio accumulation.  For now, use just use
-        # average of neighbouring kappas.  The coefficient mu is chosen empirically (defines what
-        # the smoothing constant starts at).
+        # Modulate temperature adjustments with a hyperbolic decay.
         lag = 50000
-        tau = (self.time + lag) / lag
-        mu = 0.5
-        self._alpha = 1 - np.exp(-mu / tau)
+        kappaDecay = lag / (self.time + lag)
+
+        # Determine smoothing constant for acceptance ratio accumulation.  For now, use just use
+        # average of neighbouring kappas.
+        window = 25 # Equivalent window width for simple moving average.
+        mu = 2.5 # Empirically determined factor for converting from an SMA window-width to an EWMA time constant.
+        self._alpha = 1 - np.exp(-mu / window * kappaDecay)
 
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
         a = 0.45
-        kappa0 = a / tau
+        kappa0 = a / kappaDecay / window
         As = self.ratios
 
         # Ignore topmost chain, since it's at T=infinity.
