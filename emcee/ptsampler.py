@@ -200,7 +200,7 @@ class PTSampler(Sampler):
         ``lnlikelihood``,  ``acceptance_fraction``,
         ``tswap_acceptance_fraction``,
         ``tswap_acceptance_fraction_pairs``, and
-        ``tswap_acceptance_fraction_pairs_recent`` stored
+        ``ratios`` stored
         properties.
 
         """
@@ -501,7 +501,7 @@ class PTSampler(Sampler):
         if np.any(self.nswap_pairs - self.nswap_pairs_old < self.evolution_time):
             # Not enough swaps accumulated; abort.
             return None
-        As = self.tswap_acceptance_fraction_pairs_recent
+        As = self.ratios
 
         # Ignore topmost chain, since it's at T=infinity.
         loggammas = -np.diff(np.log(betas[:-1]))
@@ -692,7 +692,7 @@ class PTSampler(Sampler):
         return self.nswap_pairs_accepted / self.nswap_pairs
 
     @property
-    def tswap_acceptance_fraction_pairs_recent(self):
+    def ratios(self):
         """
         Returns an array of recently accepted temperature swap fractions for
         each pair of temperatures; shape ``(ntemps - 1, )``. If no swaps have
