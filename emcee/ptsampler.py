@@ -203,7 +203,8 @@ class PTSampler(Sampler):
         ``lnlikelihood``,  ``acceptance_fraction``,
         ``tswap_acceptance_fraction``,
         ``tswap_acceptance_fraction_pairs``, and
-        stored properties.
+        ``ratios`` stored
+        properties.
 
         """
 
@@ -422,11 +423,12 @@ class PTSampler(Sampler):
                 self.nswap_pairs_old = self.nswap_pairs.copy()
                 self.nswap_pairs_old_accepted = self.nswap_pairs_accepted.copy()
 
-            # Check that posterior is correct.
-            values = lnprob - (betas * logl + logp)
-            condition = np.abs(values) < 1e-10
-            assert condition.all(), \
-                    'Posterior does not match likelihood and prior at step {:}: {:}'.format(i, values[np.logical_not(condition)])
+            if __debug__:
+                # Check that posterior is correct.
+                values = lnprob - (betas * logl + logp)
+                condition = np.abs(values) < 1e-10
+                assert condition.all(), \
+                        'Posterior does not match likelihood and prior at step {:}: {:}'.format(i, values[np.logical_not(condition)])
 
             if (i + 1) % thin == 0:
                 if storechain:
