@@ -509,8 +509,8 @@ class PTSampler(Sampler):
         # the smoothing constant starts at).
         lag = 50000
         tau = (self.time + lag) / lag
-        alpha0 = 0.5
-        self._alpha = np.exp(-mu * tau)
+        mu = 0.5
+        self._alpha = 1 - np.exp(-mu / tau)
 
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
@@ -549,7 +549,7 @@ class PTSampler(Sampler):
         # Temperatures should still be in the correct order (and distinct), unless something has
         # gone wrong.
         assert np.all(np.diff(betas) < 0), \
-                'Temperatures not correctly ordered following temperature dynamics.'
+                'Temperatures not correctly ordered following temperature dynamics: {:}'.format(betas)
 
         # Don't mutate the ladder here; let the client code do that.
         return betas - self.betas
