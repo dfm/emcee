@@ -84,11 +84,10 @@ class PTState:
     """
     Class representing the run state of ``PTSampler``. Used for resuming runs.
     """
-    def __init__(self, p, betas, time=0, ratios=None, alpha=None):
+    def __init__(self, p, betas, time=0, alpha=None):
         self.time = time
         self.p = np.array(p).copy()
         self.betas = np.array(betas).copy()
-        self.ratios = ratios
         self.alpha = alpha
 
 class PTLikePrior(object):
@@ -241,7 +240,7 @@ class PTSampler(Sampler):
         Gets a ``PTState`` object representing the current state of the sampler.
 
         """
-        return PTState(time=self.time, p=self.p, betas=self.betas, ratios=self.ratios, alpha=self._alpha)
+        return PTState(time=self.time, p=self.p, betas=self.betas, alpha=self._alpha)
 
     def sample(self, p0=None, betas=None, ntemps=None, Tmax=None, state=None, lnprob0=None, lnlike0=None,
                iterations=1, thin=1, storechain=True, evolve_ladder=False):
@@ -309,7 +308,6 @@ class PTSampler(Sampler):
             self.p = state.p.copy()
             self.betas = state.betas.copy()
             self.time = state.time
-            self.ratios = state.ratios
             self.alpha = state.alpha
         else:
             # Set initial walker positions.
@@ -448,7 +446,7 @@ class PTSampler(Sampler):
         """
         ntemps = self.ntemps
 
-        ratios = np.zeros(ntemps - 1)
+        self.ratios = np.zeros(ntemps - 1)
         for i in range(ntemps - 1, 0, -1):
             bi = self.betas[i]
             bi1 = self.betas[i - 1]
@@ -473,7 +471,7 @@ class PTSampler(Sampler):
             self.nswap_accepted[i - 1] += nacc
 
             self.nswap_pairs_accepted[i - 1] += nacc
-            ratios[i - 1] = nacc / self.nwalkers
+            self.ratios[i - 1] = nacc / self.nwalkers
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -487,11 +485,6 @@ class PTSampler(Sampler):
             p[i - 1, i1perm[asel], :] = ptemp
             logl[i - 1, i1perm[asel]] = ltemp
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
-
-        if self.ratios is None or self._alpha is None:
-            self.ratios = ratios
-        else:
-            self.ratios = self._alpha * ratios + (1 - self._alpha) * self.ratios
 
         return p, lnprob, logl
 
@@ -510,16 +503,14 @@ class PTSampler(Sampler):
         lag = 50000
         kappaDecay = lag / (self.time + lag)
 
-        # Determine smoothing constant for acceptance ratio accumulation.  For now, use just use
-        # average of neighbouring kappas.
-        window = 25 # Equivalent window width for simple moving average.
-        mu = 2.5 # Empirically determined factor for converting from an SMA window-width to an EWMA time constant.
-        self._alpha = 1 - np.exp(-mu / window * kappaDecay)
+        # Choose a time-scale for temperature suppression.  Depends on the number of walkers: the
+        # fewer walkers, the larger this time-scale should be.
+        timeScale = 25 * 100/ self.nwalkers
 
         # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
         # avoid collisions).
         a = 0.45
-        kappa0 = a / kappaDecay / window
+        kappa0 = a / kappaDecay / timeScale
         As = self.ratios
 
         # Ignore topmost chain, since it's at T=infinity.
