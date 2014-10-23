@@ -9,7 +9,6 @@ __all__ = ["PTSampler", "PTState", "default_beta_ladder"]
 import numpy as np
 import numpy.random as nr
 import multiprocessing as multi
-from scipy.special import gamma as Gamma
 
 from . import autocorr
 from .sampler import Sampler
@@ -208,10 +207,8 @@ class PTSampler(Sampler):
         """
         Clear the ``time``, ``chain``, ``lnprobability``,
         ``lnlikelihood``,  ``acceptance_fraction``,
-        ``tswap_acceptance_fraction``,
-        ``tswap_acceptance_fraction_pairs``, and
-        ``ratios`` stored
-        properties.
+        ``tswap_acceptance_fraction``, and
+        ``ratios`` stored properties.
 
         """
 
@@ -230,12 +227,6 @@ class PTSampler(Sampler):
         """
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
-
-        self.nswap_pairs = np.zeros(ntemps - 1, dtype=np.float)
-        self.nswap_pairs_accepted = np.zeros(ntemps - 1, dtype=np.float)
-
-        self.nswap_pairs_old = np.zeros(ntemps - 1, dtype=np.float)
-        self.nswap_pairs_old_accepted = np.zeros(ntemps - 1, dtype=np.float)
 
         self.nprop = np.zeros((ntemps, self.nwalkers), dtype=np.float)
         self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
@@ -426,9 +417,6 @@ class PTSampler(Sampler):
                     if callable(self.ladder_callback):
                         self.ladder_callback(self)
 
-                self.nswap_pairs_old = self.nswap_pairs.copy()
-                self.nswap_pairs_old_accepted = self.nswap_pairs_accepted.copy()
-
             if __debug__:
                 # Check that posterior is correct.
                 values = lnprob - (betas * logl + logp)
@@ -470,15 +458,12 @@ class PTSampler(Sampler):
             self.nswap[i] += self.nwalkers
             self.nswap[i - 1] += self.nwalkers
 
-            self.nswap_pairs[i - 1] += self.nwalkers
-
             asel = (paccept > raccept)
             nacc = np.sum(asel)
 
             self.nswap_accepted[i] += nacc
             self.nswap_accepted[i - 1] += nacc
 
-            self.nswap_pairs_accepted[i - 1] += nacc
             #self.ratios[i - 1] = nacc / self.nwalkers
             assert 1 <= self.nwalkers_sim <= self.nwalkers
             count = self.nwalkers_sim
@@ -674,15 +659,6 @@ class PTSampler(Sampler):
 
         """
         return self.nswap_accepted / self.nswap
-
-    @property
-    def tswap_acceptance_fraction_pairs(self):
-        """
-        Returns an array of accepted temperature swap fractions for
-        each temperature; shape ``(ntemps, )``.
-
-        """
-        return self.nswap_pairs_accepted / self.nswap_pairs
 
     @property
     def ntemps(self):
