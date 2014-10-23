@@ -76,10 +76,6 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
     betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
     return np.concatenate((betas, [0])) if include_inf else betas
 
-def _acceptance_derivative_gauss(gamma, n):
-    return -(2 * (1 + gamma) / (np.sqrt(gamma) * (2 + 1 / gamma + gamma))) * \
-            Gamma((n + 1) / 2.) / (gamma * np.sqrt(np.pi) * Gamma(n / 2.))
-
 class PTState:
     """
     Class representing the run state of ``PTSampler``. Used for resuming runs.
@@ -159,10 +155,18 @@ class PTSampler(Sampler):
         updates. The current ``PTSampler`` object is passed as an
         argument.
 
+    :param evolution_lag: (optional)
+        Time lag for temperature dynamics decay. Default: 50000.
+
+    :param evolution_time: (optional)
+        Time-scale for temperature dynamics.  Default: 500.
+
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, logpkwargs={}, ladder_callback=None):
+                 loglkwargs={}, logpkwargs={}, ladder_callback=None,
+                 evolution_lag=50000, evolution_time=500,
+                 nwalkers_sim=None):
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -173,7 +177,11 @@ class PTSampler(Sampler):
 
         self._initialized = False
         self.nwalkers = nwalkers
+        self.nwalkers_sim = nwalkers_sim if nwalkers_sim is not None else nwalkers
         self.dim = dim
+
+        self.evolution_time = evolution_time
+        self.evolution_lag = evolution_lag
 
         if self.nwalkers % 2 != 0:
             raise ValueError('The number of walkers must be even.')
@@ -471,7 +479,10 @@ class PTSampler(Sampler):
             self.nswap_accepted[i - 1] += nacc
 
             self.nswap_pairs_accepted[i - 1] += nacc
-            self.ratios[i - 1] = nacc / self.nwalkers
+            #self.ratios[i - 1] = nacc / self.nwalkers
+            assert 1 <= self.nwalkers_sim <= self.nwalkers
+            count = self.nwalkers_sim
+            self.ratios[i - 1] = np.sum(asel[:count]) / count
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -500,46 +511,17 @@ class PTSampler(Sampler):
         betas = self.betas.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
-        lag = 50000
-        kappaDecay = lag / (self.time + lag)
+        decay = self.evolution_lag / (self.time + self.evolution_lag)
+        kappa = decay / self.evolution_time
 
-        # Choose a time-scale for temperature suppression.  Depends on the number of walkers: the
-        # fewer walkers, the larger this time-scale should be.
-        timeScale = 25 * 100/ self.nwalkers
-
-        # Don't allow chains to move by more than 45% of the log spacing to the adjacent one (to
-        # avoid collisions).
-        a = 0.45
-        kappa0 = a / kappaDecay / timeScale
+        # Construct temperature adjustments.
         As = self.ratios
+        dSs = kappa * (As[:-1] - As[1:])
 
-        # Ignore topmost chain, since it's at T=infinity.
-        loggammas = -np.diff(np.log(betas[:-1]))
-
-        kappa = np.zeros(len(betas))
-        dlogbetas = np.zeros(len(betas))
-
-        # Drive the non-extremal chains toward even spacing.
-        dlogbetas[1:-1] = -(As[:-1] - As[1:])
-
-        # Calculate dynamics time-scale (kappa). Limit the adjustment of log(beta) to less than half
-        # the size of the gap in the direction in which the chain is moving (to avoid the chains
-        # bouncing off each other). If log(beta) is decreasing, chain is ascending, so use gap with
-        # next-highest chain (and vice versa).
-        kappa[1:-2] = np.select([ -dlogbetas[1:-2] < 0, -dlogbetas[1:-2] > 0 ],
-                                [  loggammas[ :-1],      loggammas[1:  ]     ])
-
-        # Second topmost chain should ignore gap with topmost chain (since it'll be infinite!) and
-        # just use lower gap instead.
-        kappa[-2] = loggammas[-1]
-
-        # Compute new temperature spacings.
-        dlogbetas *= kappa0 * kappa
-        dloggammas = -np.diff(dlogbetas[:-1])
-        loggammas += dloggammas
-
-        # Finally, compute the new ladder.
-        betas[1:-1] = np.exp(-np.cumsum(loggammas))
+        # Compute new ladder (hottest and coldest chains don't move).
+        deltaTs = np.diff(1 / betas[:-1])
+        deltaTs *= np.exp(dSs)
+        betas[1:-1] = 1 / (np.cumsum(deltaTs) + 1 / betas[0])
 
         # Temperatures should still be in the correct order (and distinct), unless something has
         # gone wrong.
