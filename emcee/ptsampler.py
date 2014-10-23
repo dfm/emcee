@@ -155,16 +155,16 @@ class PTSampler(Sampler):
         argument.
 
     :param evolution_lag: (optional)
-        Time lag for temperature dynamics decay. Default: 50000.
+        Time lag for temperature dynamics decay. Default: 10000.
 
     :param evolution_time: (optional)
-        Time-scale for temperature dynamics.  Default: 500.
+        Time-scale for temperature dynamics.  Default: 100.
 
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
                  loglkwargs={}, logpkwargs={}, ladder_callback=None,
-                 evolution_lag=50000, evolution_time=500,
+                 evolution_lag=10000, evolution_time=100,
                  nwalkers_sim=None):
         self.logl = logl
         self.logp = logp
