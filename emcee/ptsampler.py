@@ -290,9 +290,8 @@ class PTSampler(Sampler):
         if time is not None:
             self.time = time
 
-        # Set temperature ladder.  Only allow ntemps or Tmax if ladder is being evolved.  Append
-        # beta=0 to generated ladder.
-        if not evolve_ladder and betas is not None:
+        # Set temperature ladder.  Append beta=0 to generated ladder.
+        if betas is not None:
             self.betas = np.array(betas).copy()
         elif ntemps is not None or Tmax is not None:
             self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=True)
