@@ -79,11 +79,10 @@ class PTState:
     """
     Class representing the run state of ``PTSampler``. Used for resuming runs.
     """
-    def __init__(self, p, betas, time=0, alpha=None):
+    def __init__(self, p, betas, time=0):
         self.time = time
         self.p = np.array(p).copy()
         self.betas = np.array(betas).copy()
-        self.alpha = alpha
 
 class PTLikePrior(object):
     """
@@ -239,10 +238,11 @@ class PTSampler(Sampler):
         Gets a ``PTState`` object representing the current state of the sampler.
 
         """
-        return PTState(time=self.time, p=self.p, betas=self.betas, alpha=self._alpha)
+        return PTState(time=self.time, p=self.p, betas=self.betas)
 
-    def sample(self, p0=None, betas=None, ntemps=None, Tmax=None, state=None, lnprob0=None, lnlike0=None,
-               iterations=1, thin=1, storechain=True, evolve_ladder=False):
+    def sample(self, p0=None, time=None, betas=None, ntemps=None, Tmax=None, state=None,
+               lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True,
+               evolve_ladder=False):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -307,13 +307,14 @@ class PTSampler(Sampler):
             self.p = state.p.copy()
             self.betas = state.betas.copy()
             self.time = state.time
-            self.alpha = state.alpha
         else:
-            # Set initial walker positions.
+            # Set initial walker positions and starting time.
             if p0 is not None:
                 self.p = np.array(p0).copy()
             elif self.p is None:
                 raise ValueError('Initial walker positions not specified.')
+            if time is not None:
+                self.time = time
 
             # Set temperature ladder.  Only allow ntemps or Tmax if ladder is being evolved.  Append
             # beta=0 to generated ladder.
@@ -500,8 +501,7 @@ class PTSampler(Sampler):
         kappa = decay / self.evolution_time
 
         # Construct temperature adjustments.
-        As = self.ratios
-        dSs = kappa * (As[:-1] - As[1:])
+        dSs = kappa * (self.ratios[:-1] - self.ratios[1:])
 
         # Compute new ladder (hottest and coldest chains don't move).
         deltaTs = np.diff(1 / betas[:-1])
