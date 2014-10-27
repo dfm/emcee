@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["PTSampler", "PTState", "default_beta_ladder"]
+__all__ = ["PTSampler", "default_beta_ladder"]
 
 import numpy as np
 import numpy.random as nr
@@ -74,15 +74,6 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
 
     betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
     return np.concatenate((betas, [0])) if include_inf else betas
-
-class PTState:
-    """
-    Class representing the run state of ``PTSampler``. Used for resuming runs.
-    """
-    def __init__(self, p, betas, time=0):
-        self.time = time
-        self.p = np.array(p).copy()
-        self.betas = np.array(betas).copy()
 
 class PTLikePrior(object):
     """
@@ -233,14 +224,7 @@ class PTSampler(Sampler):
 
         self._initialized = True
 
-    def get_state(self):
-        """
-        Gets a ``PTState`` object representing the current state of the sampler.
-
-        """
-        return PTState(time=self.time, p=self.p, betas=self.betas)
-
-    def sample(self, p0=None, time=None, betas=None, ntemps=None, Tmax=None, state=None,
+    def sample(self, p0=None, time=None, betas=None, ntemps=None, Tmax=None,
                lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True,
                evolve_ladder=False):
         """
@@ -264,10 +248,6 @@ class PTSampler(Sampler):
         :param Tmax: (optional)
             Maximum temperature for the ladder.  If ``ntemps`` is
             ``None``, this argument is used to set the temperature ladder.
-
-        :param state: (optional)
-            A ``PTState`` object containing the state of a previous run,
-            from which to resume.  If given, ``p0`` and ``betas`` are ignored.
 
         :param lnprob0: (optional)
             The initial posterior values for the ensembles.  Shape
@@ -302,30 +282,25 @@ class PTSampler(Sampler):
 
         """
 
-        # Set up sampler state.
-        if state is not None:
-            self.p = state.p.copy()
-            self.betas = state.betas.copy()
-            self.time = state.time
-        else:
-            # Set initial walker positions and starting time.
-            if p0 is not None:
-                self.p = np.array(p0).copy()
-            elif self.p is None:
-                raise ValueError('Initial walker positions not specified.')
-            if time is not None:
-                self.time = time
+        # Set initial walker positions and starting time.
+        if p0 is not None:
+            self.p = np.array(p0).copy()
+        elif self.p is None:
+            raise ValueError('Initial walker positions not specified.')
+        if time is not None:
+            self.time = time
 
-            # Set temperature ladder.  Only allow ntemps or Tmax if ladder is being evolved.  Append
-            # beta=0 to generated ladder.
-            if not evolve_ladder and betas is not None:
-                self.betas = np.array(betas).copy()
-            elif ntemps is not None or Tmax is not None:
-                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=True)
-            elif self.betas is None:
-                raise ValueError('Temperature ladder not specified.')
+        # Set temperature ladder.  Only allow ntemps or Tmax if ladder is being evolved.  Append
+        # beta=0 to generated ladder.
+        if not evolve_ladder and betas is not None:
+            self.betas = np.array(betas).copy()
+        elif ntemps is not None or Tmax is not None:
+            self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=True)
+        elif self.betas is None:
+            raise ValueError('Temperature ladder not specified.')
 
-            self.betas[::-1].sort()
+        # Make sure ladder is ascending in temperature.
+        self.betas[::-1].sort()
 
         if not self._initialized:
             self._initialize(self.ntemps)
