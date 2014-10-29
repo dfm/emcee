@@ -385,12 +385,11 @@ class PTSampler(Sampler):
 
             if evolve_ladder:
                 dbetas = self._evolve_ladder()
-                if dbetas is not None:
-                    self.betas += dbetas
-                    lnprob += dbetas.reshape((-1, 1)) * logl
+                self.betas += dbetas
+                lnprob += dbetas.reshape((-1, 1)) * logl
 
-                    if callable(self.ladder_callback):
-                        self.ladder_callback(self)
+                if callable(self.ladder_callback):
+                    self.ladder_callback(self)
 
             if __debug__:
                 # Check that posterior is correct.
