@@ -8,6 +8,11 @@ from __future__ import print_function
 import numpy as np
 import emcee
 
+# Python 3 compatiblity fix
+import sys
+if sys.version_info >= (3,):
+    xrange = range
+
 # First, define the probability distribution that you would like to sample.
 def lnprob(x, mu, icov):
     diff = x-mu
