@@ -102,8 +102,9 @@ class EnsembleSampler(Sampler):
                 "The number of walkers needs to be more than twice the "
                 "dimension of your parameter space... unless you're "
                 "crazy!")
-
+        self.auto_pool = False  # To know if the pool was created by emcee module
         if self.threads > 1 and self.pool is None:
+            self.auto_pool = True
             self.pool = InterruptiblePool(self.threads)
 
     def clear_blobs(self):
@@ -288,6 +289,12 @@ class EnsembleSampler(Sampler):
                 yield p, lnprob, self.random_state, blobs
             else:
                 yield p, lnprob, self.random_state
+
+        if self.threads > 1 and self.auto_pool:
+            #Close nicely the pool at the end of the run
+            self.pool.terminate()
+            self.pool.join()
+            self.pool.close()
 
     def _propose_stretch(self, p0, p1, lnprob0):
         """
