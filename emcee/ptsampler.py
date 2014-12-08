@@ -294,7 +294,10 @@ class PTSampler(Sampler):
         if betas is not None:
             self.betas = np.array(betas).copy()
         elif ntemps is not None or Tmax is not None:
-            self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=True)
+            if Tmax is not None:
+                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=False)
+            else:
+                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, include_inf=True)
         elif self.betas is None:
             raise ValueError('Temperature ladder not specified.')
 
@@ -464,8 +467,6 @@ class PTSampler(Sampler):
                 'Temperatures should be in ascending order.'
         assert self.betas[0] == 1, \
                 'Bottom temperature should be 1.'
-        assert self.betas[-1] == 0, \
-                'Top temperature should be inf.'
 
         betas = self.betas.copy()
 
