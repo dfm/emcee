@@ -386,7 +386,7 @@ class PTSampler(Sampler):
 
             self.p, lnprob, logl = self._temperature_swaps(self.p, lnprob, logl)
 
-            if evolve_ladder:
+            if evolve_ladder and ntemps > 1:
                 dbetas = self._evolve_ladder()
                 self.betas += dbetas
                 lnprob += dbetas.reshape((-1, 1)) * logl
