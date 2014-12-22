@@ -4,21 +4,24 @@ from __future__ import division, print_function
 
 __all__ = ["StretchProposal"]
 
+import logging
 import numpy as np
 
 from ..compat import izip
-from .proposal import Proposal
 
 
-class StretchProposal(Proposal):
+class StretchProposal(object):
 
-    def __init__(self, a=2.0, **kwargs):
+    def __init__(self, a=2.0):
         self.a = a
-        super(StretchProposal, self).__init__(**kwargs)
 
     def update(self, ensemble):
         nwalkers, ndim = ensemble.nwalkers, ensemble.ndim
-        ensemble.acceptance = np.zeros(nwalkers, dtype=bool)
+        if nwalkers < 2 * ndim:
+            logging.warn("It is unadvisable to use the stretch move with "
+                         "fewer walkers than twice the number of dimensions. "
+                         "Proceed with caution.")
+        ensemble.acceptance[:] = False
 
         # Split the ensemble in half and iterate over these two halves.
         halfk = int(nwalkers / 2)
@@ -32,9 +35,9 @@ class StretchProposal(Proposal):
 
             # Generate the vectors of random numbers that will produce the
             # proposal.
-            zz = ((self.a - 1.) * self.random.rand(Ns) + 1) ** 2. / self.a
+            zz = ((self.a - 1.) * ensemble.random.rand(Ns) + 1) ** 2. / self.a
             factors = (ndim - 1.) * np.log(zz)
-            rint = self.random.randint(Nc, size=(Ns,))
+            rint = ensemble.random.randint(Nc, size=(Ns,))
 
             # Calculate the proposed positions and compute the lnprobs.
             q = c[rint] - (c[rint] - s) * zz[:, None]
@@ -43,7 +46,7 @@ class StretchProposal(Proposal):
             # Loop over the walkers and update them accordingly.
             for i, f, w in izip(np.arange(nwalkers)[S1], factors, new_walkers):
                 lnpdiff = f + w.lnprob - ensemble.walkers[i].lnprob
-                if lnpdiff > np.log(self.random.rand()):
+                if lnpdiff > np.log(ensemble.random.rand()):
                     ensemble.walkers[i] = w
                     ensemble.acceptance[i] = True
 

@@ -26,12 +26,19 @@ class Ensemble(object):
         A pool object that exposes a map function. This is especially useful
         for parallelization.
 
+    :param random: (optional)
+        A numpy-compatible random number generator. By default, this will be
+        the built-in ``numpy.random`` module but if you want the ensemble to
+        own its own state, you can supply an instance of
+        ``numpy.random.RandomState``.
+
     .. note:: Any extra arguments or keyword arguments are pass along to the
               walker initialization.
 
     """
     def __init__(self, walker, coords, *args, **kwargs):
         self.pool = kwargs.pop("pool", DefaultPool())
+        self.random = kwargs.pop("random", np.random)
 
         # Interpret the dimensions of the ensemble.
         self._coords = np.atleast_2d(coords).astype(np.float64)
