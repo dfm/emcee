@@ -15,6 +15,6 @@ class Proposal(object):
         else:
             self.random = random
 
-    def update(self, lnprob_fn, state_in, state_out):
+    def update(self, ensemble):
         raise NotImplementedError("Subclasses must implement the update "
                                   "method")
