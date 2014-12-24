@@ -38,7 +38,7 @@ before_install:
 install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
-    - conda install --yes numpy=$NUMPY_VERSION scipy py.test
+    - conda install --yes numpy=$NUMPY_VERSION scipy pytest
 
 script:
     - py.test -v
