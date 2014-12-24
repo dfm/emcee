@@ -71,6 +71,10 @@ class Ensemble(object):
             raise ValueError("Invalid (un-allowed) initial coordinates")
 
     def propose(self, coords, slice=slice(None)):
+        """
+        Given a new set of coordinates, update the walkers and
+
+        """
         return list(self.pool.map(_mapping_zipper("propose"),
                                   izip(self.walkers[slice], coords)))
 
