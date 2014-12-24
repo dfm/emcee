@@ -1,3 +1,5 @@
+sudo: false
+
 language: python
 
 env:
@@ -39,10 +41,6 @@ install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
     - conda install --yes numpy=$NUMPY_VERSION scipy pytest
-    - pip install coveralls
 
 script:
-    - coverage run --source emcee -m py.test
-
-after_success:
-    - coveralls
+    - py.test -v
