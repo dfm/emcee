@@ -34,6 +34,7 @@ before_install:
     - ./miniconda.sh -b
     - export PATH=/home/travis/miniconda/bin:$PATH
     - conda update --yes conda
+    - pip install coveralls
 
 install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
@@ -41,4 +42,7 @@ install:
     - conda install --yes numpy=$NUMPY_VERSION scipy pytest
 
 script:
-    - py.test -v
+    - coverage run --source emcee -m py.test
+
+after_success:
+    - coveralls
