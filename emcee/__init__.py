@@ -8,8 +8,10 @@ except NameError:
     __EMCEE_SETUP__ = False
 
 if not __EMCEE_SETUP__:
-    __all__ = ["proposals", "Ensemble", "BaseWalker", "SimpleWalker"]
+    __all__ = ["proposals", "Sampler", "Ensemble",
+               "BaseWalker", "SimpleWalker"]
 
     from . import proposals
+    from .sampler import Sampler
     from .ensemble import Ensemble
     from .walker import BaseWalker, SimpleWalker
