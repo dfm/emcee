@@ -41,10 +41,18 @@ class Ensemble(object):
         self.random = kwargs.pop("random", np.random)
 
         # Interpret the dimensions of the ensemble.
-        self._coords = np.atleast_2d(coords).astype(np.float64)
+        self._coords = np.atleast_1d(coords).astype(np.float64)
         if not len(self._coords.shape) == 2:
             raise ValueError("Invalid ensemble coordinate dimensions")
         self.nwalkers, self.ndim = self._coords.shape
+
+        # Check to make sure that none of the walkers are on top of each
+        # other.
+        d = np.sum((self._coords[:, None, :] - self._coords[None, :, :]) ** 2,
+                   axis=-1)
+        d[np.diag_indices_from(d)] = 1.0
+        if not np.all(d > 1e-10):
+            raise ValueError("More than 1 walker has identical coordinates")
 
         # Initialize the walkers at these coordinates.
         self.walkers = [walker(c, *args, **kwargs) for c in self._coords]
@@ -57,6 +65,11 @@ class Ensemble(object):
             self._lnlike[:] = w.lnlike
         self.acceptance = np.ones(self.nwalkers, dtype=bool)
 
+        # Check the initial probabilities.
+        if not (np.all(np.isfinite(self._lnprior))
+                and np.all(np.isfinite(self._lnlike))):
+            raise ValueError("Invalid (un-allowed) initial coordinates")
+
     def propose(self, coords, slice=slice(None)):
         return list(self.pool.map(_mapping_zipper("propose"),
                                   izip(self.walkers[slice], coords)))
@@ -66,6 +79,13 @@ class Ensemble(object):
             self._coords[i, :] = w.coords
             self._lnprior[i] = w.lnprior
             self._lnlike[i] = w.lnlike
+
+        # Check the probabilities and make sure that no invalid samples were
+        # accepted.
+        if not (np.all(np.isfinite(self._coords))
+                and np.all(np.isfinite(self._lnprior))
+                and np.all(np.isfinite(self._lnlike))):
+            raise RuntimeError("An invalid proposal was accepted")
 
     def __len__(self):
         return self.nwalkers

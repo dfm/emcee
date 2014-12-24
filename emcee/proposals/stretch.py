@@ -4,7 +4,6 @@ from __future__ import division, print_function
 
 __all__ = ["StretchProposal"]
 
-import logging
 import numpy as np
 
 from ..compat import izip
@@ -12,15 +11,16 @@ from ..compat import izip
 
 class StretchProposal(object):
 
-    def __init__(self, a=2.0):
+    def __init__(self, a=2.0, live_dangerously=False):
         self.a = a
+        self.live_dangerously = live_dangerously
 
     def update(self, ensemble):
         nwalkers, ndim = ensemble.nwalkers, ensemble.ndim
-        if nwalkers < 2 * ndim:
-            logging.warn("It is unadvisable to use the stretch move with "
-                         "fewer walkers than twice the number of dimensions. "
-                         "Proceed with caution.")
+        if nwalkers < 2 * ndim and not self.live_dangerously:
+            raise RuntimeError("It is unadvisable to use the stretch move "
+                               "with fewer walkers than twice the number of "
+                               "dimensions.")
         ensemble.acceptance[:] = False
 
         # Split the ensemble in half and iterate over these two halves.

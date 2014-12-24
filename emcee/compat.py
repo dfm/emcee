@@ -9,3 +9,8 @@ try:
 except ImportError:
     izip = zip
     imap = map
+
+try:
+    xrange = xrange
+except NameError:
+    xrange = range
