@@ -1,3 +1,5 @@
+**Note:** this branch is a new backwards-incompatible version of emcee.
+
 emcee
 =====
 
