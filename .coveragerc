@@ -1,0 +1,7 @@
+[report]
+omit =
+    docs/*
+    emcee/compat.py
+    emcee/autocorr.py
+    emcee/testing/*
+    *__init__*

@@ -13,3 +13,4 @@ MANIFEST
 docs.tar
 
 *.pdf
+.coverage
