@@ -5,10 +5,13 @@ import sys
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-# Hackishly inject a constant into builtins to enable importing of the
-# package even if numpy isn't installed. Only do this if we're not running
-# the tests!
-if "test" not in sys.argv:
+if "test" in sys.argv:
+    import coverage
+    coverage.start()
+else:
+    # Hackishly inject a constant into builtins to enable importing of the
+    # package even if numpy isn't installed. Only do this if we're not
+    # running the tests!
     if sys.version_info[0] < 3:
         import __builtin__ as builtins
     else:
