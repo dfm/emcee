@@ -5,12 +5,29 @@ from __future__ import division, print_function
 __all__ = ["StretchProposal"]
 
 import numpy as np
-
 from ..compat import izip
 
 
 class StretchProposal(object):
+    """
+    A `Goodman & Weare (2010)
+    <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ "stretch move" with
+    parallelization as described in `Foreman-Mackey et al. (2013)
+    <http://arxiv.org/abs/1202.3665>`_.
 
+    :param a: (optional)
+        The stretch scale parameter. (default: ``2.0``)
+
+    :param live_dangerously: (optional)
+        By default, an update will fail with a ``RuntimeError`` if the number
+        of walkers is smaller than twice the dimension of the problem because
+        the walkers would then be stuck on a low dimensional subspace. This
+        can be avoided by switching between the stretch move and, for example,
+        a Metropolis-Hastings step. If you want to do this and suppress the
+        error, set ``live_dangerously = True``. Thanks goes (once again) to
+        @dstndstn for this wonderful terminology.
+
+    """
     def __init__(self, a=2.0, live_dangerously=False):
         self.a = a
         self.live_dangerously = live_dangerously
