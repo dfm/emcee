@@ -118,3 +118,8 @@ class Sampler(object):
     @_check_run
     def walkers(self):
         return self.backend.walkers
+
+    @property
+    @_check_run
+    def acceptance_fraction(self):
+        return self.backend.acceptance_fraction

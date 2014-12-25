@@ -64,19 +64,19 @@ class DefaultBackend(object):
 
     @property
     def coords(self):
-        return self._coords
+        return self._coords[:self.niter]
 
     @property
     def lnprior(self):
-        return self._lnprior
+        return self._lnprior[:self.niter]
 
     @property
     def lnlike(self):
-        return self._lnlike
+        return self._lnlike[:self.niter]
 
     @property
     def lnprob(self):
-        return self._lnprior + self._lnlike
+        return self.lnprior + self.lnlike
 
     @property
     def walkers(self):
@@ -85,3 +85,11 @@ class DefaultBackend(object):
                                  "'store_walkers' keyword argument to the "
                                  "DefaultBackend class")
         return self._walkers
+
+    @property
+    def acceptance(self):
+        return self._acceptance
+
+    @property
+    def acceptance_fraction(self):
+        return self.acceptance / float(self.niter)
