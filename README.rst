@@ -7,6 +7,8 @@ emcee
 
 .. image:: http://img.shields.io/travis/dfm/emcee/emcee3.svg?style=flat
         :target: http://travis-ci.org/dfm/emcee
+.. image:: https://img.shields.io/coveralls/dfm/emcee/emcee3.svg?style=flat
+  :target: https://coveralls.io/r/dfm/emcee?branch=emcee3
 .. image:: http://img.shields.io/pypi/dm/emcee.svg?style=flat
         :target: https://pypi.python.org/pypi/emcee/
 .. image:: http://img.shields.io/pypi/v/emcee.svg?style=flat
