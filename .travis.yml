@@ -35,7 +35,7 @@ before_install:
 install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
-    - conda install --yes numpy=$NUMPY_VERSION scipy pytest setuptools coverage
+    - conda install --yes numpy=$NUMPY_VERSION scipy pytest setuptools
     - pip install pytest-cov coveralls
 
 script:

@@ -6,8 +6,8 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 if "test" in sys.argv:
-    import coverage
-    coverage.start()
+    version = "testing"
+
 else:
     # Hackishly inject a constant into builtins to enable importing of the
     # package even if numpy isn't installed. Only do this if we're not
@@ -17,7 +17,8 @@ else:
     else:
         import builtins
     builtins.__EMCEE_SETUP__ = True
-import emcee
+    import emcee
+    version = emcee.__version__
 
 # Publish to PyPI.
 if "publish" in sys.argv:
@@ -27,7 +28,7 @@ if "publish" in sys.argv:
 
 # Push a new tag to GitHub.
 if "tag" in sys.argv:
-    os.system("git tag -a {0} -m 'version {0}'".format(emcee.__version__))
+    os.system("git tag -a {0} -m 'version {0}'".format(version))
     os.system("git push --tags")
     sys.exit()
 
@@ -52,7 +53,7 @@ class PyTest(TestCommand):
 
 setup(
     name="emcee",
-    version=emcee.__version__,
+    version=version,
     author="Daniel Foreman-Mackey",
     author_email="danfm@nyu.edu",
     packages=["emcee"],
