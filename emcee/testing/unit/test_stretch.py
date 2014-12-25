@@ -6,7 +6,7 @@ __all__ = ["test_live_dangerously"]
 
 import numpy as np
 
-from ... import proposals, Ensemble
+from ... import moves, Ensemble
 from ..common import NormalWalker
 
 
@@ -16,7 +16,7 @@ def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
     rnd.seed(seed)
     coords = rnd.randn(nwalkers, 2 * nwalkers)
     ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
-    proposal = proposals.StretchProposal()
+    proposal = moves.StretchMove()
 
     # Test to make sure that the error is thrown if there aren't enough
     # walkers.

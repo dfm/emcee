@@ -2,12 +2,12 @@
 
 from __future__ import division, print_function
 
-__all__ = ["MHProposal"]
+__all__ = ["MHMove"]
 
 import numpy as np
 
 
-class MHProposal(object):
+class MHMove(object):
     """
     A general Metropolis-Hastings proposal.
 

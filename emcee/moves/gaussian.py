@@ -2,14 +2,14 @@
 
 from __future__ import division, print_function
 
-__all__ = ["GaussianProposal"]
+__all__ = ["GaussianMove"]
 
 import numpy as np
 
-from .mh import MHProposal
+from .mh import MHMove
 
 
-class GaussianProposal(MHProposal):
+class GaussianMove(MHMove):
     """
     A Metropolis step with a Gaussian proposal function.
 
@@ -44,7 +44,7 @@ class GaussianProposal(MHProposal):
             ndim = None
             proposal = _isotropic_proposal(np.sqrt(cov))
 
-        super(GaussianProposal, self).__init__(proposal, ndim=ndim)
+        super(GaussianMove, self).__init__(proposal, ndim=ndim)
 
 
 class _isotropic_proposal(object):

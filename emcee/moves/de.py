@@ -2,18 +2,18 @@
 
 from __future__ import division, print_function
 
-__all__ = ["WalkProposal"]
+__all__ = ["DEMove"]
 
 import numpy as np
 from ..compat import xrange, izip
 
 
-class WalkProposal(object):
+class DEMove(object):
     """
-    A `Goodman & Weare (2010)
-    <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ "walk move" with
-    parallelization as described in `Foreman-Mackey et al. (2013)
-    <http://arxiv.org/abs/1202.3665>`_.
+    A `differential evolution
+    <http://www.stat.columbia.edu/~gelman/stuff_for_blog/cajo.pdf>`_ proposal
+    implemented following `Nelson et al. (2013)
+    <http://arxiv.org/abs/1311.5229>`_.
 
     :param live_dangerously: (optional)
         By default, an update will fail with a ``RuntimeError`` if the number
@@ -25,13 +25,14 @@ class WalkProposal(object):
         @dstndstn for this wonderful terminology.
 
     """
-    def __init__(self, s=None, live_dangerously=False):
-        self.s = s
+    def __init__(self, sigma, gamma0=None, live_dangerously=False):
+        self.sigma = sigma
+        self.gamma0 = gamma0
         self.live_dangerously = live_dangerously
 
     def update(self, ensemble):
         """
-        Execute a single walk move starting from the given :class:`Ensemble`
+        Execute a DE move starting from the given :class:`Ensemble`
         and updating it in-place.
 
         :param ensemble:
@@ -48,6 +49,12 @@ class WalkProposal(object):
                                "dimensions.")
         ensemble.acceptance[:] = False
 
+        # Set the hyperparameters.
+        g0 = self.gamma0
+        if g0 is None:
+            # Fuckin' MAGIC.
+            g0 = 2.38 / np.sqrt(2 * ndim)
+
         # Split the ensemble in half and iterate over these two halves.
         halfk = int(nwalkers / 2)
         first, second = slice(halfk), slice(halfk, nwalkers)
@@ -60,11 +67,10 @@ class WalkProposal(object):
 
             # Compute the proposed coordinates.
             q = np.empty((Ns, ndim), dtype=np.float64)
-            s0 = Nc if self.s is None else self.s
             for i in xrange(Ns):
-                inds = ensemble.random.choice(Nc, s0, replace=False)
-                cov = np.atleast_2d(np.cov(c[inds], rowvar=0))
-                q[i] = ensemble.random.multivariate_normal(s[i], cov)
+                inds = ensemble.random.choice(Nc, 2, replace=False)
+                g = np.diff(c[inds], axis=0)*(1+g0*ensemble.random.randn())
+                q[i] = s[i] + g
 
             # Compute the lnprobs.
             new_walkers = ensemble.propose(q, S1)
