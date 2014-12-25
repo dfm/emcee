@@ -28,18 +28,22 @@ something like:
 
 .. code-block:: python
 
-    import numpy as np
     import emcee
+    import numpy as np
 
-    def lnprob(x, ivar):
-        return -0.5 * np.sum(ivar * x ** 2)
+    class Walker(emcee.BaseWalker):
+        def lnpriorfn(self, x):
+            return 0.0
+
+        def lnlikefn(self, x):
+            return -0.5 * np.sum(x ** 2)
 
     ndim, nwalkers = 10, 100
-    ivar = 1. / np.random.rand(ndim)
-    p0 = [np.random.rand(ndim) for i in range(nwalkers)]
+    coords = np.random.randn(nwalkers, ndim)
+    ensemble = emcee.Ensemble(Walker, coords)
+    sampler = emcee.Sampler(emcee.moves.StretchMove())
 
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
-    sampler.run_mcmc(p0, 1000)
+    list(sampler.sample(ensemble, 1000))
 
 A more complete example is available in the `quickstart documentation
 <user/quickstart>`_.
