@@ -7,7 +7,7 @@ __all__ = ["Ensemble"]
 import numpy as np
 
 from .compat import izip
-from .pool import DefaultPool
+from .pools import DefaultPool
 
 
 class Ensemble(object):
