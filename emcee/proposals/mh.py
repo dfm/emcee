@@ -29,6 +29,17 @@ class MHProposal(object):
         self.proposal = proposal_function
 
     def update(self, ensemble):
+        """
+        Execute a single step starting from the given :class:`Ensemble` and
+        updating it in-place.
+
+        :param ensemble:
+            The starting :class:`Ensemble`.
+
+        :return ensemble:
+            The same ensemble updated in-place.
+
+        """
         # Check to make sure that the dimensions match.
         ndim = ensemble.ndim
         if self.ndim is not None and self.ndim != ndim:

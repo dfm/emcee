@@ -2,21 +2,18 @@
 
 from __future__ import division, print_function
 
-__all__ = ["StretchProposal"]
+__all__ = ["WalkProposal"]
 
 import numpy as np
-from ..compat import izip
+from ..compat import xrange, imap, izip
 
 
-class StretchProposal(object):
+class WalkProposal(object):
     """
     A `Goodman & Weare (2010)
-    <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ "stretch move" with
+    <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ "walk move" with
     parallelization as described in `Foreman-Mackey et al. (2013)
     <http://arxiv.org/abs/1202.3665>`_.
-
-    :param a: (optional)
-        The stretch scale parameter. (default: ``2.0``)
 
     :param live_dangerously: (optional)
         By default, an update will fail with a ``RuntimeError`` if the number
@@ -28,13 +25,13 @@ class StretchProposal(object):
         @dstndstn for this wonderful terminology.
 
     """
-    def __init__(self, a=2.0, live_dangerously=False):
-        self.a = a
+    def __init__(self, s=None, live_dangerously=False):
+        self.s = s
         self.live_dangerously = live_dangerously
 
     def update(self, ensemble):
         """
-        Execute a single stretch move starting from the given
+        Execute a single walk move starting from the given
         :class:`Ensemble` and updating it in-place.
 
         :param ensemble:
@@ -61,19 +58,20 @@ class StretchProposal(object):
             Ns = len(s)
             Nc = len(c)
 
-            # Generate the vectors of random numbers that will produce the
-            # proposal.
-            zz = ((self.a - 1.) * ensemble.random.rand(Ns) + 1) ** 2. / self.a
-            factors = (ndim - 1.) * np.log(zz)
-            rint = ensemble.random.randint(Nc, size=(Ns,))
+            # Compute the proposed coordinates.
+            q = np.empty((Ns, ndim), dtype=np.float64)
+            s0 = Nc if self.s is None else self.s
+            for i in xrange(Ns):
+                inds = ensemble.random.choice(Nc, s0, replace=False)
+                cov = np.atleast_2d(np.cov(c[inds], rowvar=0))
+                q[i] = ensemble.random.multivariate_normal(s[i], cov)
 
-            # Calculate the proposed positions and compute the lnprobs.
-            q = c[rint] - (c[rint] - s) * zz[:, None]
+            # Compute the lnprobs.
             new_walkers = ensemble.propose(q, S1)
 
             # Loop over the walkers and update them accordingly.
-            for i, f, w in izip(np.arange(nwalkers)[S1], factors, new_walkers):
-                lnpdiff = f + w.lnprob - ensemble.walkers[i].lnprob
+            for i, w in izip(np.arange(nwalkers)[S1], new_walkers):
+                lnpdiff = w.lnprob - ensemble.walkers[i].lnprob
                 if lnpdiff > np.log(ensemble.random.rand()):
                     ensemble.walkers[i] = w
                     ensemble.acceptance[i] = True
