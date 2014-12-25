@@ -71,7 +71,6 @@ setup(
     ],
     tests_require=[
         "pytest",
-        "coverage",
         "pytest-cov",
     ],
     cmdclass = {"test": PyTest},
