@@ -1,4 +1,3 @@
-sudo: false
 
 language: python
 
@@ -36,7 +35,6 @@ install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
     - conda install --yes numpy=$NUMPY_VERSION scipy pytest setuptools
-    - conda uninstall coverage
     - pip install pytest-cov coveralls
 
 script:
