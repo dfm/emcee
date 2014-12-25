@@ -36,6 +36,10 @@ install:
     - conda create --yes -n test python=$TRAVIS_PYTHON_VERSION
     - source activate test
     - conda install --yes numpy=$NUMPY_VERSION scipy pytest
+    - pip install pytest-cov coveralls
 
 script:
-    - py.test -v
+    - python setup.py test -a "--cov emcee -v"
+
+after_success:
+    - coveralls
