@@ -4,8 +4,8 @@ from __future__ import division, print_function
 
 __all__ = ["test_walker_pickle", "test_ensemble_pickle", "test_moves_pickle"]
 
+import pickle
 import numpy as np
-import cPickle as pickle
 from multiprocessing import Pool
 
 from ... import moves, pools, Ensemble, SimpleWalker
