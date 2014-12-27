@@ -31,7 +31,7 @@ something like:
     import emcee
     import numpy as np
 
-    class Walker(emcee.BaseWalker):
+    class MyModel(emcee.BaseWalker):
         def lnpriorfn(self, x):
             return 0.0
 
@@ -40,7 +40,7 @@ something like:
 
     ndim, nwalkers = 10, 100
     coords = np.random.randn(nwalkers, ndim)
-    ensemble = emcee.Ensemble(Walker, coords)
+    ensemble = emcee.Ensemble(MyModel, coords)
     sampler = emcee.Sampler(emcee.moves.StretchMove())
 
     list(sampler.sample(ensemble, 1000))
@@ -63,13 +63,13 @@ User Guide
    user/faq
 
 
-API Documentation
------------------
+.. API Documentation
+.. -----------------
 
-.. toctree::
-   :maxdepth: 2
+.. .. toctree::
+..    :maxdepth: 2
 
-   api
+..    api
 
 
 Contributors

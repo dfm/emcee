@@ -1,7 +1,13 @@
 [report]
 omit =
     docs/*
+    emcee/pools/*
     emcee/compat.py
     emcee/autocorr.py
     emcee/testing/*
     *__init__*
+
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    def __len__

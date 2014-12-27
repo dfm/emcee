@@ -7,23 +7,28 @@ __all__ = ["Sampler"]
 import logging
 from functools import wraps
 from collections import Iterable
+from . import moves
 from .backends import DefaultBackend
 
 
 def _check_run(f):
     @wraps(f)
     def func(self, *args, **kwargs):
-        if self.backend.coords is None:
-            raise AttributeError("You need to run the chain first")
+        if self.backend.niter <= 0 or self.backend.coords is None:
+            raise AttributeError("You need to run the chain first or store "
+                                 "the chain using the 'store' keyword "
+                                 "argument to Sampler.sample")
         return f(self, *args, **kwargs)
     return func
 
 
 class Sampler(object):
 
-    def __init__(self, schedule, backend=None):
+    def __init__(self, schedule=None, backend=None):
         # Save the schedule. This should be a list of proposals.
-        if isinstance(schedule, Iterable):
+        if schedule is None:
+            self.schedule = [moves.StretchMove()]
+        elif isinstance(schedule, Iterable):
             self.schedule = schedule
         else:
             self.schedule = [schedule]
@@ -31,6 +36,8 @@ class Sampler(object):
         # Set up the backend.
         if backend is None:
             self.backend = DefaultBackend()
+        else:
+            self.backend = backend
 
         # Set the chain to the original untouched state.
         self.reset()
@@ -55,7 +62,8 @@ class Sampler(object):
             forever.
 
         :param store: (optional)
-            If ``True``, save the chain using the
+            If ``True``, save the chain using the backend. If ``False``,
+            reset the backend and don't store anything.
 
         """
         # Set the default backend behavior if not overridden.
@@ -77,8 +85,11 @@ class Sampler(object):
             self.backend.reset()
 
         # Extend the chain to the right length.
-        if store and niter is not None:
-            self.backend.extend(niter)
+        if store:
+            if niter is None:
+                self.backend.extend(0)
+            else:
+                self.backend.extend(niter)
 
         # Start the generator.
         i = 0

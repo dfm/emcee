@@ -38,7 +38,7 @@ class Ensemble(object):
     """
     def __init__(self, walker, coords, *args, **kwargs):
         self.pool = kwargs.pop("pool", DefaultPool())
-        self.random = kwargs.pop("random", np.random)
+        self.random = kwargs.pop("random", np.random.RandomState())
 
         # Interpret the dimensions of the ensemble.
         self._coords = np.atleast_1d(coords).astype(np.float64)
@@ -90,6 +90,15 @@ class Ensemble(object):
                 and np.all(np.isfinite(self._lnprior))
                 and np.all(np.isfinite(self._lnlike))):
             raise RuntimeError("An invalid proposal was accepted")
+
+    def __getstate__(self):
+        d = self.__dict__
+        d.pop("pool", None)
+        return d
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.pool = DefaultPool()
 
     def __len__(self):
         return self.nwalkers

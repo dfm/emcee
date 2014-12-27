@@ -12,17 +12,17 @@ from ...compat import xrange
 from ..common import NormalWalker, UniformWalker
 
 
-def _test_normal(proposal, nwalkers=32, nsteps=2000, seed=1234):
+def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234):
     # Set up the random number generator.
     rnd = np.random.RandomState()
     rnd.seed(seed)
 
     # Initialize the ensemble and proposal.
-    coords = rnd.randn(nwalkers, 1)
+    coords = rnd.randn(nwalkers, ndim)
     ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
 
     # Run the chain.
-    chain = np.empty((nsteps, nwalkers, 1))
+    chain = np.empty((nsteps, nwalkers, ndim))
     acc = np.zeros(nwalkers, dtype=int)
     for i in xrange(len(chain)):
         proposal.update(ensemble)
@@ -37,12 +37,13 @@ def _test_normal(proposal, nwalkers=32, nsteps=2000, seed=1234):
     # Check the resulting chain using a K-S test and compare to the mean and
     # standard deviation.
     samps = chain.flatten()
-    np.random.shuffle(samps)
-    ks, _ = stats.kstest(samps, "norm")
-    mu, sig = np.mean(samps), np.std(samps)
-    assert ks < 0.05, "The K-S test failed"
-    assert np.abs(mu) < 0.05, "Incorrect mean"
-    assert np.abs(sig - 1) < 0.05, "Incorrect standard deviation"
+    mu, sig = np.mean(samps, axis=0), np.std(samps, axis=0)
+    assert np.all(np.abs(mu) < 0.05), "Incorrect mean"
+    assert np.all(np.abs(sig - 1) < 0.05), "Incorrect standard deviation"
+
+    if ndim == 1:
+        ks, _ = stats.kstest(samps, "norm")
+        assert ks < 0.05, "The K-S test failed"
 
 
 def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234):

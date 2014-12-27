@@ -52,8 +52,8 @@ class DefaultBackend(object):
 
     def update(self, ensemble):
         i = self.niter
-        if i > self.size:
-            self.extend(i - self.size)
+        if i >= self.size:
+            self.extend(i - self.size + 1)
         self._coords[i] = ensemble.coords
         self._lnprior[i] = ensemble.lnprior
         self._lnlike[i] = ensemble.lnlike
@@ -64,7 +64,7 @@ class DefaultBackend(object):
 
     @property
     def coords(self):
-        return self._coords[:self.niter]
+        return None if self._coords is None else self._coords[:self.niter]
 
     @property
     def lnprior(self):
