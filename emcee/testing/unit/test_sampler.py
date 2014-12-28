@@ -2,14 +2,12 @@
 
 from __future__ import division, print_function
 
-__all__ = ["test_schedule", "test_shapes", "test_errors"]
+__all__ = ["test_schedule", "test_shapes", "test_errors", "test_walkers"]
 
-import warnings
 import numpy as np
 
-from ... import moves, Sampler, Ensemble
-from ...backends import DefaultBackend
-from ..common import NormalWalker
+from ... import moves, backends, Sampler, Ensemble
+from ..common import NormalWalker, TempHDFBackend
 
 
 def test_schedule():
@@ -26,7 +24,19 @@ def test_schedule():
     assert len(s.schedule) == 2
 
 
-def test_shapes(nwalkers=32, ndim=3, nsteps=5, seed=1234):
+def test_shapes():
+    run_shapes(backends.DefaultBackend(store_walkers=True))
+    with TempHDFBackend(store_walkers=True) as backend:
+        run_shapes(backend)
+
+
+def test_walkers():
+    run_walkers(backends.DefaultBackend(store_walkers=True))
+    with TempHDFBackend(store_walkers=True) as backend:
+        run_walkers(backend)
+
+
+def run_shapes(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
     # Set up the random number generator.
     rnd = np.random.RandomState()
     rnd.seed(seed)
@@ -34,7 +44,7 @@ def test_shapes(nwalkers=32, ndim=3, nsteps=5, seed=1234):
     # Initialize the ensemble, proposal, and sampler.
     coords = rnd.randn(nwalkers, ndim)
     ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
-    sampler = Sampler(backend=DefaultBackend(store_walkers=True))
+    sampler = Sampler(backend=backend)
 
     # Run the sampler.
     ensembles = list(sampler.sample(ensemble, nsteps))
@@ -74,6 +84,25 @@ def test_shapes(nwalkers=32, ndim=3, nsteps=5, seed=1234):
         "incorrect probability dimensions"
     assert sampler.acceptance_fraction.shape == (nwalkers,), \
         "incorrect acceptance fraction dimensions"
+
+
+def run_walkers(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
+    # Set up the random number generator.
+    rnd = np.random.RandomState()
+    rnd.seed(seed)
+
+    # Initialize the ensemble, proposal, and sampler.
+    coords = rnd.randn(nwalkers, ndim)
+    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    sampler = Sampler(backend=backend)
+
+    # Run the sampler.
+    list(sampler.sample(ensemble, nsteps))
+
+    for i, row in enumerate(sampler.walkers):
+        for j, w in enumerate(row):
+            assert np.allclose(sampler.coords[i, j], w.coords), \
+                "invalid walker coordinates"
 
 
 def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):

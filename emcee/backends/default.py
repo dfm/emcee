@@ -59,7 +59,7 @@ class DefaultBackend(object):
         self._lnlike[i] = ensemble.lnlike
         self._acceptance += ensemble.acceptance
         if self.store_walkers:
-            self._walkers.append(ensemble.walkers)
+            self._walkers.append(list(ensemble.walkers))
         self.niter += 1
 
     @property

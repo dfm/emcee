@@ -4,8 +4,11 @@ from __future__ import division, print_function
 
 __all__ = ["NormalWalker", "UniformWalker"]
 
+import os
 import numpy as np
-from .. import BaseWalker
+from tempfile import NamedTemporaryFile
+
+from .. import BaseWalker, backends
 
 
 class NormalWalker(BaseWalker):
@@ -28,3 +31,18 @@ class UniformWalker(BaseWalker):
 
     def lnlikefn(self, p):
         return 0.0
+
+
+class TempHDFBackend(object):
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        f = NamedTemporaryFile("w", delete=False)
+        f.close()
+        self.filename = f.name
+        return backends.HDFBackend(f.name, "test", **(self.kwargs))
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        os.remove(self.filename)
