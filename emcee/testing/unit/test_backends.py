@@ -35,7 +35,6 @@ def test_hdf():
             assert np.allclose(a, b), "inconsistent {0}".format(k)
 
         # Check the walkers.
-        print(sampler1.coords[0, 0], sampler2.coords[0, 0])
         for r1, r2 in izip(sampler1.walkers, sampler2.walkers):
             for w1, w2 in izip(r1, r2):
                 for k in ["coords", "lnprior", "lnlike", "lnprob"]:

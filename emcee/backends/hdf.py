@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 __all__ = ["HDFBackend"]
 
+import base64
 import numpy as np
 
 try:
@@ -101,7 +102,7 @@ class HDFBackend(DefaultBackend):
             if self.store_walkers:
                 g0 = g["walkers"]
                 for j, w in enumerate(ensemble.walkers):
-                    g0[niter, j] = pickle.dumps(w)
+                    g0[niter, j] = base64.b64encode(pickle.dumps(w))
 
     @property
     def niter(self):
@@ -151,7 +152,8 @@ class HDFBackend(DefaultBackend):
             for i, row in enumerate(g["walkers"][:niter]):
                 walkers.append([])
                 for w in row:
-                    walkers[-1].append(pickle.loads(w))
+                    s = base64.b64decode(w)
+                    walkers[-1].append(pickle.loads(s))
         return walkers
 
     @property
