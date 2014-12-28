@@ -4,26 +4,24 @@ emcee
 Seriously Kick-Ass MCMC
 -----------------------
 
-``emcee`` is an MIT licensed pure-Python implementation of Goodman & Weare's
-`Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler
-<http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and these pages will
-show you how to use it.
-
+**emcee** is an MIT licensed pure-Python implementation
+of Goodman & Weare's `Affine Invariant Markov chain Monte Carlo (MCMC)
+Ensemble sampler <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and
+these pages will show you how to use it.
 This documentation won't teach you too much about MCMC but there are a lot
 of resources available for that (try `this one
 <http://www.inference.phy.cam.ac.uk/mackay/itila/book.html>`_).
 We also `published a paper <http://arxiv.org/abs/1202.3665>`_ explaining
-the ``emcee`` algorithm and implementation in detail.
-
-emcee has been used in `quite a few projects in the astrophysical literature
-<testimonials>`_ and it is being actively developed on `GitHub
+the **emcee** algorithm and implementation in detail.
+**emcee** has been used in `quite a few projects in the astrophysical
+literature <testimonials>`_ and it is being actively developed on `GitHub
 <https://github.com/dfm/emcee>`_.
 
 
 Basic Usage
 -----------
 
-If you wanted to draw samples from a 10 dimensional Gaussian, you would do
+If you wanted to draw samples from a multidimensional Gaussian, you would do
 something like:
 
 .. code-block:: python
@@ -34,16 +32,14 @@ something like:
     class MyModel(emcee.BaseWalker):
         def lnpriorfn(self, x):
             return 0.0
-
         def lnlikefn(self, x):
             return -0.5 * np.sum(x ** 2)
 
     ndim, nwalkers = 10, 100
     coords = np.random.randn(nwalkers, ndim)
     ensemble = emcee.Ensemble(MyModel, coords)
-    sampler = emcee.Sampler(emcee.moves.StretchMove())
-
-    list(sampler.sample(ensemble, 1000))
+    sampler = emcee.Sampler()
+    sampler.run(ensemble, 1000)
 
 A more complete example is available in the `quickstart documentation
 <user/quickstart>`_.
@@ -56,6 +52,7 @@ User Guide
    :maxdepth: 2
 
    user/install
+   user/porting
 
 ..   user/quickstart
 ..   user/line

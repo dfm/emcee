@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["BaseWalker", "SimpleWalker"]
+__all__ = ["BaseWalker", "SimpleWalker", "WalkerFactory", "wrap_walker"]
 
 import numpy as np
 
@@ -148,3 +148,22 @@ class SimpleWalker(BaseWalker):
 
     def lnlikefn(self, coords, *args):
         return self._lnlikefn(coords, *args)
+
+
+class WalkerFactory(object):
+
+    def __init__(self, cls, *args, **kwargs):
+        self.cls = cls
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, x):
+        return self.cls(x, *(self.args), **(self.kwargs))
+
+
+def _default_lnprior(*args):
+    return 0.0
+
+
+def wrap_walker(f):
+    return WalkerFactory(SimpleWalker, _default_lnprior, f)

@@ -3,14 +3,14 @@
 Installation
 ============
 
-Since ``emcee`` is a pure Python module, it should be pretty easy to install.
+Since **emcee** is a pure Python module, it should be pretty easy to install.
 All you'll need `numpy <http://numpy.scipy.org/>`_.
 
 
 Using pip
 ---------
 
-The easiest way to install the most recent stable version of ``emcee`` is
+The easiest way to install the most recent stable version of **emcee** is
 with `pip <http://www.pip-installer.org/>`_. Run this from the command line:
 
 .. code-block:: bash
@@ -54,7 +54,7 @@ root source directory and run:
 Bleeding edge development version
 ---------------------------------
 
-``emcee`` is being developed actively on `GitHub
+**emcee** is being developed actively on `GitHub
 <https://github.com/dfm/emcee>`_ so if you feel like hacking, you can clone
 the source repository
 

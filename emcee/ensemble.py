@@ -61,8 +61,8 @@ class Ensemble(object):
         self._lnprior = np.empty(self.nwalkers, dtype=np.float64)
         self._lnlike = np.empty(self.nwalkers, dtype=np.float64)
         for i, w in enumerate(self.walkers):
-            self._lnprior[:] = w.lnprior
-            self._lnlike[:] = w.lnlike
+            self._lnprior[i] = w.lnprior
+            self._lnlike[i] = w.lnlike
         self.acceptance = np.ones(self.nwalkers, dtype=bool)
 
         # Check the initial probabilities.
