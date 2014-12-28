@@ -5,61 +5,52 @@ Sample code for sampling a multivariate Gaussian using emcee.
 """
 
 from __future__ import print_function
-import numpy as np
+
 import emcee
+import numpy as np
 
-# First, define the probability distribution that you would like to sample.
-def lnprob(x, mu, icov):
-    diff = x-mu
-    return -np.dot(diff,np.dot(icov,diff))/2.0
 
-# We'll sample a 50-dimensional Gaussian...
-ndim = 50
-# ...with randomly chosen mean position...
-means = np.random.rand(ndim)
-# ...and a positive definite, non-trivial covariance matrix.
-cov  = 0.5-np.random.rand(ndim**2).reshape((ndim, ndim))
-cov  = np.triu(cov)
-cov += cov.T - np.diag(cov.diagonal())
-cov  = np.dot(cov,cov)
+# First, define the probabilistic model.
+class MyModel(emcee.BaseWalker):
+    def lnpriorfn(self, x):
+        return 0.0
 
-# Invert the covariance matrix first.
-icov = np.linalg.inv(cov)
+    def lnlikefn(self, x):
+        return -0.5 * np.sum(x ** 2)
 
-# We'll sample with 250 walkers.
-nwalkers = 250
 
-# Choose an initial set of positions for the walkers.
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+# We'll sample a 5 dimensional Gaussian using 64 walkers.
+ndim, nwalkers = 5, 64
 
-# Initialize the sampler with the chosen specs.
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])
+# We'll start by choosing the initial coordinates for the walkers.
+coords = np.random.randn(nwalkers, ndim)
 
-# Run 100 steps as a burn-in.
-pos, prob, state = sampler.run_mcmc(p0, 100)
+# Initialize the ensemble using these coordinates. NOTE: the probabilities
+# of the walkers will be evaluated immediately.
+ensemble = emcee.Ensemble(MyModel, coords)
 
-# Reset the chain to remove the burn-in samples.
-sampler.reset()
+# Initialize and the sampler.
+sampler = emcee.Sampler()
 
-# Starting from the final position in the burn-in chain, sample for 1000
-# steps.
-sampler.run_mcmc(pos, 1000, rstate0=state)
+# Run the burn-in.
+ensemble = sampler.run(ensemble, 100, store=False)
+
+# Run the production chain.
+sampler.run(ensemble, 1000)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
-# has an entry for each walker so, in this case, it is a 250-dimensional
+# has an entry for each walker so, in this case, it is a 100-dimensional
 # vector.
 print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 
-# Estimate the integrated autocorrelation time for the time series in each
-# parameter.
-print("Autocorrelation time:", sampler.get_autocorr_time())
-
 # Finally, you can plot the projected histograms of the samples using
-# matplotlib as follows (as long as you have it installed).
+# triangle.py (https://github.com/dfm/triangle.py)
 try:
-    import matplotlib.pyplot as pl
+    import triangle
+
 except ImportError:
-    print("Try installing matplotlib to generate some sweet plots...")
+    print("Install triangle.py (https://github.com/dfm/triangle.py) for plots")
+
 else:
-    pl.hist(sampler.flatchain[:,0], 100)
-    pl.show()
+    fig = triangle.corner(sampler.get_coords(flat=True))
+    fig.savefig("quickstart-corner.png")

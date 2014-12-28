@@ -65,9 +65,21 @@ def run_shapes(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
         "incorrect acceptance fraction dimensions"
 
     assert len(sampler.walkers) == nsteps, \
-        "incorrect walker list dimensions"
+        "incorrect walker dimensions"
     assert len(sampler.walkers[0]) == nwalkers, \
         "incorrect walker row dimensions"
+
+    # Check the shape of the flattened coords.
+    assert sampler.get_coords(flat=True).shape == (nsteps * nwalkers, ndim), \
+        "incorrect coordinate dimensions"
+    assert sampler.get_lnprior(flat=True).shape == (nsteps * nwalkers,), \
+        "incorrect prior dimensions"
+    assert sampler.get_lnlike(flat=True).shape == (nsteps * nwalkers,), \
+        "incorrect likelihood dimensions"
+    assert sampler.get_lnprob(flat=True).shape == (nsteps * nwalkers,), \
+        "incorrect probability dimensions"
+    assert len(sampler.get_walkers(flat=True)) == nsteps * nwalkers, \
+        "incorrect walker dimensions"
 
     # This should work (even though it's dumb).
     sampler.reset()
@@ -99,10 +111,20 @@ def run_walkers(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
     # Run the sampler.
     list(sampler.sample(ensemble, nsteps))
 
+    # Check that walker coordinates are all right.
     for i, row in enumerate(sampler.walkers):
         for j, w in enumerate(row):
             assert np.allclose(sampler.coords[i, j], w.coords), \
                 "invalid walker coordinates"
+
+    # What about the flattened distributions?
+    c = sampler.get_coords(flat=True)
+    lp = sampler.get_lnprob(flat=True)
+    for i, w in enumerate(sampler.get_walkers(flat=True)):
+        assert np.allclose(c[i], w.coords), \
+            "invalid flattened walker coordinates"
+        assert np.allclose(lp[i], w.lnprob), \
+            "invalid flattened walker probability"
 
 
 def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
