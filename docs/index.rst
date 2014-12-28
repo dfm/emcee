@@ -56,11 +56,12 @@ User Guide
    :maxdepth: 2
 
    user/install
-   user/quickstart
-   user/line
-   user/advanced
-   user/pt
-   user/faq
+
+..   user/quickstart
+..   user/line
+..   user/advanced
+..   user/pt
+..   user/faq
 
 
 .. API Documentation
