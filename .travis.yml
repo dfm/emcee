@@ -22,8 +22,6 @@ matrix:
 
         - python: 2.7
           env: NUMPY_VERSION=1.7
-        - python: 3.3
-          env: NUMPY_VERSION=1.7
 
 before_install:
     - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
