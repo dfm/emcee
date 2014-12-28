@@ -15,7 +15,7 @@ def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
     rnd = np.random.RandomState()
     rnd.seed(seed)
     coords = rnd.randn(nwalkers, 2 * nwalkers)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.), coords, random=rnd)
     proposal = moves.StretchMove()
 
     # Test to make sure that the error is thrown if there aren't enough

@@ -19,7 +19,7 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234):
 
     # Initialize the ensemble and proposal.
     coords = rnd.randn(nwalkers, ndim)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.), coords, random=rnd)
 
     # Run the chain.
     chain = np.empty((nsteps, nwalkers, ndim))
@@ -53,7 +53,7 @@ def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234):
 
     # Initialize the ensemble and proposal.
     coords = 2*rnd.rand(nwalkers, 1) - 1
-    ensemble = Ensemble(UniformWalker, coords, random=rnd)
+    ensemble = Ensemble(UniformWalker(), coords, random=rnd)
 
     # Run the chain.
     chain = np.empty((nsteps, nwalkers, 1))

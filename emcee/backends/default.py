@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 __all__ = ["DefaultBackend"]
 
+import copy
 import numpy as np
 
 
@@ -59,7 +60,7 @@ class DefaultBackend(object):
         self._lnlike[i] = ensemble.lnlike
         self._acceptance += ensemble.acceptance
         if self.store_walkers:
-            self._walkers.append(list(ensemble.walkers))
+            self._walkers.append(copy.deepcopy(ensemble.walkers))
         self.niter += 1
 
     @property

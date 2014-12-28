@@ -2,8 +2,9 @@
 
 from __future__ import division, print_function
 
-__all__ = ["BaseWalker", "SimpleWalker", "WalkerFactory", "wrap_walker"]
+__all__ = ["BaseWalker", "SimpleWalker"]
 
+import copy
 import numpy as np
 
 
@@ -11,15 +12,7 @@ class BaseWalker(object):
     """
     The abstract base class for each walker implementation.
 
-    :param coords:
-        The initial coordinate vector for the walker.
-
     """
-    def __init__(self, coords, *args, **kwargs):
-        self._init_args = args
-        self._init_kwargs = kwargs
-        self.coords = coords
-
     def propose(self, coords):
         """
         This function is called when a proposal is updating the walker
@@ -29,10 +22,12 @@ class BaseWalker(object):
             The new coordinates of the walker.
 
         """
-        return self.__class__(coords, *(self._init_args),
-                              **(self._init_kwargs))
+        new = copy.copy(self)
+        new._compute(coords)
+        return new
 
-    def _compute(self):
+    def _compute(self, coords):
+        self._coords = coords
         self._lnprior, self._lnlike, self._lnprob = self.lnprobfn(self._coords)
 
     def lnpriorfn(self, coords, *args):
@@ -86,10 +81,10 @@ class BaseWalker(object):
     @coords.setter
     def coords(self, coords):
         # Check the dimensions of the coordinate vector.
-        self._coords = np.atleast_1d(coords).astype(np.float64)
-        if not len(self._coords.shape) == 1:
+        coords = np.atleast_1d(coords).astype(np.float64)
+        if not len(coords.shape) == 1:
             raise ValueError("Invalid coordinate dimensions")
-        self._compute()
+        self._compute(coords)
 
     @property
     def lnprior(self):
@@ -126,44 +121,14 @@ class SimpleWalker(BaseWalker):
         vector.
 
     """
-    def __init__(self, coords, lnpriorfn, lnlikefn, *args, **kwargs):
+    def __init__(self, lnpriorfn, lnlikefn, *args, **kwargs):
         self._lnpriorfn = lnpriorfn
         self._lnlikefn = lnlikefn
-        super(SimpleWalker, self).__init__(coords, *args, **kwargs)
-
-    def propose(self, coords):
-        """
-        This function is called when a proposal is updating the walker
-        coordinates.
-
-        :param coords:
-            The new coordinates of the walker.
-
-        """
-        return self.__class__(coords, self._lnpriorfn, self._lnlikefn,
-                              *(self._init_args), **(self._init_kwargs))
-
-    def lnpriorfn(self, coords, *args):
-        return self._lnpriorfn(coords, *args)
-
-    def lnlikefn(self, coords, *args):
-        return self._lnlikefn(coords, *args)
-
-
-class WalkerFactory(object):
-
-    def __init__(self, cls, *args, **kwargs):
-        self.cls = cls
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, x):
-        return self.cls(x, *(self.args), **(self.kwargs))
+    def lnpriorfn(self, coords):
+        return self._lnpriorfn(coords, *(self.args), **(self.kwargs))
 
-
-def _default_lnprior(*args):
-    return 0.0
-
-
-def wrap_walker(f):
-    return WalkerFactory(SimpleWalker, _default_lnprior, f)
+    def lnlikefn(self, coords):
+        return self._lnlikefn(coords, *(self.args), **(self.kwargs))

@@ -55,7 +55,7 @@ class Ensemble(object):
             raise ValueError("More than 1 walker has identical coordinates")
 
         # Initialize the walkers at these coordinates.
-        self.walkers = [walker(c, *args, **kwargs) for c in self._coords]
+        self.walkers = [walker.propose(c) for c in self._coords]
 
         # Save the initial prior and likelihood values.
         self._lnprior = np.empty(self.nwalkers, dtype=np.float64)

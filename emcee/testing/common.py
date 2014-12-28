@@ -13,9 +13,8 @@ from .. import BaseWalker, backends
 
 class NormalWalker(BaseWalker):
 
-    def __init__(self, coords, ivar):
+    def __init__(self, ivar):
         self.ivar = ivar
-        super(NormalWalker, self).__init__(coords, ivar)
 
     def lnpriorfn(self, p):
         return 0.0

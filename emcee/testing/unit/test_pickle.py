@@ -19,11 +19,11 @@ def f(x):
 
 def test_walker_pickle():
     # Check to make sure that the standard walker types pickle.
-    walker = NormalWalker(np.ones(10), 1.0)
+    walker = NormalWalker(1.0)
     pickle.dumps(walker)
 
     # And the "simple" form with function pointers.
-    walker = SimpleWalker(np.ones(10), f, f)
+    walker = SimpleWalker(f, f)
     pickle.dumps(walker)
 
 
@@ -31,19 +31,19 @@ def test_ensemble_pickle(seed=1234):
     np.random.seed(seed)
 
     # The standard ensemble should pickle.
-    e = Ensemble(NormalWalker, np.random.randn(10, 3), 1.0)
+    e = Ensemble(NormalWalker(1.), np.random.randn(10, 3))
     s = pickle.dumps(e, -1)
     pickle.loads(s)
 
     # It should also work with a pool. NOTE: the pool gets lost in this
     # process.
-    e = Ensemble(NormalWalker, np.random.randn(10, 3), 1.0, pool=Pool())
+    e = Ensemble(NormalWalker(1.0), np.random.randn(10, 3), pool=Pool())
     s = pickle.dumps(e, -1)
     pickle.loads(s)
 
     # It should also work with a pool. NOTE: the pool gets lost in this
     # process.
-    e = Ensemble(NormalWalker, np.random.randn(10, 3), 1.0,
+    e = Ensemble(NormalWalker(1.0), np.random.randn(10, 3),
                  pool=pools.InterruptiblePool())
     s = pickle.dumps(e, -1)
     pickle.loads(s)

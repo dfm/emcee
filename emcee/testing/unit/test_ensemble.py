@@ -24,7 +24,7 @@ def test_invalid_init(nwalkers=32, ndim=5, seed=1234):
     coords = np.ones((nwalkers, ndim, 3))
     coords += 0.001 * np.random.randn(*(coords.shape))
     try:
-        Ensemble(UniformWalker, coords)
+        Ensemble(UniformWalker(), coords)
     except ValueError:
         pass
     else:
@@ -36,7 +36,7 @@ def test_inf_init(nwalkers=32, ndim=5, seed=1234):
     coords = 2*np.ones((nwalkers, ndim))+0.1*np.random.randn(nwalkers, ndim)
 
     try:
-        Ensemble(UniformWalker, coords)
+        Ensemble(UniformWalker(), coords)
     except ValueError:
         pass
     else:
@@ -49,7 +49,7 @@ def test_same_init(nwalkers=32, ndim=5, seed=1234):
     coords = np.zeros((nwalkers, ndim))
 
     try:
-        Ensemble(UniformWalker, coords)
+        Ensemble(UniformWalker(), coords)
     except ValueError:
         pass
     else:
@@ -61,7 +61,7 @@ def test_same_init(nwalkers=32, ndim=5, seed=1234):
 def test_invalid_acceptance(nwalkers=32, ndim=5, seed=1234):
     np.random.seed(seed)
     coords = np.zeros((nwalkers, ndim)) + 0.1*np.random.randn(nwalkers, ndim)
-    ensemble = Ensemble(UniformWalker, coords)
+    ensemble = Ensemble(UniformWalker(), coords)
     ensemble.walkers[0]._lnlike = -np.inf
 
     try:

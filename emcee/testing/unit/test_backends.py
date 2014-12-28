@@ -14,7 +14,7 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
     rnd = np.random.RandomState()
     rnd.seed(seed)
     coords = rnd.randn(nwalkers, ndim)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.0), coords, random=rnd)
     sampler = Sampler(backend=backend)
     list(sampler.sample(ensemble, nsteps))
     return sampler

@@ -43,7 +43,7 @@ def run_shapes(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
 
     # Initialize the ensemble, proposal, and sampler.
     coords = rnd.randn(nwalkers, ndim)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.), coords, random=rnd)
     sampler = Sampler(backend=backend)
 
     # Run the sampler.
@@ -98,14 +98,14 @@ def run_shapes(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
         "incorrect acceptance fraction dimensions"
 
 
-def run_walkers(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
+def run_walkers(backend, nwalkers=5, ndim=2, nsteps=5, seed=1234):
     # Set up the random number generator.
     rnd = np.random.RandomState()
     rnd.seed(seed)
 
     # Initialize the ensemble, proposal, and sampler.
     coords = rnd.randn(nwalkers, ndim)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.0), coords, random=rnd)
     sampler = Sampler(backend=backend)
 
     # Run the sampler.
@@ -134,7 +134,7 @@ def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
 
     # Initialize the ensemble, proposal, and sampler.
     coords = rnd.randn(nwalkers, ndim)
-    ensemble = Ensemble(NormalWalker, coords, 1.0, random=rnd)
+    ensemble = Ensemble(NormalWalker(1.0), coords, random=rnd)
 
     # Test for saving the walker list.
     sampler = Sampler()
@@ -175,7 +175,7 @@ def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
     list(sampler.sample(ensemble, nsteps))
 
     coords2 = rnd.randn(nwalkers, ndim+1)
-    ensemble2 = Ensemble(NormalWalker, coords2, 1.0, random=rnd)
+    ensemble2 = Ensemble(NormalWalker(1.), coords2, random=rnd)
     try:
         list(sampler.sample(ensemble2, nsteps))
     except ValueError:
