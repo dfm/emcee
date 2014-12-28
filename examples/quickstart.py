@@ -27,7 +27,7 @@ coords = np.random.randn(nwalkers, ndim)
 
 # Initialize the ensemble using these coordinates. NOTE: the probabilities
 # of the walkers will be evaluated immediately.
-ensemble = emcee.Ensemble(MyModel, coords)
+ensemble = emcee.Ensemble(MyModel(), coords)
 
 # Initialize and the sampler.
 sampler = emcee.Sampler()
