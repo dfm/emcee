@@ -72,13 +72,28 @@ class Ensemble(object):
 
     def propose(self, coords, slice=slice(None)):
         """
-        Given a new set of coordinates, update the walkers and
+        Given a new set of coordinates return a list of new walkers evaluated
+        at these locations.
+
+        :param coords:
+            The new coordinate matrix. It should be ``(nwalkers, ndim)``.
+
+        :param slice: (optional)
+            The update can optionally only be applied to a subset of the
+            walkers. This should be a ``slice`` object that can be used to
+            index the walkers list.
 
         """
         return list(self.pool.map(_mapping_zipper("propose"),
                                   izip(self.walkers[slice], coords)))
 
     def update(self):
+        """
+        Update the coordinate matrix and probability containers given the
+        current list of walkers. Moves should call this after proposing and
+        accepting the walkers.
+
+        """
         for i, w in enumerate(self.walkers):
             self._coords[i, :] = w.coords
             self._lnprior[i] = w.lnprior
@@ -92,6 +107,8 @@ class Ensemble(object):
             raise RuntimeError("An invalid proposal was accepted")
 
     def __getstate__(self):
+        # In order to be generally picklable, we need to discard the pool
+        # object before trying.
         d = self.__dict__
         d.pop("pool", None)
         return d
@@ -125,7 +142,10 @@ class Ensemble(object):
 
 
 class _mapping_zipper(object):
+    """
+    This is a picklable helper object for the parallel ensemble mapper.
 
+    """
     def __init__(self, method):
         self.method = method
 
