@@ -34,6 +34,6 @@ Instead, the model is defined as a class
             return -0.5 * np.sum(x ** 2)
 
     ndim, nwalkers = 10, 100
-    ensemble = emcee.Ensemble(MyModel, np.random.randn(nwalkers, ndim))
+    ensemble = emcee.Ensemble(MyModel(), np.random.randn(nwalkers, ndim))
     sampler = emcee.Sampler()
     sampler.run(ensemble, 1000)

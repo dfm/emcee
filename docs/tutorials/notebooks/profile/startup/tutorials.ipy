@@ -1,0 +1,8 @@
+from __future__ import division, print_function
+
+%matplotlib inline
+%config InlineBackend.figure_format = "retina"
+
+from matplotlib import rcParams
+rcParams["savefig.dpi"] = 150
+rcParams["font.size"] = 20

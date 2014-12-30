@@ -2,8 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["test_invalid_init", "test_inf_init", "test_same_init",
-           "test_invalid_acceptance"]
+__all__ = ["test_invalid_init", "test_inf_init", "test_invalid_acceptance"]
 
 import numpy as np
 
@@ -43,19 +42,6 @@ def test_inf_init(nwalkers=32, ndim=5, seed=1234):
         assert False, \
             "If the initial ensemble coordinates are -inf, we should get a " \
             "ValueError."
-
-
-def test_same_init(nwalkers=32, ndim=5, seed=1234):
-    coords = np.zeros((nwalkers, ndim))
-
-    try:
-        Ensemble(UniformWalker(), coords)
-    except ValueError:
-        pass
-    else:
-        assert False, \
-            "If any of the initial walkers have identical coordinates, we " \
-            "should get a ValueError."
 
 
 def test_invalid_acceptance(nwalkers=32, ndim=5, seed=1234):

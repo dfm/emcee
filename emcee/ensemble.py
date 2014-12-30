@@ -46,14 +46,6 @@ class Ensemble(object):
             raise ValueError("Invalid ensemble coordinate dimensions")
         self.nwalkers, self.ndim = self._coords.shape
 
-        # Check to make sure that none of the walkers are on top of each
-        # other.
-        d = np.sum((self._coords[:, None, :] - self._coords[None, :, :]) ** 2,
-                   axis=-1)
-        d[np.diag_indices_from(d)] = 1.0
-        if not np.all(d > 1e-10):
-            raise ValueError("More than 1 walker has identical coordinates")
-
         # Initialize the walkers at these coordinates.
         self.walkers = [walker.propose(c) for c in self._coords]
 

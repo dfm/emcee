@@ -36,8 +36,7 @@ something like:
             return -0.5 * np.sum(x ** 2)
 
     ndim, nwalkers = 10, 100
-    coords = np.random.randn(nwalkers, ndim)
-    ensemble = emcee.Ensemble(MyModel, coords)
+    ensemble = emcee.Ensemble(MyModel(), np.random.randn(nwalkers, ndim))
     sampler = emcee.Sampler()
     sampler.run(ensemble, 1000)
 
@@ -61,13 +60,13 @@ User Guide
 ..   user/faq
 
 
-.. API Documentation
-.. -----------------
+API Documentation
+-----------------
 
-.. .. toctree::
-..    :maxdepth: 2
+.. toctree::
+   :maxdepth: 2
 
-..    api
+   api
 
 
 Contributors
