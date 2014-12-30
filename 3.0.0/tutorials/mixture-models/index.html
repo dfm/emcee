@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tutorial: Practical mixture models &mdash; emcee 3.0.0-dev documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="emcee 3.0.0-dev documentation" href="../../"/>
+        <link rel="next" title="API" href="../../api/"/>
+        <link rel="prev" title="Tutorial: Fitting a Model to Data" href="../line/"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../" class="fa fa-home"> emcee</a>
+        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/install/">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user/install/#using-pip">Using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user/install/#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user/install/#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user/install/#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/porting/">Porting your code to emcee3 from earlier versions</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../line/">Tutorial: Fitting a Model to Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../line/#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../line/#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../line/#building-the-probabilistic-model">Building the probabilistic model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../line/#sampling-from-the-posterior-probability">Sampling from the posterior probability</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial: Practical mixture models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-basic-model">The basic model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-marginalized-likelihood">The marginalized likelihood</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mixture-membership-probabilities">Mixture membership probabilities</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#model-building">Model Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#moves">Moves</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../">emcee</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../">Docs</a> &raquo;</li>
+      
+    <li>Tutorial: Practical mixture models</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://github.com/dfm/emcee/blob/emcee3/docs/tutorials/mixture-models.rst" class="fa fa-github"> Edit on GitHub</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+
+            <div class="admonition warning">
+              <p class="first admonition-title">Version Warning</p>
+              <p class="last">
+                This documentation is for the development version of
+                <strong>emcee</strong> ("emcee3") and it isn't
+                backwards-compatible with earlier stable versions.
+                If you're using an earlier version, get that documentation
+                <a href="http://dfm.io/emcee">here</a>.
+              </p>
+            </div>
+
+            
+  <div class="section" id="tutorial-practical-mixture-models">
+<h1>Tutorial: Practical mixture models<a class="headerlink" href="#tutorial-practical-mixture-models" title="Permalink to this headline">¶</a></h1>
+<p>This is <a class="reference external" href="http://dan.iel.fm/posts/mixture-models/">a post from my
+blog</a> that I&#8217;ve updated to
+work with emcee version 3.</p>
+<p>There are a lot of reasons why you might use a mixture model and there
+is a
+<a class="reference external" href="http://www.amazon.com/gp/product/1439840954?tag=danielfm-20">huge</a>
+<a class="reference external" href="http://www.amazon.com/gp/product/0387310738?tag=danielfm-20">related</a>
+<a class="reference external" href="http://arxiv.org/abs/1008.4686">literature</a>. That being said, there
+are a few questions that I regularly get so I thought that I would write
+up the answers.</p>
+<p>In astronomy, the most common reason for using a mixture model is to fit
+data with outliers so that&#8217;s the language I&#8217;ll use but the results are
+applicable to any other mixture model. The questions that I&#8217;ll try to
+answer are:</p>
+<ol class="arabic simple">
+<li>How do you derive the <em>marginalized</em> likelihood—as popularized by
+<a class="reference external" href="http://arxiv.org/abs/1008.4686">Hogg et al. (2010)</a>, I think—and
+why would you want to?</li>
+<li>How do you work out the mixture membership probabilities (or what is
+the probability that the point is an outlier) after using this model?</li>
+</ol>
+<div class="section" id="the-basic-model">
+<h2>The basic model<a class="headerlink" href="#the-basic-model" title="Permalink to this headline">¶</a></h2>
+<p>The idea here is that you have some data drawn from the model that you
+care about and some data points that are outliers—drawn from a different
+model that you don&#8217;t care about! For simplicity, let&#8217;s consider a linear
+model. Everything that I derive here will be applicable to other more
+complicated models but it is easier to visualize the linear case. <a class="reference external" href="http://arxiv.org/abs/1008.4686">Hogg
+et al. (2010)</a> give a nice treatment
+of this linear model with slightly different notation but they miss a
+few useful points in the discussion.</p>
+<p>To start, let&#8217;s generate some fake data:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pl</span>
+
+<span class="c"># We&#39;ll choose the parameters of our synthetic data.</span>
+<span class="c"># The outlier probability will be 80%:</span>
+<span class="n">true_frac</span> <span class="o">=</span> <span class="mf">0.8</span>
+
+<span class="c"># The linear model has unit slope and zero intercept:</span>
+<span class="n">true_params</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+
+<span class="c"># The outliers are drawn from a Gaussian with zero mean and unit variance:</span>
+<span class="n">true_outliers</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+<span class="c"># For reproducibility, let&#39;s set the random number seed and generate the data:</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">yerr</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">true_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">true_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">yerr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="c"># Those points are all drawn from the correct model so let&#39;s replace some of</span>
+<span class="c"># them with outliers.</span>
+<span class="n">m_bkg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">true_frac</span>
+<span class="n">y</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">]</span> <span class="o">=</span> <span class="n">true_outliers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">y</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">true_outliers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">yerr</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">m_bkg</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Here&#8217;s what these data look like. In this plot, the empty, square points
+are the true outliers. The purple line is the fit if we don&#8217;t account
+for the fact that there are outliers and just treat all the points
+equally. Compare this to the correct answer (shown as the black line).</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="c"># First, fit the data and find the maximum likelihood model ignoring outliers.</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">A</span> <span class="o">/</span> <span class="n">yerr</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="n">yerr</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="c"># Then save the *true* line.</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">true_params</span><span class="p">)</span>
+
+<span class="c"># Plot the data and the truth.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s">&quot;,k&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">999</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s">&quot;s&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s">&quot;w&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">~</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="o">~</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s">&quot;o&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c"># Plot the best fit line.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;#8d44ad&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&quot;$x$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&quot;$y$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/mixture-models_4_0.png" src="../../_images/mixture-models_4_0.png" />
+<p>The purple line is <em>clearly</em> a terrible fit because we ignored the
+outliers. To fix this, let&#8217;s generalize this model and add a binary flag
+<span class="math">\(q_k\)</span> for each data point <span class="math">\(k\)</span>. If <span class="math">\(q_k\)</span> is zero, then
+the point is &#8220;good&#8221; and the likelihood is given by the usual Gaussian:</p>
+<div class="math">
+\[p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k=0) = \frac{1}{\sqrt{2\,\pi\,\sigma_k^2}} \exp \left(-\frac{[y_k - f_\theta (x_k)]^2}{2\,\sigma_k^2}\right)\]</div>
+<p>where <span class="math">\(f_\theta (x_k) = \theta_1 \, x_k + \theta_2\)</span> is the linear
+model.</p>
+<p>Now, if <span class="math">\(q_k = 1\)</span> then the point is an outlier and the likelihood
+becomes:</p>
+<div class="math">
+\[p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k=1) = \frac{1}{\sqrt{2\,\pi\,[\sigma_k^2 + \theta_4]}} \exp \left(-\frac{[y_k - \theta_3]^2}{2\,[\sigma_k^2 + \theta_4]}\right) \quad.\]</div>
+<p>I have made the simplifying assumption that the outliers are drawn from
+a single Gaussian with mean <span class="math">\(\theta_3\)</span> and variance
+<span class="math">\(\theta_4\)</span>. From experience, the results aren&#8217;t normally very
+sensitive to the choice of outlier model and the Gaussian model is often
+good enough but the following derivations will be valid for any model
+that you choose.</p>
+<p>Under this new model, the full likelihood for the entire dataset
+becomes:</p>
+<div class="math">
+\[p(\{y_k\}\,|\,\{x_k\},\,\{\sigma_k\},\,\theta,\,\{q_k\}) = \prod_{k=1}^{K} p(y_k\,|\,x_k,\sigma_k,\,\theta,\,q_k)\]</div>
+<p>where, for each term, the correct Gaussian is chosen depending on the
+value of <span class="math">\(q_k\)</span>. To write this equation, I&#8217;ve assumed that the data
+points are independent and if that&#8217;s not true for your dataset then
+things get <em>a lot</em> harder.</p>
+<p>Now we could just take this likelihood function, apply priors, and use
+MCMC to find posterior constraints on <span class="math">\(\theta\)</span> and the
+<span class="math">\(\{q_k\}\)</span> flags but this would be hard for a few reasons. First,
+if you&#8217;re used to using <a class="reference external" href="http://dfm.io/emcee">emcee</a> for your MCMC
+needs, you&#8217;ll find that it&#8217;s pretty hard to implement a model with
+discrete variables so you&#8217;d probably need to learn some
+<a class="reference external" href="http://pymc-devs.github.io/pymc/">other</a>
+<a class="reference external" href="http://mc-stan.org/">sampler</a> and, honestly, it probably wouldn&#8217;t
+work well for this problem either! Which brings us to our second
+problem. This problem is <em>very</em> high dimensional and the dimension
+scales with the number of data points. Without the outlier model, the
+problem is only two-dimensional but when we include the outliers, the
+model suddenly becomes <span class="math">\((4 + K)\)</span>-dimensional, where <span class="math">\(K\)</span> is
+the number of data points. This will always be hard! Therefore, in
+practice, it is useful to marginalize out the badly behaved parameters
+(<span class="math">\(q_k\)</span>) and just sample in <span class="math">\(\theta\)</span>.</p>
+</div>
+<div class="section" id="the-marginalized-likelihood">
+<h2>The marginalized likelihood<a class="headerlink" href="#the-marginalized-likelihood" title="Permalink to this headline">¶</a></h2>
+<p>In order to marginalize out the <span class="math">\(\{q_k\}\)</span> flags, we need to choose
+a prior <span class="math">\(p(q_k)\)</span>. After making this choice (I won&#8217;t specialize
+yet), the marginalization can be written:</p>
+<div class="math">
+\[p(\{y_k\}\,|\,\{x_k\},\,\{\sigma_k\},\,\theta) = \sum_{\{q_k\}} \prod_{k=1}^{K} p(q_k) \, p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k)\]</div>
+<p>where the sum is over all the possible permutations of the <span class="math">\(q_k\)</span>
+flags. If you squint for a second, you&#8217;ll see that you can actually
+switch the order of the sum and product without changing anything. This
+follows from our assumption that the data points are independent.
+Therefore, we&#8217;re left with the much simpler likelihood function</p>
+<div class="math">
+\[p(\{y_k\}\,|\,\{x_k\},\,\{\sigma_k\},\,\theta) = \prod_{k=1}^{K} p(y_k\,|\,x_k,\,\sigma_k,\,\theta)\]</div>
+<p>where</p>
+<div class="math">
+\[p(y_k\,|\,x_k,\,\sigma_k,\,\theta) = \sum_{q_k} p(q_k) \, p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k) \quad.\]</div>
+<p>The prior <span class="math">\(p(q_k)\)</span> could be different for every data point but it
+is often sufficient to choose a simple model like</p>
+<div class="math">
+\[\begin{split}p(q_k) = \left \{\begin{array}{ll}
+Q &amp; \mathrm{if}\,q_k=0 \\
+1-Q &amp; \mathrm{if}\,q_k=1
+\end{array}\right.\end{split}\]</div>
+<p>where <span class="math">\(Q \in [0, 1]\)</span> is a constant that sets the prior probability
+that a point is drawn from the foreground model. Chosing this model, we
+recover the (possibly) familiar likelihood function from <a class="reference external" href="http://arxiv.org/abs/1008.4686">Hogg et al.
+(2010)</a>:</p>
+<div class="math">
+\[p(\{y_k\}\,|\,\{x_k\},\,\{\sigma_k\},\,\theta) = \prod_{k=1}^{K} \left [ Q\,p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k=0) + (1-Q)\,p(y_k\,|\,x_k,\,\sigma_k,\,\theta,\,q_k=1) \right ] \quad.\]</div>
+<p>This is a much easier model to sample so let&#8217;s do that now:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">emcee</span>
+
+<span class="k">class</span> <span class="nc">LinearMixtureModel</span><span class="p">(</span><span class="n">emcee</span><span class="o">.</span><span class="n">BaseWalker</span><span class="p">):</span>
+
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.4</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mf">7.2</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">lnpriorfn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;We&#39;ll just put reasonable uniform priors on all the parameters.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">lnlike_fg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The &quot;foreground&quot; linear likelihood.&quot;&quot;&quot;</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lnV</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(((</span><span class="n">model</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">yerr</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">yerr</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">lnlike_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The &quot;background&quot; outlier likelihood.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lnV</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lnV</span><span class="p">)</span> <span class="o">+</span> <span class="n">yerr</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">M</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">var</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">var</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">lnlikefn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The full marginalized likelihood function.&quot;&quot;&quot;</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">lnV</span> <span class="o">=</span> <span class="n">p</span>
+
+        <span class="c"># Compute the vector of foreground likelihoods and include the q prior.</span>
+        <span class="n">ll_fg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lnlike_fg</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arg1</span> <span class="o">=</span> <span class="n">ll_fg</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+
+        <span class="c"># Compute the vector of background likelihoods and include the q prior.</span>
+        <span class="n">ll_bg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lnlike_bg</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arg2</span> <span class="o">=</span> <span class="n">ll_bg</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">Q</span><span class="p">)</span>
+
+        <span class="c"># Combine these using log-add-exp for numerical stability.</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg2</span><span class="p">))</span>
+
+<span class="c"># Initialize the walkers at a reasonable location.</span>
+<span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">32</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)])</span>
+<span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">p0</span> <span class="o">+</span> <span class="mf">1e-5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span>
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">LinearMixtureModel</span><span class="p">(),</span> <span class="n">coords</span><span class="p">)</span>
+
+<span class="c"># Set up the sampler.</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">Sampler</span><span class="p">()</span>
+
+<span class="c"># Run a burn-in chain and save only the final location.</span>
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c"># We&#39;re going to need to save the two likelihood componenents</span>
+<span class="c"># in an array called weights.</span>
+<span class="n">nsteps</span> <span class="o">=</span> <span class="mi">1500</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsteps</span><span class="p">,</span> <span class="n">nwalkers</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c"># Now we&#39;ll sample the production chain and store the weights at each step.</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ensemble</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">walkers</span><span class="p">):</span>
+        <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">arg1</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">arg2</span>
+</pre></div>
+</div>
+<p>This code should only take about a minute to run. Compare that to any
+attempt you&#8217;ve ever made at sampling the same problem with another 15 or
+more parameters and you should be pretty stoked!</p>
+<p>Let&#8217;s show the resulting parameter constraints and compare them to the
+<em>true</em> values (indicated in blue) used to generate the synthetic
+dataset. This should encourage us that we&#8217;ve done something reasonable.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">triangle</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;$m$&quot;</span><span class="p">,</span> <span class="s">&quot;$b$&quot;</span><span class="p">,</span> <span class="s">&quot;$Q$&quot;</span><span class="p">,</span> <span class="s">&quot;$M$&quot;</span><span class="p">,</span> <span class="s">&quot;$\ln V$&quot;</span><span class="p">]</span>
+<span class="n">truths</span> <span class="o">=</span> <span class="n">true_params</span> <span class="o">+</span> <span class="p">[</span><span class="n">true_frac</span><span class="p">,</span> <span class="n">true_outliers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">true_outliers</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+<span class="n">flatchain</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span><span class="n">flatchain</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="n">LinearMixtureModel</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">truths</span><span class="o">=</span><span class="n">truths</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/mixture-models_11_0.png" src="../../_images/mixture-models_11_0.png" />
+<p>Similarly, the predicted constraint on the linear model is:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="c"># Compute the quantiles of the predicted line and plot them.</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">flatchain</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">quantiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">quantiles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;#8d44ad&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c"># Plot the data.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s">&quot;,k&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">999</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&quot;o&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c"># Plot the true line.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&quot;$x$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&quot;$y$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/mixture-models_13_0.png" src="../../_images/mixture-models_13_0.png" />
+<p>Great! Comparing the purple swath to the true line (shown in black), I
+think that we can all agree that this is a much better fit! But now, how
+do we label the points to decide which ones are outliers?</p>
+</div>
+<div class="section" id="mixture-membership-probabilities">
+<h2>Mixture membership probabilities<a class="headerlink" href="#mixture-membership-probabilities" title="Permalink to this headline">¶</a></h2>
+<p>Okay. So now we have a model that we can sample and it seems to give us
+reasonable results but didn&#8217;t we throw away a lot of information when we
+used the marginalized likelihood instead of sampling in the <span class="math">\(q_k\)</span>
+parameters? If we sampled the full model, we would, after all, get
+marginalized posterior constraints on the <em>outlierness</em> of each point.
+This is a very common question when I suggest that people use this model
+so I wanted to show that you&#8217;re actually not throwing anything away and
+with a tiny bit of extra computation, you can recover these constraints!</p>
+<p>To be specific, the thing that we want to compute is:</p>
+<div class="math">
+\[p(q_k\,|\,y) = \int p(q_k,\,\theta\,|\,y)\,\mathrm{d}\theta = \int p(q_k\,|\,y,\,\theta)\,p(\theta\,|\,y)\,\mathrm{d}\theta \quad,\]</div>
+<p>the posterior probability of a specific point <span class="math">\(k\)</span> being good
+(<span class="math">\(q_k=0\)</span>) given all the data. In this equation, I&#8217;ve simplified
+the notation a bit and <span class="math">\(y = \{y_k\}\)</span> now indicates <em>all the data</em>
+and I&#8217;m leaving out the implied <span class="math">\(\{x_k\},\,\{\sigma_k\}\)</span> on the
+right-hand side of every probability. To compute this, we&#8217;ll need to
+evaluate the conditional probability</p>
+<div class="math">
+\[p(q_k\,|\,y,\,\theta) = \frac{p(q_k)\,p(y\,|\,\theta,\,q_k)}{\sum_{j} p(q_k=j)\,p(y\,|\,\theta,\,q_k=j)}\]</div>
+<p>where the sum is over every allowed value of <span class="math">\(q_k\)</span>. Both the
+numerator and denominator are used when computing the marginalized
+likelihood so if we hang onto those, we can re-use them to compute the
+membership probabilities. In the example above, I stored these results
+in the <tt class="docutils literal"><span class="pre">weights</span></tt> array so it&#8217;ll be ease to evaluate
+<span class="math">\(p(q_k\,|\,y,\,\theta^{(n)})\)</span> for each sample <span class="math">\(\theta^{(n)}\)</span>
+from the chain.</p>
+<p>Then, we need to realize that the Markov chain gave us samples
+<span class="math">\(\theta^{(n)}\)</span> from the probability distribution
+<span class="math">\(p(\theta\,|\,y)\)</span>, so we can approximate the previous integral as</p>
+<div class="math">
+\[p(q_k\,|\,y) = \int p(q_k\,|\,y,\,\theta)\,p(\theta\,|\,y)\,\mathrm{d}\theta \approx \frac{1}{N}\sum_{n=1}^N p(q_k\,|\,y,\,\theta^{(n)}) \quad.\]</div>
+<p>Therefore, the posterior probaility of being an outlier or not can be
+computed by just taking the average of a bunch of values that we&#8217;ve
+already computed! In practice, this would look like the following:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">fg_prob</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">weights</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">norm</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Therefore, from left to right, the marginalized posterior probability
+that each point is part of the foreground model is:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="s">&quot;{0:.3f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">fg_prob</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="mf">0.379</span><span class="p">,</span> <span class="mf">0.938</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.956</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.897</span><span class="p">,</span> <span class="mf">0.891</span><span class="p">,</span> <span class="mf">0.834</span><span class="p">,</span> <span class="mf">0.865</span><span class="p">,</span> <span class="mf">0.970</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">,</span> <span class="mf">0.995</span><span class="p">,</span> <span class="mf">0.996</span><span class="p">,</span> <span class="mf">0.978</span>
+</pre></div>
+</div>
+<p>This model works pretty well... so well, in fact, that the strong
+outliers are given nearly zero probability of being in the foreground
+model!</p>
+<p>Finally, it can be useful to label outliers on the final plot so let&#8217;s
+use a color scale on the points to show this probability. In the figure
+below, darker points are more likely to be drawn from the line. This
+plot is pretty satisfying because the model has done a good job labeling
+all but one outlier at high confidence!</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="c"># Plot the predition.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">quantiles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;#8d44ad&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c"># Plot the data points.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s">&quot;,k&quot;</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">999</span><span class="p">)</span>
+<span class="c"># Plot the (true) outliers.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s">&quot;s&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">fg_prob</span><span class="p">[</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&quot;gray_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="c"># Plot the (true) good points.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">~</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="o">~</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s">&quot;o&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">fg_prob</span><span class="p">[</span><span class="o">~</span><span class="n">m_bkg</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&quot;gray_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c"># Plot the true line.</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&quot;$x$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&quot;$y$&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/mixture-models_20_0.png" src="../../_images/mixture-models_20_0.png" />
+<p><strong>Acknowledgments</strong> &nbsp; I&#8217;d like to thank <a class="reference external" href="http://ruthang.us">Ruth
+Angus</a> for useful comments.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../api/" class="btn btn-neutral float-right" title="API"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../line/" class="btn btn-neutral" title="Tutorial: Fitting a Model to Data"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014-2014 Dan Foreman-Mackey &amp; contributors.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'3.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../../_static/js/analytics.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

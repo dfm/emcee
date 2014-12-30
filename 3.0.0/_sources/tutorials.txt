@@ -3,4 +3,8 @@
 Tutorial index
 ==============
 
-1. `Fitting a model to data <line>`_
+.. toctree::
+   :maxdepth: 2
+
+   tutorials/line
+   tutorials/mixture-models
