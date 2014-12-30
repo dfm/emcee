@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>FAQ &mdash; emcee 3.0.0-dev documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="emcee 3.0.0-dev documentation" href="../../"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../" class="fa fa-home"> emcee</a>
+        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install/#using-pip">Using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../porting/">Porting your code to emcee3 from earlier versions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/line/">Tutorial: Fitting a Model to Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#building-the-probabilistic-model">Building the probabilistic model</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#model-building">Model Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#moves">Moves</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../">emcee</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../">Docs</a> &raquo;</li>
+      
+    <li>FAQ</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://github.com/dfm/emcee/blob/emcee3/docs/user/faq.rst" class="fa fa-github"> Edit on GitHub</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+
+            <div class="admonition warning">
+              <p class="first admonition-title">Version Warning</p>
+              <p class="last">
+                This documentation is for the development version of
+                <strong>emcee</strong> ("emcee3") and it isn't
+                backwards-compatible with earlier stable versions.
+                If you're using an earlier version, get that documentation
+                <a href="http://dfm.io/emcee">here</a>.
+              </p>
+            </div>
+
+            
+  <div class="section" id="faq">
+<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<p><strong>The not-so-frequently asked questions that still have useful answers</strong></p>
+<div class="section" id="what-are-walkers">
+<span id="walkers"></span><h2>What are &#8220;walkers&#8221;?<a class="headerlink" href="#what-are-walkers" title="Permalink to this headline">¶</a></h2>
+<p>Walkers are the members of the ensemble. They are almost like separate
+Metropolis-Hastings chains but, of course, the proposal distribution for
+a given walker depends on the positions of all the other walkers in the
+ensemble. See <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Goodman &amp; Weare (2010)</a> for more details.</p>
+</div>
+<div class="section" id="how-should-i-initialize-the-walkers">
+<h2>How should I initialize the walkers?<a class="headerlink" href="#how-should-i-initialize-the-walkers" title="Permalink to this headline">¶</a></h2>
+<p>The best technique seems to be to start in a small ball around the a priori
+preferred position. Don&#8217;t worry, the walkers quickly branch out and explore
+the rest of the space.</p>
+</div>
+<div class="section" id="wrapping-c-code">
+<h2>Wrapping C++ code<a class="headerlink" href="#wrapping-c-code" title="Permalink to this headline">¶</a></h2>
+<p>There are numerous ways to do it, see
+<a class="reference external" href="https://wiki.python.org/moin/IntegratingPythonWithOtherLanguages#C.2FC.2B-.2B-">the python wiki</a>.</p>
+<p>Extra care has to be taken if mpi support is needed as the mpi4py module used by
+emcee depends on the pickle module to send a function call to different
+processors/cores.</p>
+<p>A minimal extension of the mpi.py example in which the target density is coded
+in C++ and wrapped with the <a class="reference external" href="http://swig.org/">swig library</a> is shown in this
+<a class="reference external" href="https://gist.github.com/fredRos/7122649">gist</a>. It also demonstrates the hacks
+needed to get the pickling to work.</p>
+</div>
+<div class="section" id="parameter-limits">
+<h2>Parameter limits<a class="headerlink" href="#parameter-limits" title="Permalink to this headline">¶</a></h2>
+<p>In order to confine the walkers to a finite volume of the parameter space, have
+your function return negative infinity outside of the volume corresponding to
+the logarithm of 0 prior probability using:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+</pre></div>
+</div>
+<p>Note: if your function is written in C++, use:</p>
+<div class="highlight-python"><div class="highlight"><pre>return -std::numeric_limits&lt;double&gt;::infinity();
+</pre></div>
+</div>
+<p>and avoid:</p>
+<div class="highlight-python"><div class="highlight"><pre>return -std::numeric_limits&lt;double&gt;::max();
+</pre></div>
+</div>
+<p>as it does not have the desired effect.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p><strong>I&#8217;m getting weird spikes in my data/I have low acceptance fractions/both...
+what should I do?</strong></p>
+<p>Double the number of walkers. If that doesn&#8217;t work, double it again. And
+again. Until you run out of RAM. At that point, I don&#8217;t know!</p>
+<p><strong>The walkers are getting stuck in &#8220;islands&#8221; of low likelihood. How can I
+fix that?</strong></p>
+<p>Try increasing the number of walkers. If that doesn&#8217;t work, you can try
+pruning using a clustering algorithm like the one found in
+<a class="reference external" href="http://arxiv.org/abs/1104.2612">arxiv:1104.2612</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014-2014 Dan Foreman-Mackey &amp; contributors.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'3.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../../_static/js/analytics.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

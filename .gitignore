@@ -9,3 +9,5 @@ _themes
 *.pyc
 build
 examples
+.coverage
+htmlcov/

@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Advanced Patterns &mdash; emcee 3.0.0-dev documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="emcee 3.0.0-dev documentation" href="../../"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../" class="fa fa-home"> emcee</a>
+        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install/#using-pip">Using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install/#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../porting/">Porting your code to emcee3 from earlier versions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/line/">Tutorial: Fitting a Model to Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#building-the-probabilistic-model">Building the probabilistic model</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#model-building">Model Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#moves">Moves</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../">emcee</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../">Docs</a> &raquo;</li>
+      
+    <li>Advanced Patterns</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://github.com/dfm/emcee/blob/emcee3/docs/user/advanced.rst" class="fa fa-github"> Edit on GitHub</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+
+            <div class="admonition warning">
+              <p class="first admonition-title">Version Warning</p>
+              <p class="last">
+                This documentation is for the development version of
+                <strong>emcee</strong> ("emcee3") and it isn't
+                backwards-compatible with earlier stable versions.
+                If you're using an earlier version, get that documentation
+                <a href="http://dfm.io/emcee">here</a>.
+              </p>
+            </div>
+
+            
+  <span class="target" id="module-emcee"><span id="advanced"></span></span><div class="section" id="advanced-patterns">
+<h1>Advanced Patterns<a class="headerlink" href="#advanced-patterns" title="Permalink to this headline">¶</a></h1>
+<p><tt class="docutils literal"><span class="pre">emcee</span></tt> is generally pretty simple but it has a few key features that make
+the usage easier in real problems. Here are a few examples of things that
+you might find useful.</p>
+<div class="section" id="incrementally-saving-progress">
+<h2>Incrementally saving progress<a class="headerlink" href="#incrementally-saving-progress" title="Permalink to this headline">¶</a></h2>
+<p>It is often useful to incrementally save the state of the chain to a file.
+This makes it easier to monitor the chain&#8217;s progress and it makes things a
+little less disastrous if your code/computer crashes somewhere in the middle
+of an expensive MCMC run. If you just want to append the walker positions to
+the end of a file, you could do something like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;chain.dat&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">pos0</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">storechain</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;chain.dat&quot;</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">position</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0:4d} {1:s}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="multiprocessing">
+<h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">¶</a></h2>
+<p>In principle, running <tt class="docutils literal"><span class="pre">emcee</span></tt> in parallel is as simple instantiating an
+<tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt> object with the <tt class="docutils literal"><span class="pre">threads</span></tt> argument set to an
+integer greater than 1:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnpostfn</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In practice, the parallelization is implemented using the built in Python
+<a class="reference external" href="http://docs.python.org/library/multiprocessing.html">multiprocessing</a>
+module. With this comes a few constraints. In particular, both <tt class="docutils literal"><span class="pre">lnpostfn</span></tt>
+and <tt class="docutils literal"><span class="pre">args</span></tt> must be <a class="reference external" href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a>.
+The exceptions thrown while using <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> can be quite cryptic
+and even though we&#8217;ve tried to make this feature as user-friendly as possible,
+it can sometimes cause some headaches. One useful debugging tactic is to
+try running with 1 thread if your processes start to crash. This will
+generally provide much more illuminating error messages than in the parallel
+case. Note that the parallelized <tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt> object is not
+pickleable. Therefore, if it (or an object that contains it) is passed to
+<tt class="docutils literal"><span class="pre">lnpostfn</span></tt> when multiprocessing is turned on, the code will fail.</p>
+<p>It is also important to note that the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt> module works by
+spawning a large number of new <tt class="docutils literal"><span class="pre">python</span></tt> processes and running the code in
+isolation within those processes. This means that there is a significant
+amount of overhead involved at each step of the parallelization process.
+With this in mind, it is not surprising that running a simple problem like
+the <a class="reference internal" href="../quickstart/#quickstart"><em>quickstart example</em></a> in parallel will run much slower
+than the equivalent serial code. If your log-probability function takes
+a significant amount of time (&gt; 1 second or so) to compute then using the
+parallel sampler actually provides significant speed gains.</p>
+</div>
+<div class="section" id="arbitrary-metadata-blobs">
+<span id="blobs"></span><h2>Arbitrary metadata blobs<a class="headerlink" href="#arbitrary-metadata-blobs" title="Permalink to this headline">¶</a></h2>
+<p><em>Added in version 1.1.0</em></p>
+<p>Imagine that your log-probability function involves an extremely
+computationally expensive numerical simulation starting from initial
+conditions parameterized by the position of the walker in parameter space.
+Then you have to compare the results of your simulation by projecting into
+data space (predicting you data) and computing something like a chi-squared
+scalar in this space. After you run MCMC, you might want to visualize
+the draws from your probability function in data space by over-plotting
+samples on your data points. It is obviously unreasonable to recompute
+all the simulations for all the initial conditions that you want to display
+as a part of your post-processing—especially since you already computed all
+of them before! Instead, it would be ideal to be able to store realizations
+associated with each step in the MCMC and then just display those after the
+fact. This is possible using the &#8220;arbitrary blob&#8221; pattern.</p>
+<p>To use <tt class="docutils literal"><span class="pre">blobs</span></tt>, you just need to modify your log-probability function to
+return a second argument (this can be any arbitrary Python object). Then,
+the sampler object will have an attribute (called
+<tt class="xref py py-attr docutils literal"><span class="pre">EnsembleSampler.blobs</span></tt>) that is a list (of length <tt class="docutils literal"><span class="pre">niterations</span></tt>)
+of lists (of length <tt class="docutils literal"><span class="pre">nwalkers</span></tt>) containing all the accepted <tt class="docutils literal"><span class="pre">blobs</span></tt>
+associated with the walker positions in <tt class="xref py py-attr docutils literal"><span class="pre">EnsembleSampler.chain</span></tt>.</p>
+<p>As an absolutely trivial example, let&#8217;s say that we wanted to store the
+sum of cubes of the input parameters as a string at each position in the
+chain. To do this we could simply sample a function like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">lnprobfn</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span> <span class="o">**</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>It is important to note that by returning two values from our log-probability
+function, we also change the output of <tt class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.sample()</span></tt> and
+<tt class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.run_mcmc()</span></tt> to return 4 values (position, probability,
+random number generator state and blobs) instead of just the first three.</p>
+</div>
+<div class="section" id="using-mpi-to-distribute-the-computations">
+<span id="mpi"></span><h2>Using MPI to distribute the computations<a class="headerlink" href="#using-mpi-to-distribute-the-computations" title="Permalink to this headline">¶</a></h2>
+<p><em>Added in version 1.2.0</em></p>
+<p>The standard implementation of <tt class="docutils literal"><span class="pre">emcee</span></tt> relies on the <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>
+module to parallelize tasks. This works well on a single machine with
+multiple cores but it is sometimes useful to distribute the computation
+across a larger cluster. To do this, we need to do something a little bit
+more sophisticated using the <a class="reference external" href="http://mpi4py.scipy.org/docs/usrman/index.html">mpi4py module</a>. Below, we&#8217;ll implement
+an example similar to the <a class="reference external" href="../quickstart">quickstart</a> using MPI but
+first you&#8217;ll need to <a class="reference external" href="http://mpi4py.scipy.org/docs/usrman/install.html">install mpi4py</a>.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">utils.MPIPool</span></tt> object provides most of the needed functionality
+so we&#8217;ll start by importing that and the other needed modules:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">emcee</span>
+<span class="kn">from</span> <span class="nn">emcee.utils</span> <span class="kn">import</span> <span class="n">MPIPool</span>
+</pre></div>
+</div>
+<p>This time, we&#8217;ll just sample a simple isotropic Gaussian (remember that the
+<tt class="docutils literal"><span class="pre">emcee</span></tt> algorithm <em>doesn&#8217;t care about covariances between parameters
+because it is affine-invariant</em>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ndim</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">250</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">)]</span>
+
+<span class="k">def</span> <span class="nf">lnprob</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, this is where things start to change:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span> <span class="o">=</span> <span class="n">MPIPool</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">pool</span><span class="o">.</span><span class="n">is_master</span><span class="p">():</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, we&#8217;re initializing the pool object and then&#8212;if the process isn&#8217;t
+running as master&#8212;we wait for instructions and then exit. Then, we can
+set up the sampler providing this pool object to do the parallelization:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and then run and analyse as usual. The key here is that only the master
+chain should <em>actually</em> directly interact with the sampler and the other
+processes should only wait for instructions.</p>
+<p><em>Note</em>: don&#8217;t forget to close the pool if you don&#8217;t want the processes to
+hang forever:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The full source code for this example is available <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/mpi.py">on Github</a>.</p>
+<p>If we save this script to the file <tt class="docutils literal"><span class="pre">mpi.py</span></tt>, we can then run this example
+with the command:</p>
+<div class="highlight-bash"><div class="highlight"><pre>mpirun -np 2 python mpi.py
+</pre></div>
+</div>
+<p>for local testing.</p>
+</div>
+<div class="section" id="loadbalancing-in-parallel-runs">
+<span id="loadbalance"></span><h2>Loadbalancing in parallel runs<a class="headerlink" href="#loadbalancing-in-parallel-runs" title="Permalink to this headline">¶</a></h2>
+<p><em>Added in version 2.1.0</em></p>
+<p>When <tt class="docutils literal"><span class="pre">emcee</span></tt> is being used in a multi-processing mode (<tt class="docutils literal"><span class="pre">multiprocessing</span></tt> or
+<tt class="docutils literal"><span class="pre">mpi4py</span></tt>), the parameters need to distributed evenly over all the available
+cores. <tt class="docutils literal"><span class="pre">emcee</span></tt> uses a <tt class="docutils literal"><span class="pre">map</span></tt> function to distribute the jobs over the available
+cores. In case of <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>, the <tt class="docutils literal"><span class="pre">map</span></tt> function is in-built and
+dynamically schedules the tasks. In order to get a similar dynamic
+scheduling in <tt class="docutils literal"><span class="pre">map</span></tt> when using <tt class="xref py py-class docutils literal"><span class="pre">utils.MPIPool</span></tt> , use the following
+invocation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pool</span> <span class="o">=</span> <span class="n">MPIPool</span><span class="p">(</span><span class="n">loadbalance</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, <tt class="docutils literal"><span class="pre">loadbalance</span></tt> is set to <tt class="docutils literal"><span class="pre">False</span></tt>. If your jobs have a lot of
+variance in run-time, then setting the <tt class="docutils literal"><span class="pre">loadbalance</span></tt> option will improve
+the overall run-time.</p>
+<p>If your problem is such that the runtime for each invocation of the
+log-probability function scales with one/some of the parameters, then you can
+improve load-balancing even further. By sorting the jobs in decreasing order
+of (expected) run-time, the longest jobs get run simultaneously and you only
+have the wait for the duration of the longest job. In the following example,
+the first parameter strongly determines the run-time &#8211; larger the first
+parameter, the longer the runtime. The <tt class="docutils literal"><span class="pre">sort_on_runtime</span></tt> returns the
+re-ordered list and the corresponding index.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">sort_on_runtime</span><span class="p">(</span><span class="n">pos</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">idx</span>
+</pre></div>
+</div>
+<p>In order to use this function, you will have to instantiate an
+<tt class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></tt> object with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
+                                <span class="n">runtime_sortingfn</span><span class="o">=</span><span class="n">sort_on_runtime</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Such a <tt class="docutils literal"><span class="pre">sort_on_runtime</span></tt> can be applied to both <tt class="docutils literal"><span class="pre">multiprocessing</span></tt>
+and <tt class="docutils literal"><span class="pre">mpi4py</span></tt> invocations for <tt class="docutils literal"><span class="pre">emcee</span></tt>. You can see a benchmarking
+routine using the <tt class="docutils literal"><span class="pre">mpi4py</span></tt> module <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/loadbalance.py">on Github</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014-2014 Dan Foreman-Mackey &amp; contributors.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'3.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../../_static/js/analytics.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,259 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; emcee 3.0.0-dev documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="emcee 3.0.0-dev documentation" href="../../"/>
+        <link rel="next" title="Porting your code to emcee3 from earlier versions" href="../porting/"/>
+        <link rel="prev" title="emcee" href="../../"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../" class="fa fa-home"> emcee</a>
+        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-pip">Using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../porting/">Porting your code to emcee3 from earlier versions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/line/">Tutorial: Fitting a Model to Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/line/#building-the-probabilistic-model">Building the probabilistic model</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#model-building">Model Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/#moves">Moves</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../">emcee</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../">Docs</a> &raquo;</li>
+      
+    <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://github.com/dfm/emcee/blob/emcee3/docs/user/install.rst" class="fa fa-github"> Edit on GitHub</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+
+            <div class="admonition warning">
+              <p class="first admonition-title">Version Warning</p>
+              <p class="last">
+                This documentation is for the development version of
+                <strong>emcee</strong> ("emcee3") and it isn't
+                backwards-compatible with earlier stable versions.
+                If you're using an earlier version, get that documentation
+                <a href="http://dfm.io/emcee">here</a>.
+              </p>
+            </div>
+
+            
+  <div class="section" id="installation">
+<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Since <strong>emcee</strong> is a pure Python module, it should be pretty easy to install.
+All you&#8217;ll need <a class="reference external" href="http://numpy.scipy.org/">numpy</a>.</p>
+<div class="section" id="using-pip">
+<h2>Using pip<a class="headerlink" href="#using-pip" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to install the most recent stable version of <strong>emcee</strong> is
+with <a class="reference external" href="http://www.pip-installer.org/">pip</a>. Run this from the command line:</p>
+<div class="highlight-bash"><div class="highlight"><pre>pip install emcee
+</pre></div>
+</div>
+<p>You might need to run this using <tt class="docutils literal"><span class="pre">sudo</span></tt> depending on your Python
+installation. You can also use <tt class="docutils literal"><span class="pre">easy_install</span></tt>:</p>
+<div class="highlight-bash"><div class="highlight"><pre>easy_install emcee
+</pre></div>
+</div>
+<p>but <tt class="docutils literal"><span class="pre">pip</span></tt> is probably better.</p>
+</div>
+<div class="section" id="from-source">
+<h2>From source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h2>
+<p>Alternatively, you can get the source by downloading a
+<a class="reference external" href="https://github.com/dfm/emcee/tarball/master">tarball</a>:</p>
+<div class="highlight-bash"><div class="highlight"><pre>curl -OL https://github.com/dfm/emcee/tarball/master
+</pre></div>
+</div>
+<p>or <a class="reference external" href="https://github.com/dfm/emcee/zipball/master">zip archive</a>:</p>
+<div class="highlight-bash"><div class="highlight"><pre>curl -OL https://github.com/dfm/emcee/zipball/master
+</pre></div>
+</div>
+<p>Once you&#8217;ve downloaded and unpacked the source, you can navigate into the
+root source directory and run:</p>
+<div class="highlight-bash"><div class="highlight"><pre>python setup.py install
+</pre></div>
+</div>
+</div>
+<div class="section" id="bleeding-edge-development-version">
+<h2>Bleeding edge development version<a class="headerlink" href="#bleeding-edge-development-version" title="Permalink to this headline">¶</a></h2>
+<p><strong>emcee</strong> is being developed actively on <a class="reference external" href="https://github.com/dfm/emcee">GitHub</a> so if you feel like hacking, you can clone
+the source repository</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/dfm/emcee.git
+</pre></div>
+</div>
+<p>or <a class="reference external" href="https://github.com/dfm/emcee">fork the repository</a>.</p>
+</div>
+<div class="section" id="test-the-installation">
+<h2>Test the installation<a class="headerlink" href="#test-the-installation" title="Permalink to this headline">¶</a></h2>
+<p>To test the installation, install <a class="reference external" href="http://pytest.org/">py.test</a> and run:</p>
+<div class="highlight-bash"><div class="highlight"><pre>py.test -v --pyargs emcee
+</pre></div>
+</div>
+<p>This might take a few minutes but you shouldn&#8217;t get any errors if all went
+as planned.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../porting/" class="btn btn-neutral float-right" title="Porting your code to emcee3 from earlier versions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../../" class="btn btn-neutral" title="emcee"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014-2014 Dan Foreman-Mackey &amp; contributors.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'3.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../../_static/js/analytics.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

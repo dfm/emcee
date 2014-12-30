@@ -1,0 +1,778 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API &mdash; emcee 3.0.0-dev documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="emcee 3.0.0-dev documentation" href="../"/>
+        <link rel="prev" title="Tutorial: Fitting a Model to Data" href="../tutorials/line/"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../" class="fa fa-home"> emcee</a>
+        
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/install/">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user/install/#using-pip">Using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user/install/#from-source">From source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user/install/#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user/install/#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user/porting/">Porting your code to emcee3 from earlier versions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/line/">Tutorial: Fitting a Model to Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/line/#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/line/#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/line/#building-the-probabilistic-model">Building the probabilistic model</a></li>
+</ul>
+</li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#model-building">Model Building</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sampling">Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#moves">Moves</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../">emcee</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../">Docs</a> &raquo;</li>
+      
+    <li>API</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="https://github.com/dfm/emcee/blob/emcee3/docs/api.rst" class="fa fa-github"> Edit on GitHub</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+
+            <div class="admonition warning">
+              <p class="first admonition-title">Version Warning</p>
+              <p class="last">
+                This documentation is for the development version of
+                <strong>emcee</strong> ("emcee3") and it isn't
+                backwards-compatible with earlier stable versions.
+                If you're using an earlier version, get that documentation
+                <a href="http://dfm.io/emcee">here</a>.
+              </p>
+            </div>
+
+            
+  <div class="section" id="api">
+<span id="id1"></span><h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-emcee"></span><div class="section" id="model-building">
+<h2>Model Building<a class="headerlink" href="#model-building" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="emcee.BaseWalker">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">BaseWalker</tt><a class="headerlink" href="#emcee.BaseWalker" title="Permalink to this definition">¶</a></dt>
+<dd><p>The abstract base class for each walker implementation.</p>
+<dl class="method">
+<dt id="emcee.BaseWalker.compute">
+<tt class="descname">compute</tt><big>(</big><em>coords</em><big>)</big><a class="headerlink" href="#emcee.BaseWalker.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the walker to a specified coordinate vector and compute the
+probability at this location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The new coordinate vector.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.BaseWalker.coords">
+<tt class="descname">coords</tt><a class="headerlink" href="#emcee.BaseWalker.coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate vector of the walker.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.BaseWalker.lnlike">
+<tt class="descname">lnlike</tt><a class="headerlink" href="#emcee.BaseWalker.lnlike" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-likelihood of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.BaseWalker.lnlikefn">
+<tt class="descname">lnlikefn</tt><big>(</big><em>coords</em>, <em>*args</em><big>)</big><a class="headerlink" href="#emcee.BaseWalker.lnlikefn" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method must be implemented by subclasses to return the natural
+logarithm of the likelihood function up to a constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The coordinates where the likelihood should be evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.BaseWalker.lnprior">
+<tt class="descname">lnprior</tt><a class="headerlink" href="#emcee.BaseWalker.lnprior" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-prior of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.BaseWalker.lnpriorfn">
+<tt class="descname">lnpriorfn</tt><big>(</big><em>coords</em>, <em>*args</em><big>)</big><a class="headerlink" href="#emcee.BaseWalker.lnpriorfn" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method must be implemented by subclasses to return the natural
+logarithm of the prior function up to a constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The coordinates where the prior should be evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.BaseWalker.lnprob">
+<tt class="descname">lnprob</tt><a class="headerlink" href="#emcee.BaseWalker.lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-probability of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.BaseWalker.lnprobfn">
+<tt class="descname">lnprobfn</tt><big>(</big><em>coords</em>, <em>*args</em><big>)</big><a class="headerlink" href="#emcee.BaseWalker.lnprobfn" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes the natural logarithm of the posterior
+probability up to a constant. User shouldn&#8217;t usually need to touch
+this implementation. Override the <a class="reference internal" href="#emcee.BaseWalker.lnpriorfn" title="emcee.BaseWalker.lnpriorfn"><tt class="xref py py-func docutils literal"><span class="pre">lnpriorfn()</span></tt></a> and
+<a class="reference internal" href="#emcee.BaseWalker.lnlikefn" title="emcee.BaseWalker.lnlikefn"><tt class="xref py py-func docutils literal"><span class="pre">lnlikefn()</span></tt></a> methods instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The coordinates where the probability should be evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.BaseWalker.new">
+<tt class="descname">new</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.BaseWalker.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new instance of the walker. The default implementation is
+similar to a shallow copy after removing the &#8220;stateful&#8221; attributes.
+These are attributes that always depend on the coordinates (things
+like the ln-probability) so you wouldn&#8217;t want to copy them to a new
+instance. This gets a <em>tiny</em> performance improvement over direct use
+of <tt class="docutils literal"><span class="pre">copy.copy</span></tt> but we&#8217;ll call it a lot of times so maybe it&#8217;s worth
+it. You might want to implement a more efficient copy function if you
+know more about your class. If your model has other stateful
+attributes, you can also just append them to the class-level
+<tt class="docutils literal"><span class="pre">stateful_attributes</span></tt> list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.BaseWalker.propose">
+<tt class="descname">propose</tt><big>(</big><em>coords</em><big>)</big><a class="headerlink" href="#emcee.BaseWalker.propose" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is called when a proposal is updating the walker
+coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The new coordinates of the walker.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.SimpleWalker">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">SimpleWalker</tt><big>(</big><em>lnprior_or_lnprob</em>, <em>lnlikefn=None</em><big>)</big><a class="headerlink" href="#emcee.SimpleWalker" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple extension of the <a class="reference internal" href="#emcee.BaseWalker" title="emcee.BaseWalker"><tt class="xref py py-class docutils literal"><span class="pre">BaseWalker</span></tt></a> subclass that accepts
+functions that evaluate the ln-prior and ln-likelihood functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; The initial coordinate vector for the walker.</li>
+<li><strong>lnprior_or_lnprob</strong> &#8211; A callable that evaluates the ln-prior at a given coordinate vector.
+If <tt class="docutils literal"><span class="pre">lnlikefn</span></tt> isn&#8217;t given, this function is assumed to evaluate the
+log-probability up to a constant.</li>
+<li><strong>lnlikefn</strong> &#8211; (optional)
+A callable that evaluates the ln-likelihood at a given coordinate
+vector.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.SimpleWalker.compute">
+<tt class="descname">compute</tt><big>(</big><em>coords</em><big>)</big><a class="headerlink" href="#emcee.SimpleWalker.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the walker to a specified coordinate vector and compute the
+probability at this location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The new coordinate vector.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.SimpleWalker.coords">
+<tt class="descname">coords</tt><a class="headerlink" href="#emcee.SimpleWalker.coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate vector of the walker.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.SimpleWalker.lnlike">
+<tt class="descname">lnlike</tt><a class="headerlink" href="#emcee.SimpleWalker.lnlike" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-likelihood of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.SimpleWalker.lnprior">
+<tt class="descname">lnprior</tt><a class="headerlink" href="#emcee.SimpleWalker.lnprior" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-prior of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.SimpleWalker.lnprob">
+<tt class="descname">lnprob</tt><a class="headerlink" href="#emcee.SimpleWalker.lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-probability of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.SimpleWalker.lnprobfn">
+<tt class="descname">lnprobfn</tt><big>(</big><em>coords</em>, <em>*args</em><big>)</big><a class="headerlink" href="#emcee.SimpleWalker.lnprobfn" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes the natural logarithm of the posterior
+probability up to a constant. User shouldn&#8217;t usually need to touch
+this implementation. Override the <tt class="xref py py-func docutils literal"><span class="pre">lnpriorfn()</span></tt> and
+<tt class="xref py py-func docutils literal"><span class="pre">lnlikefn()</span></tt> methods instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The coordinates where the probability should be evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.SimpleWalker.new">
+<tt class="descname">new</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.SimpleWalker.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new instance of the walker. The default implementation is
+similar to a shallow copy after removing the &#8220;stateful&#8221; attributes.
+These are attributes that always depend on the coordinates (things
+like the ln-probability) so you wouldn&#8217;t want to copy them to a new
+instance. This gets a <em>tiny</em> performance improvement over direct use
+of <tt class="docutils literal"><span class="pre">copy.copy</span></tt> but we&#8217;ll call it a lot of times so maybe it&#8217;s worth
+it. You might want to implement a more efficient copy function if you
+know more about your class. If your model has other stateful
+attributes, you can also just append them to the class-level
+<tt class="docutils literal"><span class="pre">stateful_attributes</span></tt> list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.SimpleWalker.propose">
+<tt class="descname">propose</tt><big>(</big><em>coords</em><big>)</big><a class="headerlink" href="#emcee.SimpleWalker.propose" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is called when a proposal is updating the walker
+coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; The new coordinates of the walker.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="sampling">
+<h2>Sampling<a class="headerlink" href="#sampling" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="emcee.Ensemble">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">Ensemble</tt><big>(</big><em>walker</em>, <em>coords</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.Ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> is a set of walkers (usually subclasses of
+<a class="reference internal" href="#emcee.BaseWalker" title="emcee.BaseWalker"><tt class="xref py py-class docutils literal"><span class="pre">BaseWalker</span></tt></a>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>walker</strong> &#8211; The walker class.</li>
+<li><strong>coords</strong> &#8211; The 2-D array of walker coordinate vectors. The shape of this array
+should be <cite>(nwalkers, ndim)</cite>.</li>
+<li><strong>pool</strong> &#8211; (optional)
+A pool object that exposes a map function. This is especially useful
+for parallelization.</li>
+<li><strong>random</strong> &#8211; (optional)
+A numpy-compatible random number generator. By default, this will be
+the built-in <tt class="docutils literal"><span class="pre">numpy.random</span></tt> module but if you want the ensemble to
+own its own state, you can supply an instance of
+<tt class="docutils literal"><span class="pre">numpy.random.RandomState</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Any extra arguments or keyword arguments are pass along to the
+walker initialization.</p>
+</div>
+<dl class="attribute">
+<dt id="emcee.Ensemble.coords">
+<tt class="descname">coords</tt><a class="headerlink" href="#emcee.Ensemble.coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate vectors of the walkers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Ensemble.lnlike">
+<tt class="descname">lnlike</tt><a class="headerlink" href="#emcee.Ensemble.lnlike" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-likelihoods of the walkers up to a constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Ensemble.lnprior">
+<tt class="descname">lnprior</tt><a class="headerlink" href="#emcee.Ensemble.lnprior" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-priors of the walkers up to a constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="emcee.Ensemble.lnprob">
+<tt class="descname">lnprob</tt><a class="headerlink" href="#emcee.Ensemble.lnprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ln-probabilities of the walker up to a constant.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Ensemble.propose">
+<tt class="descname">propose</tt><big>(</big><em>coords</em>, <em>slice=slice(None</em>, <em>None</em>, <em>None)</em><big>)</big><a class="headerlink" href="#emcee.Ensemble.propose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a new set of coordinates return a list of new walkers evaluated
+at these locations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; The new coordinate matrix. It should be <tt class="docutils literal"><span class="pre">(nwalkers,</span> <span class="pre">ndim)</span></tt>.</li>
+<li><strong>slice</strong> &#8211; (optional)
+The update can optionally only be applied to a subset of the
+walkers. This should be a <tt class="docutils literal"><span class="pre">slice</span></tt> object that can be used to
+index the walkers list.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Ensemble.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.Ensemble.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the coordinate matrix and probability containers given the
+current list of walkers. Moves should call this after proposing and
+accepting the walkers.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.Sampler">
+<em class="property">class </em><tt class="descclassname">emcee.</tt><tt class="descname">Sampler</tt><big>(</big><em>schedule=None</em>, <em>backend=None</em><big>)</big><a class="headerlink" href="#emcee.Sampler" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="emcee.Sampler.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#emcee.Sampler.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the chain and reset it to its default state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.run">
+<tt class="descname">run</tt><big>(</big><em>ensemble</em>, <em>niter</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.Sampler.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting from a given ensemble, run a specific number of steps of
+MCMC. In practice, this method just calls <a class="reference internal" href="#emcee.Sampler.sample" title="emcee.Sampler.sample"><tt class="xref py py-func docutils literal"><span class="pre">Sampler.sample()</span></tt></a> and
+and returns the final ensemble from the iterator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</li>
+<li><strong>niter</strong> &#8211; The number of steps to run.</li>
+<li><strong>store</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt>, save the chain using the backend. If <tt class="docutils literal"><span class="pre">False</span></tt>,
+reset the backend and don&#8217;t store anything.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="emcee.Sampler.sample">
+<tt class="descname">sample</tt><big>(</big><em>ensemble</em>, <em>niter=None</em>, <em>store=None</em><big>)</big><a class="headerlink" href="#emcee.Sampler.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting from a given ensemble, start sampling as an iterator yielding
+each updated ensemble.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</li>
+<li><strong>niter</strong> &#8211; (optional)
+The number of steps to run. If not given, the iterator will run
+forever.</li>
+<li><strong>store</strong> &#8211; (optional)
+If <tt class="docutils literal"><span class="pre">True</span></tt>, save the chain using the backend. If <tt class="docutils literal"><span class="pre">False</span></tt>,
+reset the backend and don&#8217;t store anything.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="moves">
+<h2>Moves<a class="headerlink" href="#moves" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="emcee.moves.StretchMove">
+<em class="property">class </em><tt class="descclassname">emcee.moves.</tt><tt class="descname">StretchMove</tt><big>(</big><em>a=2.0</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.moves.StretchMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Goodman &amp; Weare (2010)</a> &#8220;stretch move&#8221; with
+parallelization as described in <a class="reference external" href="http://arxiv.org/abs/1202.3665">Foreman-Mackey et al. (2013)</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> &#8211; (optional)
+The stretch scale parameter. (default: <tt class="docutils literal"><span class="pre">2.0</span></tt>)</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.moves.StretchMove.update">
+<tt class="descname">update</tt><big>(</big><em>ensemble</em><big>)</big><a class="headerlink" href="#emcee.moves.StretchMove.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a move starting from the given <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> and updating
+it in-place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return ensemble:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">The same ensemble updated in-place.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.moves.WalkMove">
+<em class="property">class </em><tt class="descclassname">emcee.moves.</tt><tt class="descname">WalkMove</tt><big>(</big><em>s=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.moves.WalkMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Goodman &amp; Weare (2010)</a> &#8220;walk move&#8221; with
+parallelization as described in <a class="reference external" href="http://arxiv.org/abs/1202.3665">Foreman-Mackey et al. (2013)</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> &#8211; (optional)
+The number of helper walkers to use. By default it will use all the
+walkers in the complement.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.moves.WalkMove.update">
+<tt class="descname">update</tt><big>(</big><em>ensemble</em><big>)</big><a class="headerlink" href="#emcee.moves.WalkMove.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a move starting from the given <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> and updating
+it in-place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return ensemble:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">The same ensemble updated in-place.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.moves.DEMove">
+<em class="property">class </em><tt class="descclassname">emcee.moves.</tt><tt class="descname">DEMove</tt><big>(</big><em>sigma</em>, <em>gamma0=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#emcee.moves.DEMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference external" href="http://www.stat.columbia.edu/~gelman/stuff_for_blog/cajo.pdf">differential evolution</a> proposal
+implemented following <a class="reference external" href="http://arxiv.org/abs/1311.5229">Nelson et al. (2013)</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sigma</strong> &#8211; The standard deviation of the Gaussian used to stretch the proposal
+vector.</li>
+<li><strong>gamma0</strong> &#8211; (optional)
+The mean stretch factor for the proposal vector. By default, it is
+<span class="math">\(2.38 / \sqrt{2\,\mathrm{ndim}}\)</span> as recommended by MAGIC and the
+two references.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.moves.DEMove.update">
+<tt class="descname">update</tt><big>(</big><em>ensemble</em><big>)</big><a class="headerlink" href="#emcee.moves.DEMove.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a move starting from the given <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> and updating
+it in-place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return ensemble:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">The same ensemble updated in-place.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.moves.MHMove">
+<em class="property">class </em><tt class="descclassname">emcee.moves.</tt><tt class="descname">MHMove</tt><big>(</big><em>proposal_function</em>, <em>ndim=None</em><big>)</big><a class="headerlink" href="#emcee.moves.MHMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>A general Metropolis-Hastings proposal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>proposal</strong> &#8211; The proposal function. It should take 2 arguments: a numpy-compatible
+random number generator and a <tt class="docutils literal"><span class="pre">(K,</span> <span class="pre">ndim)</span></tt> list of coordinate
+vectors. This function should return the proposed position and the
+log-ratio of the proposal probabilities (<span class="math">\(\ln q(x;\,x^\prime) -
+\ln q(x^\prime;\,x)\)</span> where <span class="math">\(x^\prime\)</span> is the proposed
+coordinate).</li>
+<li><strong>ndim</strong> &#8211; (optional)
+If this proposal is only valid for a specific dimension of parameter
+space, set that here.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.moves.MHMove.update">
+<tt class="descname">update</tt><big>(</big><em>ensemble</em><big>)</big><a class="headerlink" href="#emcee.moves.MHMove.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a single step starting from the given <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> and
+updating it in-place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return ensemble:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">The same ensemble updated in-place.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="emcee.moves.GaussianMove">
+<em class="property">class </em><tt class="descclassname">emcee.moves.</tt><tt class="descname">GaussianMove</tt><big>(</big><em>cov</em><big>)</big><a class="headerlink" href="#emcee.moves.GaussianMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Metropolis step with a Gaussian proposal function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cov</strong> &#8211; The covariance of the proposal function. This can be a scalar, vector,
+or matrix and the proposal will be assumed isotropic, axis-aligned, or
+general respectively.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="emcee.moves.GaussianMove.update">
+<tt class="descname">update</tt><big>(</big><em>ensemble</em><big>)</big><a class="headerlink" href="#emcee.moves.GaussianMove.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a single step starting from the given <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a> and
+updating it in-place.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> &#8211; The starting <a class="reference internal" href="#emcee.Ensemble" title="emcee.Ensemble"><tt class="xref py py-class docutils literal"><span class="pre">Ensemble</span></tt></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return ensemble:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">The same ensemble updated in-place.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../tutorials/line/" class="btn btn-neutral" title="Tutorial: Fitting a Model to Data"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014-2014 Dan Foreman-Mackey &amp; contributors.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'3.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="../_static/js/analytics.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
