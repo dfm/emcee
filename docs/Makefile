@@ -18,8 +18,8 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 default: dirhtml
 
-tutorials: tutorials/notebooks/*.ipynb
-	cd tutorials; ls notebooks/*.ipynb | xargs ipython nbconvert --to rst
+tutorials: _static/notebooks/*.ipynb
+	cd tutorials; ls ../_static/notebooks/*.ipynb | xargs ipython nbconvert --to rst
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"

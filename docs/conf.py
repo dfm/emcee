@@ -22,7 +22,7 @@ copyright = u"2014-2014 Dan Foreman-Mackey & contributors"
 version = emcee.__version__
 release = emcee.__version__
 
-exclude_patterns = ["_build"]
+exclude_patterns = ["_build", "_static/notebooks/profile"]
 pygments_style = "sphinx"
 
 # Readthedocs.

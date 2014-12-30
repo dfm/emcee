@@ -53,6 +53,15 @@ User Guide
    user/install
    user/porting
 
+Tutorials
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   tutorials/line
+
+
 ..   user/quickstart
 ..   user/line
 ..   user/advanced
