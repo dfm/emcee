@@ -60,6 +60,7 @@ Tutorials
    :maxdepth: 2
 
    tutorials/line
+   tutorials/mixture-models
 
 
 ..   user/quickstart
