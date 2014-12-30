@@ -51,6 +51,7 @@ User Guide
    :maxdepth: 2
 
    user/install
+   user/parallel
    user/porting
 
 Tutorials

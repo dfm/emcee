@@ -40,3 +40,13 @@ Moves
 
 .. autoclass:: emcee.moves.GaussianMove
    :inherited-members:
+
+
+Pools
+-----
+
+.. autoclass:: emcee.pools.DefaultPool
+   :inherited-members:
+
+.. autoclass:: emcee.pools.InterruptiblePool
+   :inherited-members:
