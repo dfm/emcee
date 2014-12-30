@@ -4,7 +4,9 @@ Tutorial: Practical mixture models
 
 This is `a post from my
 blog <http://dan.iel.fm/posts/mixture-models/>`__ that I've updated to
-work with emcee version 3.
+work with emcee version 3. It was automatically generated using an
+IPython notebook that can be downloaded
+`here <../../_static/notebooks/mixture-models.ipynb>`__.
 
 There are a lot of reasons why you might use a mixture model and there
 is a

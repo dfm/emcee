@@ -12,7 +12,7 @@ complete discussion of how to fit a line to data in The Real World™ and
 why MCMC might come in handy.
 
 This tutorial was automatically generated using an IPython notebook that
-can be downloaded `here </_static/notebooks/line.ipynb>`__.
+can be downloaded `here <../../_static/notebooks/line.ipynb>`__.
 
 Generating fake data from the model
 -----------------------------------
