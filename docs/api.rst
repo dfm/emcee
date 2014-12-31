@@ -49,4 +49,3 @@ Pools
    :inherited-members:
 
 .. autoclass:: emcee.pools.InterruptiblePool
-   :inherited-members:

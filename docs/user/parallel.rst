@@ -65,39 +65,53 @@ by running:
 
     ipcluster start
 
-Then, update the code from the front page example as follows and save it in a
-file called something like ``model.py``. Note: this file should be in the
-directory as where you started the ``ipcluster`` or it should be otherwise
-importable from the cluster process.
-
-.. code-block:: python
-
-    # file: model.py
-    import emcee
-    import numpy as np
-
-    class MyModel(emcee.BaseWalker):
-        def lnpriorfn(self, x):
-            return 0.0
-        def lnlikefn(self, x):
-            return -0.5 * np.sum(x ** 2)
-
 Then, run the following:
 
 .. code-block:: python
 
-    import emcee
-    import numpy as np
-    from model import MyModel
-
     # Connect to the cluster.
     from IPython.parallel import Client
     rc = Client()
-    pool = rc.load_balanced_view()
+    dv = rc.direct_view()
 
-    # Everything below here is the same.
+    # Run the imports on the cluster too.
+    with dv.sync_imports():
+        import emcee
+        import numpy
+
+    # Define the model.
+    class MyModel(emcee.BaseWalker):
+        def lnpriorfn(self, x):
+            return 0.0
+        def lnlikefn(self, x):
+            return -0.5 * numpy.sum(x ** 2)
+
+    # Distribute the model to the nodes of the cluster.
+    dv.push(dict(MyModel=MyModel), block=True)
+
+    # Set up the ensemble with the IPython "DirectView" as the pool.
     ndim, nwalkers = 10, 100
-    ensemble = emcee.Ensemble(MyModel(), np.random.randn(nwalkers, ndim),
-                              pool=pool)
+    ensemble = emcee.Ensemble(MyModel(), numpy.random.randn(nwalkers, ndim),
+                              pool=dv)
+
+    # Run the sampler in the same way as usual.
     sampler = emcee.Sampler()
     sampler.run(ensemble, 1000)
+
+There is a significant overhead incurred when using any of these
+parallelization methods so for this simple example, the parallel version is
+actually *slower* but this effect will be quickly offset if your probability
+function is computationally expensive.
+
+One major benefit of using IPython.parallel is that it can also be used
+identically on a cluster with MPI if you have a really big problem. The Python
+code would look identical and the only change that you would have to make is
+to start the cluster using:
+
+.. code-block:: bash
+
+    ipcluster start --engines=MPI
+
+Take a look at `the documentation
+<http://ipython.org/ipython-doc/dev/parallel/>`_ for more details of all of
+the features available in IPython.parallel.
