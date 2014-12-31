@@ -47,7 +47,10 @@ class Ensemble(object):
         self.nwalkers, self.ndim = self._coords.shape
 
         # Initialize the walkers at these coordinates.
-        self.walkers = [walker.propose(c) for c in self._coords]
+        self.walkers = list(self.pool.map(_mapping_pickler(walker, "propose"),
+                                          self._coords))
+        # self.walkers = list(self.pool.map(walker.propose, (c for c in
+        #                                                    self._coords)))
 
         # Save the initial prior and likelihood values.
         self._lnprior = np.empty(self.nwalkers, dtype=np.float64)
@@ -144,3 +147,16 @@ class _mapping_zipper(object):
     def __call__(self, args):
         obj, a = args
         return getattr(obj, self.method)(a)
+
+
+class _mapping_pickler(object):
+    """
+    This is a picklable helper object for the parallel ensemble mapper.
+
+    """
+    def __init__(self, obj, method):
+        self.obj = obj
+        self.method = method
+
+    def __call__(self, args):
+        return getattr(self.obj, self.method)(args)
