@@ -12,6 +12,6 @@ if not __EMCEE_SETUP__:
                "BaseWalker", "SimpleWalker"]
 
     from . import moves, pools
-    from .sampler import Sampler
     from .ensemble import Ensemble
     from .walker import BaseWalker, SimpleWalker
+    from .samplers import Sampler
