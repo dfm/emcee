@@ -8,8 +8,8 @@ import logging
 import numpy as np
 from functools import wraps
 from collections import Iterable
-from . import moves
-from .backends import DefaultBackend
+from .. import moves
+from ..backends import DefaultBackend
 
 
 def _check_run(f):
