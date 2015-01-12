@@ -49,8 +49,6 @@ class Ensemble(object):
         # Initialize the walkers at these coordinates.
         self.walkers = list(self.pool.map(_mapping_pickler(walker, "propose"),
                                           self._coords))
-        # self.walkers = list(self.pool.map(walker.propose, (c for c in
-        #                                                    self._coords)))
 
         # Save the initial prior and likelihood values.
         self._lnprior = np.empty(self.nwalkers, dtype=np.float64)
