@@ -12,6 +12,20 @@ ground up to be simultaneously more user-friendly and more powerful.
 Why switch?
 -----------
 
+I implemented emcee3 from scratch with a completely re-thought API using
+everything that I learned from answering support requests and data-analysis
+questions.
+emcee3 now supports nearly all of the earlier features (with the notable
+exception of the parallel tempering sampler but that should be added soon) and
+a lot of new features that should make everyone's life better!
+This isn't the place to list all of the new features but here are some of the
+most important ones:
+
+1. First class support for alternative moves and schedules of moves. This
+   means that you can sample using one or more of the many included proposals
+   (including the original stretch move but also a new walk move, differential
+   evolution, and others) or implement your own.
+2.
 
 
 A complete example
@@ -45,6 +59,7 @@ In emcee3, this example becomes:
 
 .. code-block:: python
 
+    # This is emcee >= 3 code.
     import emcee
     import numpy as np
 

@@ -2,7 +2,8 @@
 
 from __future__ import division, print_function
 
-__all__ = ["test_schedule", "test_shapes", "test_errors", "test_walkers"]
+__all__ = ["test_schedule", "test_shapes", "test_errors", "test_walkers",
+           "test_thin"]
 
 import numpy as np
 
@@ -193,3 +194,23 @@ def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
         pass
     else:
         assert 0, "should raise AttributeError"
+
+
+def run_sampler(nwalkers=32, ndim=3, nsteps=25, seed=1234, thin=1):
+    rnd = np.random.RandomState()
+    rnd.seed(seed)
+    coords = rnd.randn(nwalkers, ndim)
+    ensemble = Ensemble(NormalWalker(1.0), coords, random=rnd)
+    sampler = Sampler()
+    list(sampler.sample(ensemble, nsteps, thin=thin))
+    return sampler
+
+
+def test_thin():
+    thinby = 3
+    sampler1 = run_sampler()
+    sampler2 = run_sampler(thin=thinby)
+    for k in ["coords", "lnprior", "lnlike", "lnprob"]:
+        a = getattr(sampler1, k)[thinby-1::thinby]
+        b = getattr(sampler2, k)
+        assert np.allclose(a, b), "inconsistent {0}".format(k)
