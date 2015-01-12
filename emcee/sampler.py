@@ -24,6 +24,10 @@ def _check_run(f):
 
 
 class Sampler(object):
+    """
+    A sampler object.
+
+    """
 
     def __init__(self, schedule=None, backend=None):
         # Save the schedule. This should be a list of proposals.
@@ -166,18 +170,93 @@ class Sampler(object):
         return v
 
     def get_coords(self, **kwargs):
+        """
+        Get the stored chain of MCMC samples. This will fail if no backend was
+        used or if the chain wasn't stored.
+
+        :param flat: (optional)
+            Flatten the chain across the ensemble. (default: ``False``)
+
+        :param thin: (optional)
+            Take only every ``thin`` steps from the chain. (default: ``1``)
+
+        :param discard: (optional)
+            Discard the first ``discard`` steps in the chain as burn-in.
+            (default: ``0``)
+
+        """
         return self._getter("coords", **kwargs)
 
     def get_lnprior(self, **kwargs):
+        """
+        Get the stored chain ln-prior values. This will fail if no backend was
+        used or if the chain wasn't stored.
+
+        :param flat: (optional)
+            Flatten the chain across the ensemble. (default: ``False``)
+
+        :param thin: (optional)
+            Take only every ``thin`` steps from the chain. (default: ``1``)
+
+        :param discard: (optional)
+            Discard the first ``discard`` steps in the chain as burn-in.
+            (default: ``0``)
+
+        """
         return self._getter("lnprior", **kwargs)
 
     def get_lnlike(self, **kwargs):
+        """
+        Get the stored chain ln-likelihood values. This will fail if no
+        backend was used or if the chain wasn't stored.
+
+        :param flat: (optional)
+            Flatten the chain across the ensemble. (default: ``False``)
+
+        :param thin: (optional)
+            Take only every ``thin`` steps from the chain. (default: ``1``)
+
+        :param discard: (optional)
+            Discard the first ``discard`` steps in the chain as burn-in.
+            (default: ``0``)
+
+        """
         return self._getter("lnlike", **kwargs)
 
     def get_lnprob(self, **kwargs):
+        """
+        Get the stored chain ln-probability values. This will fail if no
+        backend was used or if the chain wasn't stored.
+
+        :param flat: (optional)
+            Flatten the chain across the ensemble. (default: ``False``)
+
+        :param thin: (optional)
+            Take only every ``thin`` steps from the chain. (default: ``1``)
+
+        :param discard: (optional)
+            Discard the first ``discard`` steps in the chain as burn-in.
+            (default: ``0``)
+
+        """
         return self._getter("lnprob", **kwargs)
 
     def get_walkers(self, flat=False, thin=1, discard=0):
+        """
+        Get the stored chain of walker objects. This will only work if the
+        chain was stored using a backend with walker storage enabled.
+
+        :param flat: (optional)
+            Flatten the chain across the ensemble. (default: ``False``)
+
+        :param thin: (optional)
+            Take only every ``thin`` steps from the chain. (default: ``1``)
+
+        :param discard: (optional)
+            Discard the first ``discard`` steps in the chain as burn-in.
+            (default: ``0``)
+
+        """
         v = self.walkers[discard::thin]
         if flat:
             r = []
