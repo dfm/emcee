@@ -207,7 +207,7 @@ def run_sampler(nwalkers=32, ndim=3, nsteps=25, seed=1234, thin=1):
 
 
 def test_thin():
-    thinby = 3.0
+    thinby = 3
     sampler1 = run_sampler()
     sampler2 = run_sampler(thin=thinby)
     for k in ["coords", "lnprior", "lnlike", "lnprob"]:
