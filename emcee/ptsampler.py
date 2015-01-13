@@ -13,7 +13,7 @@ import multiprocessing as multi
 from . import autocorr
 from .sampler import Sampler
 
-def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
+def default_beta_ladder(ndim, ntemps=None, Tmax=None):
     """Returns a ladder of :math:`\beta \equiv 1/T` with temperatures
     geometrically spaced with spacing chosen so that a Gaussian
     posterior would have a 0.25 temperature swap acceptance rate.
@@ -23,20 +23,28 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
 
     :param ntemps: (optional)
         If set, the number of temperatures to use.  If ``None``, the
-        ``Tmax`` argument must be given, and the number of
-        temperatures is chosen so that the highest temperature is
-        greater than ``Tmax``.
+        ``Tmax`` argument must be given (and must be finite), and the
+        number of temperatures is chosen so that the highest temperature
+        is greater than ``Tmax``.
 
     :param Tmax: (optional)
         If ``ntemps`` is not given, this argument controls the number
         of temperatures.  Temperatures are chosen according to the
         spacing criteria until the maximum temperature exceeds
-        ``Tmax``
-
-    :param include_inf: (optional)
-        Replace top-most temperature in ladder with ``inf''.
+        ``Tmax``.  If ``Tmax`` is infinite, ``ntemps`` must also be given,
+        and ``ntemps - 1`` chains are spaced geometrically.
 
     """
+
+    if type(ndim) != int or ndim < 1:
+        raise ValueError('Invalid number of dimensions specified.')
+    if ntemps is None and Tmax is None:
+        raise ValueError('Must specify one of ``ntemps`` and ``Tmax``.')
+    if Tmax is not None and Tmax <= 1:
+        raise ValueError('``Tmax`` must be greater than 1.')
+    if ntemps is not None and (type(ntemps) != int or ntemps < 1):
+        raise ValueError('Invalid number of temperatures specified.')
+
     tstep = np.array([25.2741, 7., 4.47502, 3.5236, 3.0232,
                       2.71225, 2.49879, 2.34226, 2.22198, 2.12628,
                       2.04807, 1.98276, 1.92728, 1.87946, 1.83774,
@@ -58,25 +66,27 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
                       1.27397, 1.27227, 1.27061, 1.26898, 1.26737,
                       1.26579, 1.26424, 1.26271, 1.26121,
                       1.25973])
-    dmax = tstep.shape[0]
 
-    if ndim > dmax:
+    if ndim > tstep.shape[0]:
         # An approximation to the temperature step at large
         # dimension
         tstep = 1.0 + 2.0*np.sqrt(np.log(4.0))/np.sqrt(ndim)
     else:
         tstep = tstep[ndim-1]
 
-    if ntemps is None and Tmax is None:
-        raise ValueError('must specify one of ``ntemps`` and ``Tmax``')
-    elif ntemps is None:
+    if ntemps is None:
+        if Tmax == np.inf:
+            raise ValueError('Must specify ``ntemps'' if ``Tmax`` is ``inf``.')
+
+        # Generate the normal geometric spacing.
         ntemps = int(np.log(Tmax)/np.log(tstep)+2)
 
-    if include_inf:
-        ntemps -= 1
-
     betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
-    return np.concatenate((betas, [0])) if include_inf else betas
+    if Tmax == np.inf:
+        # Use a geometric spacing, but replace the top-most temperature with infinity.
+        betas[-1] = 0
+
+    return betas
 
 class PTLikePrior(object):
     """
@@ -112,6 +122,25 @@ class PTSampler(Sampler):
 
     :param dim:
         The dimension of parameter space.
+
+    :param betas: (optional)
+        Array giving the inverse temperatures, :math:`\\beta=1/T`,
+        used in the ladder.  The default is chosen so that a Gaussian
+        posterior in the given number of dimensions will have a 0.25
+        tswap acceptance rate.
+
+    :param ntemps: (optional)
+        If set, the number of temperatures to use.  If ``None``, the
+        ``Tmax`` argument must be given (and must be finite), and the
+        number of temperatures is chosen so that the highest temperature
+        is greater than ``Tmax``.
+
+    :param Tmax: (optional)
+        If ``ntemps`` is not given, this argument controls the number
+        of temperatures.  Temperatures are chosen according to the
+        spacing criteria until the maximum temperature exceeds
+        ``Tmax``.  If ``Tmax`` is infinite, ``ntemps`` must also be given,
+        and ``ntemps - 1`` chains are spaced geometrically.
 
     :param logl:
         The log-likelihood function.
@@ -149,8 +178,10 @@ class PTSampler(Sampler):
         Time-scale for temperature dynamics.  Default: 100.
 
     """
-    def __init__(self, nwalkers, dim, logl, logp, threads=1,
-                 pool=None, a=2.0, loglargs=[], logpargs=[],
+    def __init__(self, nwalkers, dim, ntemps=None,
+                 Tmax=np.inf, betas=None, logl, logp,
+                 threads=1, pool=None, a=2.0,
+                 loglargs=[], logpargs=[],
                  loglkwargs={}, logpkwargs={},
                  adaptation_lag=10000, adaptation_time=100):
         self.logl = logl
@@ -161,28 +192,30 @@ class PTSampler(Sampler):
         self.loglkwargs = loglkwargs
         self.logpkwargs = logpkwargs
 
-        self._initialized = False
         self.nwalkers = nwalkers
         self.dim = dim
-
         self.adaptation_time = adaptation_time
         self.adaptation_lag = adaptation_lag
+
+        # Set temperature ladder.  Append beta=0 to generated ladder.
+        if betas is not None:
+            self._betas = np.array(betas).copy()
+        else:
+            self._betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
+
+        # Make sure ladder is ascending in temperature.
+        self._betas[::-1].sort()
 
         if self.nwalkers % 2 != 0:
             raise ValueError('The number of walkers must be even.')
         if self.nwalkers < 2 * self.dim:
-            raise ValueError('The number of walkers must be greater than 2*dimension.')
-
-        self._chain = None
-        self._lnprob = None
-        self._lnlikelihood = None
+            raise ValueError('The number of walkers must be greater than ``2*dimension``.')
 
         self.pool = pool
         if threads > 1 and pool is None:
             self.pool = multi.Pool(threads)
 
-        self._betas = None
-        self._time = 0
+        self.reset()
 
     def reset(self):
         """
@@ -196,13 +229,7 @@ class PTSampler(Sampler):
         self._chain = None
         self._lnprob = None
         self._lnlikelihood = None
-        self._initialize(self.ntemps)
 
-    def _initialize(self, ntemps):
-        """
-        Initialize fields that require ``ntemps``.
-
-        """
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
 
@@ -210,10 +237,8 @@ class PTSampler(Sampler):
         self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
                                        dtype=np.float)
 
-        self._initialized = True
-
-    def sample(self, p0=None, betas=None, ntemps=None, Tmax=None,
-               lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True,
+    def sample(self, p0=None, lnprob0=None, lnlike0=None,
+               iterations=1, thin=1, storechain=True,
                adapt=False):
         """
         Advance the chains ``iterations`` steps as a generator.
@@ -221,21 +246,6 @@ class PTSampler(Sampler):
         :param p0:
             The initial positions of the walkers.  Shape should be
             ``(ntemps, nwalkers, dim)``.
-
-        :param betas: (optional)
-            Array giving the inverse temperatures, :math:`\\beta=1/T`,
-            used in the ladder.  The default is chosen so that a Gaussian
-            posterior in the given number of dimensions will have a 0.25
-            tswap acceptance rate.
-
-        :param ntemps:
-            If ``betas`` is not given, specifies the number of temperatures for
-            an automatically generated ladder. Can be ``None``, in which case
-            the ``Tmax`` argument sets the maximum temperature.
-
-        :param Tmax: (optional)
-            Maximum temperature for the ladder.  If ``ntemps`` is
-            ``None``, this argument is used to set the temperature ladder.
 
         :param lnprob0: (optional)
             The initial posterior values for the ensembles.  Shape
@@ -276,23 +286,6 @@ class PTSampler(Sampler):
             p = np.array(p0).copy()
         else:
             raise ValueError('Initial walker positions not specified.')
-
-        # Set temperature ladder.  Append beta=0 to generated ladder.
-        if betas is not None:
-            self._betas = np.array(betas).copy()
-        elif ntemps is not None or Tmax is not None:
-            if Tmax is not None:
-                self._betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=False)
-            else:
-                self._betas = default_beta_ladder(self.dim, ntemps=ntemps, include_inf=True)
-        elif self._betas is None:
-            raise ValueError('Temperature ladder not specified.')
-
-        # Make sure ladder is ascending in temperature.
-        self._betas[::-1].sort()
-
-        if not self._initialized:
-            self._initialize(self.ntemps)
 
         mapf = map if self.pool is None else self.pool.map
         betas = self._betas.reshape((-1, 1))
