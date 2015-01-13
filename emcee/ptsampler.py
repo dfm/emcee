@@ -182,17 +182,14 @@ class PTSampler(Sampler):
             self.pool = multi.Pool(threads)
 
         self.p = None
-        self.betas = None
+        self._betas = None
         self.time = 0
-
-        self.ratios = None
 
     def reset(self):
         """
         Clear the ``time``, ``chain``, ``lnprobability``,
         ``lnlikelihood``,  ``acceptance_fraction``,
-        ``tswap_acceptance_fraction``, and
-        ``ratios`` stored properties.
+        ``tswap_acceptance_fraction`` stored properties.
 
         """
 
@@ -201,7 +198,6 @@ class PTSampler(Sampler):
         self._lnprob = None
         self._lnlikelihood = None
         self._initialize(self.ntemps)
-        self.ratios = None
 
     def _initialize(self, ntemps):
         """
@@ -286,23 +282,23 @@ class PTSampler(Sampler):
 
         # Set temperature ladder.  Append beta=0 to generated ladder.
         if betas is not None:
-            self.betas = np.array(betas).copy()
+            self._betas = np.array(betas).copy()
         elif ntemps is not None or Tmax is not None:
             if Tmax is not None:
-                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=False)
+                self._betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax, include_inf=False)
             else:
-                self.betas = default_beta_ladder(self.dim, ntemps=ntemps, include_inf=True)
-        elif self.betas is None:
+                self._betas = default_beta_ladder(self.dim, ntemps=ntemps, include_inf=True)
+        elif self._betas is None:
             raise ValueError('Temperature ladder not specified.')
 
         # Make sure ladder is ascending in temperature.
-        self.betas[::-1].sort()
+        self._betas[::-1].sort()
 
         if not self._initialized:
             self._initialize(self.ntemps)
 
         mapf = map if self.pool is None else self.pool.map
-        betas = self.betas.reshape((-1, 1))
+        betas = self._betas.reshape((-1, 1))
 
         # If we have no lnprob or logls compute them
         if lnprob0 is None or lnlike0 is None:
@@ -375,11 +371,10 @@ class PTSampler(Sampler):
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
 
-            self.p, lnprob, logl = self._temperature_swaps(self.p, lnprob, logl)
-
+            self.p, lnprob, logl, ratios = self._temperature_swaps(self.p, lnprob, logl)
             if adapt and ntemps > 1:
-                dbetas = self._adjust_ladder()
-                self.betas += dbetas
+                dbetas = self._adjust_ladder(ratios)
+                self._betas += dbetas
                 lnprob += dbetas.reshape((-1, 1)) * logl
 
             if (i + 1) % thin == 0:
@@ -400,10 +395,10 @@ class PTSampler(Sampler):
         """
         ntemps = self.ntemps
 
-        self.ratios = np.zeros(ntemps - 1)
+        ratios = np.zeros(ntemps - 1)
         for i in range(ntemps - 1, 0, -1):
-            bi = self.betas[i]
-            bi1 = self.betas[i - 1]
+            bi = self._betas[i]
+            bi1 = self._betas[i - 1]
 
             dbeta = bi1 - bi
 
@@ -422,7 +417,7 @@ class PTSampler(Sampler):
             self.nswap_accepted[i] += nacc
             self.nswap_accepted[i - 1] += nacc
 
-            self.ratios[i - 1] = nacc / self.nwalkers
+            ratios[i - 1] = nacc / self.nwalkers
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -437,23 +432,23 @@ class PTSampler(Sampler):
             logl[i - 1, i1perm[asel]] = ltemp
             lnprob[i - 1, i1perm[asel]] = prtemp + dbeta * ltemp
 
-        return p, lnprob, logl
+        return p, lnprob, logl, ratios
 
-    def _adjust_ladder(self):
+    def _adjust_ladder(self, ratios):
         # Some sanity checks on the ladder...
-        assert np.all(np.diff(self.betas) < 1), \
+        assert np.all(np.diff(self._betas) < 1), \
                 'Temperatures should be in ascending order.'
-        assert self.betas[0] == 1, \
+        assert self._betas[0] == 1, \
                 'Bottom temperature should be 1.'
 
-        betas = self.betas.copy()
+        betas = self._betas.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
         decay = self.adaptation_lag / (self.time + self.adaptation_lag)
         kappa = decay / self.adaptation_time
 
         # Construct temperature adjustments.
-        dSs = kappa * (self.ratios[:-1] - self.ratios[1:])
+        dSs = kappa * (ratios[:-1] - ratios[1:])
 
         # Compute new ladder (hottest and coldest chains don't move).
         deltaTs = np.diff(1 / betas[:-1])
@@ -466,7 +461,7 @@ class PTSampler(Sampler):
                 'Temperatures not correctly ordered following temperature dynamics: {:}'.format(betas)
 
         # Don't mutate the ladder here; let the client code do that.
-        return betas - self.betas
+        return betas - self._betas
 
     def _expand_chain(self, nsave):
         if self._chain is None:
@@ -554,8 +549,8 @@ class PTSampler(Sampler):
             return self.thermodynamic_integration_log_evidence(
                 logls=self.lnlikelihood, fburnin=fburnin)
         else:
-            betas = np.concatenate((self.betas, np.array([0])))
-            betas2 = np.concatenate((self.betas[::2], np.array([0])))
+            betas = np.concatenate((self._betas, np.array([0])))
+            betas2 = np.concatenate((self._betas[::2], np.array([0])))
 
             istart = int(logls.shape[2] * fburnin + 0.5)
 
@@ -566,6 +561,14 @@ class PTSampler(Sampler):
             lnZ2 = -np.dot(mean_logls2, np.diff(betas2))
 
             return lnZ, np.abs(lnZ - lnZ2)
+
+    @property
+    def betas(self):
+        """
+        Returns the current inverse temperature ladder of the sampler.
+
+        """
+        return self._betas
 
     @property
     def chain(self):
@@ -618,7 +621,7 @@ class PTSampler(Sampler):
         The number of temperature chains.
 
         """
-        return len(self.betas)
+        return len(self._betas)
 
     @property
     def acceptance_fraction(self):
