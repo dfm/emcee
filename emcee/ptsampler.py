@@ -229,6 +229,7 @@ class PTSampler(Sampler):
         self._chain = None
         self._lnprob = None
         self._lnlikelihood = None
+        self._beta_history = None
 
         self.nswap = np.zeros(ntemps, dtype=np.float)
         self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
@@ -309,7 +310,7 @@ class PTSampler(Sampler):
 
         # Expand the chain in advance of the iterations
         if storechain:
-            isave = self._update_chain(iterations / thin)
+            isave = self._expand_chain(iterations // thin)
 
         for i in range(iterations):
             for j in [0, 1]:
@@ -361,34 +362,38 @@ class PTSampler(Sampler):
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
 
-            p, lnprob, logl, ratios = self._temperature_swaps(p, lnprob, logl)
+            p, lnprob, logl, ratios = self._temperature_swaps(self._betas, p, lnprob, logl)
+
+            # TODO Should the notion of a "complete" iteration really include the temperature
+            # adjustment?
             if adapt and ntemps > 1:
-                dbetas = self._adjust_ladder(ratios)
+                dbetas = self._get_ladder_adjustment(self._betas, ratios)
                 self._betas += dbetas
                 lnprob += dbetas.reshape((-1, 1)) * logl
 
             if (i + 1) % thin == 0:
                 if storechain:
                     self._chain[:, :, isave, :] = p
-                    self._lnprob[:, :, isave, ] = lnprob
+                    self._lnprob[:, :, isave] = lnprob
                     self._lnlikelihood[:, :, isave] = logl
+                    self._beta_history[:, isave] = self._betas
                     isave += 1
 
             self._time += 1
             yield p, lnprob, logl
 
-    def _temperature_swaps(self, p, lnprob, logl):
+    def _temperature_swaps(self, betas, p, lnprob, logl):
         """
         Perform parallel-tempering temperature swaps on the state
         in ``p`` with associated ``lnprob`` and ``logl``.
 
         """
-        ntemps = self.ntemps
+        ntemps = len(betas)
 
         ratios = np.zeros(ntemps - 1)
         for i in range(ntemps - 1, 0, -1):
-            bi = self._betas[i]
-            bi1 = self._betas[i - 1]
+            bi = betas[i]
+            bi1 = betas[i - 1]
 
             dbeta = bi1 - bi
 
@@ -424,14 +429,14 @@ class PTSampler(Sampler):
 
         return p, lnprob, logl, ratios
 
-    def _adjust_ladder(self, ratios):
+    def _get_ladder_adjustment(self, betas0, ratios):
         # Some sanity checks on the ladder...
-        assert np.all(np.diff(self._betas) < 1), \
+        assert np.all(np.diff(betas0) < 1), \
                 'Temperatures should be in ascending order.'
-        assert self._betas[0] == 1, \
+        assert betas0[0] == 1, \
                 'Bottom temperature should be 1.'
 
-        betas = self._betas.copy()
+        betas = betas0.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
         decay = self.adaptation_lag / (self._time + self.adaptation_lag)
@@ -451,9 +456,21 @@ class PTSampler(Sampler):
                 'Temperatures not correctly ordered following temperature dynamics: {:}'.format(betas)
 
         # Don't mutate the ladder here; let the client code do that.
-        return betas - self._betas
+        return betas - betas0
 
     def _expand_chain(self, nsave):
+        """
+        Expand ``self._chain`` and ``self._beta_history`` ahead of run to
+        make room for new samples.
+
+        :param nsave:
+            The number of additional iterations for which to make room.
+
+        :return ``isave``:
+            Returns the index at which to begin inserting new entries.
+
+        """
+
         if self._chain is None:
             isave = 0
             self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
@@ -461,6 +478,7 @@ class PTSampler(Sampler):
             self._lnprob = np.zeros((self.ntemps, self.nwalkers, nsave))
             self._lnlikelihood = np.zeros((self.ntemps, self.nwalkers,
                                            nsave))
+            self._beta_history = np.zeros((self.ntemps, nsave))
         else:
             isave = self._chain.shape[2]
             self._chain = np.concatenate((self._chain,
@@ -478,6 +496,9 @@ class PTSampler(Sampler):
                                                            self.nwalkers,
                                                            nsave))),
                                                 axis=2)
+            self._beta_history = np.concatenate((self._beta_history,
+                                          np.zeros((self.ntemps, nsave))),
+                                         axes=1)
 
         return isave
 
@@ -601,6 +622,14 @@ class PTSampler(Sampler):
 
         """
         return self._lnlikelihood
+
+    @property
+    def beta_history(self):
+        """
+        Matrix of inverse temperatures; shape ``(Ntemps, Nsteps)``.
+
+        """
+        return self._beta_history
 
     @property
     def tswap_acceptance_fraction(self):
