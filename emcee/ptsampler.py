@@ -536,21 +536,27 @@ class PTSampler(Sampler):
         """
 
         if logls is None:
-            return self.thermodynamic_integration_log_evidence(
-                logls=self.lnlikelihood, fburnin=fburnin)
-        else:
-            betas = np.concatenate((self._betas, np.array([0])))
-            betas2 = np.concatenate((self._betas[::2], np.array([0])))
+            logls = self.lnlikelihood
 
-            istart = int(logls.shape[2] * fburnin + 0.5)
+        istart = int(logls.shape[2] * fburnin + 0.5)
+        mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
 
-            mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
+        if betas[-1] != 0:
+            betas = np.concatenate((self._betas, [0]))
+            betas2 = np.concatenate((self._betas[::2], [0]))
+
+            # Duplicate mean log-likelihood of hottest chain as a best guess for beta = 0.
+            mean_logls = np.concatenate((mean_logls, [mean_logls[-1]]))
             mean_logls2 = mean_logls[::2]
+        else:
+            betas2 = np.concatenate((self._betas[:-1:2], [0]))
+            mean_logls2 = np.concatenate((mean_logls[:-1:2], mean_logls[-1]))
 
-            lnZ = -np.dot(mean_logls, np.diff(betas))
-            lnZ2 = -np.dot(mean_logls2, np.diff(betas2))
+        lnZ = -np.trapz(betas, mean_logls)
+        lnZ = -np.trapz(betas2, mean_logls2)
 
-            return lnZ, np.abs(lnZ - lnZ2)
+        # TODO Is this error estimate valid for the trapezoidal rule?
+        return lnZ, np.abs(lnZ - lnZ2)
 
     @property
     def betas(self):
