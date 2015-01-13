@@ -33,6 +33,9 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None, include_inf=False):
         spacing criteria until the maximum temperature exceeds
         ``Tmax``
 
+    :param include_inf: (optional)
+        Replace top-most temperature in ladder with ``inf''.
+
     """
     tstep = np.array([25.2741, 7., 4.47502, 3.5236, 3.0232,
                       2.71225, 2.49879, 2.34226, 2.22198, 2.12628,
@@ -139,23 +142,17 @@ class PTSampler(Sampler):
     :param logpkwargs: (optional)
         Keyword arguments for the log-prior function.
 
-    :param ladder_callback: (optional)
-        A function that is called when the temperature ladder is
-        updates. The current ``PTSampler`` object is passed as an
-        argument.
-
-    :param evolution_lag: (optional)
+    :param adaptation_lag: (optional)
         Time lag for temperature dynamics decay. Default: 10000.
 
-    :param evolution_time: (optional)
+    :param adaptation_time: (optional)
         Time-scale for temperature dynamics.  Default: 100.
 
     """
     def __init__(self, nwalkers, dim, logl, logp, threads=1,
                  pool=None, a=2.0, loglargs=[], logpargs=[],
-                 loglkwargs={}, logpkwargs={}, ladder_callback=None,
-                 evolution_lag=10000, evolution_time=100,
-                 nwalkers_sim=None):
+                 loglkwargs={}, logpkwargs={},
+                 adaptation_lag=10000, adaptation_time=100):
         self.logl = logl
         self.logp = logp
         self.a = a
@@ -166,11 +163,10 @@ class PTSampler(Sampler):
 
         self._initialized = False
         self.nwalkers = nwalkers
-        self.nwalkers_sim = nwalkers_sim if nwalkers_sim is not None else nwalkers
         self.dim = dim
 
-        self.evolution_time = evolution_time
-        self.evolution_lag = evolution_lag
+        self.adaptation_time = adaptation_time
+        self.adaptation_lag = adaptation_lag
 
         if self.nwalkers % 2 != 0:
             raise ValueError('The number of walkers must be even.')
@@ -188,9 +184,7 @@ class PTSampler(Sampler):
         self.p = None
         self.betas = None
         self.time = 0
-        self.ladder_callback = ladder_callback
 
-        self._alpha = None
         self.ratios = None
 
     def reset(self):
@@ -208,7 +202,6 @@ class PTSampler(Sampler):
         self._lnlikelihood = None
         self._initialize(self.ntemps)
         self.ratios = None
-        self._alpha = None
 
     def _initialize(self, ntemps):
         """
@@ -226,7 +219,7 @@ class PTSampler(Sampler):
 
     def sample(self, p0=None, time=None, betas=None, ntemps=None, Tmax=None,
                lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True,
-               evolve_ladder=False):
+               adapt=False):
         """
         Advance the chains ``iterations`` steps as a generator.
 
@@ -268,9 +261,10 @@ class PTSampler(Sampler):
             If ``True`` store the iterations in the ``chain``
             property.
 
-        :param evolve_ladder: (optional)
-            If ``True``, the temperature ladder is dynamically adjusted as the
-            sampler runs.
+        :param adapt: (optional)
+            If ``True``, the temperature ladder is dynamically adapted as the
+            sampler runs to achieve uniform swap acceptance ratios between adjacent
+            chains.
 
         At each iteration, this generator yields
 
@@ -326,7 +320,6 @@ class PTSampler(Sampler):
 
         lnprob = lnprob0
         logl = lnlike0
-        logp = logps
 
         # Expand the chain in advance of the iterations
         if storechain:
@@ -358,7 +351,7 @@ class PTSampler(Sampler):
                 qslogls = np.array([r[0] for r in results]).reshape(
                     (self.ntemps, self.nwalkers//2))
                 qslogps = np.array([r[1] for r in results]).reshape(
-                    (self.ntemps, self.nwalkers/2))
+                    (self.ntemps, self.nwalkers//2))
                 qslnprob = qslogls * betas + qslogps
 
                 logpaccept = self.dim*np.log(zs) + qslnprob \
@@ -376,8 +369,6 @@ class PTSampler(Sampler):
                     qslnprob.reshape((-1,))[accepts]
                 logl[:, jupdate::2].reshape((-1,))[accepts] = \
                     qslogls.reshape((-1,))[accepts]
-                logp[:, jupdate::2].reshape((-1,))[accepts] = \
-                    qslogps.reshape((-1,))[accepts]
 
                 accepts = accepts.reshape((self.ntemps, self.nwalkers//2))
 
@@ -386,20 +377,10 @@ class PTSampler(Sampler):
 
             self.p, lnprob, logl = self._temperature_swaps(self.p, lnprob, logl)
 
-            if evolve_ladder and ntemps > 1:
-                dbetas = self._evolve_ladder()
+            if adapt and ntemps > 1:
+                dbetas = self._adjust_ladder()
                 self.betas += dbetas
                 lnprob += dbetas.reshape((-1, 1)) * logl
-
-                if callable(self.ladder_callback):
-                    self.ladder_callback(self)
-
-            if __debug__:
-                # Check that posterior is correct.
-                values = lnprob - (betas * logl + logp)
-                condition = np.abs(values) < 1e-10
-                assert condition.all(), \
-                        'Posterior does not match likelihood and prior at step {:}: {:}'.format(i, values[np.logical_not(condition)])
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -408,8 +389,8 @@ class PTSampler(Sampler):
                     self._lnlikelihood[:, :, isave] = logl
                     isave += 1
 
-            yield self.p, lnprob, logl
             self.time += 1
+            yield self.p, lnprob, logl
 
     def _temperature_swaps(self, p, lnprob, logl):
         """
@@ -441,10 +422,7 @@ class PTSampler(Sampler):
             self.nswap_accepted[i] += nacc
             self.nswap_accepted[i - 1] += nacc
 
-            #self.ratios[i - 1] = nacc / self.nwalkers
-            assert 1 <= self.nwalkers_sim <= self.nwalkers
-            count = self.nwalkers_sim
-            self.ratios[i - 1] = np.sum(asel[:count]) / count
+            self.ratios[i - 1] = nacc / self.nwalkers
 
             ptemp = np.copy(p[i, iperm[asel], :])
             ltemp = np.copy(logl[i, iperm[asel]])
@@ -461,7 +439,7 @@ class PTSampler(Sampler):
 
         return p, lnprob, logl
 
-    def _evolve_ladder(self):
+    def _adjust_ladder(self):
         # Some sanity checks on the ladder...
         assert np.all(np.diff(self.betas) < 1), \
                 'Temperatures should be in ascending order.'
@@ -471,8 +449,8 @@ class PTSampler(Sampler):
         betas = self.betas.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
-        decay = self.evolution_lag / (self.time + self.evolution_lag)
-        kappa = decay / self.evolution_time
+        decay = self.adaptation_lag / (self.time + self.adaptation_lag)
+        kappa = decay / self.adaptation_time
 
         # Construct temperature adjustments.
         dSs = kappa * (self.ratios[:-1] - self.ratios[1:])
