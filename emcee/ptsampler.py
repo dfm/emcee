@@ -181,9 +181,8 @@ class PTSampler(Sampler):
         if threads > 1 and pool is None:
             self.pool = multi.Pool(threads)
 
-        self.p = None
         self._betas = None
-        self.time = 0
+        self._time = 0
 
     def reset(self):
         """
@@ -193,7 +192,7 @@ class PTSampler(Sampler):
 
         """
 
-        self.time = 0
+        self._time = 0
         self._chain = None
         self._lnprob = None
         self._lnlikelihood = None
@@ -213,7 +212,7 @@ class PTSampler(Sampler):
 
         self._initialized = True
 
-    def sample(self, p0=None, time=None, betas=None, ntemps=None, Tmax=None,
+    def sample(self, p0=None, betas=None, ntemps=None, Tmax=None,
                lnprob0=None, lnlike0=None, iterations=1, thin=1, storechain=True,
                adapt=False):
         """
@@ -272,13 +271,11 @@ class PTSampler(Sampler):
 
         """
 
-        # Set initial walker positions and starting time.
+        # Set initial walker positions.
         if p0 is not None:
-            self.p = np.array(p0).copy()
-        elif self.p is None:
+            p = np.array(p0).copy()
+        else:
             raise ValueError('Initial walker positions not specified.')
-        if time is not None:
-            self.time = time
 
         # Set temperature ladder.  Append beta=0 to generated ladder.
         if betas is not None:
@@ -304,7 +301,7 @@ class PTSampler(Sampler):
         if lnprob0 is None or lnlike0 is None:
             fn = PTLikePrior(self.logl, self.logp, self.loglargs,
                              self.logpargs, self.loglkwargs, self.logpkwargs)
-            results = list(mapf(fn, self.p.reshape((-1, self.dim))))
+            results = list(mapf(fn, p.reshape((-1, self.dim))))
 
             logls = np.array([r[0] for r in results]).reshape((self.ntemps,
                                                                self.nwalkers))
@@ -326,8 +323,8 @@ class PTSampler(Sampler):
                 # Get positions of walkers to be updated and walker to be sampled.
                 jupdate = j
                 jsample = (j + 1) % 2
-                pupdate = self.p[:, jupdate::2, :]
-                psample = self.p[:, jsample::2, :]
+                pupdate = p[:, jupdate::2, :]
+                psample = p[:, jsample::2, :]
 
                 zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers//2)))
 
@@ -371,7 +368,7 @@ class PTSampler(Sampler):
                 self.nprop[:, jupdate::2] += 1.0
                 self.nprop_accepted[:, jupdate::2] += accepts
 
-            self.p, lnprob, logl, ratios = self._temperature_swaps(self.p, lnprob, logl)
+            p, lnprob, logl, ratios = self._temperature_swaps(p, lnprob, logl)
             if adapt and ntemps > 1:
                 dbetas = self._adjust_ladder(ratios)
                 self._betas += dbetas
@@ -379,13 +376,13 @@ class PTSampler(Sampler):
 
             if (i + 1) % thin == 0:
                 if storechain:
-                    self._chain[:, :, isave, :] = self.p
+                    self._chain[:, :, isave, :] = p
                     self._lnprob[:, :, isave, ] = lnprob
                     self._lnlikelihood[:, :, isave] = logl
                     isave += 1
 
-            self.time += 1
-            yield self.p, lnprob, logl
+            self._time += 1
+            yield p, lnprob, logl
 
     def _temperature_swaps(self, p, lnprob, logl):
         """
@@ -444,7 +441,7 @@ class PTSampler(Sampler):
         betas = self._betas.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
-        decay = self.adaptation_lag / (self.time + self.adaptation_lag)
+        decay = self.adaptation_lag / (self._time + self.adaptation_lag)
         kappa = decay / self.adaptation_time
 
         # Construct temperature adjustments.
