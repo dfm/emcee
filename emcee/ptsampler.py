@@ -463,8 +463,9 @@ class PTSampler(Sampler):
 
     def _expand_chain(self, nsave):
         """
-        Expand ``self._chain`` and ``self._beta_history`` ahead of run to
-        make room for new samples.
+        Expand ``self._chain``, ``self._lnprob``,
+        ``self._lnlikelihood``, and ``self._beta_history``
+        ahead of run to make room for new samples.
 
         :param nsave:
             The number of additional iterations for which to make room.
