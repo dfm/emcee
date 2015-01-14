@@ -367,9 +367,9 @@ class PTSampler(Sampler):
             # TODO Should the notion of a "complete" iteration really include the temperature
             # adjustment?
             if adapt and self.ntemps > 1:
-                dbetas = self._get_ladder_adjustment(self._betas, ratios)
-                self._betas += dbetas
-                lnprob += dbetas.reshape((-1, 1)) * logl
+                dbetas = self._get_ladder_adjustment(self._time, self._betas, ratios).reshape((-1, 1))
+                betas += dbetas
+                lnprob += dbetas * logl
 
             if (i + 1) % thin == 0:
                 if storechain:
@@ -428,7 +428,13 @@ class PTSampler(Sampler):
 
         return p, lnprob, logl, ratios
 
-    def _get_ladder_adjustment(self, betas0, ratios):
+    def _get_ladder_adjustment(self, time, betas0, ratios):
+        # TODO Add arXiv link.
+        """
+        Execute temperature adjustment according to dynamics outlined in <arXiv link>.
+
+        """
+
         # Some sanity checks on the ladder...
         assert np.all(np.diff(betas0) < 1), \
                 'Temperatures should be in ascending order.'
@@ -438,7 +444,7 @@ class PTSampler(Sampler):
         betas = betas0.copy()
 
         # Modulate temperature adjustments with a hyperbolic decay.
-        decay = self.adaptation_lag / (self._time + self.adaptation_lag)
+        decay = self.adaptation_lag / (time + self.adaptation_lag)
         kappa = decay / self.adaptation_time
 
         # Construct temperature adjustments.
@@ -449,8 +455,6 @@ class PTSampler(Sampler):
         deltaTs *= np.exp(dSs)
         betas[1:-1] = 1 / (np.cumsum(deltaTs) + 1 / betas[0])
 
-        # Temperatures should still be in the correct order (and distinct), unless something has
-        # gone wrong.
         assert np.all(np.diff(betas) < 0), \
                 'Temperatures not correctly ordered following temperature dynamics: {:}'.format(betas)
 
