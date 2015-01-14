@@ -13,10 +13,13 @@ from .. import BaseWalker, backends
 
 class NormalWalker(BaseWalker):
 
-    def __init__(self, ivar):
+    def __init__(self, ivar, width=np.inf):
         self.ivar = ivar
+        self.width = width
 
     def lnpriorfn(self, p):
+        if np.any(np.abs(p) > self.width):
+            return -np.inf
         return 0.0
 
     def lnlikefn(self, p):

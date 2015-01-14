@@ -51,7 +51,7 @@ class RedBlueMove(object):
         # Check that the dimensions are compatible.
         nwalkers, ndim = ensemble.nwalkers, ensemble.ndim
         if nwalkers < 2 * ndim and not self.live_dangerously:
-            raise RuntimeError("It is unadvisable to use the stretch move "
+            raise RuntimeError("It is unadvisable to use a red-blue move "
                                "with fewer walkers than twice the number of "
                                "dimensions.")
         ensemble.acceptance[:] = False
