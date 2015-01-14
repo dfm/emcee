@@ -231,11 +231,11 @@ class PTSampler(Sampler):
         self._lnlikelihood = None
         self._beta_history = None
 
-        self.nswap = np.zeros(ntemps, dtype=np.float)
-        self.nswap_accepted = np.zeros(ntemps, dtype=np.float)
+        self.nswap = np.zeros(self.ntemps, dtype=np.float)
+        self.nswap_accepted = np.zeros(self.ntemps, dtype=np.float)
 
-        self.nprop = np.zeros((ntemps, self.nwalkers), dtype=np.float)
-        self.nprop_accepted = np.zeros((ntemps, self.nwalkers),
+        self.nprop = np.zeros((self.ntemps, self.nwalkers), dtype=np.float)
+        self.nprop_accepted = np.zeros((self.ntemps, self.nwalkers),
                                        dtype=np.float)
 
     def sample(self, p0=None, lnprob0=None, lnlike0=None,
@@ -366,7 +366,7 @@ class PTSampler(Sampler):
 
             # TODO Should the notion of a "complete" iteration really include the temperature
             # adjustment?
-            if adapt and ntemps > 1:
+            if adapt and self.ntemps > 1:
                 dbetas = self._get_ladder_adjustment(self._betas, ratios)
                 self._betas += dbetas
                 lnprob += dbetas.reshape((-1, 1)) * logl
@@ -389,7 +389,6 @@ class PTSampler(Sampler):
 
         """
         ntemps = len(betas)
-
         ratios = np.zeros(ntemps - 1)
         for i in range(ntemps - 1, 0, -1):
             bi = betas[i]
