@@ -579,8 +579,6 @@ class PTSampler(Sampler):
 
         lnZ = -np.trapz(betas, mean_logls)
         lnZ = -np.trapz(betas2, mean_logls2)
-
-        # TODO Is this error estimate valid for the trapezoidal rule?
         return lnZ, np.abs(lnZ - lnZ2)
 
     @property
