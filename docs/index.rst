@@ -51,6 +51,7 @@ User Guide
    :maxdepth: 2
 
    user/install
+   user/modeling
    user/parallel
    user/porting
 
@@ -62,13 +63,6 @@ Tutorials
 
    tutorials/line
    tutorials/mixture-models
-
-
-..   user/quickstart
-..   user/line
-..   user/advanced
-..   user/pt
-..   user/faq
 
 
 API Documentation
