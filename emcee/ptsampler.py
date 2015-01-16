@@ -179,7 +179,7 @@ class PTSampler(Sampler):
 
     """
     def __init__(self, nwalkers, dim, ntemps=None,
-                 Tmax=np.inf, betas=None, logl, logp,
+                 Tmax=None, betas=None, logl, logp,
                  threads=1, pool=None, a=2.0,
                  loglargs=[], logpargs=[],
                  loglkwargs={}, logpkwargs={},
