@@ -578,7 +578,7 @@ class PTSampler(Sampler):
             mean_logls2 = np.concatenate((mean_logls[:-1:2], mean_logls[-1]))
 
         lnZ = -np.trapz(betas, mean_logls)
-        lnZ = -np.trapz(betas2, mean_logls2)
+        lnZ2 = -np.trapz(betas2, mean_logls2)
         return lnZ, np.abs(lnZ - lnZ2)
 
     @property
