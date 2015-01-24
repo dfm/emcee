@@ -150,7 +150,7 @@ if __name__ == "__main__":
     import time
     # import acor
 
-    N = 2000
+    N = 5000
     a = 0.9
     d = 3
     x = np.empty((N, d))
