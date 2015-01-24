@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["function", "integrated_time"]
+__all__ = ["function", "integrated_time", "AutocorrError"]
 
 import numpy as np
 
@@ -44,71 +44,54 @@ def function(x, axis=0, fast=False):
     return acf / acf[m]
 
 
-def integrated_time(x, axis=0, window=50, fast=False):
+def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
+                    axis=0, fast=False):
     """
-    Estimate the integrated autocorrelation time of a time series.
-
-    See `Sokal's notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ on
-    MCMC and sample estimators for autocorrelation times.
+    Estimate the integrated autocorrelation time of a time series using the
+    iterative procedure described on page 16 of `Sokal's notes
+    <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ to determine a
+    reasonable window size.
 
     :param x:
         The time series. If multidimensional, set the time axis using the
         ``axis`` keyword argument and the function will be computed for every
         other axis.
 
+    :param low: (optional)
+        The minimum window size to test. (default: ``10``)
+
+    :param high: (optional)
+        The maximum window size to test. (default: ``x.shape[axis] / (2*c)``)
+
+    :param step: (optional)
+        The step size for the window search. (default: ``1``)
+
+    :param full_output: (optional)
+        Return the final window size as well as the autocorrelation time.
+        (default: ``False``)
+
     :param axis: (optional)
         The time axis of ``x``. Assumed to be the first axis if not specified.
-
-    :param window: (optional)
-        The size of the window to use. (default: 50)
 
     :param fast: (optional)
         If ``True``, only use the largest ``2^n`` entries for efficiency.
         (default: False)
 
-    """
-    # Compute the autocorrelation function.
-    f = function(x, axis=axis, fast=fast)
+    :return tau:
+        An estimate of the integrated autocorrelation time of the time series
+        ``x`` computed along the axis ``axis``.
 
-    # Special case 1D for simplicity.
-    if len(f.shape) == 1:
-        return 1 + 2*np.sum(f[1:window])
+    :return window_size: (optional)
+        The final window size that was used. Only returned if ``full_output``
+        is ``True``.
 
-    # N-dimensional case.
-    m = [slice(None), ] * len(f.shape)
-    m[axis] = slice(1, window)
-    tau = 1 + 2*np.sum(f[m], axis=axis)
-
-    return tau
-
-
-def safe_integrated_time(x, c=10, M=10, maxiter=None, dM=1, axis=0,
-                         fast=False):
-    """
-    Estimate the integrated autocorrelation time of a time series.
-
-    See `Sokal's notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ on
-    MCMC and sample estimators for autocorrelation times.
-
-    :param x:
-        The time series. If multidimensional, set the time axis using the
-        ``axis`` keyword argument and the function will be computed for every
-        other axis.
-
-    :param axis: (optional)
-        The time axis of ``x``. Assumed to be the first axis if not specified.
-
-    :param window: (optional)
-        The size of the window to use. (default: 50)
-
-    :param fast: (optional)
-        If ``True``, only use the largest ``2^n`` entries for efficiency.
-        (default: False)
+    :raises AutocorrError:
+        If the autocorrelation time can't be reliably estimated from the
+        chain. This normally means that the chain is too short.
 
     """
-    M = int(M)
     size = 0.5*x.shape[axis]
-    if M >= size:
+    if int(c * low) >= size:
         raise AutocorrError("The chain is too short")
 
     # Compute the autocorrelation function.
@@ -119,9 +102,10 @@ def safe_integrated_time(x, c=10, M=10, maxiter=None, dM=1, axis=0,
     m = [slice(None), ] * len(f.shape)
 
     # Loop over proposed window sizes until convergence is reached.
-    tau = None
-    i = 0
-    while tau is None or M <= c * tau.max():
+    if high is None:
+        high = int(size / c)
+    for M in np.arange(low, high, step).astype(int):
+        # Compute the autocorrelation time with the given window.
         if oned:
             # Special case 1D for simplicity.
             tau = 1 + 2*np.sum(f[1:M])
@@ -130,27 +114,34 @@ def safe_integrated_time(x, c=10, M=10, maxiter=None, dM=1, axis=0,
             m[axis] = slice(1, M)
             tau = 1 + 2*np.sum(f[m], axis=axis)
 
-        # Check the size of the array and make sure that it's lone enough.
-        if c * tau.max() >= size:
-            raise AutocorrError("The chain is too short to reliably estimate "
-                                "the autocorrelation time")
+        # Accept the window size if it satisfies the convergence criterion.
+        if M > c * tau.max():
+            if full_output:
+                return tau, M
+            return tau
 
-        if maxiter is not None and i >= maxiter:
+        # If the autocorrelation time is too long to be estimated reliably
+        # from the chain, it should fail.
+        if c * tau.max() >= size:
             break
-        i += 1
-        M += dM
-    return tau
+
+    raise AutocorrError("The chain is too short to reliably estimate "
+                        "the autocorrelation time")
 
 
 class AutocorrError(Exception):
+    """
+    Raised by :func:`integrated_time` if the chain is too short to estimate
+    an autocorrelation time.
+
+    """
     pass
 
 
 if __name__ == "__main__":
     import time
-    # import acor
 
-    N = 5000
+    N = 5000000
     a = 0.9
     d = 3
     x = np.empty((N, d))
@@ -159,9 +150,5 @@ if __name__ == "__main__":
         x[i] = x[i-1] * a + np.random.rand(d)
 
     strt = time.time()
-    print(safe_integrated_time(x))
+    print(integrated_time(x))
     print(time.time() - strt)
-
-    # strt = time.time()
-    # print([acor.acor(x[:, i])[0] for i in range(d)])
-    # print(time.time() - strt)
