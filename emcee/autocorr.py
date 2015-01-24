@@ -136,19 +136,3 @@ class AutocorrError(Exception):
 
     """
     pass
-
-
-if __name__ == "__main__":
-    import time
-
-    N = 5000000
-    a = 0.9
-    d = 3
-    x = np.empty((N, d))
-    x[0] = np.zeros(d)
-    for i in xrange(1, N):
-        x[i] = x[i-1] * a + np.random.rand(d)
-
-    strt = time.time()
-    print(integrated_time(x))
-    print(time.time() - strt)
