@@ -5,6 +5,7 @@ from __future__ import division, print_function
 __all__ = ["test_autocorr"]
 
 import numpy as np
+from ...compat import xrange
 from ...autocorr import integrated_time
 
 
