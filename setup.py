@@ -6,7 +6,7 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 if "test" in sys.argv:
-    version = "testing"
+    version = "0.0.0"
 
 else:
     # Hackishly inject a constant into builtins to enable importing of the
@@ -85,7 +85,7 @@ setup(
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3"
-        "Programming Language :: Python :: 3.4"
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
     ],
 )
