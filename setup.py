@@ -69,10 +69,10 @@ setup(
     install_requires=[
         "numpy >= 1.7"
     ],
-    tests_require=[
-        "pytest",
-        "pytest-cov",
-    ],
+    # tests_require=[
+    #     "pytest",
+    #     "pytest-cov",
+    # ],
     cmdclass = {"test": PyTest},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
