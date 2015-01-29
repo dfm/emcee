@@ -270,7 +270,7 @@ class PTSampler(Sampler):
         :param adapt: (optional)
             If ``True``, the temperature ladder is dynamically adapted as the
             sampler runs to achieve uniform swap acceptance ratios between adjacent
-            chains.
+            chains.  See `arXiv:1501.05823 <http://arxiv.org/abs/1501.05823>`_ for details.
 
         At each iteration, this generator yields
 
@@ -429,9 +429,9 @@ class PTSampler(Sampler):
         return p, lnprob, logl, ratios
 
     def _get_ladder_adjustment(self, time, betas0, ratios):
-        # TODO Add arXiv link.
         """
-        Execute temperature adjustment according to dynamics outlined in <arXiv link>.
+        Execute temperature adjustment according to dynamics outlined in
+        `arXiv:1501.05823 <http://arxiv.org/abs/1501.05823>`_.
 
         """
 
