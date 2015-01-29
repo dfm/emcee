@@ -14,25 +14,39 @@ from . import autocorr
 from .sampler import Sampler
 
 def default_beta_ladder(ndim, ntemps=None, Tmax=None):
-    """Returns a ladder of :math:`\beta \equiv 1/T` with temperatures
-    geometrically spaced with spacing chosen so that a Gaussian
-    posterior would have a 0.25 temperature swap acceptance rate.
+    """
+    Returns a ladder of :math:`\beta \equiv 1/T` under a geometric spacing that is determined by the
+    arguments ``ntemps`` and ``Tmax``.  The temperature selection algorithm works as follows:
+
+    Ideally, ``Tmax`` should be specified such that the tempered posterior looks like the prior at
+    this temperature.  If using adaptive parallel tempering, per `arXiv:1501.05823
+    <http://arxiv.org/abs/1501.05823>`_, choosing ``Tmax = inf`` is a safe bet, so long as
+    ``ntemps`` is also specified.
 
     :param ndim:
         The number of dimensions in the parameter space.
 
     :param ntemps: (optional)
-        If set, the number of temperatures to use.  If ``None``, the
-        ``Tmax`` argument must be given (and must be finite), and the
-        number of temperatures is chosen so that the highest temperature
-        is greater than ``Tmax``.
+        If set, the number of temperatures to generate.
 
     :param Tmax: (optional)
-        If ``ntemps`` is not given, this argument controls the number
-        of temperatures.  Temperatures are chosen according to the
-        spacing criteria until the maximum temperature exceeds
-        ``Tmax``.  If ``Tmax`` is infinite, ``ntemps`` must also be given,
-        and ``ntemps - 1`` chains are spaced geometrically.
+        If set, the maximum temperature for the ladder.
+
+    Temperatures are chosen according to the following algorithm:
+
+    * If neither ``ntemps`` nor ``Tmax`` is specified, raise an exception (insufficient
+      information).
+    * If ``ntemps`` is specified but not ``Tmax``, return a ladder spaced so that a Gaussian
+      posterior would have a 25% temperature swap acceptance ratio.
+    * If ``Tmax`` is specified but not ``ntemps``:
+
+      * If ``Tmax = inf``, raise an exception (insufficient information).
+      * Else, space chains geometrically as above (for 25% acceptance) until ``Tmax`` is reached.
+
+    * If ``Tmax`` and ``ntemps`` are specified:
+
+      * If ``Tmax = inf``, place one chain at ``inf`` and ``ntemps-1`` in a 25% geometric spacing.
+      * Else, use the unique geometric spacing defined by ``ntemps`` and ``Tmax``. 
 
     """
 
@@ -115,7 +129,7 @@ class PTLikePrior(object):
 class PTSampler(Sampler):
     """
     A parallel-tempered ensemble sampler, using :class:`EnsembleSampler`
-    for sampling within each parallel chain.
+    for sampling within each parallel chain.  
 
     :param nwalkers:
         The number of ensemble walkers at each temperature.
@@ -124,23 +138,14 @@ class PTSampler(Sampler):
         The dimension of parameter space.
 
     :param betas: (optional)
-        Array giving the inverse temperatures, :math:`\\beta=1/T`,
-        used in the ladder.  The default is chosen so that a Gaussian
-        posterior in the given number of dimensions will have a 0.25
-        tswap acceptance rate.
+        Array giving the inverse temperatures, :math:`\\beta=1/T`, used in the ladder.  The default
+        is chosen according to :function:`default_beta_ladder` using ``ntemps`` and ``Tmax``.
 
     :param ntemps: (optional)
-        If set, the number of temperatures to use.  If ``None``, the
-        ``Tmax`` argument must be given (and must be finite), and the
-        number of temperatures is chosen so that the highest temperature
-        is greater than ``Tmax``.
+        If set, the number of temperatures to use.
 
     :param Tmax: (optional)
-        If ``ntemps`` is not given, this argument controls the number
-        of temperatures.  Temperatures are chosen according to the
-        spacing criteria until the maximum temperature exceeds
-        ``Tmax``.  If ``Tmax`` is infinite, ``ntemps`` must also be given,
-        and ``ntemps - 1`` chains are spaced geometrically.
+        If set, the maximum temperature for the ladder.
 
     :param logl:
         The log-likelihood function.
