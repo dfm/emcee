@@ -183,8 +183,8 @@ class PTSampler(Sampler):
         Time-scale for temperature dynamics.  Default: 100.
 
     """
-    def __init__(self, nwalkers, dim, ntemps=None,
-                 Tmax=None, betas=None, logl, logp,
+    def __init__(self, nwalkers, dim, logl, logp,
+                 ntemps=None, Tmax=None, betas=None, 
                  threads=1, pool=None, a=2.0,
                  loglargs=[], logpargs=[],
                  loglkwargs={}, logpkwargs={},
