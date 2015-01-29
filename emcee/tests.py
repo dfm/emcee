@@ -238,9 +238,10 @@ class Tests:
 
     def test_pt_sampler(self):
         cutoff = 10.0
-        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim,
+        self.sampler = PTSampler(self.nwalkers, self.ndim,
                                  LogLikeGaussian(self.icov),
-                                 LogPriorGaussian(self.icov, cutoff=cutoff))
+                                 LogPriorGaussian(self.icov, cutoff=cutoff),
+                                 self.ntemp)
         p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
                                            size=(self.ntemp, self.nwalkers))
         self.check_pt_sampler(cutoff, p0=p0, N=1000)

@@ -571,7 +571,7 @@ class PTSampler(Sampler):
         istart = int(logls.shape[2] * fburnin + 0.5)
         mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
 
-        if betas[-1] != 0:
+        if self._betas[-1] != 0:
             betas = np.concatenate((self._betas, [0]))
             betas2 = np.concatenate((self._betas[::2], [0]))
 
@@ -579,6 +579,7 @@ class PTSampler(Sampler):
             mean_logls = np.concatenate((mean_logls, [mean_logls[-1]]))
             mean_logls2 = mean_logls[::2]
         else:
+            betas = self._betas
             betas2 = np.concatenate((self._betas[:-1:2], [0]))
             mean_logls2 = np.concatenate((mean_logls[:-1:2], mean_logls[-1]))
 
