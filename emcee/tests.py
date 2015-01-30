@@ -86,7 +86,7 @@ class Tests:
         self.nwalkers = 100
         self.ndim = 5
 
-        self.ntemp = 20
+        self.ntemp = None
         self.Tmax = 250
 
         self.N = 1000
@@ -134,7 +134,9 @@ class Tests:
         assert np.mean(self.sampler.acceptance_fraction) > 0.1, \
             "acceptance fraction < 0.1"
         assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1, \
-            "tswap acceptance frac < 0.1"
+            "tswap acceptance fraction < 0.1"
+        assert abs(self.sampler.tswap_acceptance_fraction[0] - 0.25) < 0.05, \
+            "tswap acceptance fraction != 0.25"
 
         maxdiff = 10.0 ** logprecision
 
@@ -241,7 +243,7 @@ class Tests:
                                  LogPriorGaussian(self.icov, cutoff=cutoff),
                                  ntemps=self.ntemp, Tmax=self.Tmax)
         p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
-                                           size=(self.ntemp, self.nwalkers))
+                                           size=(self.sampler.ntemps, self.nwalkers))
         self.check_pt_sampler(cutoff, p0=p0, N=1000)
 
     def test_blobs(self):
