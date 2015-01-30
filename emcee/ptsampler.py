@@ -586,15 +586,15 @@ class PTSampler(Sampler):
             betas2 = np.concatenate((self._betas[::2], [0]))
 
             # Duplicate mean log-likelihood of hottest chain as a best guess for beta = 0.
+            mean_logls2 = np.concatenate((mean_logls[::2], [mean_logls[-1]]))
             mean_logls = np.concatenate((mean_logls, [mean_logls[-1]]))
-            mean_logls2 = mean_logls[::2]
         else:
             betas = self._betas
             betas2 = np.concatenate((self._betas[:-1:2], [0]))
             mean_logls2 = np.concatenate((mean_logls[:-1:2], mean_logls[-1]))
 
-        lnZ = -np.trapz(betas, mean_logls)
-        lnZ2 = -np.trapz(betas2, mean_logls2)
+        lnZ = -np.trapz(mean_logls, betas)
+        lnZ2 = -np.trapz(mean_logls2, betas2)
         return lnZ, np.abs(lnZ - lnZ2)
 
     @property
