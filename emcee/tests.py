@@ -87,6 +87,7 @@ class Tests:
         self.ndim = 5
 
         self.ntemp = 20
+        self.Tmax = 250
 
         self.N = 1000
 
@@ -140,8 +141,6 @@ class Tests:
         chain = np.reshape(self.sampler.chain[0, ...],
                            (-1, self.sampler.chain.shape[-1]))
 
-        # np.savetxt('/tmp/chain.dat', chain)
-
         log_volume = self.ndim * np.log(cutoff) \
             + log_unit_sphere_volume(self.ndim) \
             + 0.5 * np.log(np.linalg.det(self.cov))
@@ -149,7 +148,6 @@ class Tests:
             + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
-        print(self.sampler.get_autocorr_time())
 
         assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
             ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "
@@ -241,7 +239,7 @@ class Tests:
         self.sampler = PTSampler(self.nwalkers, self.ndim,
                                  LogLikeGaussian(self.icov),
                                  LogPriorGaussian(self.icov, cutoff=cutoff),
-                                 self.ntemp)
+                                 ntemps=self.ntemp, Tmax=self.Tmax)
         p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
                                            size=(self.ntemp, self.nwalkers))
         self.check_pt_sampler(cutoff, p0=p0, N=1000)
