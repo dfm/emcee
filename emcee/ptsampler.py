@@ -88,17 +88,27 @@ def default_beta_ladder(ndim, ntemps=None, Tmax=None):
     else:
         tstep = tstep[ndim-1]
 
-    if ntemps is None:
-        if Tmax == np.inf:
-            raise ValueError('Must specify ``ntemps'' if ``Tmax`` is ``inf``.')
-
-        # Generate the normal geometric spacing.
-        ntemps = int(np.log(Tmax)/np.log(tstep)+2)
-
-    betas = np.exp(np.linspace(0, -(ntemps-1)*np.log(tstep), ntemps))
+    appendInf = False
     if Tmax == np.inf:
+        appendInf = True
+        Tmax = None
+        ntemps = ntemps - 1
+
+    if ntemps is not None:
+        if Tmax is None:
+            # Determine Tmax from ntemps.
+            Tmax = tstep ** (ntemps - 1)
+    else:
+        if Tmax is None:
+            raise ValueError('Must specify at least one of ``ntemps'' and finite ``Tmax``.')
+
+        # Determine ntemps from Tmax.
+        ntemps = int(np.log(Tmax) / np.log(tstep) + 2)
+
+    betas = np.logspace(0, -np.log10(Tmax), ntemps)
+    if appendInf:
         # Use a geometric spacing, but replace the top-most temperature with infinity.
-        betas[-1] = 0
+        betas = np.concatenate((betas, [0]))
 
     return betas
 
