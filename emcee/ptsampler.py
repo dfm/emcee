@@ -517,7 +517,7 @@ class PTSampler(Sampler):
                                                 axis=2)
             self._beta_history = np.concatenate((self._beta_history,
                                           np.zeros((self.ntemps, nsave))),
-                                         axes=1)
+                                         axis=1)
 
         return isave
 
