@@ -6,12 +6,11 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["MPIPool"]
 
-# If mpi4py is installed, import it.
-try:
-    from mpi4py import MPI
-    MPI = MPI
-except ImportError:
-    MPI = None
+# On some systems mpi4py is available but broken
+# we avoid crashes by importing it only when
+# an MPI Pool is explicitly created.
+#Still make it a global to avoid messing up other things.
+MPI = None
 
 
 class _close_pool_message(object):
@@ -54,7 +53,12 @@ class MPIPool(object):
         as the cpus get done.
     """
     def __init__(self, comm=None, debug=False, loadbalance=False):
-        if MPI is None:
+        global MPI
+        try:
+            import mpi4py.MPI
+            MPI = mpi4py.MPI
+        except ImportError:
+            #re-raise with a more user-friendly error
             raise ImportError("Please install mpi4py")
 
         self.comm = MPI.COMM_WORLD if comm is None else comm
