@@ -476,10 +476,19 @@ class PTSampler(Sampler):
             mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
             mean_logls2 = mean_logls[::2]
 
-            lnZ = np.trapz(mean_logls, betas)
-            lnZ2 = np.trapz(mean_logls2, betas2)
+        # Always integrate from small to large: ln(Z) = int_0^1 d(beta) <log(L)>_beta
+        isort = np.argsort(betas)
+        isort2 = np.argsort(betas2)
 
-            return lnZ, np.abs(lnZ - lnZ2)
+        betas = betas[isort]
+        mean_logls = mean_logls[isort]
+
+        betas2 = betas2[isort2]
+        mean_logls2 = mean_logls2[isort2]
+
+        lnZ = np.trapz(mean_logls, betas)
+        lnZ2 = np.trapz(mean_logls2, betas2)
+        return lnZ, np.abs(lnZ - lnZ2)
 
     @property
     def betas(self):
