@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["PTSampler"]
+__all__ = ["PTSampler", 'default_beta_ladder']
 
 import numpy as np
 import numpy.random as nr
@@ -468,16 +468,16 @@ class PTSampler(Sampler):
             return self.thermodynamic_integration_log_evidence(
                 logls=self.lnlikelihood, fburnin=fburnin)
         else:
-            betas = np.concatenate((self.betas, np.array([0])))
-            betas2 = np.concatenate((self.betas[::2], np.array([0])))
+            betas = self.betas
+            betas2 = self.betas[::2]
 
             istart = int(logls.shape[2] * fburnin + 0.5)
 
             mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
             mean_logls2 = mean_logls[::2]
 
-            lnZ = -np.dot(mean_logls, np.diff(betas))
-            lnZ2 = -np.dot(mean_logls2, np.diff(betas2))
+            lnZ = np.trapz(mean_logls, betas)
+            lnZ2 = np.trapz(mean_logls2, betas2)
 
             return lnZ, np.abs(lnZ - lnZ2)
 
