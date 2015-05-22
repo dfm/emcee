@@ -473,8 +473,8 @@ class PTSampler(Sampler):
             mean_logls = np.mean(np.mean(logls, axis=1)[:, istart:], axis=1)
             mean_logls2 = mean_logls[::2]
 
-            lnZ = np.trapz(mean_logls, betas)
-            lnZ2 = np.trapz(mean_logls2, betas2)
+            lnZ = -np.trapz(mean_logls, betas)
+            lnZ2 = -np.trapz(mean_logls2, betas2)
 
             return lnZ, np.abs(lnZ - lnZ2)
 
