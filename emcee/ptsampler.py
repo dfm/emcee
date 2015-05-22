@@ -435,7 +435,10 @@ class PTSampler(Sampler):
 
         Thermodymanic integration is a technique for estimating the
         evidence integral using information from the chains at various
-        temperatures.  Let
+        temperatures.  It only works when the prior is *proper*
+        (normalisable).
+
+        Let
 
         .. math::
 
