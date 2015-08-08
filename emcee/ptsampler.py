@@ -210,7 +210,7 @@ class PTSampler(Sampler):
         self._lnprob = None
         self._lnlikelihood = None
 
-    def sample(self, p0, lnprob0=None, lnlike0=None, iterations=1,
+    def sample(self, p0, lnprob0=None, lnlike0=None, rstate0=None, iterations=1,
                thin=1, storechain=True):
         """
         Advance the chains ``iterations`` steps as a generator.
@@ -226,6 +226,10 @@ class PTSampler(Sampler):
         :param lnlike0: (optional)
             The initial likelihood values for the ensembles.  Shape
             ``(ntemps, nwalkers)``.
+
+        :param rstate0: (optional)
+            The state of the random number generator.
+            See the :attr:`Sampler.random_state` property for details.
 
         :param iterations: (optional)
             The number of iterations to preform.
@@ -247,6 +251,9 @@ class PTSampler(Sampler):
         * ``lnlike`` the current likelihood values for the walkers.
 
         """
+        # See comments in EnsembleSampler.sample(). Fails silently.
+        self.random_state = rstate0
+
         p = np.copy(np.array(p0))
 
         # If we have no lnprob or logls compute them

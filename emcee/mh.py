@@ -50,7 +50,7 @@ class MHSampler(Sampler):
         self._chain = np.empty((0, self.dim))
         self._lnprob = np.empty(0)
 
-    def sample(self, p0, lnprob=None, randomstate=None, thin=1,
+    def sample(self, p0, lnprob=None, rstate0=None, thin=1,
                storechain=True, iterations=1):
         """
         Advances the chain ``iterations`` steps as an iterator
@@ -91,7 +91,7 @@ class MHSampler(Sampler):
 
         """
 
-        self.random_state = randomstate
+        self.random_state = rstate0
 
         p = np.array(p0)
         if lnprob is None:

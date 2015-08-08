@@ -159,6 +159,10 @@ class Tests:
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2.0 / N ** 2.0
                       < maxdiff), 'covariance incorrect'
 
+        # PT sampler used to not work with run_mcmc(); check that the trivial
+        # case is OK.
+        self.sampler.run_mcmc (p0, 10, lnlike0=-4)
+
     def test_mh(self):
         self.sampler = MHSampler(self.cov, self.ndim, lnprob_gaussian,
                                  args=[self.icov])
