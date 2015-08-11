@@ -187,3 +187,85 @@ normalized), we have
 This quantity can be estimated from a PTMCMC by computing the average
 :math:`\ln l` within each chain and applying a quadrature formula to
 estimate the integral.
+
+Example of estimating the evidence
+----------------------------------
+
+Here we provide an illustrative example to help understand some of the fine
+detail when using the `thermodynamic_integration_log_evidence` routine. The
+full script can be found `here
+<https://github.com/dfm/emcee/blob/master/examples/pt_thermodynamic_integration.py>`_.
+
+Let us define the likelihood function to be a standard normal
+
+.. math::
+
+    l(x) = N(x; \mu=0, \sigma=1),
+
+and the prior to be uniform over some range :math:`[-a, a]`.
+
+In this setup, the evidence for the posterior should be approximately
+:math:`\sim 1/2a` since the Gaussian integrates to one over the prior range. We
+will now reproduce this result. First we define the log of the likelihood and
+prior as python functions::
+
+    def logl(x):
+        return -0.5*(np.sum(x**2) + np.log(2*np.pi))
+
+
+    def logp(x):
+        a = 5
+        if np.abs(x) < a:
+            return -np.log(2*a)
+        else:
+            return -np.inf
+
+Now we setup the sampler and run it, note that we define the temperature ladder
+directly and pass this into the PTSampler::
+
+    ntemps = 100
+    nwalkers = 100
+    ndim = 1
+    betas = np.logspace(0, -3, ntemps)
+    sampler = emcee.PTSampler(ntemps, nwalkers, ndim, logl=logl, logp=logp,
+                              betas=betas)
+    p0 = np.random.uniform(-1, 1, size=(ntemps, nwalkers, ndim))
+    out = sampler.run_mcmc(p0, 200)
+
+Then finally we get the evidence and an estimate of the error::
+
+    ln_evidence, ln_error = sampler.thermodynamic_integration_log_evidence()
+    evidence = np.exp(ln_evidence)
+    error = abs(ln_evidence) * ln_error
+    print "Evidence={} +/- {}".format(evidence, error)
+
+In this case where `a=5`, as defined in the prior, this gives us an evidence of
+`0.1 +/- 0.06` as expected. It is instructive to change the prior range and
+observe the corresponding variation in the evidence.
+
+A key component in the above calculation is the choice of the `betas`. Since
+our estimate is based on numerical integration of the mean likelihood over the
+`betas`, we must be sure that the choice of `betas` fully covers the relevant
+domain with sufficient density. To check this, we can plot the average
+log-likelihood as follows::
+
+    logls = sampler.lnlikelihood
+    mean_logls = np.mean(np.mean(logls, axis=1)[:, :], axis=1)
+    plt.semilogx(betas, mean_logls, "-o")
+    plt.show()
+
+This produces (with some additional code for labels etc.):
+
+.. image:: ../_static/pt/betas.png
+
+Note that the evidence is found by numerical integration, but first the arrays
+must be sorted in ascending order of `betas`.
+
+This plot should always be checked when using the thermodynamic integration
+method to ensure that: (a) there are a sufficiently large number of
+temperatures to cover the region of interest. If this is not the case it will
+usually be evident from the estimated error. (b) the minimum :math:`\beta` is
+small enough such that making it slightly smaller does not change the estimated
+evidence. This can be diagnosed from the plot by the existence of a plateu as
+:math:`\beta \rightarrow 0`.
+
