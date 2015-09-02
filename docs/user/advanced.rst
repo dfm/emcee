@@ -60,7 +60,7 @@ Or, to display a rudimentary progress bar that updates iteself on a single line:
     nsteps = 5000
     width = 30
     for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
-        n = width * int(float(i) / nsteps)
+        n = int((width+1) * float(i) / nsteps)
         sys.stdout.write("\r[{0}{1}]".format('#' * n, ' ' * (width - n)))
     sys.stdout.write("\n")
 
