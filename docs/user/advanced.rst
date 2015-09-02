@@ -32,6 +32,25 @@ the end of a file, you could do something like:
         f.close()
 
 
+Progress bar
+------------
+
+You might want to display a progress bar while the sampler runs so that you can
+monitor its progress.  There are several modules out there that do this very
+well (two of which are `progressbar <https://pypi.python.org/pypi/progressbar>`
+and `clint <http://pypi.python.org/pypi/clint/>`), and it's straightforward to
+implement.  The solution here is very similar to the incremental saving snippet;
+for example, using ``clint``:
+
+.. code-block:: python
+
+    from clint.textui import progress
+
+    n = 10000
+    for result in progress.Bar(sampler.sample(pos0, iterations=n), expected_size=n):
+        pass
+
+
 Multiprocessing
 ---------------
 
