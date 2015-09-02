@@ -32,24 +32,37 @@ the end of a file, you could do something like:
         f.close()
 
 
-Progress bar
-------------
+Printing the sampler's progress
+-------------------------------
 
-You might want to display a progress bar while the sampler runs so that you can
-monitor its progress.  There are several modules out there that do this very
-well (two of which are `progressbar <https://pypi.python.org/pypi/progressbar>`
-and `clint <http://pypi.python.org/pypi/clint/>`), and it's straightforward to
-implement.  The solution here is very similar to the incremental saving snippet;
-for example, using ``clint``:
+You might want to monitor the progress of the sampler in your terminal while it
+runs.  There are several modules out there that can help you make shiny progress
+bars (e.g., are `progressbar <https://pypi.python.org/pypi/progressbar>` and
+`clint <http://pypi.python.org/pypi/clint/>`), but it's straightforward to
+implement a simple progress counter yourself.
+
+The solution here is very similar to the incremental saving snippet.  For
+example, to display the current percentage:
 
 .. code-block:: python
 
-    from clint.textui import progress
+    nsteps = 5000
+    for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
+        if (i+1) % 100 == 0:
+            print("{0:5.1%}".format(float(i) / nsteps))
 
-    n = 10000
-    for result in progress.Bar(sampler.sample(pos0, iterations=n), expected_size=n):
-        pass
+Or, to display a rudimentary progress bar that updates iteself on a single line:
 
+.. code-block:: python
+
+    import sys
+
+    nsteps = 5000
+    width = 30
+    for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
+        n = width * int(float(i) / nsteps)
+        sys.stdout.write("\r[{0}{1}]".format('#' * n, ' ' * (width - n)))
+    sys.stdout.write("\n")
 
 Multiprocessing
 ---------------
