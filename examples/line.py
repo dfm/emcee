@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import emcee
-import triangle
+import corner
 import numpy as np
 import scipy.optimize as op
 import matplotlib.pyplot as pl
@@ -118,7 +118,7 @@ fig.savefig("line-time.png")
 burnin = 50
 samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
 
-fig = triangle.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
+fig = corner.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
                       truths=[m_true, b_true, np.log(f_true)])
 fig.savefig("line-triangle.png")
 

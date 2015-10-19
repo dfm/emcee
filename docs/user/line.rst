@@ -284,13 +284,13 @@ Results
 
 Now that we have this list of samples, let's make one of the most useful plots
 you can make with your MCMC results: *a corner plot*.
-You'll need the `triangle.py module <https://github.com/dfm/triangle.py>`_ but
+You'll need the `corner.py module <https://github.com/dfm/corner.py>`_ but
 once you have it, generating a corner plot is as simple as:
 
 .. code-block:: python
 
-    import triangle
-    fig = triangle.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
+    import corner
+    fig = corner.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
                           truths=[m_true, b_true, np.log(f_true)])
     fig.savefig("triangle.png")
 
