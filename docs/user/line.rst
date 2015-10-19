@@ -134,7 +134,7 @@ use the `scipy.optimize
     m_ml, b_ml, lnf_ml = result["x"]
 
 It's worth noting that the optimize module *minimizes* functions whereas we
-would like the maximize the likelihood.
+would like to maximize the likelihood.
 This goal is equivalent to minimizing the *negative* likelihood (or in this
 case, the negative *log* likelihood).
 The maximum likelihood result is plotted as a solid black line—compared to
