@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quickstart &mdash; emcee 2.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 2.1.0 documentation" href="../../" />
+    <link rel="next" title="Example: Fitting a Model to Data" href="../line/" />
+    <link rel="prev" title="Installation" href="../install/" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../line/" title="Example: Fitting a Model to Data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../install/" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../">emcee 2.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-emcee"><span id="quickstart"></span></span><div class="section" id="id1">
+<h1>Quickstart<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>The easiest way to get started with using <code class="docutils literal"><span class="pre">emcee</span></code> is to use it for a
+project. To get you started, here&#8217;s an annotated, fully-functional
+example that demonstrates a standard usage pattern.</p>
+<div class="section" id="how-to-sample-a-multi-dimensional-gaussian">
+<h2>How to sample a multi-dimensional Gaussian<a class="headerlink" href="#how-to-sample-a-multi-dimensional-gaussian" title="Permalink to this headline">¶</a></h2>
+<p>We&#8217;re going to demonstrate how you might draw samples from the multivariate
+Gaussian density given by:</p>
+<div class="math">
+\[p(\vec{x}) \propto \exp \left [ - \frac{1}{2} (\vec{x} -
+    \vec{\mu})^\mathrm{T} \, \Sigma ^{-1} \, (\vec{x} - \vec{\mu})
+    \right ]\]</div>
+<p>where <span class="math">\(\vec{\mu}\)</span> is an <em>N</em>-dimensional vector position of
+the mean of the density and <span class="math">\(\Sigma\)</span> is the square <em>N</em>-by-<em>N</em>
+covariance matrix.</p>
+<p>The first thing that we need to do is import the necessary
+modules:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">emcee</span>
+</pre></div>
+</div>
+<p>Then, we&#8217;ll code up a Python function that returns the density
+<span class="math">\(p(\vec{x})\)</span> for specific values of <span class="math">\(\vec{x}\)</span>,
+<span class="math">\(\vec{\mu}\)</span> and <span class="math">\(\Sigma^{-1}\)</span>. In fact,
+<code class="docutils literal"><span class="pre">emcee</span></code> actually requires the logarithm of <em>p</em>. We&#8217;ll call it <code class="docutils literal"><span class="pre">lnprob</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">lnprob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">icov</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">x</span><span class="o">-</span><span class="n">mu</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">icov</span><span class="p">,</span><span class="n">diff</span><span class="p">))</span><span class="o">/</span><span class="mf">2.0</span>
+</pre></div>
+</div>
+<p>It is important that the first argument of the probability function is
+the position of a single <a class="reference internal" href="../faq/#walkers"><span>walker</span></a> (a <em>N</em> dimensional
+<code class="docutils literal"><span class="pre">numpy</span></code> array). The following arguments are going to be constant every
+time the function is called and the values come from the <code class="docutils literal"><span class="pre">args</span></code> parameter
+of our <a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><code class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></code></a> that we&#8217;ll see soon.</p>
+<p>Now, we&#8217;ll set up the specific values of those &#8220;hyperparameters&#8221; in 50
+dimensions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ndim</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ndim</span><span class="p">)</span>
+
+<span class="n">cov</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ndim</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ndim</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
+<span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+<span class="n">cov</span> <span class="o">+=</span> <span class="n">cov</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">cov</span><span class="o">.</span><span class="n">diagonal</span><span class="p">())</span>
+<span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span><span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and where <code class="docutils literal"><span class="pre">cov</span></code> is <span class="math">\(\Sigma\)</span>. Before going on, let&#8217;s
+compute the inverse of <code class="docutils literal"><span class="pre">cov</span></code> because that&#8217;s what we need in our
+probability function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">icov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It&#8217;s probably overkill this time but how about we use 250 <a class="reference internal" href="../faq/#walkers"><span>walkers</span></a>? Before we go on, we need to guess a starting point for each
+of the 250 walkers. This position will be a 50-dimensional vector so the
+initial guess should be a 250-by-50 array—or a list of 250 arrays that
+each have 50 elements. It&#8217;s not a very good guess but we&#8217;ll just guess a
+random number between 0 and 1 for each component:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">250</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ndim</span> <span class="o">*</span> <span class="n">nwalkers</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now that we&#8217;ve gotten past all the bookkeeping stuff, we can move on to
+the fun stuff. The main interface provided by <code class="docutils literal"><span class="pre">emcee</span></code> is the
+<a class="reference internal" href="../../api/#emcee.EnsembleSampler" title="emcee.EnsembleSampler"><code class="xref py py-class docutils literal"><span class="pre">EnsembleSampler</span></code></a> object so let&#8217;s get ourselves one of those:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">lnprob</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">means</span><span class="p">,</span> <span class="n">icov</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Remember how our function <code class="docutils literal"><span class="pre">lnprob</span></code> required two extra arguments when it
+was called? By setting up our sampler with the <code class="docutils literal"><span class="pre">args</span></code> argument, we&#8217;re
+saying that the probability function should be called as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">lnprob</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">icov</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">p</span></code> is the position of a single walker. If we didn&#8217;t provide any
+<code class="docutils literal"><span class="pre">args</span></code> parameter, the calling sequence would be <code class="docutils literal"><span class="pre">lnprob(p)</span></code> instead.</p>
+<p>It&#8217;s generally a good idea to run a few &#8220;burn-in&#8221; steps in your MCMC
+chain to let the walkers explore the parameter space a bit and get
+settled into the maximum of the density. We&#8217;ll run a burn-in of 100
+steps (yep, I just made that number up... it&#8217;s hard to really know
+how many steps of burn-in you&#8217;ll need before you start) starting from
+our initial guess <code class="docutils literal"><span class="pre">p0</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pos</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You&#8217;ll notice that I saved the final position of the walkers (after the
+100 steps) to a variable called <code class="docutils literal"><span class="pre">pos</span></code>. You can check out what will be
+contained in the other output variables by looking at the documentation for
+the <a class="reference internal" href="../../api/#emcee.EnsembleSampler.run_mcmc" title="emcee.EnsembleSampler.run_mcmc"><code class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.run_mcmc()</span></code></a> function. The call to the
+<a class="reference internal" href="../../api/#emcee.EnsembleSampler.reset" title="emcee.EnsembleSampler.reset"><code class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.reset()</span></code></a> method clears all of the important bookkeeping
+parameters in the sampler so that we get a fresh start. It also clears the
+current positions of the walkers so it&#8217;s a good thing that we saved them
+first.</p>
+<p>Now, we can do our production run of 1000 steps (again, this is probably
+overkill... it&#8217;s generally very silly to take way more samples than you
+need to but never mind that for now):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The sampler now has a property <a class="reference internal" href="../../api/#emcee.EnsembleSampler.chain" title="emcee.EnsembleSampler.chain"><code class="xref py py-attr docutils literal"><span class="pre">EnsembleSampler.chain</span></code></a> that is a
+<code class="docutils literal"><span class="pre">numpy</span></code> array with the shape <code class="docutils literal"><span class="pre">(250,</span> <span class="pre">1000,</span> <span class="pre">50)</span></code>. Take note of that
+shape and make sure that you know where each of those numbers come from.
+A much more useful object is the <a class="reference internal" href="../../api/#emcee.EnsembleSampler.flatchain" title="emcee.EnsembleSampler.flatchain"><code class="xref py py-attr docutils literal"><span class="pre">EnsembleSampler.flatchain</span></code></a> which
+has the shape <code class="docutils literal"><span class="pre">(250000,</span> <span class="pre">50)</span></code> and contains all the samples reshaped into
+a flat list. You can see now that we now have 250 000 unbiased samples of
+the density <span class="math">\(p(\vec{x})\)</span>. You can make histograms of these
+samples to get an estimate of the density that you were sampling:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pl</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">):</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">flatchain</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="mi">100</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s">&quot;step&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&quot;Dimension {0:d}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Another good test of whether or not the sampling went well is to check
+the mean acceptance fraction of the ensemble using the
+<a class="reference internal" href="../../api/#emcee.EnsembleSampler.acceptance_fraction" title="emcee.EnsembleSampler.acceptance_fraction"><code class="xref py py-func docutils literal"><span class="pre">EnsembleSampler.acceptance_fraction()</span></code></a> property:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="s">&quot;Mean acceptance fraction: {0:.3f}&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">acceptance_fraction</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>This number should be between approximately 0.25 and 0.5 if everything
+went as planned.</p>
+<p>Well, that&#8217;s it for this example. You&#8217;ll find the full, unadulterated
+sample code for this demo <a class="reference external" href="https://github.com/dfm/emcee/blob/master/examples/quickstart.py">here</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Quickstart</a><ul>
+<li><a class="reference internal" href="#how-to-sample-a-multi-dimensional-gaussian">How to sample a multi-dimensional Gaussian</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../install/" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="../line/" title="next chapter">Example: Fitting a Model to Data</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
+    </script>
+  </body>
+</html>
