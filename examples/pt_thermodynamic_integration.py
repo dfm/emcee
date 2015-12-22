@@ -25,7 +25,7 @@ out = sampler.run_mcmc(p0, 200)
 
 ln_evidence, ln_error = sampler.thermodynamic_integration_log_evidence()
 evidence = np.exp(ln_evidence)
-error = np.exp(ln_evidence) * ln_error
+error = evidence * ln_error
 print "Evidence={} +/- {}".format(evidence, error)
 
 # Plot of the <ln(Z)> against beta which is integrated over

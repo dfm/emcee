@@ -236,7 +236,7 @@ Then finally we get the evidence and an estimate of the error::
 
     ln_evidence, ln_error = sampler.thermodynamic_integration_log_evidence()
     evidence = np.exp(ln_evidence)
-    error = abs(ln_evidence) * ln_error
+    error = evidence * ln_error
     print "Evidence={} +/- {}".format(evidence, error)
 
 In this case where `a=5`, as defined in the prior, this gives us an evidence of
