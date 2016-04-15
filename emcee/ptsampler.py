@@ -271,7 +271,7 @@ class PTSampler(Sampler):
 
         # Expand the chain in advance of the iterations
         if storechain:
-            nsave = iterations / thin
+            nsave = iterations // thin
             if self._chain is None:
                 isave = 0
                 self._chain = np.zeros((self.ntemps, self.nwalkers, nsave,
