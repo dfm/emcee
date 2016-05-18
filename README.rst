@@ -13,6 +13,8 @@ emcee
         :target: https://github.com/dfm/emcee/blob/master/LICENSE
 .. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
         :target: http://arxiv.org/abs/1202.3665
+.. image:: https://codecov.io/gh/dfm/emcee/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/dfm/emcee
 
 emcee is a stable, well tested Python implementation of the affine-invariant
 ensemble sampler for Markov chain Monte Carlo (MCMC)

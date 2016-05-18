@@ -11,4 +11,11 @@ python:
 install:
   - pip install numpy
   - pip install nose
-script:  nosetests
+  - pip install coverage
+  - pip install codecov
+
+script:
+  - nosetests --with-coverage --cover-package=emcee -sv
+
+after_success:
+  - codecov
