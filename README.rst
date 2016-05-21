@@ -30,8 +30,7 @@ Read the docs at `dan.iel.fm/emcee <http://dan.iel.fm/emcee/>`_.
 Installation
 -------------
 
- pip install emcee
-
+``pip install emcee``
 
 Attribution
 -----------
