@@ -1,7 +1,13 @@
 .. :changelog:
 
-2.1.0 (upcoming)
+2.2.0 (upcoming)
 ++++++++++++++++
+
+- Improved autocorrelation time computation.
+
+
+2.1.0 (2014-05-22)
+++++++++++++++++++
 
 - Removing dependence on ``acor`` extension.
 - Added arguments to ``PTSampler`` function.
