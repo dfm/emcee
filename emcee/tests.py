@@ -149,7 +149,7 @@ class Tests:
             + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
-        print(self.sampler.get_autocorr_time())
+        print(self.sampler.get_autocorr_time(c=2))
 
         assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
             ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "
