@@ -549,19 +549,17 @@ class PTSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, window=50):
+    def get_autocorr_time(self, **kwargs):
         """
         Returns a matrix of autocorrelation lengths for each
         parameter in each temperature of shape ``(Ntemps, Ndim)``.
 
-        :param window: (optional)
-            The size of the windowing function. This is equivalent to the
-            maximum number of lags to use. (default: 50)
+        Any arguments will be passed to :func:`autocorr.integrate_time`.
 
         """
         acors = np.zeros((self.ntemps, self.dim))
 
         for i in range(self.ntemps):
             x = np.mean(self._chain[i, :, :, :], axis=0)
-            acors[i, :] = autocorr.integrated_time(x, window=window)
+            acors[i, :] = autocorr.integrated_time(x, **kwargs)
         return acors
