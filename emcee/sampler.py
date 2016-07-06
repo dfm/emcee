@@ -36,9 +36,12 @@ class Sampler(object):
     """
     def __init__(self, dim, lnprobfn, args=[], kwargs={}):
         self.dim = dim
-        self.lnprobfn = lnprobfn
         self.args = args
         self.kwargs = kwargs
+        # Do a little bit of _magic_ to make the likelihood call with
+        # ``args`` and ``kwargs`` pickleable.
+        self.lnprobfn = _function_wrapper(lnprobfn, self.args, self.kwargs)
+
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -113,7 +116,7 @@ class Sampler(object):
 
     def get_lnprob(self, p):
         """Return the log-probability at the given position."""
-        return self.lnprobfn(p, *self.args, **self.kwargs)
+        return self.lnprobfn(p)
 
     def reset(self):
         """
@@ -177,3 +180,28 @@ class Sampler(object):
         self._last_run_mcmc_result = results[:3]
 
         return results
+
+
+class _function_wrapper(object):
+    """
+    This is a hack to make the likelihood function pickleable when ``args``
+    or ``kwargs`` are also included.
+
+    """
+    def __init__(self, f, args, kwargs):
+        self.f = f
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, x):
+        try:
+            return self.f(x, *self.args, **self.kwargs)
+        except:
+            import traceback
+            print("emcee: Exception while calling your likelihood function:")
+            print("  params:", x)
+            print("  args:", self.args)
+            print("  kwargs:", self.kwargs)
+            print("  exception:")
+            traceback.print_exc()
+            raise
