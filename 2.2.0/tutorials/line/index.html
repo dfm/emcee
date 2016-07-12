@@ -1,0 +1,448 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial: Fitting a Model to Data &mdash; emcee 2.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 2.1.0 documentation" href="../../" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../">emcee 2.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial-fitting-a-model-to-data">
+<h1>Tutorial: Fitting a Model to Data<a class="headerlink" href="#tutorial-fitting-a-model-to-data" title="Permalink to this headline">¶</a></h1>
+<p>If you’re reading this right now then you’re probably interested in
+using emcee to fit a model to some noisy data. On this page, I’ll
+demonstrate how you might do this in the simplest non-trivial model that
+I could think of: fitting a line to data when you don’t believe the
+error bars on your data. The interested reader should check out <a class="reference external" href="http://arxiv.org/abs/1008.4686">Hogg,
+Bovy &amp; Lang (2010)</a> for a much more
+complete discussion of how to fit a line to data in The Real World™ and
+why MCMC might come in handy.</p>
+<p>This tutorial was automatically generated using an IPython notebook that
+can be downloaded <a class="reference external" href="../../_static/notebooks/line.ipynb">here</a>.</p>
+<div class="section" id="generating-fake-data-from-the-model">
+<h2>Generating fake data from the model<a class="headerlink" href="#generating-fake-data-from-the-model" title="Permalink to this headline">¶</a></h2>
+<p>When you approach a new problem, the first step is generally to write
+down the likelihood function (the probability of a dataset given the
+model parameters). This is equivalent to describing the generative
+procedure for the data. In this case, we’re going to consider a linear
+model where the quoted uncertainties are underestimated by a constant
+fractional amount. You can generate a synthetic dataset from this model:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="c"># Choose the &quot;true&quot; parameters.</span>
+<span class="n">m_true</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.9594</span>
+<span class="n">b_true</span> <span class="o">=</span> <span class="mf">4.294</span>
+<span class="n">f_true</span> <span class="o">=</span> <span class="mf">0.534</span>
+
+<span class="c"># Generate some synthetic data from the model.</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+<span class="n">yerr</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">m_true</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">b_true</span>
+<span class="n">y</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f_true</span><span class="o">*</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">+=</span> <span class="n">yerr</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This synthetic dataset (with the underestimated error bars) will look
+something like:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pl</span>
+
+<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">plot_data</span><span class="p">():</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s">&quot;.k&quot;</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">m_true</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">b_true</span><span class="p">,</span> <span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">8.5</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&quot;$x$&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&quot;$y$&quot;</span><span class="p">);</span>
+
+<span class="n">plot_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/line_3_0.png" src="../../_images/line_3_0.png" />
+<p>The true model is shown as the thick black line and the effect of the
+underestimated uncertainties is obvious when you look at this figure.</p>
+</div>
+<div class="section" id="maximum-likelihood-solution">
+<h2>Maximum-likelihood solution<a class="headerlink" href="#maximum-likelihood-solution" title="Permalink to this headline">¶</a></h2>
+<p>The standard method for fitting a line to these data is linear least
+squares. This is equivalent to assuming that the uncertainties on each
+<span class="math">\(y\)</span> measurement are Gaussian, independent, and known. Linear least
+squares is appealing because solving for the parameters—and their
+associated uncertainties—is simply a linear algebraic operation. The
+least squares (or maximum likelihood) solution for these data can be
+computed in Python as follows:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+<span class="n">ivar</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">yerr</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ivar</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">A</span><span class="p">))</span>
+<span class="n">b_ls</span><span class="p">,</span> <span class="n">m_ls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">cov</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ivar</span> <span class="o">*</span> <span class="n">y</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This result gives the following constraints on the slope and intercept
+parameters:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Math</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="s">r&quot;m_\mathrm{{LS}} = {0:.2f} \pm {1:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">m_ls</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cov</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))))</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="s">r&quot;b_\mathrm{{LS}} = {0:.2f} \pm {1:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">b_ls</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cov</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))))</span>
+</pre></div>
+</div>
+<div class="math">
+\[m_\mathrm{LS} = -1.10 \pm 0.02\]</div>
+<div class="math">
+\[b_\mathrm{LS} = 5.44 \pm 0.09\]</div>
+<p>And we can plot the maximum likelihood line on top of the data points
+and compare it to the true line that was used to generate the data:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">plot_data</span><span class="p">()</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">m_ls</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">b_ls</span><span class="p">,</span> <span class="s">&quot;--k&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="../../_images/line_9_0.png" src="../../_images/line_9_0.png" />
+<p>This isn’t an unreasonable result but the uncertainties on the slope and
+intercept seem a little small (because of the small error bars on most
+of the data points).</p>
+</div>
+<div class="section" id="building-the-probabilistic-model">
+<h2>Building the probabilistic model<a class="headerlink" href="#building-the-probabilistic-model" title="Permalink to this headline">¶</a></h2>
+<p>If we relax our above assumption that we know all the uncertainties
+correctly and model them instead, we will find the following likelihood
+function:</p>
+<div class="math">
+\[\ln\,p(y\,|\,x,\sigma,m,b,f) =
+-\frac{1}{2} \sum_n \left[
+  \frac{(y_n-m\,x_n-b)^2}{s_n^2}
+  + \ln \left ( 2\pi\,s_n^2 \right )
+\right]\]</div>
+<p>where</p>
+<div class="math">
+\[s_n^2 = \sigma_n^2+f^2\,(m\,x_n+b)^2 \quad .\]</div>
+<p>Unfortunately, under this model, the isn&#8217;t an analytic maximum
+likelihood solution like least squares. This time, we would need to
+optimize (maximize) this function numerically using something like the
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/optimize.html">scipy.optimize</a>
+module but that&#8217;s a discussion for another time.</p>
+<p>Let&#8217;s ask a different question instead: how do we estimate the
+uncertainties on <span class="math">\(m\)</span> and <span class="math">\(b\)</span>? What&#8217;s more, we probably don&#8217;t
+really care too much about the value of <span class="math">\(f\)</span> but we do want to
+propagate any uncertainties about its value to our final estimates of
+<span class="math">\(m\)</span> and <span class="math">\(b\)</span>. This is where MCMC comes in.</p>
+<p>This isn&#8217;t the place to get into the details of why you might want to
+use MCMC in your research but it is worth commenting that a common
+reason is that you would like to marginalize over some &#8220;nuisance
+parameters&#8221; and find an estimate of the posterior probability function
+(the distribution of parameters that is consistent with your dataset)
+for others. MCMC lets you do both of these things in one fell swoop! You
+need to start by writing down the posterior probability function (up to
+a constant):</p>
+<div class="math">
+\[p (m,b,f\,|\,x,y,\sigma) \propto p(m,b,f)\,p(y\,|\,x,\sigma,m,b,f) \quad .\]</div>
+<p>We have already, written down the (log-)likelihood function</p>
+<div class="math">
+\[p(y\,|\,x,\sigma,m,b,f)\]</div>
+<p>so the missing component is the &#8220;prior&#8221; function</p>
+<div class="math">
+\[p(m,b,f) \quad .\]</div>
+<p>This function encodes any previous knowledge that we have about the
+parameters: results from other experiments, physically acceptable
+ranges, etc. It is necessary that you write down priors if you&#8217;re going
+to use MCMC because all that MCMC does is draw samples from a
+probability distribution and you want that to be a probability
+distribution for your parameters. This is important: <strong>you cannot draw
+parameter samples from your likelihood function</strong>. This is because a
+likelihood function is a probability distribution <strong>over datasets</strong> so,
+conditioned on model parameters, you can draw representative datasets
+(as demonstrated at the beginning of this exercise) but you cannot draw
+parameter samples.</p>
+<p>In this example, we&#8217;ll use uniform (so-called &#8220;uninformative&#8221;) priors on
+<span class="math">\(m\)</span>, <span class="math">\(b\)</span> and the logarithm of <span class="math">\(f\)</span>. For example, we&#8217;ll
+use the following conservative prior on <span class="math">\(m\)</span>:</p>
+<div class="math">
+\[\begin{split}p(m) = \left \{\begin{array}{ll}
+1 / 5.5 \,, &amp; \mbox{if}\,-5 &lt; m &lt; 1/2 \\
+0 \,, &amp; \mbox{otherwise}
+\end{array}
+\right .\end{split}\]</div>
+<p>To implement this in emcee, you would code these functions up in a
+subclass of the <a class="reference external" href="/api/#emcee.BaseWalker">emcee.BaseWalker</a> object as
+implemented below. Take a minute to study this code and compare it to
+the equations from this section. If you&#8217;re not familiar with
+object-oriented programming in Python, don&#8217;t worry because it doesn&#8217;t
+really get more complicated than this.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">emcee</span>
+
+<span class="k">class</span> <span class="nc">LinearModel</span><span class="p">(</span><span class="n">emcee</span><span class="o">.</span><span class="n">BaseWalker</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yerr2</span> <span class="o">=</span> <span class="n">yerr</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">lnpriorfn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">lnf</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="k">if</span> <span class="o">-</span><span class="mf">5.0</span> <span class="o">&lt;</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="ow">and</span> <span class="mf">0.0</span> <span class="o">&lt;</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="mf">10.0</span> <span class="ow">and</span> <span class="o">-</span><span class="mf">10.0</span> <span class="o">&lt;</span> <span class="n">lnf</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="k">def</span> <span class="nf">lnlikefn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">lnf</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">b</span>
+        <span class="n">inv_sigma2</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yerr2</span> <span class="o">+</span> <span class="n">model</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">lnf</span><span class="p">))</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">-</span><span class="n">model</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">inv_sigma2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">inv_sigma2</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>A few comments/questions about this code:</p>
+<ol class="arabic simple">
+<li>It&#8217;s important that the two methods are called <code class="docutils literal"><span class="pre">lnpriorfn</span></code> and
+<code class="docutils literal"><span class="pre">lnlikefn</span></code> (and you need to implement both of them).</li>
+<li>What is the <code class="docutils literal"><span class="pre">self</span></code> argument? What about <code class="docutils literal"><span class="pre">theta</span></code>?</li>
+<li>Why am I returning <code class="docutils literal"><span class="pre">0.0</span></code> from <code class="docutils literal"><span class="pre">lnpriorfn</span></code> instead of something
+like <code class="docutils literal"><span class="pre">-log(5.5)</span></code>?</li>
+</ol>
+</div>
+<div class="section" id="sampling-from-the-posterior-probability">
+<h2>Sampling from the posterior probability<a class="headerlink" href="#sampling-from-the-posterior-probability" title="Permalink to this headline">¶</a></h2>
+<p>After all this setup, it&#8217;s easy to sample this probability distribution
+using emcee. I&#8217;m not going to go into detail about how the algorithm
+works (you should <a class="reference external" href="http://arxiv.org/abs/1202.3665">read the paper</a>)
+but the basic idea is that it takes an &#8220;ensemble&#8221; of &#8220;walkers&#8221; and
+updates the walkers&#8217; coordinates in parameter space. You repeat this
+update many times (storing all the updated coordintes) and this gives a
+list of samples <span class="math">\(\theta\)</span> from the probability distribution
+<span class="math">\(p (m,b,f\,|\,x,y,\sigma)\)</span>.</p>
+<p>To start, you need to choose the coordinates of the walkers in the
+initial ensemble. This can be hard and the quality of your results can
+(in practice) depend on this choice. In this example, we&#8217;ll use 100
+walkers and initialize them in a small Gaussian ball around a reasonable
+first guess (that I chose by looking at the data):</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">ndim</span><span class="p">,</span> <span class="n">nwalkers</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span>
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">Ensemble</span><span class="p">(</span><span class="n">LinearModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yerr</span><span class="p">),</span> <span class="n">coords</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the order of the parameters in the coordinate vectors should
+be the same as the order that you use in your implementation of
+<code class="docutils literal"><span class="pre">LinearModel</span></code> from above.</p>
+<p>When we executed the above code snippet, each walker already computed
+the value of the probabilistic model at its coordinates in parameter
+space. Therefore, we can look at the values for the first walker:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="s">&quot;The first walker has the coordinates: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;and ln-prior={0:.3f}, ln-likelihood={1:.3f}, and lnprobability={2:.3f}&quot;</span>
+      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">lnprior</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">lnlike</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">lnprob</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>The first walker has the coordinates: [-1.00016154  3.99997684 -0.49992283]
+and ln-prior=0.000, ln-likelihood=-48.060, and lnprobability=-48.060
+</pre></div>
+</div>
+<p>Now, let&#8217;s run 500 steps of MCMC (starting from this ensemble) and see
+what happens:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">Sampler</span><span class="p">()</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ensemble</span><span class="p">,</span> <span class="mi">500</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Let&#8217;s plot the coordinates of the walkers as a function of step number
+in the chain (the chain is stored in the <code class="docutils literal"><span class="pre">coords</span></code> property on the
+sampler or it can be accessed more flexibly using the <code class="docutils literal"><span class="pre">get_coords()</span></code>
+function):</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">chain</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">get_coords</span><span class="p">()</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">nm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s">&quot;$m$&quot;</span><span class="p">,</span> <span class="s">&quot;$b$&quot;</span><span class="p">,</span> <span class="s">r&quot;$\ln f$&quot;</span><span class="p">]):</span>
+    <span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">chain</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">],</span> <span class="s">&quot;k&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">locator_params</span><span class="p">(</span><span class="n">tight</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_coords</span><span class="p">(</span><span class="o">-</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/line_19_0.png" src="../../_images/line_19_0.png" />
+<p>It looks like the chain converged after the first 100 steps so we&#8217;ll
+discard those samples and plot the resulting parameter constraints using
+the <a class="reference external" href="https://github.com/dfm/triangle.py">triangle.py</a> package (you
+might need to install it). Note the use of the <code class="docutils literal"><span class="pre">flat=True</span></code> argument in
+the <code class="docutils literal"><span class="pre">get_coords()</span></code> method.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">triangle</span>
+<span class="n">flatchain</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">discard</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span><span class="n">flatchain</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;$m$&quot;</span><span class="p">,</span> <span class="s">&quot;$b$&quot;</span><span class="p">,</span> <span class="s">&quot;$\ln\,f$&quot;</span><span class="p">],</span>
+                <span class="n">truths</span><span class="o">=</span><span class="p">[</span><span class="n">m_true</span><span class="p">,</span> <span class="n">b_true</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">f_true</span><span class="p">)]);</span>
+</pre></div>
+</div>
+<img alt="../../_images/line_21_0.png" src="../../_images/line_21_0.png" />
+<p>This plot shows all the one and two dimensional projections of the
+posterior probability distributions of your parameters. This is useful
+because it quickly demonstrates all of the covariances between
+parameters. Also, the way that you find the marginalized distribution
+for a parameter or set of parameters using the results of the MCMC chain
+is to project the samples into that plane and then make an N-dimensional
+histogram. That means that the corner plot shows the marginalized
+distribution for each parameter independently in the histograms along
+the diagonal and then the marginalized two dimensional distributions in
+the other panels.</p>
+<p>Another good thing to plot is the projection of your results into the
+space of the observed data. To do this, you can choose a few (say 50 in
+this case) samples from the chain and plot them on top of the data
+points:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flatchain</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">flatchain</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">m</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="s">&quot;g&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">plot_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/line_23_0.png" src="../../_images/line_23_0.png" />
+<p>This leaves us with one question: which numbers should go in the
+abstract? There are a few different options for this but my favorite is
+to quote the uncertainties based on the 16th, 50th, and 84th percentiles
+of the samples in the marginalized distributions. To compute these
+numbers for this example, you would run:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">flatchain</span><span class="p">,</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">mean</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">uncert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">nm</span><span class="p">,</span> <span class="n">truth</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s">&quot;m&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;\ln f&quot;</span><span class="p">),</span>
+                                    <span class="p">(</span><span class="n">m_true</span><span class="p">,</span> <span class="n">b_true</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">f_true</span><span class="p">)))):</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Math</span><span class="p">(</span><span class="s">r&quot;{0}_\mathrm{{MCMC}} = {1:.3f} _{{-{2:.3f}}}^{{+{3:.3f}}} \quad (\mathrm{{truth:}}\,{4:.3f})&quot;</span>
+                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span> <span class="n">mean</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">uncert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">uncert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">truth</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="math">
+\[m_\mathrm{MCMC} = -1.004 _{-0.079}^{+0.079} \quad (\mathrm{truth:}\,-0.959)\]</div>
+<div class="math">
+\[b_\mathrm{MCMC} = 4.527 _{-0.357}^{+0.357} \quad (\mathrm{truth:}\,4.294)\]</div>
+<div class="math">
+\[\ln f_\mathrm{MCMC} = -0.761 _{-0.148}^{+0.159} \quad (\mathrm{truth:}\,-0.627)\]</div>
+<p>Which isn&#8217;t half bad when compared to the true values!</p>
+<p>emcee comes with many more advanced features that you can find described
+in these documentation pages but this should be enough to get you
+started. Just update the <code class="docutils literal"><span class="pre">LinearModel</span></code> class to implement
+<code class="docutils literal"><span class="pre">YourSickModel</span></code> and see how it goes!</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tutorial: Fitting a Model to Data</a><ul>
+<li><a class="reference internal" href="#generating-fake-data-from-the-model">Generating fake data from the model</a></li>
+<li><a class="reference internal" href="#maximum-likelihood-solution">Maximum-likelihood solution</a></li>
+<li><a class="reference internal" href="#building-the-probabilistic-model">Building the probabilistic model</a></li>
+<li><a class="reference internal" href="#sampling-from-the-posterior-probability">Sampling from the posterior probability</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
+    </script>
+  </body>
+</html>

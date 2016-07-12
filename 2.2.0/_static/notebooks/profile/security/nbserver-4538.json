@@ -1,0 +1,8 @@
+{
+  "secure": false, 
+  "url": "http://localhost:8888/", 
+  "hostname": "localhost", 
+  "base_url": "/", 
+  "notebook_dir": "/Users/dfm/research/projects/emcee/docs/_static/notebooks", 
+  "port": 8888
+}

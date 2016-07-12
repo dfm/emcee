@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; emcee 2.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 2.2.0 documentation" href="../../" />
+    <link rel="next" title="Quickstart" href="../quickstart/" />
+    <link rel="prev" title="emcee" href="../../" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../quickstart/" title="Quickstart"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../../" title="emcee"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../">emcee 2.2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Since <code class="docutils literal"><span class="pre">emcee</span></code> is a pure Python module, it should be pretty easy to install.
+All you&#8217;ll need <a class="reference external" href="http://numpy.scipy.org/">numpy</a>. There are a bunch of
+different ways to install and I&#8217;ll mention a few below but by far the best
+is to install into a <a class="reference external" href="http://www.virtualenv.org/">virtual environment</a>
+using <a class="reference external" href="http://www.pip-installer.org/">pip</a>.</p>
+<div class="section" id="using-pip">
+<h2>Using pip<a class="headerlink" href="#using-pip" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to install the most recent stable version of <code class="docutils literal"><span class="pre">emcee</span></code> is
+with <a class="reference external" href="http://www.pip-installer.org/">pip</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install emcee
+</pre></div>
+</div>
+<p>You might need to run this using <code class="docutils literal"><span class="pre">sudo</span></code> depending on your Python
+installation. You can also use <code class="docutils literal"><span class="pre">easy_install</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ easy_install emcee
+</pre></div>
+</div>
+<p>but <code class="docutils literal"><span class="pre">pip</span></code> is probably better.</p>
+</div>
+<div class="section" id="from-source">
+<h2>From source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h2>
+<p>Alternatively, you can get the source by downloading a
+<a class="reference external" href="https://github.com/dfm/emcee/tarball/master">tarball</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -OL https://github.com/dfm/emcee/tarball/master
+</pre></div>
+</div>
+<p>or <a class="reference external" href="https://github.com/dfm/emcee/zipball/master">zip archive</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -OL https://github.com/dfm/emcee/zipball/master
+</pre></div>
+</div>
+<p>Once you&#8217;ve downloaded and unpacked the source, you can navigate into the
+root source directory and run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py install
+</pre></div>
+</div>
+</div>
+<div class="section" id="bleeding-edge-development-version">
+<h2>Bleeding edge development version<a class="headerlink" href="#bleeding-edge-development-version" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">emcee</span></code> is being developed actively on <a class="reference external" href="https://github.com/dfm/emcee">GitHub</a> so if you feel like hacking, you can clone
+the source repository</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">dfm</span><span class="o">/</span><span class="n">emcee</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>or <a class="reference external" href="https://github.com/dfm/emcee">fork the repository</a>.</p>
+</div>
+<div class="section" id="test-the-installation">
+<h2>Test the installation<a class="headerlink" href="#test-the-installation" title="Permalink to this headline">¶</a></h2>
+<p>To make sure that the installation went alright, you can run some unit tests
+by running:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;import emcee; emcee.test()&#39;</span>
+</pre></div>
+</div>
+<p>or, if you have <a class="reference external" href="http://nose.readthedocs.org/">nose</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nosetests</span>
+</pre></div>
+</div>
+<p>This might take a few minutes but you shouldn&#8217;t get any errors if all went
+as planned.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#using-pip">Using pip</a></li>
+<li><a class="reference internal" href="#from-source">From source</a></li>
+<li><a class="reference internal" href="#bleeding-edge-development-version">Bleeding edge development version</a></li>
+<li><a class="reference internal" href="#test-the-installation">Test the installation</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../../" title="previous chapter">emcee</a></li>
+      <li>Next: <a href="../quickstart/" title="next chapter">Quickstart</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
+    </script>
+  </body>
+</html>
