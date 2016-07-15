@@ -37,8 +37,8 @@ Printing the sampler's progress
 
 You might want to monitor the progress of the sampler in your terminal while it
 runs.  There are several modules out there that can help you make shiny progress
-bars (e.g., are `progressbar <https://pypi.python.org/pypi/progressbar>` and
-`clint <http://pypi.python.org/pypi/clint/>`), but it's straightforward to
+bars (e.g., are `progressbar <https://pypi.python.org/pypi/progressbar>`_ and
+`clint <http://pypi.python.org/pypi/clint/>`_), but it's straightforward to
 implement a simple progress counter yourself.
 
 The solution here is very similar to the incremental saving snippet.  For
