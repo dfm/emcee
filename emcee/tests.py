@@ -83,6 +83,8 @@ def ln_flat(x):
 class Tests:
 
     def setUp(self):
+        np.random.seed(42)
+
         self.nwalkers = 100
         self.ndim = 5
 
