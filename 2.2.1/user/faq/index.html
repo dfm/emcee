@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FAQ &mdash; emcee 2.2.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="emcee 2.2.1 documentation" href="../../" />
+    <link rel="next" title="API" href="../../api/" />
+    <link rel="prev" title="Parallel-Tempering Ensemble MCMC" href="../pt/" />
+     
+    
+    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700|Alegreya+SC:400,700|Buenard:400,700" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="../../_static/favicon.png">
+
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../api/" title="API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../pt/" title="Parallel-Tempering Ensemble MCMC"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../">emcee 2.2.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="faq">
+<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<p><strong>The not-so-frequently asked questions that still have useful answers</strong></p>
+<div class="section" id="what-are-walkers">
+<span id="walkers"></span><h2>What are &#8220;walkers&#8221;?<a class="headerlink" href="#what-are-walkers" title="Permalink to this headline">¶</a></h2>
+<p>Walkers are the members of the ensemble. They are almost like separate
+Metropolis-Hastings chains but, of course, the proposal distribution for
+a given walker depends on the positions of all the other walkers in the
+ensemble. See <a class="reference external" href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Goodman &amp; Weare (2010)</a> for more details.</p>
+</div>
+<div class="section" id="how-should-i-initialize-the-walkers">
+<h2>How should I initialize the walkers?<a class="headerlink" href="#how-should-i-initialize-the-walkers" title="Permalink to this headline">¶</a></h2>
+<p>The best technique seems to be to start in a small ball around the a priori
+preferred position. Don&#8217;t worry, the walkers quickly branch out and explore
+the rest of the space.</p>
+</div>
+<div class="section" id="wrapping-c-code">
+<h2>Wrapping C++ code<a class="headerlink" href="#wrapping-c-code" title="Permalink to this headline">¶</a></h2>
+<p>There are numerous ways to do it, see
+<a class="reference external" href="https://wiki.python.org/moin/IntegratingPythonWithOtherLanguages#C.2FC.2B-.2B-">the python wiki</a>.</p>
+<p>Extra care has to be taken if mpi support is needed as the mpi4py module used by
+emcee depends on the pickle module to send a function call to different
+processors/cores.</p>
+<p>A minimal extension of the mpi.py example in which the target density is coded
+in C++ and wrapped with the <a class="reference external" href="http://swig.org/">swig library</a> is shown in this
+<a class="reference external" href="https://gist.github.com/fredRos/7122649">gist</a>. It also demonstrates the hacks
+needed to get the pickling to work.</p>
+</div>
+<div class="section" id="parameter-limits">
+<h2>Parameter limits<a class="headerlink" href="#parameter-limits" title="Permalink to this headline">¶</a></h2>
+<p>In order to confine the walkers to a finite volume of the parameter space, have
+your function return negative infinity outside of the volume corresponding to
+the logarithm of 0 prior probability using:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+</pre></div>
+</div>
+<p>Note: if your function is written in C++, use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="o">-</span><span class="n">std</span><span class="p">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">::</span><span class="n">infinity</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>and avoid:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="o">-</span><span class="n">std</span><span class="p">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">::</span><span class="nb">max</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>as it does not have the desired effect.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p><strong>I&#8217;m getting weird spikes in my data/I have low acceptance fractions/both...
+what should I do?</strong></p>
+<p>Double the number of walkers. If that doesn&#8217;t work, double it again. And
+again. Until you run out of RAM. At that point, I don&#8217;t know!</p>
+<p><strong>The walkers are getting stuck in &#8220;islands&#8221; of low likelihood. How can I
+fix that?</strong></p>
+<p>Try increasing the number of walkers. If that doesn&#8217;t work, you can try
+pruning using a clustering algorithm like the one found in
+<a class="reference external" href="http://arxiv.org/abs/1104.2612">arxiv:1104.2612</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+    <a href="../../">
+        <img class="logo" src="../../_static/logo-sidebar.png" alt="Logo"/>
+    </a>
+</p>
+
+<p>
+    emcee is an extensible, pure-Python implementation of
+    Goodman &amp; Weare's
+    <a href="http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml">Affine
+        Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler</a>.
+    It's designed for Bayesian parameter estimation and it's really sweet!
+</p>
+  <h3><a href="../../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#what-are-walkers">What are &#8220;walkers&#8221;?</a></li>
+<li><a class="reference internal" href="#how-should-i-initialize-the-walkers">How should I initialize the walkers?</a></li>
+<li><a class="reference internal" href="#wrapping-c-code">Wrapping C++ code</a></li>
+<li><a class="reference internal" href="#parameter-limits">Parameter limits</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../">Documentation overview</a><ul>
+      <li>Previous: <a href="../pt/" title="previous chapter">Parallel-Tempering Ensemble MCMC</a></li>
+      <li>Next: <a href="../../api/" title="next chapter">API</a></li>
+  </ul></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+    <div class="footer">
+      &copy; Copyright 2012–2013, Dan Foreman-Mackey & contributors.
+    </div>
+    <a href="https://github.com/dfm/emcee" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+            src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+            alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-22909046-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+    </script>
+
+    <script type="text/javascript">
+        var _gauges = _gauges || [];
+        (function() {
+         var t   = document.createElement('script');
+         t.type  = 'text/javascript';
+         t.async = true;
+         t.id    = 'gauges-tracker';
+         t.setAttribute('data-site-id', '510fb7df613f5d10200000c4');
+         t.src = '//secure.gaug.es/track.js';
+         var s = document.getElementsByTagName('script')[0];
+         s.parentNode.insertBefore(t, s);
+        })();
+    </script>
+  </body>
+</html>
