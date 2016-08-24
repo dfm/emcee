@@ -100,10 +100,10 @@ class DESampler(Sampler):
                  runtime_sortingfn=None):
         self.k = nwalkers
         if gamma == None:
-			# ideal gamma: "A Markov Chain Monte Carlo version of the genetic
-			# algorithm Differential Evolution: easy Bayesian computing for real
-			# parameter spaces"
-			self.gamma = 2.38 / (2*dim)**0.5
+            # ideal gamma: "A Markov Chain Monte Carlo version of the genetic
+            # algorithm Differential Evolution: easy Bayesian computing for real
+            # parameter spaces"
+            self.gamma = 2.38 / (2*dim)**0.5
         self.sigma_gamma = sigma_gamma
         self.autoscale_gamma = autoscale_gamma
         self.norm_width = norm_width
@@ -299,12 +299,12 @@ class DESampler(Sampler):
         """
         s = np.atleast_2d(p0)
         Ns = len(s)
-		
-		# vector for proposal steps
+
+        # vector for proposal steps
         q = np.zeros(shape=s.shape)
         
-		# every tenth iteration force gamma to 1
-		# so that we can jump between poles
+        # every tenth iteration force gamma to 1
+        # so that we can jump between poles
         if self.iterations % 50 == 0:
             self.gamma = 1.
         else:
@@ -326,21 +326,21 @@ class DESampler(Sampler):
         for i in xrange(Ns):
             index_first = -1
             index_second = -1
-			
-			# need to find two walkers that are different from
-			# each other and the walker we are going to change
-			
-			# find index of first random vector
+
+            # need to find two walkers that are different from
+            # each other and the walker we are going to change
+
+            # find index of first random vector
             while True:
                 index_first = self._random.randint(0, Ns)
                 if index_first != i:
                     break
-			# find index of second random vector
+            # find index of second random vector
             while True:
                 index_second = self._random.randint(0, Ns)
                 if index_second != i and index_second != index_first:
                     break
-	
+
             q[i] = s[i] + self.gamma*(s[index_first] - s[index_second]) + np.random.normal(scale=self.norm_width, size=self.dim)
 
         newlnprob, blob = self._get_lnprob(q)

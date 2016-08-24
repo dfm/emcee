@@ -179,7 +179,7 @@ class Tests:
 
     def test_nan_lnprob(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-                                       lnprob_gaussian_nan,
+                                       lnprob_gaussian_nan, autoscale_gamma=False,
                                        args=[self.icov])
 
         # If a walker is right at zero, ``lnprobfn`` returns ``np.nan``.
