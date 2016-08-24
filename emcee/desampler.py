@@ -323,7 +323,7 @@ class DESampler(Sampler):
             
 
         # fill q with step proposals
-        for i in xrange(Ns):
+        for i in range(Ns):
             index_first = -1
             index_second = -1
 
