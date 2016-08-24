@@ -174,12 +174,12 @@ class Tests:
     
     def test_demc(self):
         self.sampler = DESampler(self.nwalkers, self.ndim,
-                                       lnprob_gaussian, args=[self.icov])
+                                       lnprob_gaussian, autoscale_gamma=False, args=[self.icov])
         self.check_sampler()
 
     def test_nan_lnprob(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
-                                       lnprob_gaussian_nan, autoscale_gamma=False,
+                                       lnprob_gaussian_nan,
                                        args=[self.icov])
 
         # If a walker is right at zero, ``lnprobfn`` returns ``np.nan``.
