@@ -31,7 +31,7 @@ def ln_likelihood(a_pars):
     else:
         return ln_likelihood
 
-sampler = DifferentialEvolutionSampler(num_walkers, num_pars, ln_likelihood)
+sampler = DESampler(num_walkers, num_pars, ln_likelihood)
 
 l_value_guesses = [1., 4.]
 l_std_guesses = [0.1, 2]

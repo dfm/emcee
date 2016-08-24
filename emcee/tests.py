@@ -10,6 +10,7 @@ import numpy as np
 from .mh import MHSampler
 from .ensemble import EnsembleSampler
 from .ptsampler import PTSampler
+from .desampler import DESampler
 
 logprecision = -4
 
@@ -168,6 +169,11 @@ class Tests:
 
     def test_ensemble(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, args=[self.icov])
+        self.check_sampler()
+    
+    def test_demc(self):
+        self.sampler = DESampler(self.nwalkers, self.ndim,
                                        lnprob_gaussian, args=[self.icov])
         self.check_sampler()
 

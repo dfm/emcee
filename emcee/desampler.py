@@ -1,30 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-An affine invariant Markov chain Monte Carlo (MCMC) sampler.
+A Differential Evolution MCMC algorithm
 
-Goodman & Weare, Ensemble Samplers With Affine Invariance
-   Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80
+Ter Braak:
+A Markov Chain Monte Carlo version of the genetic algorithm
+Differential Evolution: easy Bayesian computing for real
+parameter spaces
+Stat Comput (2006) 16:239–249
+
+
+Nelson, Ford, Payne:
+RUN DMC: AN EFFICIENT, PARALLEL CODE FOR ANALYZING RADIAL VELOCITY OBSERVATIONS
+USING N-BODY INTEGRATIONS AND DIFFERENTIAL EVOLUTION MARKOV CHAIN MONTE CARLO
+arXiv:1311.5229v1
+
 
 """
 
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["DifferentialEvolutionSampler"]
+__all__ = ["DESampler"]
 
 import numpy as np
 
 from . import autocorr
 from .sampler import Sampler
+from .interruptible_pool import InterruptiblePool
 
 
-class DifferentialEvolutionSampler(Sampler):
+class DESampler(Sampler):
     """
-    A generalized Ensemble sampler that uses 2 ensembles for parallelization.
+    A generalized Differential Evolution.
     The ``__init__`` function will raise an ``AssertionError`` if
-    ``k < 2 * dim`` (and you haven't set the ``live_dangerously`` parameter)
-    or if ``k`` is odd.
+    ``k < dim`` (and you haven't set the ``live_dangerously`` parameter).
 
     **Warning**: The :attr:`chain` member of this object has the shape:
     ``(nwalkers, nlinks, dim)`` where ``nlinks`` is the number of steps
@@ -34,7 +44,7 @@ class DifferentialEvolutionSampler(Sampler):
     different so be careful!
 
     :param nwalkers:
-        The number of Goodman & Weare "walkers".
+        The population size - perfectly equivalent to Ensemble walkers.
 
     :param dim:
         Number of dimensions in the parameter space.
@@ -44,8 +54,17 @@ class DifferentialEvolutionSampler(Sampler):
         returns the natural logarithm of the posterior probability for that
         position.
 
-    :param a: (optional)
-        The proposal scale parameter. (default: ``2.0``)
+    :param gamma: (optional)
+        The initial proposal scale parameter. (default: ``2.38 / (2*dim)**0.5``)
+        
+    :param sigma_gamma: (optional)
+        The standard deviation used to make sure proposals are not on a grid (gamma = gamma_0*(1 + N(0, sigma_gamma**2)))
+        
+    :param autoscale_gamma: (optional)
+        Choose whether or not to automatically scale gamma via Nelson, Ford, Payne paper listed above.  Defaults to True.  If median acceptance fraction falls below 0.2, gamma is scaled by 0.9.  If median acceptance fraction risees above 0.31, gamma is scaled by 1.1.  Otherwise, gamma is scaled (median acceptance fraction / 0.25)**0.5.
+        
+    :param norm_width: (optional)
+        Standard deviation of normal distribution drawn from to make sure all of parameter space is accessible as required for an MCMC.
 
     :param args: (optional)
         A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
@@ -76,7 +95,7 @@ class DifferentialEvolutionSampler(Sampler):
         :ref:`loadbalance` for more information.
 
     """
-    def __init__(self, nwalkers, dim, lnpostfn, gamma=None, norm_width=1e-4, args=[], kwargs={},
+    def __init__(self, nwalkers, dim, lnpostfn, gamma=None, sigma_gamma=1e-2, autoscale_gamma=True, norm_width=1e-4, args=[], kwargs={},
                  postargs=None, threads=1, pool=None, live_dangerously=False,
                  runtime_sortingfn=None):
         self.k = nwalkers
@@ -85,6 +104,8 @@ class DifferentialEvolutionSampler(Sampler):
 			# algorithm Differential Evolution: easy Bayesian computing for real
 			# parameter spaces"
 			self.gamma = 2.38 / (2*dim)**0.5
+        self.sigma_gamma = sigma_gamma
+        self.autoscale_gamma = autoscale_gamma
         self.norm_width = norm_width
         self.threads = threads
         self.pool = pool
@@ -92,7 +113,7 @@ class DifferentialEvolutionSampler(Sampler):
 
         if postargs is not None:
             args = postargs
-        super(DifferentialEvolutionSampler, self).__init__(dim, lnpostfn, args=args,
+        super(DESampler, self).__init__(dim, lnpostfn, args=args,
                                               kwargs=kwargs)
 
         # Do a little bit of _magic_ to make the likelihood call with
@@ -122,7 +143,7 @@ class DifferentialEvolutionSampler(Sampler):
         bookkeeping parameters.
 
         """
-        super(DifferentialEvolutionSampler, self).reset()
+        super(DESampler, self).reset()
         self.naccepted = np.zeros(self.k)
         self._chain = np.empty((self.k, 0, self.dim))
         self._lnprob = np.empty((self.k, 0))
@@ -284,10 +305,22 @@ class DifferentialEvolutionSampler(Sampler):
         
 		# every tenth iteration force gamma to 1
 		# so that we can jump between poles
-        if self.iterations % 10 == 0:
-            gamma = 1.
+        if self.iterations % 50 == 0:
+            self.gamma = 1.
         else:
-            gamma = self.gamma
+            self.gamma = self.gamma*(1. + self._random.randn()*self.sigma_gamma)
+        
+            # check if we want to autoscale gamma
+            # aim for acceptance fraction of 0.25
+            median_acceptance_fraction = np.median(self.acceptance_fraction)
+            if self.autoscale_gamma:
+                if median_acceptance_fraction < 0.2:
+                    self.gamma *= 0.9
+                elif median_acceptance_fraction > 0.31:
+                    self.gamma *= 1.1
+                else:
+                    self.gamma *= (median_acceptance_fraction/0.25)**0.5
+            
 
         # fill q with step proposals
         for i in xrange(Ns):
@@ -308,7 +341,7 @@ class DifferentialEvolutionSampler(Sampler):
                 if index_second != i and index_second != index_first:
                     break
 	
-            q[i] = s[i] + gamma*(s[index_first] - s[index_second]) + np.random.normal(scale=self.norm_width, size=self.dim)
+            q[i] = s[i] + self.gamma*(s[index_first] - s[index_second]) + np.random.normal(scale=self.norm_width, size=self.dim)
 
         newlnprob, blob = self._get_lnprob(q)
 
@@ -408,7 +441,7 @@ class DifferentialEvolutionSampler(Sampler):
         ``(k, iterations, dim)``.
 
         """
-        return super(DifferentialEvolutionSampler, self).chain
+        return super(DESampler, self).chain
 
     @property
     def flatchain(self):
@@ -427,7 +460,7 @@ class DifferentialEvolutionSampler(Sampler):
         step for each walker. The shape is ``(k, iterations)``.
 
         """
-        return super(DifferentialEvolutionSampler, self).lnprobability
+        return super(DESampler, self).lnprobability
 
     @property
     def flatlnprobability(self):
@@ -436,7 +469,7 @@ class DifferentialEvolutionSampler(Sampler):
         to ``flatchain`` rather than ``chain``.
 
         """
-        return super(DifferentialEvolutionSampler, self).lnprobability.flatten()
+        return super(DESampler, self).lnprobability.flatten()
 
     @property
     def acceptance_fraction(self):
@@ -445,7 +478,7 @@ class DifferentialEvolutionSampler(Sampler):
         walker.
 
         """
-        return super(DifferentialEvolutionSampler, self).acceptance_fraction
+        return super(DESampler, self).acceptance_fraction
 
     @property
     def acor(self):
