@@ -70,9 +70,6 @@ class DESampler(Sampler):
         
     :param norm_width: (optional)
         Standard deviation of normal distribution drawn from to make sure all of parameter space is accessible as required for an MCMC.
-        
-    :param percent_snooker: (optional)
-        The percentage of steps that should take a "snooker step" rather than a parallel step.  (default: ``0.2``)
 
     :param args: (optional)
         A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
@@ -103,7 +100,7 @@ class DESampler(Sampler):
         :ref:`loadbalance` for more information.
 
     """
-    def __init__(self, nwalkers, dim, lnpostfn, gamma=None, sigma_gamma=1e-2, autoscale_gamma=True, norm_width=1e-4, percent_snooker=0.2, args=[], kwargs={},
+    def __init__(self, nwalkers, dim, lnpostfn, gamma=None, sigma_gamma=1e-2, autoscale_gamma=True, norm_width=1e-4, args=[], kwargs={},
                  postargs=None, threads=1, pool=None, live_dangerously=False,
                  runtime_sortingfn=None):
         self.k = nwalkers
@@ -115,7 +112,6 @@ class DESampler(Sampler):
         self.sigma_gamma = sigma_gamma
         self.autoscale_gamma = autoscale_gamma
         self.norm_width = norm_width
-        self.percent_snooker = percent_snooker
         self.threads = threads
         self.pool = pool
         self.runtime_sortingfn = runtime_sortingfn
@@ -136,8 +132,6 @@ class DESampler(Sampler):
                 "The number of walkers needs to be more than the "
                 "dimension of your parameter space... unless you're "
                 "crazy!")
-                
-        assert self.percent_snooker >= 0. and self. percent_snooker <= 1., ("Snooker probability must be between 0 and 1!")
 
         if self.threads > 1 and self.pool is None:
             self.pool = InterruptiblePool(self.threads)
@@ -344,91 +338,35 @@ class DESampler(Sampler):
             #print(self.gamma)
 
 
-        # check if this step will be a snooker update
-        # or a parallel update
-        if self._random.rand() < self.percent_snooker:
-            use_snooker = True
-        else:
-            use_snooker = False
 
 
-        if not use_snooker:
-            for i in range(Ns):
-                index_first = -1
-                index_second = -1
+        # fill q with step proposals
+        for i in range(Ns):
+            index_first = -1
+            index_second = -1
 
-                # need to find two walkers that are different from
-                # each other and the walker we are going to change
+            # need to find two walkers that are different from
+            # each other and the walker we are going to change
 
-                # find index of first random vector
-                while True:
-                    index_first = self._random.randint(0, Ns)
-                    if index_first != i:
-                        break
-                # find index of second random vector
-                while True:
-                    index_second = self._random.randint(0, Ns)
-                    if index_second != i and index_second != index_first:
-                        break
-                        
-                q[i] = s[i] + ( (self.gamma + self._random.normal(scale=self.norm_width, size=self.dim)) * (s[index_first] - s[index_second]) )
-        else:
-            norm_squared_proposal_to_partner = np.zeros(shape=Ns)
-            norm_squared_original_to_partner = np.zeros(shape=Ns)
-            for i in range(Ns):
-                # partner is the other point that will define
-                # the line for the jump
-                index_partner = -1
-                # first and second points are the points that
-                # will be projected onto the line given by
-                # the partner and used to calculate the jump
-                # distance
-                index_first = -1
-                index_second = -1
-
-                # need to find two walkers that are different from
-                # each other and the walker we are going to change
-
-                # find index of random points
-                while True:
-                    index_partner = self._random.randint(0, Ns)
-                    if index_partner != i:
-                        break
-                while True:
-                    index_first = self._random.randint(0, Ns)
-                    if index_first != i and index_first != index_partner:
-                        break
-                # find index of second random vector
-                while True:
-                    index_second = self._random.randint(0, Ns)
-                    if index_second != i and index_second != index_partner and index_second != index_first:
-                        break
-
-                # define vectors for othogonal projections
-                # of points 1 and 2
-                v_p = s[index_partner] - s[i]
-                v_1 = s[index_first] - s[i]
-                v_2 = s[index_second] - s[i]
-                
-                # determine points 1 and 2 projected along line
-                p_1 = s[i] + np.dot(v_1, v_p)/np.dot(v_p, v_p)*v_p
-                p_2 = s[i] + np.dot(v_2, v_p)/np.dot(v_p, v_p)*v_p
-                
-                q[i] = s[i] + self.gamma*(p_1 - p_2)
-                norm_squared_proposal_to_partner[i] = np.dot(q[i]-s[index_partner], q[i]-s[index_partner])
-                norm_squared_original_to_partner[i] = np.dot(s[i]-s[index_partner], s[i]-s[index_partner])
-                #print(norm_squared_proposal_to_partner[i])
-
+            # find index of first random vector
+            while True:
+                index_first = self._random.randint(0, Ns)
+                if index_first != i:
+                    break
+            # find index of second random vector
+            while True:
+                index_second = self._random.randint(0, Ns)
+                if index_second != i and index_second != index_first:
+                    break
+                    
+            q[i] = s[i] + ( (self.gamma + self._random.normal(scale=self.norm_width, size=self.dim)) * (s[index_first] - s[index_second]) )
+            
 
         newlnprob, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
-        if not use_snooker:
-            ln_metropolis_ratio = newlnprob - lnprob0
-        else:
-            ln_metropolis_ratio = newlnprob - lnprob0 + (self.dim-1)/2.*np.log(norm_squared_proposal_to_partner) - (self.dim-1)/2.*np.log(norm_squared_original_to_partner)
-        
-        accept = (ln_metropolis_ratio > np.log(self._random.rand(len(ln_metropolis_ratio))))
+        lnpdiff = newlnprob - lnprob0
+        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
 
         return q, newlnprob, accept, blob
 
