@@ -175,7 +175,7 @@ class PTSampler(Sampler):
         assert self.nwalkers % 2 == 0, \
             "The number of walkers must be even."
         assert self.nwalkers >= 2*self.dim, \
-            "The number of walkers must be greater than 2*dimension."
+            "The number of walkers must be greater than or equal to 2*dimension."
 
         self._chain = None
         self._lnprob = None
