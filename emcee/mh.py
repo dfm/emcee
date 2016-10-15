@@ -115,10 +115,7 @@ class MHSampler(Sampler):
             diff = newlnprob - lnprob
 
             # M-H acceptance ratio
-            if diff < 0:
-                diff = np.exp(diff) - self._random.rand()
-
-            if diff > 0:
+            if diff >= 0.0 or diff >= np.log(self._random.rand()):
                 p = q
                 lnprob = newlnprob
                 self.naccepted += 1

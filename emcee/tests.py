@@ -166,6 +166,13 @@ class Tests:
                                  args=[self.icov])
         self.check_sampler(N=self.N * self.nwalkers, p0=self.p0[0])
 
+    def test_mh_unif(self):
+        f = lambda x: 0.0 if np.all((0.0 <= x) & (x <= 1.0)) else -np.inf
+        self.sampler = MHSampler(self.cov, self.ndim, f)
+        self.sampler.run_mcmc(np.random.rand(self.ndim), 100)
+        chain = self.sampler.chain
+        assert np.any(np.abs(np.diff(chain, axis=0)) > 0.0)
+
     def test_ensemble(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
                                        lnprob_gaussian, args=[self.icov])
