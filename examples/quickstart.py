@@ -18,8 +18,8 @@ def lnprob(x, mu, icov):
     diff = x-mu
     return -np.dot(diff,np.dot(icov,diff))/2.0
 
-# We'll sample a 50-dimensional Gaussian...
-ndim = 50
+# We'll sample a 10-dimensional Gaussian...
+ndim = 10
 # ...with randomly chosen mean position...
 means = np.random.rand(ndim)
 # ...and a positive definite, non-trivial covariance matrix.
@@ -31,8 +31,8 @@ cov  = np.dot(cov,cov)
 # Invert the covariance matrix first.
 icov = np.linalg.inv(cov)
 
-# We'll sample with 250 walkers.
-nwalkers = 250
+# We'll sample with 50 walkers.
+nwalkers = 50
 
 # Choose an initial set of positions for the walkers.
 p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
@@ -40,18 +40,18 @@ p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])
 
-# Run 100 steps as a burn-in.
-pos, prob, state = sampler.run_mcmc(p0, 100)
+# Run 5000 steps as a burn-in.
+pos, prob, state = sampler.run_mcmc(p0, 5000)
 
 # Reset the chain to remove the burn-in samples.
 sampler.reset()
 
-# Starting from the final position in the burn-in chain, sample for 1000
+# Starting from the final position in the burn-in chain, sample for 100000
 # steps.
-sampler.run_mcmc(pos, 1000, rstate0=state)
+sampler.run_mcmc(pos, 100000, rstate0=state)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
-# has an entry for each walker so, in this case, it is a 250-dimensional
+# has an entry for each walker so, in this case, it is a 50-dimensional
 # vector.
 print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 
