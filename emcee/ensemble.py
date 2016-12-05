@@ -379,7 +379,11 @@ class EnsembleSampler(Sampler):
             p, idx = self.runtime_sortingfn(p)
 
         # Run the log-probability calculations (optionally in parallel).
-        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
+        if self.collect_pos == True:
+            # If collect_pos set to true, collect all positions and evaluate lnprobfn in one go
+            results = self.lnprobfn(p)
+        else:
+            results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
         try:
             lnprob = np.array([float(l[0]) for l in results])
