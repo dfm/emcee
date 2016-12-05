@@ -382,7 +382,7 @@ class EnsembleSampler(Sampler):
         # Run the log-probability calculations (optionally in parallel).
         if self.collect_pos == True:
             # If collect_pos set to true, collect all positions and evaluate lnprobfn in one go
-            results = self.lnprobfn(p.T)
+            results = self.lnprobfn(p)
         else:
             results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
