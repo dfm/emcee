@@ -85,6 +85,7 @@ class EnsembleSampler(Sampler):
         self.threads = threads
         self.pool = pool
         self.runtime_sortingfn = runtime_sortingfn
+        self.collect_pos = False
 
         if postargs is not None:
             args = postargs
