@@ -85,7 +85,7 @@ class EnsembleSampler(Sampler):
         self.threads = threads
         self.pool = pool
         self.runtime_sortingfn = runtime_sortingfn
-        self.collect_pos = False
+        self.vectorize = False
 
         if postargs is not None:
             args = postargs
@@ -380,8 +380,8 @@ class EnsembleSampler(Sampler):
             p, idx = self.runtime_sortingfn(p)
 
         # Run the log-probability calculations (optionally in parallel).
-        if self.collect_pos == True:
-            # If collect_pos set to true, collect all positions and evaluate lnprobfn in one go
+        if self.vectorize == True:
+            # If vectorize  set to true, collect all positions and evaluate lnprobfn in one go
             results = self.lnprobfn(p)
         else:
             results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
