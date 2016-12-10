@@ -79,13 +79,13 @@ class EnsembleSampler(Sampler):
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={},
                  postargs=None, threads=1, pool=None, live_dangerously=False,
-                 runtime_sortingfn=None):
+                 runtime_sortingfn=None, vectorize=False):
         self.k = nwalkers
         self.a = a
         self.threads = threads
         self.pool = pool
         self.runtime_sortingfn = runtime_sortingfn
-        self.vectorize = False
+        self.vectorize = vectorize
 
         if postargs is not None:
             args = postargs
