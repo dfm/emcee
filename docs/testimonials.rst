@@ -56,6 +56,11 @@ Here is a *very* incomplete list of users:
 * `Ransom et al. (2014) <http://arxiv.org/abs/1401.0535>`_
 * `Pérez et al. (2014) <http://arxiv.org/abs/1402.0832>`_
 * `Oliver et al. (2014) <http://dx.doi.org/10.1063/1.4866813>`_
+* `Narbutis et al. (2014) <http://arxiv.org/abs/1410.2514>`_
+* `Narbutis et al. (2014) <http://arxiv.org/abs/1410.2521>`_
+* `Kirichenko et al. (2015) <http://arxiv.org/abs/1501.04594>`_
+* `Privon et al. (2015) <http://adsabs.harvard.edu/abs/2015ApJ...814...39P>`_
+* `Lenz et al. (2016) <http://adsabs.harvard.edu/abs/2016A%26A...586A.121L>`_
 
 Please `let us know <mailto:danfm@nyu.edu>`_ if your work should be included
 in this list or `fork the repository <https://github.com/dfm/emcee>`_ and add

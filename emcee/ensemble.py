@@ -13,11 +13,11 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["EnsembleSampler"]
 
-import multiprocessing
 import numpy as np
 
 from . import autocorr
 from .sampler import Sampler
+from .interruptible_pool import InterruptiblePool
 
 
 class EnsembleSampler(Sampler):
@@ -104,7 +104,7 @@ class EnsembleSampler(Sampler):
                 "crazy!")
 
         if self.threads > 1 and self.pool is None:
-            self.pool = multiprocessing.Pool(self.threads)
+            self.pool = InterruptiblePool(self.threads)
 
     def clear_blobs(self):
         """
@@ -476,18 +476,32 @@ class EnsembleSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, window=50, fast=False):
+    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
 
-        :param window: (optional)
-            The size of the windowing function. This is equivalent to the
-            maximum number of lags to use. (default: 50)
-
+        :param low: (Optional[int])
+            The minimum window size to test.
+            (default: ``10``)
+        :param high: (Optional[int])
+            The maximum window size to test.
+            (default: ``x.shape[axis] / (2*c)``)
+        :param step: (Optional[int])
+            The step size for the window search.
+            (default: ``1``)
+        :param c: (Optional[float])
+            The minimum number of autocorrelation times needed to trust the
+            estimate.
+            (default: ``10``)
+        :param fast: (Optional[bool])
+            If ``True``, only use the first ``2^n`` (for the largest power)
+            entries for efficiency.
+            (default: False)
         """
         return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
-                                        window=window, fast=fast)
+                                        low=low, high=high, step=step, c=c,
+                                        fast=fast)
 
 
 class _function_wrapper(object):

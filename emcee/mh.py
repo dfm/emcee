@@ -115,10 +115,7 @@ class MHSampler(Sampler):
             diff = newlnprob - lnprob
 
             # M-H acceptance ratio
-            if diff < 0:
-                diff = np.exp(diff) - self._random.rand()
-
-            if diff > 0:
+            if diff >= 0.0 or diff >= np.log(self._random.rand()):
                 p = q
                 lnprob = newlnprob
                 self.naccepted += 1
@@ -140,14 +137,28 @@ class MHSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, window=50):
+    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
 
-        :param window: (optional)
-            The size of the windowing function. This is equivalent to the
-            maximum number of lags to use. (default: 50)
-
+        :param low: (Optional[int])
+            The minimum window size to test.
+            (default: ``10``)
+        :param high: (Optional[int])
+            The maximum window size to test.
+            (default: ``x.shape[axis] / (2*c)``)
+        :param step: (Optional[int])
+            The step size for the window search.
+            (default: ``1``)
+        :param c: (Optional[float])
+            The minimum number of autocorrelation times needed to trust the
+            estimate.
+            (default: ``10``)
+        :param fast: (Optional[bool])
+            If ``True``, only use the first ``2^n`` (for the largest power)
+            entries for efficiency.
+            (default: False)
         """
-        return autocorr.integrated_time(self.chain, axis=0, window=window)
+        return autocorr.integrated_time(self.chain, axis=0, low=low,
+                                        high=high, step=step, c=c, fast=fast)

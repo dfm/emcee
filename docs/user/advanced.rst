@@ -32,6 +32,38 @@ the end of a file, you could do something like:
         f.close()
 
 
+Printing the sampler's progress
+-------------------------------
+
+You might want to monitor the progress of the sampler in your terminal while it
+runs.  There are several modules out there that can help you make shiny progress
+bars (e.g., are `progressbar <https://pypi.python.org/pypi/progressbar>`_ and
+`clint <http://pypi.python.org/pypi/clint/>`_), but it's straightforward to
+implement a simple progress counter yourself.
+
+The solution here is very similar to the incremental saving snippet.  For
+example, to display the current percentage:
+
+.. code-block:: python
+
+    nsteps = 5000
+    for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
+        if (i+1) % 100 == 0:
+            print("{0:5.1%}".format(float(i) / nsteps))
+
+Or, to display a rudimentary progress bar that updates iteself on a single line:
+
+.. code-block:: python
+
+    import sys
+
+    nsteps = 5000
+    width = 30
+    for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
+        n = int((width+1) * float(i) / nsteps)
+        sys.stdout.write("\r[{0}{1}]".format('#' * n, ' ' * (width - n)))
+    sys.stdout.write("\n")
+
 Multiprocessing
 ---------------
 
@@ -110,6 +142,7 @@ function, we also change the output of :func:`EnsembleSampler.sample` and
 :func:`EnsembleSampler.run_mcmc` to return 4 values (position, probability,
 random number generator state and blobs) instead of just the first three.
 
+.. _mpi:
 
 Using MPI to distribute the computations
 ----------------------------------------

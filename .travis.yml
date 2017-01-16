@@ -1,10 +1,20 @@
 language: python
+
 python:
   - "2.6"
   - "2.7"
-  - "3.2"
   - "3.3"
+  - "3.4"
+  - "3.5"
+
 install:
   - pip install numpy
   - pip install nose
-script:  nosetests
+  - pip install coverage
+  - pip install codecov
+
+script:
+  - nosetests --with-coverage --cover-package=emcee -sv
+
+after_success:
+  - codecov
