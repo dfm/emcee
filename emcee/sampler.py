@@ -173,7 +173,7 @@ class Sampler(object):
             if rstate0 is None:
                 rstate0 = self._last_run_mcmc_result[2]
 
-        for results in self.sample(pos0, lnprob0, rstate0, iterations=N,
+        for results in self.sample(pos0, lnprob0, rstate0=rstate0, iterations=N,
                                    **kwargs):
             pass
 
