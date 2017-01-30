@@ -24,12 +24,12 @@ class EnsembleSampler(Sampler):
     """
     A generalized Ensemble sampler that uses 2 ensembles for parallelization.
     The ``__init__`` function will raise an ``AssertionError`` if
-    ``k < 2 * dim`` (and you haven't set the ``live_dangerously`` parameter)
-    or if ``k`` is odd.
+    ``nwalkers < 2 * dim`` (and you haven't set the ``live_dangerously`` parameter)
+    or if ``nwalkers`` is odd.
 
     **Warning**: The :attr:`chain` member of this object has the shape:
     ``(nwalkers, nlinks, dim)`` where ``nlinks`` is the number of steps
-    taken by the chain and ``k`` is the number of walkers.  Use the
+    taken by the chain and ``nwalkers`` is the number of walkers.  Use the
     :attr:`flatchain` property to get the chain flattened to
     ``(nlinks, dim)``. For users of pre-1.0 versions, this shape is
     different so be careful!
@@ -172,7 +172,7 @@ class EnsembleSampler(Sampler):
 
         * ``lnprob`` - The list of log posterior probabilities for the
           walkers at positions given by ``pos`` . The shape of this object
-          is ``(nwalkers, dim)``.
+          is ``(nwalkers,)``.
 
         * ``rstate`` - The current state of the random number generator.
 
@@ -452,7 +452,8 @@ class EnsembleSampler(Sampler):
     def flatlnprobability(self):
         """
         A shortcut to return the equivalent of ``lnprobability`` but aligned
-        to ``flatchain`` rather than ``chain``.
+        to ``flatchain`` rather than ``chain``. The shape is
+        ``(k * iterations)``.
 
         """
         return super(EnsembleSampler, self).lnprobability.flatten()
