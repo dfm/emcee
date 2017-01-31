@@ -1,20 +1,36 @@
 language: python
 
-python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+env:
+  - TOXENV=py26
+  - TOXENV=py27
+  - TOXENV=py33
+  - TOXENV=py34
+  #- TOXENV=py35
+  #- TOXENV=flake8
+  #- TOXENV=pylint
+  #- TOXENV=docs
+  #- TOXENV=check-manifest
+  #- TOXENV=checkreadme
+
+# Needed to work around current travis python setup
+matrix:
+  include:
+    - python: 3.5
+      env:
+        - TOXENV=py35
+
 
 install:
-  - pip install numpy
-  - pip install nose
-  - pip install coverage
-  - pip install codecov
+  - pip install codecov tox
 
 script:
-  - nosetests --with-coverage --cover-package=emcee -sv
+  - tox
 
 after_success:
   - codecov

@@ -15,3 +15,5 @@ docs.tar
 *.pdf
 
 .coverage
+
+.tox
