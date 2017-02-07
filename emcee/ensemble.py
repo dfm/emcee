@@ -100,8 +100,7 @@ class EnsembleSampler(Sampler):
         if not live_dangerously:
             assert self.k >= 2 * self.dim, (
                 "The number of walkers needs to be more than twice the "
-                "dimension of your parameter space... unless you're "
-                "crazy!")
+                "dimension of your parameter space.")
 
         if self.threads > 1 and self.pool is None:
             self.pool = InterruptiblePool(self.threads)
