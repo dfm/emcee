@@ -1,0 +1,2 @@
+document/* linguist-documentation
+Makefile linguist-vendored=true
