@@ -195,7 +195,7 @@ class EnsembleSampler(Sampler):
         lnprob = lnprob0
         blobs = blobs0
         if lnprob is None:
-            lnprob, blobs = self._get_lnprob(p)
+            lnprob, p, blobs = self._get_lnprob(p)
 
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
@@ -223,7 +223,7 @@ class EnsembleSampler(Sampler):
             if mh_proposal is not None:
                 # Draw proposed positions & evaluate lnprob there
                 q = mh_proposal(p)
-                newlnp, blob = self._get_lnprob(q)
+                newlnp, q, blob = self._get_lnprob(q)
 
                 # Accept if newlnp is better; and ...
                 acc = (newlnp > lnprob)
@@ -329,7 +329,7 @@ class EnsembleSampler(Sampler):
 
         # Calculate the proposed positions and the log-probability there.
         q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
-        newlnprob, blob = self._get_lnprob(q)
+        newlnprob, q, blob = self._get_lnprob(q)
 
         # Decide whether or not the proposals should be accepted.
         lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
@@ -383,9 +383,11 @@ class EnsembleSampler(Sampler):
 
         try:
             lnprob = np.array([float(l[0]) for l in results])
-            blob = [l[1] for l in results]
+            p = np.array([l[1] for l in results])
+            blob = [l[2] for l in results]
         except (IndexError, TypeError):
-            lnprob = np.array([float(l) for l in results])
+            lnprob = np.array([float(l[0]) for l in results])
+            p = np.array([l[1] for l in results])
             blob = None
 
         # sort it back according to the original order - get the same
@@ -407,7 +409,7 @@ class EnsembleSampler(Sampler):
             # Finally raise exception.
             raise ValueError("lnprob returned NaN.")
 
-        return lnprob, blob
+        return lnprob, p, blob
 
     @property
     def blobs(self):
@@ -427,7 +429,7 @@ class EnsembleSampler(Sampler):
         ``(k, iterations, dim)``.
 
         """
-        return super(EnsembleSampler, self).chain
+        return super(EnsembleSampler, self).chain[:, :self.iterations, :]
 
     @property
     def flatchain(self):
@@ -446,7 +448,7 @@ class EnsembleSampler(Sampler):
         step for each walker. The shape is ``(k, iterations)``.
 
         """
-        return super(EnsembleSampler, self).lnprobability
+        return super(EnsembleSampler, self).lnprobability[:, :self.iterations]
 
     @property
     def flatlnprobability(self):
