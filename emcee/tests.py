@@ -10,6 +10,7 @@ import numpy as np
 from .mh import MHSampler
 from .ensemble import EnsembleSampler
 from .ptsampler import PTSampler
+from .desampler import DESampler
 
 logprecision = -4
 
@@ -112,7 +113,10 @@ class Tests:
         for i in self.sampler.sample(p0, iterations=N):
             pass
 
-        assert np.mean(self.sampler.acceptance_fraction) > 0.25
+        if isinstance(self.sampler, DESampler):
+            assert np.mean(self.sampler.acceptance_fraction) > 0.2
+        else:
+            assert np.mean(self.sampler.acceptance_fraction) > 0.25
         assert np.all(self.sampler.acceptance_fraction > 0)
 
         chain = self.sampler.flatchain
@@ -180,6 +184,11 @@ class Tests:
     def test_ensemble(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
                                        lnprob_gaussian, args=[self.icov])
+        self.check_sampler()
+    
+    def test_demc(self):
+        self.sampler = DESampler(self.nwalkers, self.ndim,
+                                       lnprob_gaussian, autoscale_gamma=True, args=[self.icov])
         self.check_sampler()
 
     def test_nan_lnprob(self):

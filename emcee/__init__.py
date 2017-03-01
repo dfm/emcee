@@ -7,6 +7,7 @@ from .sampler import *
 from .mh import *
 from .ensemble import *
 from .ptsampler import *
+from .desampler import *
 from . import utils
 from . import autocorr
 
