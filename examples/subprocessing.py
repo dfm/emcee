@@ -153,7 +153,7 @@ class Pool(object):
                 freepopens.remove(popen)
 
             # see whether any stdouts have output
-            stdouts = select.select( waitingstdout.keys(), [], [], 0.001 )[0]
+            stdouts = select.select( waitingstdout.keys(), [], [] )[0]
             for stdout in stdouts:
                 # see whether process has written out probability
                 lnprob = self.get_lnprob(stdout)
