@@ -53,7 +53,7 @@ setup(
                     + rd("HISTORY.rst"),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
-    install_requires=["numpy"],
+    install_requires=["numpy >= 1.6.0"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
