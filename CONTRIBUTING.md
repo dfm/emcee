@@ -2,10 +2,10 @@
 
 ### Expectations
 
-emcee is developed an maintained in my spare time and, while I try to be
+emcee is developed and maintained in my spare time and, while I try to be
 responsive, I don't always get to every issue immediately. If it has been more
 than a week or two, feel free to ping me to try to get my attention. Do not
-email me directly. Instead, all discussion should happen on [the mailing
+email me directly; all discussion should happen on [the mailing
 list](https://groups.google.com/forum/#!forum/emcee-users).
 
 ### Did you find a bug?
@@ -36,7 +36,7 @@ before opening a pull request.
 
 ### Do you have questions about the code or about MCMC in general?
 
-Ask any questions on the [emcee-users mailing
+**Do not open an issue.** Ask any questions on the [emcee-users mailing
 list](https://groups.google.com/forum/#!forum/emcee-users).
 
 Thanks!
