@@ -292,3 +292,18 @@ class Tests:
         # None is given and that it records whatever it does
         s.run_mcmc(None, N=self.N)
         assert s.chain.shape[1] == 2 * self.N
+
+        # also make sure `reset_burn_in` still allows ``run_mcmc(None)``, but
+        # resets the chain
+        s.reset_burn_in()
+        s.run_mcmc(None, N=self.N)
+        assert s.chain.shape[1] == self.N
+
+        #and ensure regular `reset` does *not*
+        s.reset()
+        try:
+            s.run_mcmc(None, N=1)
+            assert False, 'run_mcmc ran after reset - that should be impossible!'
+        except ValueError:
+            # it *should* raise a ValueError
+            pass
