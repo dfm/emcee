@@ -7,6 +7,7 @@ Defines various nose unit tests
 
 import numpy as np
 
+from .autocorr import integrated_time
 from .mh import MHSampler
 from .ensemble import EnsembleSampler
 from .ptsampler import PTSampler
@@ -292,3 +293,13 @@ class Tests:
         # None is given and that it records whatever it does
         s.run_mcmc(None, N=self.N)
         assert s.chain.shape[1] == 2 * self.N
+
+    def test_autocorr_multi_works(self):
+        xs = np.random.randn(16384, 2)
+
+        acls_multi = integrated_time(xs) # This throws exception unconditionally in buggy impl's
+        acls_single = np.array([integrated_time(xs[:,i]) for i in range(xs.shape[1])])
+
+        assert np.all(np.abs(acls_multi - acls_single) < 2)
+
+        

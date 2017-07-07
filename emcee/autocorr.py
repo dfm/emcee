@@ -58,7 +58,7 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
         low (Optional[int]): The minimum window size to test. (default: ``10``)
         high (Optional[int]): The maximum window size to test. (default:
             ``x.shape[axis] / (2*c)``)
-        step (Optional[int]): The step size for the window search. (default:
+        step (Optional[int]): The step size for the window search. (default: 
             ``1``)
         c (Optional[float]): The minimum number of autocorrelation times
             needed to trust the estimate. (default: ``10``)
@@ -94,16 +94,22 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
     # Loop over proposed window sizes until convergence is reached.
     if high is None:
         high = int(size / c)
+
+    if oned:
+        acl_ests = 2.0*np.cumsum(f) - 1.0
+    else:
+        acl_ests = 2.0*np.cumsum(f, axis=axis) - 1.0
+
     for M in np.arange(low, high, step).astype(int):
         # Compute the autocorrelation time with the given window.
         if oned:
             # Special case 1D for simplicity.
-            tau = 1 + 2 * np.sum(f[1:M])
+            tau = acl_ests[M]
         else:
             # N-dimensional case.
-            m[axis] = slice(1, M)
-            tau = 1 + 2 * np.sum(f[m], axis=axis)
-
+            m[axis] = M
+            tau = acl_ests[m]        
+        
         # Accept the window size if it satisfies the convergence criterion.
         if np.all(tau > 1.0) and M > c * tau.max():
             if full_output:
