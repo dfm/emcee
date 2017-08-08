@@ -125,6 +125,42 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
                         "the autocorrelation time")
 
 
+def exponential_time(x, axis=0, fast=False):
+    """Estimate the exponential autocorrelation time of a time series.
+
+    This estimates tau_exp by least-squared fitting an exponential to the
+    autocorrelation function up to the maximal T for which C(T) > e^-1, as
+    described in Akeret et al (2013) "CosmoHammer: Cosmological parameter
+    estimation with the MCMC Hammer"
+
+    Args:
+        x: The time series. If multidimensional, set the time axis using the
+            ``axis`` keyword argument and the function will be computed for
+            every other axis.
+        axis (Optional[int]): The time axis of ``x``. Assumed to be the first
+            axis if not specified.
+        fast (Optional[bool]): If ``True``, only use the first ``2^n`` (for
+            the largest power) entries for efficiency. (default: False)
+
+    Returns:
+        float or array: An estimate of the integrated autocorrelation time of
+            the time series ``x`` computed along the axis ``axis``.
+
+    """
+    ndim = x.shape[axis-1]
+
+    def m(x, y):
+        """ Return m estimated from least-squares fit to y=mx """
+        return -1/np.sum(y*x, axis=axis)*np.sum(x**2, axis=axis)
+
+    # Compute the autocorrelation function.
+    f = function(x, axis=axis, fast=fast)
+    idxs = np.argmin((f > np.exp(-1)).astype(int), axis=0)
+    tau_exp = [m(np.arange(idxs[j]), np.log(f[:idxs[j], j]))
+               for j in range(ndim)]
+    return tau_exp
+
+
 class AutocorrError(Exception):
     """Raised if the chain is too short to estimate an autocorrelation time.
 
