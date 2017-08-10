@@ -116,7 +116,7 @@ In Python, you would code this up as:
         m, b, lnf = theta
         model = m * x + b
         inv_sigma2 = 1.0/(yerr**2 + model**2*np.exp(2*lnf))
-        return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
+        return -0.5*(np.sum((y-model)**2*inv_sigma2 + np.log(inv_sigma2)))
 
 In this code snippet, you'll notice that I'm using the logarithm of *f*
 instead of *f* itself for reasons that will become clear in the next section.
