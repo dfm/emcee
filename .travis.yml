@@ -11,6 +11,7 @@ python:
 install:
   - pip install numpy
   - pip install nose
+  - pip install "backports.weakref;python_version<'3.4'"
   - pip install coverage
   - pip install codecov
 
