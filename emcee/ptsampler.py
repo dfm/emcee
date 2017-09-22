@@ -92,6 +92,9 @@ class PTLikePrior(object):
 
         if lp == float('-inf'):
             return lp, lp
+        elif np.isinf(lp):
+            lp = float('-inf')
+            return lp, lp
 
         return self.logl(x, *self.loglargs, **self.loglkwargs), lp
 
