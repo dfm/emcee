@@ -157,10 +157,18 @@ The ``args`` optional argument is not available in the
 method if you need to pass arguments to the ``lnlike`` or ``lnprior``
 functions and do not want to use a global variable.
 
-The ``thermodynamic_integration_log_evidence`` uses thermodynamic
-integration (see, e.g., `Goggans & Chi (2004), AIP Conf Proc, 707, 59
-<http://dx.doi.org/10.1063/1.1751356>`_) to estimate the evidence
-integral.  Define the evidence as a function of inverse temperature:
+The ``thermodynamic_integration_log_evidence`` method uses
+thermodynamic integration (see, e.g., `Goggans & Chi (2004), AIP Conf
+Proc, 707, 59 <http://dx.doi.org/10.1063/1.1751356>`_) to estimate the
+evidence integral.  Note that thermodynamic integration requires a
+proper prior.  For example, even though the multimodal distribution
+above has a well-defined evidence integral, it cannot be computed
+through thermodynamic integration because the prior is improper.  A
+simple change in the prior to cut it off at :math:`\pm 10\sigma` would
+enable thermodynamic integration to proceed without meaningfully
+changing the evidence integral.
+
+Define the evidence as a function of inverse temperature:
 
 .. math::
 
