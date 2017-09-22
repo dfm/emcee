@@ -169,7 +169,7 @@ class Sampler(object):
                                  "been called.")
             pos0 = self._last_run_mcmc_result[0]
             if lnprob0 is None:
-                rstate0 = self._last_run_mcmc_result[1]
+                lnprob0 = self._last_run_mcmc_result[1]
             if rstate0 is None:
                 rstate0 = self._last_run_mcmc_result[2]
 
