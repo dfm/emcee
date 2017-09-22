@@ -14,6 +14,10 @@ from __future__ import (division, print_function, absolute_import,
 __all__ = ["EnsembleSampler"]
 
 import numpy as np
+try:
+    from weakref import finalize
+except ImportError:
+    from backports.weakref import finalize
 
 from . import autocorr
 from .sampler import Sampler
@@ -105,6 +109,7 @@ class EnsembleSampler(Sampler):
 
         if self.threads > 1 and self.pool is None:
             self.pool = InterruptiblePool(self.threads)
+            self._pool_finalizer = finalize(self, InterruptiblePool.terminate, self.pool)
 
     def clear_blobs(self):
         """

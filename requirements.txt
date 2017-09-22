@@ -1,1 +1,2 @@
 numpy
+backports.weakref;python_version<'3.4'
