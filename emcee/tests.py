@@ -6,7 +6,6 @@ Defines various nose unit tests
 """
 
 import numpy as np
-import scipy.optimize as op
 
 from .autocorr import integrated_time
 from .mh import MHSampler
@@ -326,7 +325,8 @@ class Tests:
             m, b, lnf = theta
             model = m * x + b
             inv_sigma2 = 1.0 / (yerr ** 2 + model ** 2 * np.exp(2 * lnf))
-            return -0.5 * (np.sum((y - model) ** 2 * inv_sigma2 - np.log(inv_sigma2)))
+            return -0.5 * (np.sum((y - model) ** 2 * inv_sigma2 -
+                                  np.log(inv_sigma2)))
 
         def lnprior(theta):
             m, b, lnf = theta
@@ -341,10 +341,13 @@ class Tests:
             return lp + lnlike(theta, x, y, yerr)
 
         nll = lambda *args: -lnlike(*args)
-        result = op.minimize(nll, [m_true, b_true, np.log(f_true)], args=(x, y, yerr))
+
+        # minimize(nll, [m_true, b_true, np.log(f_true)], args=(x, y, yerr))
+        init_guess = np.array([-0.95612643,  4.23596208, -0.66826006])
 
         ndim, nwalkers = 3, 100
-        pos = [result["x"] + 1e-4 * np.random.randn(ndim) for i in range(nwalkers)]
+        pos = [init_guess + 1e-4 * np.random.randn(ndim) for
+               i in range(nwalkers)]
 
         sampler = EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
         s = sampler.sample(pos, iterations=65, thin=2)
