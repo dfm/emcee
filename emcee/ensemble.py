@@ -59,7 +59,7 @@ class EnsembleSampler(Sampler):
     :param postargs: (optional)
         Alias of ``args`` for backwards compatibility.
 
-    :param threads: (optional)
+    :param threads: (deprecated; ignored)
         The number of threads to use for parallelization. If ``threads == 1``,
         then the ``multiprocessing`` module is not used but if
         ``threads > 1``, then a ``Pool`` object is created and calls to
@@ -78,11 +78,14 @@ class EnsembleSampler(Sampler):
 
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={},
-                 postargs=None, threads=1, pool=None, live_dangerously=False,
+                 postargs=None, threads=None, pool=None, live_dangerously=False,
                  runtime_sortingfn=None):
+        if threads is not None:
+            logging.warn("the 'threads' argument is deprecated; "
+                         "use 'pool' instead")
+
         self.k = nwalkers
         self.a = a
-        self.threads = threads
         self.pool = pool
         self.runtime_sortingfn = runtime_sortingfn
 
@@ -102,9 +105,6 @@ class EnsembleSampler(Sampler):
                 "The number of walkers needs to be more than twice the "
                 "dimension of your parameter space unless you know what "
                 "you're getting yourself into...")
-
-        if self.threads > 1 and self.pool is None:
-            self.pool = InterruptiblePool(self.threads)
 
     def clear_blobs(self):
         """
