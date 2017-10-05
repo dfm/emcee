@@ -1,0 +1,13 @@
+[report]
+omit =
+    docs/*
+    *__init__*
+
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    raise ImportError
+    except ImportError
+    def __len__
+    def __repr__
+    logging.warn
