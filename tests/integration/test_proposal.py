@@ -42,7 +42,7 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
     # standard deviation.
     samps = sampler.get_chain(flat=True)
     mu, sig = np.mean(samps, axis=0), np.std(samps, axis=0)
-    assert np.all(np.abs(mu) < 0.07), "Incorrect mean"
+    assert np.all(np.abs(mu) < 0.08), "Incorrect mean"
     assert np.all(np.abs(sig - 1) < 0.05), "Incorrect standard deviation"
 
     if ndim == 1:

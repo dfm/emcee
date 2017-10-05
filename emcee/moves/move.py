@@ -15,7 +15,6 @@ class Move(object):
                accepted, subset=None):
         if subset is None:
             subset = np.ones(len(coords), dtype=bool)
-        inds = np.arange(len(coords))
         m1 = subset & accepted
         m2 = accepted[subset]
         coords[m1] = new_coords[m2]

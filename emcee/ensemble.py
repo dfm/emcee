@@ -350,10 +350,7 @@ class EnsembleSampler(object):
           this position or ``None`` if nothing was returned.
 
         """
-        if coords is None:
-            p = self.pos
-        else:
-            p = coords
+        p = coords
 
         # Check that the parameters are in physical ranges.
         if np.any(np.isinf(p)):

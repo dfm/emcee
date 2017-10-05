@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function
 
+import warnings
+
 import pytest
 import numpy as np
 
@@ -11,6 +13,8 @@ __all__ = ["test_live_dangerously"]
 
 
 def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
+    warnings.filterwarnings("error")
+
     # Set up the random number generator.
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, 2 * nwalkers)
@@ -20,9 +24,9 @@ def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
     # walkers.
     with pytest.raises(RuntimeError):
         proposal.propose(coords, np.random.randn(nwalkers), None,
-                         lambda x: (np.zeros(nwalkers), None), np.random)
+                         lambda x: (np.zeros(len(x)), None), np.random)
 
     # Living dangerously...
     proposal.live_dangerously = True
     proposal.propose(coords, np.random.randn(nwalkers), None,
-                     lambda x: (np.zeros(nwalkers), None), np.random)
+                     lambda x: (np.zeros(len(x)), None), np.random)

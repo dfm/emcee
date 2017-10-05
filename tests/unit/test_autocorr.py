@@ -40,3 +40,15 @@ def test_too_short(seed=1234, ndim=3, N=100):
     with pytest.raises(AutocorrError):
         integrated_time(x, low=100)
     tau = integrated_time(x, quiet=True)  # NOQA
+
+
+def test_autocorr_multi_works():
+    np.random.seed(42)
+    xs = np.random.randn(16384, 2)
+
+    # This throws exception unconditionally in buggy impl's
+    acls_multi = integrated_time(xs)
+    acls_single = np.array([integrated_time(xs[:, i])
+                            for i in range(xs.shape[1])])
+
+    assert np.all(np.abs(acls_multi - acls_single) < 2)
