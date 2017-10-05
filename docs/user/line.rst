@@ -227,7 +227,7 @@ log-probability function is:
 
     def lnprob(theta, x, y, yerr):
         lp = lnprior(theta)
-        if not np.isfinite(lp):
+        if np.isinf(lp):
             return -np.inf
         return lp + lnlike(theta, x, y, yerr)
 
