@@ -6,6 +6,13 @@ import numpy as np
 
 __all__ = ["function", "integrated_time", "AutocorrError"]
 
+def next_pow_two(n):
+    """Returns the next power of two greater than or equal to `n`."""
+
+    i = 1
+    while i < n:
+        i = i << 1
+    return i
 
 def function(x, axis=0, fast=False):
     """Estimate the autocorrelation function of a time series using the FFT.
@@ -16,8 +23,8 @@ def function(x, axis=0, fast=False):
             every other axis.
         axis (Optional[int]): The time axis of ``x``. Assumed to be the first
             axis if not specified.
-        fast (Optional[bool]): If ``True``, only use the first ``2^n`` (for
-            the largest power) entries for efficiency. (default: False)
+        fast (Optional[bool]): (depricated) ignored; the algorithm
+            always pads to the nearest power of two.
 
     Returns:
         array: The autocorrelation function of the time series.
@@ -25,18 +32,13 @@ def function(x, axis=0, fast=False):
     """
     x = np.atleast_1d(x)
     m = [slice(None), ] * len(x.shape)
+    mexpand = [slice(None), ]*len(x.shape)
+    mexpand[axis] = np.newaxis
 
-    # For computational efficiency, crop the chain to the largest power of
-    # two if requested.
-    if fast:
-        n = int(2**np.floor(np.log2(x.shape[axis])))
-        m[axis] = slice(0, n)
-        x = x
-    else:
-        n = x.shape[axis]
+    n = next_pow_two(x.shape[axis]) 
 
     # Compute the FFT and then (from that) the auto-correlation function.
-    f = np.fft.fft(x - np.mean(x, axis=axis), n=2*n, axis=axis)
+    f = np.fft.fft(x - np.mean(x, axis=axis)[mexpand], n=2*n, axis=axis)
     m[axis] = slice(0, n)
     acf = np.fft.ifft(f * np.conjugate(f), axis=axis)[m].real
     m[axis] = 0
@@ -57,7 +59,7 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
             every other axis.
         low (Optional[int]): The minimum window size to test. (default: ``10``)
         high (Optional[int]): The maximum window size to test. (default:
-            ``x.shape[axis] / (2*c)``)
+            ``x.shape[axis] / 2``)
         step (Optional[int]): The step size for the window search. (default: 
             ``1``)
         c (Optional[float]): The minimum number of autocorrelation times
@@ -66,8 +68,8 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
             the autocorrelation time. (default: ``False``)
         axis (Optional[int]): The time axis of ``x``. Assumed to be the first
             axis if not specified.
-        fast (Optional[bool]): If ``True``, only use the first ``2^n`` (for
-            the largest power) entries for efficiency. (default: False)
+        fast (Optional[bool]): (depricated) ignored; the algorithm
+            always pads to the nearest power of two.
 
     Returns:
         float or array: An estimate of the integrated autocorrelation time of
@@ -93,7 +95,7 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
 
     # Loop over proposed window sizes until convergence is reached.
     if high is None:
-        high = int(size / c)
+        high = int(size)
 
     if oned:
         acl_ests = 2.0*np.cumsum(f) - 1.0
@@ -115,11 +117,6 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
             if full_output:
                 return tau, M
             return tau
-
-        # If the autocorrelation time is too long to be estimated reliably
-        # from the chain, it should fail.
-        if c * tau.max() >= size:
-            break
 
     raise AutocorrError("The chain is too short to reliably estimate "
                         "the autocorrelation time")
