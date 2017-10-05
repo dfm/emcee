@@ -1,17 +1,15 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-from .sampler import *
-from .mh import *
-from .ensemble import *
-from .ptsampler import *
-from . import utils
+from __future__ import print_function, absolute_import
+
+__version__ = "3.0.0.dev0"
+
+from .ensemble import EnsembleSampler
+
+from . import moves
 from . import autocorr
 
-
-__version__ = "2.2.1"
+__all__ = ["EnsembleSampler", "moves", "autocorr"]
 
 
 def test():
