@@ -28,7 +28,7 @@ the end of a file, you could do something like:
         position = result[0]
         f = open("chain.dat", "a")
         for k in range(position.shape[0]):
-            f.write("{0:4d} {1:s}\n".format(k, " ".join(position[k])))
+            f.write("{0:4d} {1:s}\n".format(k, " ".join(map(str,position[k]))))
         f.close()
 
 
