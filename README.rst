@@ -28,7 +28,7 @@ literature.
 Documentation
 -------------
 
-Read the docs at `dan.iel.fm/emcee <http://dan.iel.fm/emcee/>`_.
+Read the docs at `emcee.readthedocs.io <http://emcee.readthedocs.io/>`_.
 
 Attribution
 -----------
