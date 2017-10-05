@@ -1,21 +1,39 @@
-language: python
+sudo: false
+language: generic
+dist: trusty
 
-python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
+matrix:
+    include:
+
+        # Linux, Python 2.7
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.11
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.12
+
+        # Linux, Python 3.5
+        - os: linux
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12
+
+        # Linux, Python 3.6
+        - os: linux
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.11
+        - os: linux
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.12
+
+        # OSX
+        - os: osx
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.12
+        - os: osx
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.12
 
 install:
-  - pip install numpy
-  - pip install nose
-  - pip install coverage
-  - pip install codecov
+    - source .ci/travis.sh
 
 script:
-  - nosetests --with-coverage --cover-package=emcee -sv
+    - py.test -v --cov emcee
 
 after_success:
-  - codecov
+    - coveralls
