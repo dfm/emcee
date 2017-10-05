@@ -58,8 +58,8 @@ class MHMove(Move):
         new_log_probs, new_blobs = log_prob_fn(q)
 
         # Loop over the walkers and update them accordingly.
-        lnpdiff = log_probs - new_log_probs + factors
-        accepted = (lnpdiff > 0.0) | (random.rand(nwalkers) < np.exp(lnpdiff))
+        lnpdiff = new_log_probs - log_probs + factors
+        accepted = np.log(random.rand(nwalkers)) < lnpdiff
 
         # Update the parameters
         coords, log_probs, blobs = self.update(

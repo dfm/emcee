@@ -3,54 +3,31 @@
 
 import os
 import sys
-import re
-
-try:
-    from setuptools import setup
-    setup
-except ImportError:
-    from distutils.core import setup
-    setup
-
+from setuptools import setup
 
 if sys.argv[-1] == "publish":
     os.system("python setup.py sdist upload")
     sys.exit()
 
-# Handle encoding
-major, minor1, minor2, release, serial = sys.version_info
-if major >= 3:
-    def rd(filename):
-        f = open(filename, encoding="utf-8")
-        r = f.read()
-        f.close()
-        return r
+# Hackishly inject a constant into builtins to enable importing of the
+# package before all the dependencies are built.
+if sys.version_info[0] < 3:
+    import __builtin__ as builtins
 else:
-    def rd(filename):
-        f = open(filename)
-        r = f.read()
-        f.close()
-        return r
-
-vre = re.compile("__version__ = \"(.*?)\"")
-m = rd(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                    "emcee", "__init__.py"))
-version = vre.findall(m)[0]
-
+    import builtins
+builtins.__EMCEE_SETUP__ = True
+import emcee  # NOQA
 
 setup(
     name="emcee",
-    version=version,
+    version=emcee.__version__,
     author="Daniel Foreman-Mackey",
-    author_email="danfm@nyu.edu",
-    packages=["emcee"],
-    url="http://dan.iel.fm/emcee/",
+    author_email="foreman.mackey@gmail.com",
+    packages=["emcee", "emcee.moves"],
+    url="http://emcee.readthedocs.io",
     license="MIT",
-    description="Kick ass affine-invariant ensemble MCMC sampling",
-    long_description=rd("README.rst") + "\n\n"
-                    + "Changelog\n"
-                    + "---------\n\n"
-                    + rd("HISTORY.rst"),
+    description="Ensemble MCMC sampling toolkit",
+    long_description=open("README.rst").read(),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
     install_requires=["numpy"],

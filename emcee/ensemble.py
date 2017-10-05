@@ -14,6 +14,7 @@ from __future__ import (division, print_function, absolute_import,
 __all__ = ["EnsembleSampler"]
 
 import logging
+from collections import Iterable
 
 import numpy as np
 
@@ -105,6 +106,7 @@ class EnsembleSampler(object):
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
         self._random = np.random.mtrand.RandomState()
+        self._random.set_state(np.random.get_state())
 
         self.reset()
 
@@ -215,6 +217,8 @@ class EnsembleSampler(object):
         # it's current state.
         self.random_state = rstate0
         p = np.array(p0)
+        if np.shape(p) != (self.k, self.dim):
+            raise ValueError("incompatible input dimensions")
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
@@ -222,6 +226,8 @@ class EnsembleSampler(object):
         blobs = blobs0
         if log_prob is None:
             log_prob, blobs = self.compute_log_prob(p)
+        if np.shape(log_prob) != (self.k, ):
+            raise ValueError("incompatible input dimensions")
 
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
@@ -402,6 +408,10 @@ class EnsembleSampler(object):
         return self.get_chain()
 
     @property
+    def log_prob(self):
+        return self.get_log_prob()
+
+    @property
     def blobs(self):
         """
         Get the list of "blobs" produced by sampling. The result is a list
@@ -439,7 +449,7 @@ class EnsembleSampler(object):
         the chain.
 
         """
-        return self.get_log_probability()
+        return self.get_log_prob()
 
     @property
     def flatlnprobability(self):
@@ -449,7 +459,7 @@ class EnsembleSampler(object):
         ``(k * iterations)``.
 
         """
-        return self.get_log_probability(flat=True)
+        return self.get_log_prob(flat=True)
 
     def get_chain(self, **kwargs):
         return self.get_value("_chain", **kwargs)
@@ -457,10 +467,15 @@ class EnsembleSampler(object):
     def get_blobs(self, **kwargs):
         return self.get_value("_blobs", **kwargs)
 
-    def get_log_probability(self, **kwargs):
+    def get_log_prob(self, **kwargs):
         return self.get_value("_log_prob", **kwargs)
 
     def get_value(self, name, flat=False, thin=1, discard=0):
+        if self.thinned_iteration <= 0:
+            raise AttributeError("You must run the sampler with "
+                                 "'store == True' before accessing the "
+                                 "results")
+
         v = getattr(self, name)[discard:self.thinned_iteration:thin]
         if flat:
             s = list(v.shape[1:])
@@ -477,8 +492,7 @@ class EnsembleSampler(object):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, low=10, high=None, step=1, c=10,
-                          discard=0, thin=1):
+    def get_autocorr_time(self, discard=0, thin=1, **kwargs):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
@@ -502,8 +516,8 @@ class EnsembleSampler(object):
 
         """
         x = np.mean(self.get_chain(discard=discard, thin=thin), axis=1)
-        return autocorr.integrated_time(x, axis=0,
-                                        low=low, high=high, step=step, c=c)
+        kwargs["axis"] = 0
+        return autocorr.integrated_time(x, **kwargs)
 
 
 class _function_wrapper(object):

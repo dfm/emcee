@@ -2,9 +2,12 @@
 
 from __future__ import division, print_function
 
+import logging
+
 import numpy as np
 
 __all__ = ["function", "integrated_time", "AutocorrError"]
+
 
 def next_pow_two(n):
     """Returns the next power of two greater than or equal to `n`."""
@@ -13,6 +16,7 @@ def next_pow_two(n):
     while i < n:
         i = i << 1
     return i
+
 
 def function(x, axis=0, fast=False):
     """Estimate the autocorrelation function of a time series using the FFT.
@@ -35,7 +39,7 @@ def function(x, axis=0, fast=False):
     mexpand = [slice(None), ]*len(x.shape)
     mexpand[axis] = np.newaxis
 
-    n = next_pow_two(x.shape[axis]) 
+    n = next_pow_two(x.shape[axis])
 
     # Compute the FFT and then (from that) the auto-correlation function.
     f = np.fft.fft(x - np.mean(x, axis=axis)[mexpand], n=2*n, axis=axis)
@@ -46,7 +50,7 @@ def function(x, axis=0, fast=False):
 
 
 def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
-                    axis=0, fast=False):
+                    axis=0, fast=False, quiet=False):
     """Estimate the integrated autocorrelation time of a time series.
 
     This estimate uses the iterative procedure described on page 16 of `Sokal's
@@ -60,7 +64,7 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
         low (Optional[int]): The minimum window size to test. (default: ``10``)
         high (Optional[int]): The maximum window size to test. (default:
             ``x.shape[axis] / 2``)
-        step (Optional[int]): The step size for the window search. (default: 
+        step (Optional[int]): The step size for the window search. (default:
             ``1``)
         c (Optional[float]): The minimum number of autocorrelation times
             needed to trust the estimate. (default: ``10``)
@@ -84,6 +88,9 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
     """
     size = 0.5 * x.shape[axis]
     if int(c * low) >= size:
+        if quiet:
+            logging.warn("The chain is too short")
+            return
         raise AutocorrError("The chain is too short")
 
     # Compute the autocorrelation function.
@@ -110,16 +117,22 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
         else:
             # N-dimensional case.
             m[axis] = M
-            tau = acl_ests[m]        
-        
+            tau = acl_ests[m]
+
         # Accept the window size if it satisfies the convergence criterion.
         if np.all(tau > 1.0) and M > c * tau.max():
             if full_output:
                 return tau, M
             return tau
 
-    raise AutocorrError("The chain is too short to reliably estimate "
-                        "the autocorrelation time")
+    msg = ("The chain is too short to reliably estimate the autocorrelation "
+           "time.")
+    if tau is not None:
+        msg += " Current estimate: \n{0}".format(tau)
+    if quiet:
+        logging.warn(msg)
+        return None
+    raise AutocorrError(msg)
 
 
 class AutocorrError(Exception):
