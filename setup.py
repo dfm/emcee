@@ -26,7 +26,8 @@ setup(
     packages=["emcee", "emcee.moves"],
     url="http://emcee.readthedocs.io",
     license="MIT",
-    description="Ensemble MCMC sampling toolkit",
+    description=("The Python ensemble sampling toolkit for affine-invariant "
+                 "MCMC"),
     long_description=open("README.rst").read(),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,

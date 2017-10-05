@@ -198,7 +198,8 @@ div.body p, div.body dd, div.body li {
 }
 
 div.highlight {
-    background-color: white;
+    background: #eee;
+    padding-left: 10px;
 }
 
 dt:target, .highlight {
@@ -343,7 +344,7 @@ ul, ol {
 }
 
 pre {
-    background: #eee;
+    /*background: #eee;*/
     padding: 7px 30px;
     margin: 15px -30px;
     line-height: 1.3em;

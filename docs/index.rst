@@ -52,7 +52,7 @@ User Guide
    :maxdepth: 2
 
    user/install
-   user/quickstart
+   tutorials/quickstart
    user/line
    user/advanced
    user/pt
