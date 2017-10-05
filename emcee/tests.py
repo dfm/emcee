@@ -29,54 +29,6 @@ def lnprob_gaussian_nan(x, icov):
     return result
 
 
-def log_unit_sphere_volume(ndim):
-    if ndim % 2 == 0:
-        logfactorial = 0.0
-        for i in range(1, ndim / 2 + 1):
-            logfactorial += np.log(i)
-        return ndim / 2.0 * np.log(np.pi) - logfactorial
-    else:
-        logfactorial = 0.0
-        for i in range(1, ndim + 1, 2):
-            logfactorial += np.log(i)
-        return (ndim + 1) / 2.0 * np.log(2.0) \
-            + (ndim - 1) / 2.0 * np.log(np.pi) - logfactorial
-
-
-class LogLikeGaussian(object):
-    def __init__(self, icov):
-        """Initialize a gaussian PDF with the given inverse covariance
-        matrix.  If not ``None``, ``cutoff`` truncates the PDF at the
-        given number of sigma from the origin (i.e. the PDF is
-        non-zero only on an ellipse aligned with the principal axes of
-        the distribution).  Without this cutoff, thermodynamic
-        integration with a flat prior is logarithmically divergent."""
-
-        self.icov = icov
-
-    def __call__(self, x):
-        dist2 = lnprob_gaussian(x, self.icov)
-
-        return dist2
-
-
-class LogPriorGaussian(object):
-    def __init__(self, icov, cutoff=None):
-        self.icov = icov
-        self.cutoff = cutoff
-
-    def __call__(self, x):
-        dist2 = lnprob_gaussian(x, self.icov)
-
-        if self.cutoff is not None:
-            if -dist2 > self.cutoff * self.cutoff / 2.0:
-                return float('-inf')
-            else:
-                return 0.0
-        else:
-            return 0.0
-
-
 def ln_flat(x):
     return 0.0
 
@@ -249,15 +201,6 @@ class Tests:
                                        lnprob_gaussian, args=[self.icov],
                                        threads=2)
         self.check_sampler()
-
-    def test_pt_sampler(self):
-        cutoff = 10.0
-        self.sampler = PTSampler(self.ntemp, self.nwalkers, self.ndim,
-                                 LogLikeGaussian(self.icov),
-                                 LogPriorGaussian(self.icov, cutoff=cutoff))
-        p0 = np.random.multivariate_normal(mean=self.mean, cov=self.cov,
-                                           size=(self.ntemp, self.nwalkers))
-        self.check_pt_sampler(cutoff, p0=p0, N=1000)
 
     def test_blobs(self):
         lnprobfn = lambda p: (-0.5 * np.sum(p ** 2), np.random.rand())
