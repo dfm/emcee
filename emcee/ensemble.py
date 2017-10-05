@@ -13,11 +13,13 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["EnsembleSampler"]
 
+import logging
+
 import numpy as np
 
 from . import autocorr
 from .sampler import Sampler
-from .interruptible_pool import InterruptiblePool
+from .moves import StretchMove
 
 
 class EnsembleSampler(Sampler):
@@ -72,22 +74,39 @@ class EnsembleSampler(Sampler):
         can be any object with a ``map`` method that follows the same
         calling sequence as the built-in ``map`` function.
 
-    :param runtime_sortingfn: (optional)
+    :param runtime_sortingfn: (deprecated; ignored)
         A function implementing custom runtime load-balancing. See
         :ref:`loadbalance` for more information.
 
     """
     def __init__(self, nwalkers, dim, lnpostfn, a=2.0, args=[], kwargs={},
                  postargs=None, threads=None, pool=None, live_dangerously=False,
-                 runtime_sortingfn=None):
+                 runtime_sortingfn=None, moves=None):
         if threads is not None:
             logging.warn("the 'threads' argument is deprecated; "
                          "use 'pool' instead")
 
+        if runtime_sortingfn is not None:
+            logging.warn("the 'runtime_sortingfn' argument is deprecated")
+
+        if moves is None:
+            self._moves = [StretchMove()]
+            self._weights = [1.0]
+        elif isinstance(moves, Iterable):
+            try:
+                self._moves, self._weights = zip(*moves)
+            except TypeError:
+                self._moves = moves
+                self._weights = np.ones(len(moves))
+        else:
+            self._moves = [moves]
+            self._weights = [1.0]
+        self._weights = np.atleast_1d(self._weights).astype(float)
+        self._weights /= np.sum(self._weights)
+
         self.k = nwalkers
         self.a = a
         self.pool = pool
-        self.runtime_sortingfn = runtime_sortingfn
 
         if postargs is not None:
             args = postargs
@@ -195,7 +214,8 @@ class EnsembleSampler(Sampler):
         lnprob = lnprob0
         blobs = blobs0
         if lnprob is None:
-            lnprob, blobs = self._get_lnprob(p)
+            lnprob, blobs = self.compute_log_prob(p)
+            # lnprob, blobs = self._get_lnprob(p)
 
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
@@ -203,12 +223,17 @@ class EnsembleSampler(Sampler):
             raise ValueError("The initial lnprob was NaN.")
 
         # Store the initial size of the stored chain.
-        i0 = self._chain.shape[1]
+        initial_size = self._chain.shape[1]
+
+        # Check that the thin keyword is reasonable.
+        thin = int(thin)
+        if thin <= 0:
+            raise ValueError("Invalid thinning argument")
 
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
         if storechain:
-            N = int(iterations / thin)
+            N = iterations // thin
             self._chain = np.concatenate((self._chain,
                                           np.zeros((self.k, N, self.dim))),
                                          axis=1)
@@ -218,64 +243,17 @@ class EnsembleSampler(Sampler):
         for i in range(int(iterations)):
             self.iterations += 1
 
-            # If we were passed a Metropolis-Hastings proposal
-            # function, use it.
-            if mh_proposal is not None:
-                # Draw proposed positions & evaluate lnprob there
-                q = mh_proposal(p)
-                newlnp, blob = self._get_lnprob(q)
+            # Choose a random move
+            move = self._random.choice(self._moves, p=self._weights)
 
-                # Accept if newlnp is better; and ...
-                acc = (newlnp > lnprob)
+            # Propose
+            p, lnprob, blobs, accepted = move.propose(
+                p, lnprob, blobs, self.compute_log_prob, self._random)
+            self.naccepted += accepted
 
-                # ... sometimes accept for steps that got worse
-                worse = np.flatnonzero(~acc)
-                acc[worse] = ((newlnp[worse] - lnprob[worse]) >
-                              np.log(self._random.rand(len(worse))))
-                del worse
-
-                # Update the accepted walkers.
-                lnprob[acc] = newlnp[acc]
-                p[acc] = q[acc]
-                self.naccepted[acc] += 1
-
-                if blob is not None:
-                    assert blobs is not None, (
-                        "If you start sampling with a given lnprob, you also "
-                        "need to provide the current list of blobs at that "
-                        "position.")
-                    ind = np.arange(self.k)[acc]
-                    for j in ind:
-                        blobs[j] = blob[j]
-
-            else:
-                # Loop over the two ensembles, calculating the proposed
-                # positions.
-
-                # Slices for the first and second halves
-                first, second = slice(halfk), slice(halfk, self.k)
-                for S0, S1 in [(first, second), (second, first)]:
-                    q, newlnp, acc, blob = self._propose_stretch(p[S0], p[S1],
-                                                                 lnprob[S0])
-                    if np.any(acc):
-                        # Update the positions, log probabilities and
-                        # acceptance counts.
-                        lnprob[S0][acc] = newlnp[acc]
-                        p[S0][acc] = q[acc]
-                        self.naccepted[S0][acc] += 1
-
-                        if blob is not None:
-                            assert blobs is not None, (
-                                "If you start sampling with a given lnprob, "
-                                "you also need to provide the current list of "
-                                "blobs at that position.")
-                            ind = np.arange(len(acc))[acc]
-                            indfull = np.arange(self.k)[S0][acc]
-                            for j in range(len(ind)):
-                                blobs[indfull[j]] = blob[ind[j]]
-
-            if storechain and (i+1) % thin == 0:
-                ind = i0 + int(i / thin)
+            # Save the results
+            if storechain and (i + 1) % thin == 0:
+                ind = initial_size + (i + 1) // thin - 1
                 self._chain[:, ind, :] = p
                 self._lnprob[:, ind] = lnprob
                 if blobs is not None:
@@ -289,55 +267,7 @@ class EnsembleSampler(Sampler):
             else:
                 yield p, lnprob, self.random_state
 
-    def _propose_stretch(self, p0, p1, lnprob0):
-        """
-        Propose a new position for one sub-ensemble given the positions of
-        another.
-
-        :param p0:
-            The positions from which to jump.
-
-        :param p1:
-            The positions of the other ensemble.
-
-        :param lnprob0:
-            The log-probabilities at ``p0``.
-
-        This method returns:
-
-        * ``q`` - The new proposed positions for the walkers in ``ensemble``.
-
-        * ``newlnprob`` - The vector of log-probabilities at the positions
-          given by ``q``.
-
-        * ``accept`` - A vector of type ``bool`` indicating whether or not
-          the proposed position for each walker should be accepted.
-
-        * ``blob`` - The new meta data blobs or ``None`` if nothing was
-          returned by ``lnprobfn``.
-
-        """
-        s = np.atleast_2d(p0)
-        Ns = len(s)
-        c = np.atleast_2d(p1)
-        Nc = len(c)
-
-        # Generate the vectors of random numbers that will produce the
-        # proposal.
-        zz = ((self.a - 1.) * self._random.rand(Ns) + 1) ** 2. / self.a
-        rint = self._random.randint(Nc, size=(Ns,))
-
-        # Calculate the proposed positions and the log-probability there.
-        q = c[rint] - zz[:, np.newaxis] * (c[rint] - s)
-        newlnprob, blob = self._get_lnprob(q)
-
-        # Decide whether or not the proposals should be accepted.
-        lnpdiff = (self.dim - 1.) * np.log(zz) + newlnprob - lnprob0
-        accept = (lnpdiff > np.log(self._random.rand(len(lnpdiff))))
-
-        return q, newlnprob, accept, blob
-
-    def _get_lnprob(self, pos=None):
+    def compute_log_prob(self, coords=None):
         """
         Calculate the vector of log-probability for the walkers.
 
@@ -355,10 +285,10 @@ class EnsembleSampler(Sampler):
           this position or ``None`` if nothing was returned.
 
         """
-        if pos is None:
+        if coords is None:
             p = self.pos
         else:
-            p = pos
+            p = coords
 
         # Check that the parameters are in physical ranges.
         if np.any(np.isinf(p)):
@@ -374,10 +304,6 @@ class EnsembleSampler(Sampler):
         else:
             M = map
 
-        # sort the tasks according to (user-defined) some runtime guess
-        if self.runtime_sortingfn is not None:
-            p, idx = self.runtime_sortingfn(p)
-
         # Run the log-probability calculations (optionally in parallel).
         results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
 
@@ -387,15 +313,6 @@ class EnsembleSampler(Sampler):
         except (IndexError, TypeError):
             lnprob = np.array([float(l) for l in results])
             blob = None
-
-        # sort it back according to the original order - get the same
-        # chain irrespective of the runtime sorting fn
-        if self.runtime_sortingfn is not None:
-            orig_idx = np.argsort(idx)
-            lnprob = lnprob[orig_idx]
-            p = [p[i] for i in orig_idx]
-            if blob is not None:
-                blob = [blob[i] for i in orig_idx]
 
         # Check for lnprob returning NaN.
         if np.any(np.isnan(lnprob)):
