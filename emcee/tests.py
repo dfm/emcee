@@ -73,49 +73,6 @@ class Tests:
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2 / self.N ** 2
                       < maxdiff)
 
-    def check_pt_sampler(self, cutoff, N=None, p0=None):
-        if N is None:
-            N = self.N
-        if p0 is None:
-            p0 = self.p0
-
-        for i in self.sampler.sample(p0, iterations=N):
-            pass
-
-        # Weaker assertions on acceptance fraction
-        assert np.mean(self.sampler.acceptance_fraction) > 0.1, \
-            "acceptance fraction < 0.1"
-        assert np.mean(self.sampler.tswap_acceptance_fraction) > 0.1, \
-            "tswap acceptance frac < 0.1"
-
-        maxdiff = 10.0 ** logprecision
-
-        chain = np.reshape(self.sampler.chain[0, ...],
-                           (-1, self.sampler.chain.shape[-1]))
-
-        # np.savetxt('/tmp/chain.dat', chain)
-
-        log_volume = self.ndim * np.log(cutoff) \
-            + log_unit_sphere_volume(self.ndim) \
-            + 0.5 * np.log(np.linalg.det(self.cov))
-        gaussian_integral = self.ndim / 2.0 * np.log(2.0 * np.pi) \
-            + 0.5 * np.log(np.linalg.det(self.cov))
-
-        lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
-        print(self.sampler.get_autocorr_time(c=2))
-
-        assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
-            ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "
-             "{2:g})").format(lnZ, gaussian_integral - log_volume, dlnZ)
-        assert np.all((np.mean(chain, axis=0) - self.mean) ** 2.0 / N ** 2.0
-                      < maxdiff), 'mean incorrect'
-        assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2.0 / N ** 2.0
-                      < maxdiff), 'covariance incorrect'
-
-        # PT sampler used to not work with run_mcmc(); check that the trivial
-        # case is OK.
-        self.sampler.run_mcmc (p0, 10, lnlike0=-4)
-
     def test_ensemble(self):
         self.sampler = EnsembleSampler(self.nwalkers, self.ndim,
                                        lnprob_gaussian, args=[self.icov])
@@ -194,7 +151,7 @@ class Tests:
         self.check_sampler()
 
         # Make sure that the shapes of everything are as expected.
-        assert (self.sampler.chain.shape == (self.nwalkers, self.N, self.ndim)
+        assert (self.sampler.chain.shape == (self.N, self.nwalkers, self.ndim)
                 and len(self.sampler.blobs) == self.N
                 and len(self.sampler.blobs[0]) == self.nwalkers), \
             "The blob dimensions are wrong."
@@ -215,13 +172,13 @@ class Tests:
             pass
 
         s.run_mcmc(self.p0, N=self.N)
-        assert s.chain.shape[1] == self.N
+        assert s.chain.shape[0] == self.N
 
         # this doesn't actually check that it resumes with the right values, as
         # that's non-trivial... so we just make sure it does *something* when
         # None is given and that it records whatever it does
         s.run_mcmc(None, N=self.N)
-        assert s.chain.shape[1] == 2 * self.N
+        assert s.chain.shape[0] == 2 * self.N
 
     def test_autocorr_multi_works(self):
         xs = np.random.randn(16384, 2)
@@ -282,7 +239,7 @@ class Tests:
         s = sampler.sample(pos, iterations=65, thin=2)
         for i in range(65):
             next(s)
-        np.testing.assert_equal(sampler.chain.shape, (nwalkers, 32, ndim))
+        np.testing.assert_equal(sampler.chain.shape, (32, nwalkers, ndim))
 
         sampler = EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
         s = sampler.sample(pos, iterations=65, thin=3)

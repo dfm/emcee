@@ -23,17 +23,7 @@ from .moves import StretchMove
 
 class EnsembleSampler(object):
     """
-    A generalized Ensemble sampler that uses 2 ensembles for parallelization.
-    The ``__init__`` function will raise an ``AssertionError`` if
-    ``nwalkers < 2 * dim`` (and you haven't set the ``live_dangerously`` parameter)
-    or if ``nwalkers`` is odd.
-
-    **Warning**: The :attr:`chain` member of this object has the shape:
-    ``(nwalkers, nlinks, dim)`` where ``nlinks`` is the number of steps
-    taken by the chain and ``nwalkers`` is the number of walkers.  Use the
-    :attr:`flatchain` property to get the chain flattened to
-    ``(nlinks, dim)``. For users of pre-1.0 versions, this shape is
-    different so be careful!
+    A ensemble MCMC sampler
 
     :param nwalkers:
         The number of Goodman & Weare "walkers".
@@ -41,7 +31,7 @@ class EnsembleSampler(object):
     :param dim:
         Number of dimensions in the parameter space.
 
-    :param lnpostfn:
+    :param log_prob_fn:
         A function that takes a vector in the parameter space as input and
         returns the natural logarithm of the posterior probability for that
         position.
@@ -78,19 +68,21 @@ class EnsembleSampler(object):
         :ref:`loadbalance` for more information.
 
     """
-    def __init__(self, nwalkers, dim, lnpostfn, a=None,
+    def __init__(self, nwalkers, dim, log_prob_fn, a=None,
                  pool=None, moves=None,
                  args=None, kwargs=None,
                  # Deprecated...
                  postargs=None, threads=None,  live_dangerously=None,
                  runtime_sortingfn=None):
+        # Warn about deprecated arguments
         if threads is not None:
-            logging.warn("the 'threads' argument is deprecated; "
-                         "use 'pool' instead")
-
+            logging.warn("the 'threads' argument is deprecated")
         if runtime_sortingfn is not None:
             logging.warn("the 'runtime_sortingfn' argument is deprecated")
+        if live_dangerously is not None:
+            logging.warn("the 'live_dangerously' argument is deprecated")
 
+        # Parse the move schedule
         if moves is None:
             self._moves = [StretchMove()]
             self._weights = [1.0]
@@ -118,14 +110,7 @@ class EnsembleSampler(object):
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
-        self.lnprobfn = _function_wrapper(lnpostfn, args, kwargs)
-
-        # assert self.k % 2 == 0, "The number of walkers must be even."
-        # if not live_dangerously:
-        #     assert self.k >= 2 * self.dim, (
-        #         "The number of walkers needs to be more than twice the "
-        #         "dimension of your parameter space unless you know what "
-        #         "you're getting yourself into...")
+        self.log_prob_fn = _function_wrapper(log_prob_fn, args, kwargs)
 
     @property
     def random_state(self):
@@ -151,29 +136,19 @@ class EnsembleSampler(object):
         except:
             pass
 
-    def clear_blobs(self):
-        """
-        Clear the ``blobs`` list.
-
-        """
-        self._blobs = []
-
     def reset(self):
         """
-        Clear the ``chain`` and ``lnprobability`` array. Also reset the
-        bookkeeping parameters.
+        Reset the bookkeeping parameters.
 
         """
-        self.iterations = 0
-        self.naccepted = 0
+        self.thinned_iteration = 0
+        self.iteration = 0
         self._last_run_mcmc_result = None
 
-        self.naccepted = np.zeros(self.k)
-        self._chain = np.empty((self.k, 0, self.dim))
-        self._lnprob = np.empty((self.k, 0))
-
-        # Initialize list for storing optional metadata blobs.
-        self.clear_blobs()
+        self.accepted = np.zeros(self.k)
+        self._chain = np.empty((0, self.k, self.dim))
+        self._log_prob = np.empty((0, self.k))
+        self._blobs = np.empty((0, self.k), dtype=object)
 
     def __getstate__(self):
         # In order to be generally picklable, we need to discard the pool
@@ -185,8 +160,8 @@ class EnsembleSampler(object):
     # def __setstate__(self, state):
     #     self.__dict__ = state
 
-    def sample(self, p0, lnprob0=None, rstate0=None, blobs0=None,
-               iterations=1, thin=1, storechain=True, mh_proposal=None):
+    def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
+               iterations=1, thin=1, store=True):
         """
         Advance the chain ``iterations`` steps as a generator.
 
@@ -194,10 +169,10 @@ class EnsembleSampler(object):
             A list of the initial positions of the walkers in the
             parameter space. It should have the shape ``(nwalkers, dim)``.
 
-        :param lnprob0: (optional)
+        :param log_prob0: (optional)
             The list of log posterior probabilities for the walkers at
-            positions given by ``p0``. If ``lnprob is None``, the initial
-            values are calculated. It should have the shape ``(k, dim)``.
+            positions given by ``p0``. If ``log_prob0 is None``, the initial
+            values are calculated. It should have the length ``nwalkers``.
 
         :param rstate0: (optional)
             The state of the random number generator.
@@ -210,17 +185,12 @@ class EnsembleSampler(object):
             If you only want to store and yield every ``thin`` samples in the
             chain, set thin to an integer greater than 1.
 
-        :param storechain: (optional)
+        :param store: (optional)
             By default, the sampler stores (in memory) the positions and
             log-probabilities of the samples in the chain. If you are
             using another method to store the samples to a file or if you
             don't need to analyse the samples after the fact (for burn-in
-            for example) set ``storechain`` to ``False``.
-
-        :param mh_proposal: (optional)
-            A function that returns a list of positions for ``nwalkers``
-            walkers given a current list of positions of the same size. See
-            :class:`utils.MH_proposal_axisaligned` for an example.
+            for example) set ``store`` to ``False``.
 
         At each iteration, this generator yields:
 
@@ -228,14 +198,14 @@ class EnsembleSampler(object):
           parameter space. The shape of this object will be
           ``(nwalkers, dim)``.
 
-        * ``lnprob`` - The list of log posterior probabilities for the
+        * ``log_prob`` - The list of log posterior probabilities for the
           walkers at positions given by ``pos`` . The shape of this object
           is ``(nwalkers,)``.
 
         * ``rstate`` - The current state of the random number generator.
 
         * ``blobs`` - (optional) The metadata "blobs" associated with the
-          current position. The value is only returned if ``lnpostfn``
+          current position. The value is only returned if ``log_prob_fn``
           returns blobs too.
 
         """
@@ -244,25 +214,19 @@ class EnsembleSampler(object):
         # we'll just interpret any garbage as letting the generator stay in
         # it's current state.
         self.random_state = rstate0
-
         p = np.array(p0)
-        halfk = int(self.k / 2)
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
-        lnprob = lnprob0
+        log_prob = log_prob0
         blobs = blobs0
-        if lnprob is None:
-            lnprob, blobs = self.compute_log_prob(p)
-            # lnprob, blobs = self._get_lnprob(p)
+        if log_prob is None:
+            log_prob, blobs = self.compute_log_prob(p)
 
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
-        if np.any(np.isnan(lnprob)):
-            raise ValueError("The initial lnprob was NaN.")
-
-        # Store the initial size of the stored chain.
-        initial_size = self._chain.shape[1]
+        if np.any(np.isnan(log_prob)):
+            raise ValueError("The initial log_prob was NaN.")
 
         # Check that the thin keyword is reasonable.
         thin = int(thin)
@@ -271,42 +235,46 @@ class EnsembleSampler(object):
 
         # Here, we resize chain in advance for performance. This actually
         # makes a pretty big difference.
-        if storechain:
+        if store:
             N = iterations // thin
             self._chain = np.concatenate((self._chain,
-                                          np.zeros((self.k, N, self.dim))),
-                                         axis=1)
-            self._lnprob = np.concatenate((self._lnprob,
-                                           np.zeros((self.k, N))), axis=1)
+                                          np.empty((N, self.k, self.dim))),
+                                         axis=0)
+            self._log_prob = np.concatenate((self._log_prob,
+                                             np.empty((N, self.k))), axis=0)
+            if blobs is not None:
+                self._blobs = np.concatenate((self._blobs,
+                                              np.empty((N, self.k),
+                                                       dtype=object)), axis=0)
 
         for i in range(int(iterations)):
-            self.iterations += 1
+            self.iteration += 1
 
             # Choose a random move
             move = self._random.choice(self._moves, p=self._weights)
 
             # Propose
-            p, lnprob, blobs, accepted = move.propose(
-                p, lnprob, blobs, self.compute_log_prob, self._random)
-            self.naccepted += accepted
+            p, log_prob, blobs, accepted = move.propose(
+                p, log_prob, blobs, self.compute_log_prob, self._random)
+            self.accepted += accepted
 
             # Save the results
-            if storechain and (i + 1) % thin == 0:
-                ind = initial_size + (i + 1) // thin - 1
-                self._chain[:, ind, :] = p
-                self._lnprob[:, ind] = lnprob
+            if store and (i + 1) % thin == 0:
+                self._chain[self.thinned_iteration, :, :] = p
+                self._log_prob[self.thinned_iteration, :] = log_prob
                 if blobs is not None:
-                    self._blobs.append(list(blobs))
+                    self._blobs[self.thinned_iteration, :] = blobs
+                self.thinned_iteration += 1
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
             if blobs is not None:
                 # This is a bit of a hack to keep things backwards compatible.
-                yield p, lnprob, self.random_state, blobs
+                yield p, log_prob, self.random_state, blobs
             else:
-                yield p, lnprob, self.random_state
+                yield p, log_prob, self.random_state
 
-    def run_mcmc(self, pos0, N, rstate0=None, lnprob0=None, **kwargs):
+    def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, **kwargs):
         """
         Iterate :func:`sample` for ``N`` iterations and return the result.
 
@@ -317,8 +285,8 @@ class EnsembleSampler(object):
         :param N:
             The number of steps to run.
 
-        :param lnprob0: (optional)
-            The log posterior probability at position ``p0``. If ``lnprob``
+        :param log_prob0: (optional)
+            The log posterior probability at position ``p0``. If ``log_prob``
             is not provided, the initial value is calculated.
 
         :param rstate0: (optional)
@@ -330,25 +298,26 @@ class EnsembleSampler(object):
 
         This method returns the most recent result from :func:`sample`. The
         particular values vary from sampler to sampler, but the result is
-        generally a tuple ``(pos, lnprob, rstate)`` or ``(pos, lnprob, rstate,
-        blobs)`` where ``pos`` is the most recent position
-        vector (or ensemble thereof), ``lnprob`` is the most recent
+        generally a tuple ``(pos, log_prob, rstate)`` or
+        ``(pos, log_prob, rstate, blobs)`` where ``pos`` is the most recent
+        position vector (or ensemble thereof), ``log_prob`` is the most recent
         log posterior probability (or ensemble thereof), ``rstate`` is the
         state of the random number generator, and the optional ``blobs`` are
         user-provided large data blobs.
+
         """
         if pos0 is None:
             if self._last_run_mcmc_result is None:
                 raise ValueError("Cannot have pos0=None if run_mcmc has never "
                                  "been called.")
             pos0 = self._last_run_mcmc_result[0]
-            if lnprob0 is None:
-                rstate0 = self._last_run_mcmc_result[1]
+            if log_prob0 is None:
+                log_prob0 = self._last_run_mcmc_result[1]
             if rstate0 is None:
                 rstate0 = self._last_run_mcmc_result[2]
 
-        for results in self.sample(pos0, lnprob0, rstate0=rstate0, iterations=N,
-                                   **kwargs):
+        for results in self.sample(pos0, log_prob0, rstate0=rstate0,
+                                   iterations=N, **kwargs):
             pass
 
         # Store so that the ``pos0=None`` case will work.  We throw out the
@@ -368,10 +337,10 @@ class EnsembleSampler(object):
 
         This method returns:
 
-        * ``lnprob`` - A vector of log-probabilities with one entry for each
+        * ``log_prob`` - A vector of log-probabilities with one entry for each
           walker in this sub-ensemble.
 
-        * ``blob`` - The list of meta data returned by the ``lnpostfn`` at
+        * ``blob`` - The list of meta data returned by the ``log_post_fn`` at
           this position or ``None`` if nothing was returned.
 
         """
@@ -395,26 +364,26 @@ class EnsembleSampler(object):
             M = map
 
         # Run the log-probability calculations (optionally in parallel).
-        results = list(M(self.lnprobfn, [p[i] for i in range(len(p))]))
+        results = list(M(self.log_prob_fn, [p[i] for i in range(len(p))]))
 
         try:
-            lnprob = np.array([float(l[0]) for l in results])
-            blob = [l[1] for l in results]
+            log_prob = np.array([float(l[0]) for l in results])
+            blob = np.array([l[1] for l in results], dtype=object)
         except (IndexError, TypeError):
-            lnprob = np.array([float(l) for l in results])
+            log_prob = np.array([float(l) for l in results])
             blob = None
 
-        # Check for lnprob returning NaN.
-        if np.any(np.isnan(lnprob)):
+        # Check for log_prob returning NaN.
+        if np.any(np.isnan(log_prob)):
             # Print some debugging stuff.
-            print("NaN value of lnprob for parameters: ")
-            for pars in p[np.isnan(lnprob)]:
+            print("NaN value of log prob for parameters: ")
+            for pars in p[np.isnan(log_prob)]:
                 print(pars)
 
             # Finally raise exception.
-            raise ValueError("lnprob returned NaN.")
+            raise ValueError("log_prob returned NaN.")
 
-        return lnprob, blob
+        return log_prob, blob
 
     @property
     def acceptance_fraction(self):
@@ -422,7 +391,7 @@ class EnsembleSampler(object):
         The fraction of proposed steps that were accepted.
 
         """
-        return self.naccepted / self.iterations
+        return self.accepted / float(self.iteration)
 
     @property
     def chain(self):
@@ -430,7 +399,7 @@ class EnsembleSampler(object):
         A pointer to the Markov chain.
 
         """
-        return self._chain
+        return self.get_chain()
 
     @property
     def blobs(self):
@@ -438,10 +407,21 @@ class EnsembleSampler(object):
         Get the list of "blobs" produced by sampling. The result is a list
         (of length ``iterations``) of ``list`` s (of length ``nwalkers``) of
         arbitrary objects. **Note**: this will actually be an empty list if
-        your ``lnpostfn`` doesn't return any metadata.
+        your ``log_prob_fn`` doesn't return any metadata.
 
         """
-        return self._blobs
+        return self.get_blobs()
+
+    @property
+    def flatblobs(self):
+        """
+        Get the list of "blobs" produced by sampling. The result is a list
+        (of length ``iterations``) of ``list`` s (of length ``nwalkers``) of
+        arbitrary objects. **Note**: this will actually be an empty list if
+        your ``log_prob_fn`` doesn't return any metadata.
+
+        """
+        return self.get_blobs(flat=True)
 
     @property
     def flatchain(self):
@@ -450,8 +430,7 @@ class EnsembleSampler(object):
         axis.
 
         """
-        s = self.chain.shape
-        return self.chain.reshape(s[0] * s[1], s[2])
+        return self.get_chain(flat=True)
 
     @property
     def lnprobability(self):
@@ -460,7 +439,7 @@ class EnsembleSampler(object):
         the chain.
 
         """
-        return self._lnprob
+        return self.get_log_probability()
 
     @property
     def flatlnprobability(self):
@@ -470,7 +449,24 @@ class EnsembleSampler(object):
         ``(k * iterations)``.
 
         """
-        return self.lnprobability.flatten()
+        return self.get_log_probability(flat=True)
+
+    def get_chain(self, **kwargs):
+        return self.get_value("_chain", **kwargs)
+
+    def get_blobs(self, **kwargs):
+        return self.get_value("_blobs", **kwargs)
+
+    def get_log_probability(self, **kwargs):
+        return self.get_value("_log_prob", **kwargs)
+
+    def get_value(self, name, flat=False, thin=1, discard=0):
+        v = getattr(self, name)[discard:self.thinned_iteration:thin]
+        if flat:
+            s = list(v.shape[1:])
+            s[0] = np.prod(v.shape[:2])
+            return v.reshape(s)
+        return v
 
     @property
     def acor(self):
@@ -481,7 +477,8 @@ class EnsembleSampler(object):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False):
+    def get_autocorr_time(self, low=10, high=None, step=1, c=10,
+                          discard=0, thin=1):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
@@ -489,24 +486,24 @@ class EnsembleSampler(object):
         :param low: (Optional[int])
             The minimum window size to test.
             (default: ``10``)
+
         :param high: (Optional[int])
             The maximum window size to test.
-            (default: ``x.shape[axis] / (2*c)``)
+            (default: ``x.shape[axis] / 2``)
+
         :param step: (Optional[int])
             The step size for the window search.
             (default: ``1``)
+
         :param c: (Optional[float])
             The minimum number of autocorrelation times needed to trust the
             estimate.
             (default: ``10``)
-        :param fast: (Optional[bool])
-            If ``True``, only use the first ``2^n`` (for the largest power)
-            entries for efficiency.
-            (default: False)
+
         """
-        return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
-                                        low=low, high=high, step=step, c=c,
-                                        fast=fast)
+        x = np.mean(self.get_chain(discard=discard, thin=thin), axis=1)
+        return autocorr.integrated_time(x, axis=0,
+                                        low=low, high=high, step=step, c=c)
 
 
 class _function_wrapper(object):

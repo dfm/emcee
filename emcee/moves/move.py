@@ -27,7 +27,6 @@ class Move(object):
                     "If you start sampling with a given lnprob, "
                     "you also need to provide the current list of "
                     "blobs at that position.")
-            for i, j in zip(inds[m1], np.arange(len(new_blobs))[m2]):
-                blobs[i] = new_blobs[j]
+            blobs[m1] = new_blobs[m2]
 
         return coords, log_probs, blobs
