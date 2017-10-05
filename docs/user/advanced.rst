@@ -258,7 +258,7 @@ re-ordered list and the corresponding index.
 .. code-block:: python
 
     def sort_on_runtime(pos):
-        p = np.atleast_2d(p)
+        p = np.atleast_2d(pos)
         idx = np.argsort(p[:, 0])[::-1]
         return p[idx], idx
 
