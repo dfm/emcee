@@ -302,4 +302,60 @@ class Tests:
 
         assert np.all(np.abs(acls_multi - acls_single) < 2)
 
-        
+    def test_gh226(self):
+        # EnsembleSampler.sample errors when iterations is not a multiple of thin
+        m_true = -0.9594
+        b_true = 4.294
+        f_true = 0.534
+
+        # Generate some synthetic data from the model.
+        N = 50
+        x = np.sort(10 * np.random.rand(N))
+        yerr = 0.1 + 0.5 * np.random.rand(N)
+        y = m_true * x + b_true
+        y += np.abs(f_true * y) * np.random.randn(N)
+        y += yerr * np.random.randn(N)
+
+        A = np.vstack((np.ones_like(x), x)).T
+        C = np.diag(yerr * yerr)
+        cov = np.linalg.inv(np.dot(A.T, np.linalg.solve(C, A)))
+        b_ls, m_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
+
+        def lnlike(theta, x, y, yerr):
+            m, b, lnf = theta
+            model = m * x + b
+            inv_sigma2 = 1.0 / (yerr ** 2 + model ** 2 * np.exp(2 * lnf))
+            return -0.5 * (np.sum((y - model) ** 2 * inv_sigma2 -
+                                  np.log(inv_sigma2)))
+
+        def lnprior(theta):
+            m, b, lnf = theta
+            if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10.0 < lnf < 1.0:
+                return 0.0
+            return -np.inf
+
+        def lnprob(theta, x, y, yerr):
+            lp = lnprior(theta)
+            if not np.isfinite(lp):
+                return -np.inf
+            return lp + lnlike(theta, x, y, yerr)
+
+        nll = lambda *args: -lnlike(*args)
+
+        # minimize(nll, [m_true, b_true, np.log(f_true)], args=(x, y, yerr))
+        init_guess = np.array([-0.95612643,  4.23596208, -0.66826006])
+
+        ndim, nwalkers = 3, 100
+        pos = [init_guess + 1e-4 * np.random.randn(ndim) for
+               i in range(nwalkers)]
+
+        sampler = EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
+        s = sampler.sample(pos, iterations=65, thin=2)
+        for i in range(65):
+            next(s)
+        np.testing.assert_equal(sampler.chain.shape, (nwalkers, 32, ndim))
+
+        sampler = EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
+        s = sampler.sample(pos, iterations=65, thin=3)
+        for i in range(65):
+            next(s)

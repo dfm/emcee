@@ -274,7 +274,7 @@ class EnsembleSampler(Sampler):
                             for j in range(len(ind)):
                                 blobs[indfull[j]] = blob[ind[j]]
 
-            if storechain and i % thin == 0:
+            if storechain and (i+1) % thin == 0:
                 ind = i0 + int(i / thin)
                 self._chain[:, ind, :] = p
                 self._lnprob[:, ind] = lnprob
