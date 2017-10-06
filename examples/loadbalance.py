@@ -61,7 +61,7 @@ f.write("##   loadbalance    runtime_sorting   iteration       mean_time     var
 f.write("#####################################################################################################\n")
 
 for mean_time in mean_times:
-    for variance_fac in xrange(len(variances)):
+    for variance_fac in range(len(variances)):
         first = 0
         variance = variances[variance_fac]*mean_time
         for loadbalance in loadbalancing_options:

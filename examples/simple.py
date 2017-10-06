@@ -6,8 +6,7 @@ def lnprob(x, ivar):
 
 ndim, nwalkers = 10, 100
 ivar = 1./np.random.rand(ndim)
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
 sampler.run_mcmc(p0, 1000)
-

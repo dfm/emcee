@@ -26,7 +26,7 @@ if not pool.is_master():
 
 ndim = 50
 nwalkers = 250
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=pool)
