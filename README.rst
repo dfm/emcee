@@ -3,18 +3,19 @@ emcee
 
 **The Python ensemble sampling toolkit for affine-invariant MCMC**
 
+.. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
+    :target: https://github.com/dfm/emcee
 .. image:: http://img.shields.io/travis/dfm/emcee/master.svg?style=flat
-        :target: http://travis-ci.org/dfm/emcee
-.. image:: http://img.shields.io/pypi/dm/emcee.svg?style=flat
-        :target: https://pypi.python.org/pypi/emcee/
-.. image:: http://img.shields.io/pypi/v/emcee.svg?style=flat
-        :target: https://pypi.python.org/pypi/emcee/
+    :target: http://travis-ci.org/dfm/emcee
 .. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
-        :target: https://github.com/dfm/emcee/blob/master/LICENSE
+    :target: https://github.com/dfm/emcee/blob/master/LICENSE
 .. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
-        :target: http://arxiv.org/abs/1202.3665
-.. image:: https://codecov.io/gh/dfm/emcee/branch/master/graph/badge.svg
-        :target: https://codecov.io/gh/dfm/emcee
+    :target: http://arxiv.org/abs/1202.3665
+.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat
+    :target: https://coveralls.io/github/dfm/emcee?branch=master
+.. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
+    :target: http://emcee.readthedocs.io/en/latest/?badge=latest
+
 
 emcee is a stable, well tested Python implementation of the affine-invariant
 ensemble sampler for Markov chain Monte Carlo (MCMC)
@@ -27,7 +28,7 @@ literature.
 Documentation
 -------------
 
-Read the docs at `dan.iel.fm/emcee <http://dan.iel.fm/emcee/>`_.
+Read the docs at `emcee.readthedocs.io <http://emcee.readthedocs.io/>`_.
 
 Attribution
 -----------
