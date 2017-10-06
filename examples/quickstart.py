@@ -8,11 +8,6 @@ from __future__ import print_function
 import numpy as np
 import emcee
 
-try:
-    xrange
-except NameError:
-    xrange = range
-
 # First, define the probability distribution that you would like to sample.
 def lnprob(x, mu, icov):
     diff = x-mu
@@ -35,7 +30,7 @@ icov = np.linalg.inv(cov)
 nwalkers = 50
 
 # Choose an initial set of positions for the walkers.
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[means, icov])
