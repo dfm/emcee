@@ -18,6 +18,14 @@ from collections import Iterable
 
 import numpy as np
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(f, *args, **kwargs):
+        logging.warn("You must install the tqdm library to use progress "
+                     "indicators with emcee")
+        return f
+
 from . import autocorr
 from .moves import StretchMove
 
@@ -163,7 +171,7 @@ class EnsembleSampler(object):
     #     self.__dict__ = state
 
     def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
-               iterations=1, thin=1, store=True):
+               iterations=1, thin=1, store=True, progress=False):
         """
         Advance the chain ``iterations`` steps as a generator.
 
@@ -253,7 +261,8 @@ class EnsembleSampler(object):
                                               np.empty((N, self.k),
                                                        dtype=object)), axis=0)
 
-        for i in range(int(iterations)):
+        total = int(iterations)
+        for i in tqdm(range(total), total=total):
             self.iteration += 1
 
             # Choose a random move
