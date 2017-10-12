@@ -54,6 +54,7 @@ User Guide
    user/install
    tutorials/quickstart
    user/line
+   tutorials/autocorr
    user/advanced
    user/pt
    user/faq

@@ -345,9 +345,10 @@ ul, ol {
 
 pre {
     /*background: #eee;*/
-    padding: 7px 30px;
-    margin: 15px -30px;
+    padding: 7px 0;
+    margin: 5px 0;
     line-height: 1.3em;
+    overflow-x: scroll;
 }
 
 dl pre, blockquote pre, li pre {
