@@ -24,6 +24,12 @@ Moves
 
 .. autoclass:: emcee.moves.StretchMove
     :inherited-members:
+.. autoclass:: emcee.moves.WalkMove
+    :inherited-members:
+.. autoclass:: emcee.moves.KDEMove
+    :inherited-members:
+.. autoclass:: emcee.moves.GaussianMove
+    :inherited-members:
 
 
 Autocorrelation Analysis
