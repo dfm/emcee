@@ -32,7 +32,7 @@ def test_shapes(moves, nwalkers=32, ndim=3, nsteps=100, seed=1234):
     chain = sampler.get_chain()
     assert len(chain) == nsteps, "wrong number of steps"
 
-    tau = sampler.get_autocorr_time(c=1, quiet=True)
+    tau = sampler.get_autocorr_time(quiet=True)
     assert tau.shape == (ndim,)
 
     # Check the shapes.

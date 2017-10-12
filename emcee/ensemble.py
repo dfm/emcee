@@ -31,50 +31,25 @@ from .moves import StretchMove
 
 
 class EnsembleSampler(object):
-    """
-    A ensemble MCMC sampler
+    """An ensemble MCMC sampler
 
-    :param nwalkers:
-        The number of Goodman & Weare "walkers".
-
-    :param dim:
-        Number of dimensions in the parameter space.
-
-    :param log_prob_fn:
-        A function that takes a vector in the parameter space as input and
-        returns the natural logarithm of the posterior probability for that
-        position.
-
-    :param a: (optional)
-        The proposal scale parameter. (default: ``2.0``)
-
-    :param args: (optional)
-        A list of extra positional arguments for ``lnpostfn``. ``lnpostfn``
-        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
-
-    :param kwargs: (optional)
-        A list of extra keyword arguments for ``lnpostfn``. ``lnpostfn``
-        will be called with the sequence ``lnpostfn(p, *args, **kwargs)``.
-
-    :param postargs: (optional)
-        Alias of ``args`` for backwards compatibility.
-
-    :param threads: (deprecated; ignored)
-        The number of threads to use for parallelization. If ``threads == 1``,
-        then the ``multiprocessing`` module is not used but if
-        ``threads > 1``, then a ``Pool`` object is created and calls to
-        ``lnpostfn`` are run in parallel.
-
-    :param pool: (optional)
-        An alternative method of using the parallelized algorithm. If
-        provided, the value of ``threads`` is ignored and the
-        object provided by ``pool`` is used for all parallelization. It
-        can be any object with a ``map`` method that follows the same
-        calling sequence as the built-in ``map`` function.
-
-    :param runtime_sortingfn: (deprecated; ignored)
-        A function implementing custom runtime load-balancing. See
-        :ref:`loadbalance` for more information.
+    Args:
+        nwalkers (int): The number of Goodman & Weare "walkers".
+        dim (int): Number of dimensions in the parameter space.
+        log_prob_fn (callable): A function that takes a vector in the
+            parameter space as input and returns the natural logarithm of the
+            posterior probability (up to an additive constant) for that
+            position.
+        args (Optional): A list of extra positional arguments for
+            ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
+            ``log_pprob_fn(p, *args, **kwargs)``.
+        kwargs (Optional): A dict of extra keyword arguments for
+            ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
+            ``log_pprob_fn(p, *args, **kwargs)``.
+        pool (Optional): An object with a ``map`` method that follows the same
+            calling sequence as the built-in ``map`` function. This is
+            generally used to compute the log-probabilities for the ensemble
+            in parallel.
 
     """
     def __init__(self, nwalkers, dim, log_prob_fn, a=None,
@@ -148,7 +123,7 @@ class EnsembleSampler(object):
 
     def reset(self):
         """
-        Reset the bookkeeping parameters.
+        Reset the bookkeeping parameters
 
         """
         self.thinned_iteration = 0
@@ -167,40 +142,28 @@ class EnsembleSampler(object):
         d.pop("pool", None)
         return d
 
-    # def __setstate__(self, state):
-    #     self.__dict__ = state
-
     def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
                iterations=1, thin=1, store=True, progress=False):
-        """
-        Advance the chain ``iterations`` steps as a generator.
+        """Advance the chain as a generator
 
-        :param p0:
-            A list of the initial positions of the walkers in the
-            parameter space. It should have the shape ``(nwalkers, dim)``.
-
-        :param log_prob0: (optional)
-            The list of log posterior probabilities for the walkers at
-            positions given by ``p0``. If ``log_prob0 is None``, the initial
-            values are calculated. It should have the length ``nwalkers``.
-
-        :param rstate0: (optional)
-            The state of the random number generator.
-            See the :attr:`Sampler.random_state` property for details.
-
-        :param iterations: (optional)
-            The number of steps to run.
-
-        :param thin: (optional)
-            If you only want to store and yield every ``thin`` samples in the
-            chain, set thin to an integer greater than 1.
-
-        :param store: (optional)
-            By default, the sampler stores (in memory) the positions and
-            log-probabilities of the samples in the chain. If you are
-            using another method to store the samples to a file or if you
-            don't need to analyse the samples after the fact (for burn-in
-            for example) set ``store`` to ``False``.
+        Args:
+            p0 (ndarray[nwalkers, ndim]): The initial positions of the walkers
+                in the parameter space.
+            log_prob0 (Optional[ndarray[nwalkers]]): The log posterior
+                probabilities for the walkers at ``p0``. If ``log_prob0 is
+                None``, the initial values are calculated.
+            rstate0 (Optional): The state of the random number generator.
+                See the :attr:`EnsembleSampler.random_state` property for
+                details.
+            iterations (Optional[int]): The number of steps to run.
+            thin (Optional[int]): If you only want to store and yield every
+                ``thin`` samples in the chain, set thin to an integer greater
+                than 1.
+            store (Optional[bool]): By default, the sampler stores (in memory)
+                the positions and log-probabilities of the samples in the
+                chain. If you are using another method to store the samples to
+                a file or if you don't need to analyze the samples after the
+                fact (for burn-in for example) set ``store`` to ``False``.
 
         At each iteration, this generator yields:
 
@@ -291,25 +254,21 @@ class EnsembleSampler(object):
 
     def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, **kwargs):
         """
-        Iterate :func:`sample` for ``N`` iterations and return the result.
+        Iterate :func:`sample` for ``N`` iterations and return the result
 
-        :param pos0:
-            The initial position vector.  Can also be None to resume from
-            where :func:``run_mcmc`` left off the last time it executed.
+        Args:
+            pos0: The initial position vector. Can also be ``None`` to resume
+                from where :func:``run_mcmc`` left off the last time it
+                executed.
+            N: The number of steps to run.
+            log_prob0 (Optional[ndarray[nwalkers]]): The log posterior
+                probabilities for the walkers at ``p0``. If ``log_prob0 is
+                None``, the initial values are calculated.
+            rstate0 (Optional): The state of the random number generator.
+                See the :attr:`EnsembleSampler.random_state` property for
+                details.
 
-        :param N:
-            The number of steps to run.
-
-        :param log_prob0: (optional)
-            The log posterior probability at position ``p0``. If ``log_prob``
-            is not provided, the initial value is calculated.
-
-        :param rstate0: (optional)
-            The state of the random number generator. See the
-            :func:`random_state` property for details.
-
-        :param kwargs: (optional)
-            Other parameters that are directly passed to :func:`sample`.
+        Other parameters are directly passed to :func:`sample`.
 
         This method returns the most recent result from :func:`sample`. The
         particular values vary from sampler to sampler, but the result is
@@ -342,20 +301,19 @@ class EnsembleSampler(object):
         return results
 
     def compute_log_prob(self, coords=None):
-        """
-        Calculate the vector of log-probability for the walkers.
+        """Calculate the vector of log-probability for the walkers
 
-        :param pos: (optional)
-            The position vector in parameter space where the probability
-            should be calculated. This defaults to the current position
-            unless a different one is provided.
+        Args:
+            pos: (Optional[ndarray[..., ndim]]) The position vector in
+                parameter space where the probability should be calculated.
+                This defaults to the current position unless a different one
+                is provided.
 
         This method returns:
 
-        * ``log_prob`` - A vector of log-probabilities with one entry for each
+        * log_prob: A vector of log-probabilities with one entry for each
           walker in this sub-ensemble.
-
-        * ``blob`` - The list of meta data returned by the ``log_post_fn`` at
+        * blob: The list of meta data returned by the ``log_post_fn`` at
           this position or ``None`` if nothing was returned.
 
         """
@@ -399,18 +357,11 @@ class EnsembleSampler(object):
 
     @property
     def acceptance_fraction(self):
-        """
-        The fraction of proposed steps that were accepted.
-
-        """
+        """The fraction of proposed steps that were accepted"""
         return self.accepted / float(self.iteration)
 
     @property
     def chain(self):
-        """
-        A pointer to the Markov chain.
-
-        """
         return self.get_chain()
 
     @property
@@ -419,61 +370,73 @@ class EnsembleSampler(object):
 
     @property
     def blobs(self):
-        """
-        Get the list of "blobs" produced by sampling. The result is a list
-        (of length ``iterations``) of ``list`` s (of length ``nwalkers``) of
-        arbitrary objects. **Note**: this will actually be an empty list if
-        your ``log_prob_fn`` doesn't return any metadata.
-
-        """
         return self.get_blobs()
 
     @property
     def flatblobs(self):
-        """
-        Get the list of "blobs" produced by sampling. The result is a list
-        (of length ``iterations``) of ``list`` s (of length ``nwalkers``) of
-        arbitrary objects. **Note**: this will actually be an empty list if
-        your ``log_prob_fn`` doesn't return any metadata.
-
-        """
         return self.get_blobs(flat=True)
 
     @property
     def flatchain(self):
-        """
-        A shortcut for accessing chain flattened along the zeroth (walker)
-        axis.
-
-        """
         return self.get_chain(flat=True)
 
     @property
     def lnprobability(self):
-        """
-        A list of the log-probability values associated with each step in
-        the chain.
-
-        """
         return self.get_log_prob()
 
     @property
     def flatlnprobability(self):
-        """
-        A shortcut to return the equivalent of ``lnprobability`` but aligned
-        to ``flatchain`` rather than ``chain``. The shape is
-        ``(k * iterations)``.
-
-        """
         return self.get_log_prob(flat=True)
 
     def get_chain(self, **kwargs):
+        """Get the stored chain of MCMC samples
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers, ndim]: The MCMC samples.
+
+        """
         return self.get_value("_chain", **kwargs)
 
     def get_blobs(self, **kwargs):
+        """Get the chain of blobs for each sample in the chain
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers]: The chain of blobs.
+
+        """
         return self.get_value("_blobs", **kwargs)
 
     def get_log_prob(self, **kwargs):
+        """Get the chain of log probabilities evaluated at the MCMC samples
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers]: The chain of log probabilities.
+
+        """
         return self.get_value("_log_prob", **kwargs)
 
     def get_value(self, name, flat=False, thin=1, discard=0):
@@ -491,39 +454,31 @@ class EnsembleSampler(object):
 
     @property
     def acor(self):
-        """
-        An estimate of the autocorrelation time for each parameter (length:
-        ``dim``).
-
-        """
+        logging.warning("The 'acor' property is deprecated. "
+                        "Use 'get_autocorr_time' instead.")
         return self.get_autocorr_time()
 
     def get_autocorr_time(self, discard=0, thin=1, **kwargs):
-        """
-        Compute an estimate of the autocorrelation time for each parameter
-        (length: ``dim``).
+        """Compute an estimate of the autocorrelation time for each parameter
 
-        :param low: (Optional[int])
-            The minimum window size to test.
-            (default: ``10``)
+        Args:
+            thin (Optional[int]): Use only every ``thin`` steps from the
+                chain. The returned estimate is multiplied by ``thin`` so the
+                estimated time is in units of steps, not thinned steps.
+                (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
 
-        :param high: (Optional[int])
-            The maximum window size to test.
-            (default: ``x.shape[axis] / 2``)
+        Other arguments are passed directly to
+        :func:`emcee.autocorr.integrated_time`.
 
-        :param step: (Optional[int])
-            The step size for the window search.
-            (default: ``1``)
-
-        :param c: (Optional[float])
-            The minimum number of autocorrelation times needed to trust the
-            estimate.
-            (default: ``10``)
+        Returns:
+            array[ndim]: The integrated autocorrelation time estimate for the
+                chain for each parameter.
 
         """
-        x = np.mean(self.get_chain(discard=discard, thin=thin), axis=1)
-        kwargs["axis"] = 0
-        return autocorr.integrated_time(x, **kwargs)
+        x = self.get_chain(discard=discard, thin=thin)
+        return thin * autocorr.integrated_time(x, **kwargs)
 
 
 class _function_wrapper(object):

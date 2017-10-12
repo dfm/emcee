@@ -1,10 +1,8 @@
+
 emcee
 =====
 
-Seriously Kick-Ass MCMC
------------------------
-
-``emcee`` is an MIT licensed pure-Python implementation of Goodman & Weare's
+**emcee** is an MIT licensed pure-Python implementation of Goodman & Weare's
 `Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler
 <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and these pages will
 show you how to use it.
@@ -13,7 +11,7 @@ This documentation won't teach you too much about MCMC but there are a lot
 of resources available for that (try `this one
 <http://www.inference.org.uk/mackay/itprnn/book.html>`_).
 We also `published a paper <http://arxiv.org/abs/1202.3665>`_ explaining
-the ``emcee`` algorithm and implementation in detail.
+the emcee algorithm and implementation in detail.
 
 emcee has been used in `quite a few projects in the astrophysical literature
 <testimonials>`_ and it is being actively developed on `GitHub

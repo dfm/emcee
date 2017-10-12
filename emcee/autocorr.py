@@ -6,51 +6,47 @@ import logging
 
 import numpy as np
 
-__all__ = ["function", "integrated_time", "AutocorrError"]
+__all__ = ["function_1d", "integrated_time", "AutocorrError"]
 
 
 def next_pow_two(n):
-    """Returns the next power of two greater than or equal to `n`."""
-
+    """Returns the next power of two greater than or equal to `n`"""
     i = 1
     while i < n:
         i = i << 1
     return i
 
 
-def function(x, axis=0, fast=False):
-    """Estimate the autocorrelation function of a time series using the FFT.
+def function_1d(x):
+    """Estimate the normalized autocorrelation function of a 1-D series
 
     Args:
-        x: The time series. If multidimensional, set the time axis using the
-            ``axis`` keyword argument and the function will be computed for
-            every other axis.
-        axis (Optional[int]): The time axis of ``x``. Assumed to be the first
-            axis if not specified.
-        fast (Optional[bool]): (depricated) ignored; the algorithm
-            always pads to the nearest power of two.
+        x: The series as a 1-D numpy array.
 
     Returns:
         array: The autocorrelation function of the time series.
 
     """
     x = np.atleast_1d(x)
-    m = [slice(None), ] * len(x.shape)
-    mexpand = [slice(None), ]*len(x.shape)
-    mexpand[axis] = np.newaxis
+    if len(x.shape) != 1:
+        raise ValueError("invalid dimensions for 1D autocorrelation function")
+    n = next_pow_two(len(x))
 
-    n = next_pow_two(x.shape[axis])
-
-    # Compute the FFT and then (from that) the auto-correlation function.
-    f = np.fft.fft(x - np.mean(x, axis=axis)[mexpand], n=2*n, axis=axis)
-    m[axis] = slice(0, n)
-    acf = np.fft.ifft(f * np.conjugate(f), axis=axis)[m].real
-    m[axis] = 0
-    return acf / acf[m]
+    # Compute the FFT and then (from that) the auto-correlation function
+    f = np.fft.fft(x - np.mean(x), n=2*n)
+    acf = np.fft.ifft(f * np.conjugate(f))[:len(x)].real
+    acf /= acf[0]
+    return acf
 
 
-def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
-                    axis=0, fast=False, quiet=False):
+def auto_window(taus, c):
+    m = np.arange(len(taus)) < c * taus
+    if np.any(m):
+        return np.argmin(m)
+    return len(taus) - 1
+
+
+def integrated_time(x, c=5, tol=50, quiet=False):
     """Estimate the integrated autocorrelation time of a time series.
 
     This estimate uses the iterative procedure described on page 16 of `Sokal's
@@ -86,53 +82,44 @@ def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
             from the chain. This normally means that the chain is too short.
 
     """
-    size = 0.5 * x.shape[axis]
-    if int(c * low) >= size:
-        if quiet:
-            logging.warn("The chain is too short")
-            return
-        raise AutocorrError("The chain is too short")
+    x = np.atleast_1d(x)
+    if len(x.shape) == 1:
+        x = x[:, np.newaxis, np.newaxis]
+    if len(x.shape) == 2:
+        x = x[:, :, np.newaxis]
+    if len(x.shape) != 3:
+        raise ValueError("invalid dimensions")
 
-    # Compute the autocorrelation function.
-    f = function(x, axis=axis, fast=fast)
+    n_t, n_w, n_d = x.shape
+    tau_est = np.empty(n_d)
+    windows = np.empty(n_d, dtype=int)
 
-    # Check the dimensions of the array.
-    oned = len(f.shape) == 1
-    m = [slice(None), ] * len(f.shape)
+    # Loop over parameters
+    for d in range(n_d):
+        f = np.zeros(n_t)
+        for k in range(n_w):
+            f += function_1d(x[:, k, d])
+        f /= n_w
+        taus = 2.0*np.cumsum(f)-1.0
+        windows[d] = auto_window(taus, c)
+        tau_est[d] = taus[windows[d]]
 
-    # Loop over proposed window sizes until convergence is reached.
-    if high is None:
-        high = int(size)
+    # Check convergence
+    flag = tol * tau_est > n_t
 
-    if oned:
-        acl_ests = 2.0*np.cumsum(f) - 1.0
-    else:
-        acl_ests = 2.0*np.cumsum(f, axis=axis) - 1.0
+    # Warn or raise in the case of non-convergence
+    if np.any(flag):
+        msg = (
+            "The chain is shorter than {0} times the integrated "
+            "autocorrelation time for {1} parameter(s). Use this estimate "
+            "with caution and run a longer chain!\n"
+        ).format(tol, np.sum(flag))
+        msg += "N/{0} = {1:.0f};\ntau: {2}".format(tol, n_t/tol, tau_est)
+        if not quiet:
+            raise AutocorrError(msg)
+        logging.warning(msg)
 
-    for M in np.arange(low, high, step).astype(int):
-        # Compute the autocorrelation time with the given window.
-        if oned:
-            # Special case 1D for simplicity.
-            tau = acl_ests[M]
-        else:
-            # N-dimensional case.
-            m[axis] = M
-            tau = acl_ests[m]
-
-        # Accept the window size if it satisfies the convergence criterion.
-        if np.all(tau > 1.0) and M > c * tau.max():
-            if full_output:
-                return tau, M
-            return tau
-
-    msg = ("The chain is too short to reliably estimate the autocorrelation "
-           "time.")
-    if tau is not None:
-        msg += " Current estimate: \n{0}".format(tau)
-    if quiet:
-        logging.warn(msg)
-        return None
-    raise AutocorrError(msg)
+    return tau_est
 
 
 class AutocorrError(Exception):

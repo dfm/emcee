@@ -20,10 +20,9 @@ def get_chain(seed=1234, ndim=3, N=100000):
     return x
 
 
-def test_1d(seed=1234, ndim=1, N=150000, c=6):
+def test_1d(seed=1234, ndim=1, N=250000):
     x = get_chain(seed=seed, ndim=ndim, N=N)
-    tau, M = integrated_time(x, c=c, full_output=True)
-    assert np.all(M > c * tau)
+    tau = integrated_time(x)
     assert np.all(np.abs(tau - 19.0) / 19. < 0.2)
 
 
@@ -37,8 +36,6 @@ def test_too_short(seed=1234, ndim=3, N=100):
     x = get_chain(seed=seed, ndim=ndim, N=N)
     with pytest.raises(AutocorrError):
         integrated_time(x)
-    with pytest.raises(AutocorrError):
-        integrated_time(x, low=100)
     tau = integrated_time(x, quiet=True)  # NOQA
 
 

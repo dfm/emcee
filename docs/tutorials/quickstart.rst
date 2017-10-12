@@ -1,5 +1,5 @@
 
-.. module:: george
+.. module:: emcee
 
 **Note:** This tutorial was generated from an IPython notebook that can be
 downloaded `here <../../_static/notebooks/quickstart.ipynb>`_.
