@@ -2,7 +2,7 @@
 
 from __future__ import print_function, absolute_import
 
-__version__ = "3.0.0.dev0"
+__version__ = "0.3.0.dev0"
 __bibtex__ = """
 @article{emcee,
    author = {{Foreman-Mackey}, D. and {Hogg}, D.~W. and {Lang}, D. and {Goodman}, J.},
