@@ -39,5 +39,6 @@ if not on_rtd:
 # pygments_style = 'sphinx'
 # html_theme = 'default'
 html_static_path = ['_static']
-# html_logo = "_static/logo-sidebar.png"
-# html_theme_options = {"logo_only": True}
+html_favicon = "_static/favicon.png"
+html_logo = "_static/logo2.png"
+html_theme_options = {"logo_only": True}

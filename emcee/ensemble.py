@@ -28,6 +28,7 @@ except ImportError:
 
 from . import autocorr
 from .moves import StretchMove
+from .utils import deprecated, deprecation_warning
 
 
 class EnsembleSampler(object):
@@ -60,11 +61,14 @@ class EnsembleSampler(object):
                  runtime_sortingfn=None):
         # Warn about deprecated arguments
         if threads is not None:
-            logging.warn("the 'threads' argument is deprecated")
+            deprecation_warning(
+                "the 'threads' argument is deprecated")
         if runtime_sortingfn is not None:
-            logging.warn("the 'runtime_sortingfn' argument is deprecated")
+            deprecation_warning(
+                "the 'runtime_sortingfn' argument is deprecated")
         if live_dangerously is not None:
-            logging.warn("the 'live_dangerously' argument is deprecated")
+            deprecation_warning(
+                "the 'live_dangerously' argument is deprecated")
 
         # Parse the move schedule
         if moves is None:
@@ -361,32 +365,35 @@ class EnsembleSampler(object):
         return self.accepted / float(self.iteration)
 
     @property
+    @deprecated("get_chain()")
     def chain(self):
-        return self.get_chain()
+        chain = self.get_chain()
+        return np.swapaxes(chain, 0, 1)
 
     @property
-    def log_prob(self):
-        return self.get_log_prob()
-
-    @property
-    def blobs(self):
-        return self.get_blobs()
-
-    @property
-    def flatblobs(self):
-        return self.get_blobs(flat=True)
-
-    @property
+    @deprecated("get_chain(flat=True)")
     def flatchain(self):
         return self.get_chain(flat=True)
 
     @property
+    @deprecated("get_log_prob()")
     def lnprobability(self):
         return self.get_log_prob()
 
     @property
+    @deprecated("get_log_prob(flat=True)")
     def flatlnprobability(self):
         return self.get_log_prob(flat=True)
+
+    @property
+    @deprecated("get_blobs()")
+    def blobs(self):
+        return self.get_blobs()
+
+    @property
+    @deprecated("get_blobs(flat=True)")
+    def flatblobs(self):
+        return self.get_blobs(flat=True)
 
     def get_chain(self, **kwargs):
         """Get the stored chain of MCMC samples
@@ -453,9 +460,8 @@ class EnsembleSampler(object):
         return v
 
     @property
+    @deprecated("get_autocorr_time")
     def acor(self):
-        logging.warning("The 'acor' property is deprecated. "
-                        "Use 'get_autocorr_time' instead.")
         return self.get_autocorr_time()
 
     def get_autocorr_time(self, discard=0, thin=1, **kwargs):
