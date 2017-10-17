@@ -9,12 +9,6 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 from emcee import __version__  # NOQA
 
-
-# Override CSS
-# def setup(app):
-#     app.add_stylesheet("custom.css")
-
-
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
@@ -33,11 +27,9 @@ release = __version__
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 if not on_rtd:
     import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-# pygments_style = 'sphinx'
-# html_theme = 'default'
+html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
 html_favicon = "_static/favicon.png"
 html_logo = "_static/logo2.png"
