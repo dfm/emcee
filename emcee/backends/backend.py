@@ -13,7 +13,7 @@ class Backend(object):
         self.nwalkers = nwalkers
         self.ndim = ndim
         self.iteration = 0
-        self.accepted = np.zeros(self.nwalkers)
+        self.accepted = np.zeros(self.nwalkers, dtype=int)
         self.chain = np.empty((0, self.nwalkers, self.ndim))
         self.log_prob = np.empty((0, self.nwalkers))
         self.blobs = None
@@ -28,12 +28,19 @@ class Backend(object):
                                  "'store == True' before accessing the "
                                  "results")
 
+        if name == "blobs" and not self.has_blobs():
+            return None
+
         v = getattr(self, name)[discard+thin-1:self.iteration:thin]
         if flat:
             s = list(v.shape[1:])
             s[0] = np.prod(v.shape[:2])
             return v.reshape(s)
         return v
+
+    @property
+    def shape(self):
+        return self.nwalkers, self.ndim
 
     def grow(self, N, blobs):
         """Expand the storage space by ``N``"""
@@ -51,17 +58,17 @@ class Backend(object):
 
     def _check(self, coords, log_prob, blobs, accepted):
         """Check the dimensions of a proposed state"""
-        nwalkers = self.nwalkers
-        ndim = self.ndim
+        nwalkers, ndim = self.shape
+        has_blobs = self.has_blobs()
         if coords.shape != (nwalkers, ndim):
             raise ValueError("invalid coordinate dimensions; expected {0}"
                              .format((nwalkers, ndim)))
         if log_prob.shape != (nwalkers, ):
             raise ValueError("invalid log probability size; expected {0}"
                              .format(nwalkers))
-        if blobs is not None and not self.has_blobs():
+        if blobs is not None and not has_blobs:
             raise ValueError("unexpected blobs")
-        if blobs is None and self.has_blobs():
+        if blobs is None and has_blobs:
             raise ValueError("expected blobs, but none were given")
         if blobs is not None and len(blobs) != nwalkers:
             raise ValueError("invalid blobs size; expected {0}"
