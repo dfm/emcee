@@ -177,7 +177,7 @@ because it is affine-invariant*):
 
     ndim = 50
     nwalkers = 250
-    p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+    p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 
     def lnprob(x):
         return -0.5 * np.sum(x ** 2)

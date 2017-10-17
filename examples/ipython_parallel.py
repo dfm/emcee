@@ -27,7 +27,7 @@ view.execute("import numpy as np")
 # Set up the sampler.
 ndim = 10
 nwalkers = 100
-p0 = [np.random.rand(ndim) for i in xrange(nwalkers)]
+p0 = [np.random.rand(ndim) for i in range(nwalkers)]
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, pool=view)
 
 # Run 100 steps as a burn-in.
