@@ -22,7 +22,7 @@ This notebook was made with the following version of emcee:
 
 .. parsed-literal::
 
-    '3.0.0.dev0'
+    '0.3.0.dev0'
 
 
 
@@ -52,7 +52,6 @@ The first thing that we need to do is import the necessary modules:
 .. code:: python
 
     import numpy as np
-    import emcee
 
 Then, we’ll code up a Python function that returns the density
 :math:`p(\vec{x})` for specific values of :math:`\vec{x}`,
@@ -69,14 +68,14 @@ It is important that the first argument of the probability function is
 the position of a single "walker" (a *N* dimensional ``numpy`` array).
 The following arguments are going to be constant every time the function
 is called and the values come from the ``args`` parameter of our
-:class:``EnsembleSampler`` that we'll see soon.
+:class:`EnsembleSampler` that we'll see soon.
 
-Now, we'll set up the specific values of those "hyperparameters" in 10
+Now, we'll set up the specific values of those "hyperparameters" in 5
 dimensions:
 
 .. code:: python
 
-    ndim = 10
+    ndim = 5
     
     np.random.seed(42)
     means = np.random.rand(ndim)
@@ -108,7 +107,7 @@ number between 0 and 1 for each component:
 
 Now that we've gotten past all the bookkeeping stuff, we can move on to
 the fun stuff. The main interface provided by ``emcee`` is the
-:class:``EnsembleSampler`` object so let's get ourselves one of those:
+:class:`EnsembleSampler` object so let's get ourselves one of those:
 
 .. code:: python
 
@@ -127,7 +126,7 @@ we're saying that the probability function should be called as:
 
 .. parsed-literal::
 
-    -4.5205477379669485
+    -2.5960945890854434
 
 
 
@@ -146,11 +145,17 @@ initial guess ``p0``:
     pos, prob, state = sampler.run_mcmc(p0, 100)
     sampler.reset()
 
+
+.. parsed-literal::
+
+    100%|██████████| 100/100 [00:00<00:00, 305.62it/s]
+
+
 You'll notice that I saved the final position of the walkers (after the
 100 steps) to a variable called ``pos``. You can check out what will be
 contained in the other output variables by looking at the documentation
-for the :func:``EnsembleSampler.run_mcmc`` function. The call to the
-:func:``EnsembleSampler.reset`` method clears all of the important
+for the :func:`EnsembleSampler.run_mcmc` function. The call to the
+:func:`EnsembleSampler.reset` method clears all of the important
 bookkeeping parameters in the sampler so that we get a fresh start. It
 also clears the current positions of the walkers so it's a good thing
 that we saved them first.
@@ -161,14 +166,35 @@ Now, we can do our production run of 10000 steps:
 
     sampler.run_mcmc(pos, 10000);
 
-The sampler now has a property :attr:``EnsembleSampler.chain`` that is a
+
+.. parsed-literal::
+
+    100%|██████████| 10000/10000 [00:24<00:00, 407.28it/s]
+
+
+The sampler now has a property :attr:`EnsembleSampler.chain` that is a
 numpy array with the shape ``(1000, 250, 50)``. Take note of that shape
 and make sure that you know where each of those numbers come from.
-Another useful object is the :attr:``EnsembleSampler.flatchain`` which
+Another useful object is the :attr:`EnsembleSampler.flatchain` which
 has the shape ``(250000, 50)`` and contains all the samples reshaped
 into a flat list. You can see now that we now have 250 000 unbiased
 samples of the density :math:`p(\vec{x})`. You can make histograms of
 these samples to get an estimate of the density that you were sampling:
+
+:ref:`autocorr`
+
+.. code:: python
+
+    sampler.get_autocorr_time()
+
+
+
+
+.. parsed-literal::
+
+    array([ 54.61620237,  53.72668829,  54.67029465,  54.80001017,  53.99357549])
+
+
 
 .. code:: python
 
@@ -181,20 +207,20 @@ these samples to get an estimate of the density that you were sampling:
 
 
 
-.. image:: quickstart_files/quickstart_22_0.png
+.. image:: quickstart_files/quickstart_23_0.png
 
 
 
-.. image:: quickstart_files/quickstart_22_1.png
+.. image:: quickstart_files/quickstart_23_1.png
 
 
 
-.. image:: quickstart_files/quickstart_22_2.png
+.. image:: quickstart_files/quickstart_23_2.png
 
 
 Another good test of whether or not the sampling went well is to check
 the mean acceptance fraction of the ensemble using the
-:func:``EnsembleSampler.acceptance_fraction`` property:
+:func:`EnsembleSampler.acceptance_fraction` property:
 
 .. code:: python
 
@@ -204,7 +230,7 @@ the mean acceptance fraction of the ensemble using the
 
 .. parsed-literal::
 
-    Mean acceptance fraction: 0.418
+    Mean acceptance fraction: 0.551
 
 
 This number should be between approximately 0.25 and 0.5 if everything
@@ -216,7 +242,7 @@ went as planned.
 
 
 
-.. image:: quickstart_files/quickstart_26_0.png
+.. image:: quickstart_files/quickstart_27_0.png
 
 
 .. code:: python
@@ -225,91 +251,6 @@ went as planned.
 
 
 
-.. image:: quickstart_files/quickstart_27_0.png
+.. image:: quickstart_files/quickstart_28_0.png
 
-
-.. code:: python
-
-    from emcee.autocorr import function, AutocorrError
-    
-    def integrated_time(x, low=10, high=None, step=1, c=10, full_output=False,
-                        axis=0, fast=False, quiet=False):
-        """Estimate the integrated autocorrelation time of a time series.
-        This estimate uses the iterative procedure described on page 16 of `Sokal's
-        notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ to determine a
-        reasonable window size.
-        Args:
-            x: The time series. If multidimensional, set the time axis using the
-                ``axis`` keyword argument and the function will be computed for
-                every other axis.
-            low (Optional[int]): The minimum window size to test. (default: ``10``)
-            high (Optional[int]): The maximum window size to test. (default:
-                ``x.shape[axis] / 2``)
-            step (Optional[int]): The step size for the window search. (default:
-                ``1``)
-            c (Optional[float]): The minimum number of autocorrelation times
-                needed to trust the estimate. (default: ``10``)
-            full_output (Optional[bool]): Return the final window size as well as
-                the autocorrelation time. (default: ``False``)
-            axis (Optional[int]): The time axis of ``x``. Assumed to be the first
-                axis if not specified.
-            fast (Optional[bool]): (depricated) ignored; the algorithm
-                always pads to the nearest power of two.
-        Returns:
-            float or array: An estimate of the integrated autocorrelation time of
-                the time series ``x`` computed along the axis ``axis``.
-            Optional[int]: The final window size that was used. Only returned if
-                ``full_output`` is ``True``.
-        Raises
-            AutocorrError: If the autocorrelation time can't be reliably estimated
-                from the chain. This normally means that the chain is too short.
-        """
-        size = 0.5 * x.shape[axis]
-        if int(c * low) >= size:
-            if quiet:
-                logging.warn("The chain is too short")
-                return
-            raise AutocorrError("The chain is too short")
-    
-        # Compute the autocorrelation function.
-        f = function(x, axis=axis, fast=fast)
-    
-        # Check the dimensions of the array.
-        oned = len(f.shape) == 1
-        m = [slice(None), ] * len(f.shape)
-    
-        # Loop over proposed window sizes until convergence is reached.
-        if high is None:
-            high = int(size / c)
-        print(high)
-    
-        if oned:
-            acl_ests = 2.0*np.cumsum(f) - 1.0
-        else:
-            acl_ests = 2.0*np.cumsum(f, axis=axis) - 1.0
-    
-        for M in np.arange(low, high, step).astype(int):
-            # Compute the autocorrelation time with the given window.
-            if oned:
-                # Special case 1D for simplicity.
-                tau = acl_ests[M]
-            else:
-                # N-dimensional case.
-                m[axis] = M
-                tau = acl_ests[m]
-    
-            # Accept the window size if it satisfies the convergence criterion.
-            if np.all(tau > 1.0) and M > c * tau.max():
-                if full_output:
-                    return tau, M
-                return tau
-    
-        msg = ("The chain is too short to reliably estimate the autocorrelation "
-               "time.")
-        if tau is not None:
-            msg += " Current estimate: \n{0}".format(tau)
-        if quiet:
-            logging.warn(msg)
-            return None
-        raise AutocorrError(msg)
 

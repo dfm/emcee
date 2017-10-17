@@ -21,6 +21,7 @@ TUTORIALS = tutorials/quickstart.rst tutorials/autocorr.rst
 
 tutorials/%.rst: _static/notebooks/%.ipynb tutorials/tutorial_rst.tpl
 	jupyter nbconvert --template tutorials/tutorial_rst --to rst $< --output-dir tutorials
+	python fix_internal_links.py $@
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
