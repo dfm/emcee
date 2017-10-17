@@ -12,6 +12,8 @@ Direct contributions to the code base:
 - `Will Meierjurgen Farr <https://github.com/farr>`_
 - `Júlio Hoffimann Mendes <https://github.com/juliohm>`_
 - `David W. Hogg <https://github.com/davidwhogg>`_
+- `@ipashchenko <https://github.com/ipashchenko>`_
+- `Nicholas Kern <https://github.com/nkern>`_
 - `Dustin Lang <https://github.com/dstndstn>`_
 - `Phil Marshall <https://github.com/drphilmarshall>`_
 - `Demitri Muna <https://github.com/demitri>`_

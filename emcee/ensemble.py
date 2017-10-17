@@ -229,18 +229,20 @@ class EnsembleSampler(object):
             p, log_prob, blobs, accepted = move.propose(
                 p, log_prob, blobs, self.compute_log_prob, self._random)
 
-            # Save the results
-            if store and (i + 1) % thin == 0:
-                self.backend.save_step(p, log_prob, blobs, accepted,
-                                       self.random_state)
+            if (i + 1) % thin == 0:
+                # Save the results
+                if store:
+                    self.backend.save_step(p, log_prob, blobs, accepted,
+                                           self.random_state)
 
-            # Yield the result as an iterator so that the user can do all
-            # sorts of fun stuff with the results so far.
-            if blobs is not None:
-                # This is a bit of a hack to keep things backwards compatible.
-                yield p, log_prob, self.random_state, blobs
-            else:
-                yield p, log_prob, self.random_state
+                # Yield the result as an iterator so that the user can do all
+                # sorts of fun stuff with the results so far.
+                if blobs is not None:
+                    # This is a bit of a hack to keep things backwards
+                    # compatible.
+                    yield p, log_prob, self.random_state, blobs
+                else:
+                    yield p, log_prob, self.random_state
 
     def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, blobs0=None,
                  **kwargs):

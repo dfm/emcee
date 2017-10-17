@@ -3,7 +3,10 @@
 3.0.0 (upcoming)
 ++++++++++++++++
 
--
+- Added progress bars using `tqdm <https://github.com/tqdm/tqdm>`_.
+- Added HDF5 backend using `h5py <http://www.h5py.org/>`_.
+- Improved autocorrelation time estimation algorithm.
+- Switched documentation to using Jupyter notebooks for tutorials.
 
 2.2.0 (2016-07-12)
 ++++++++++++++++++
