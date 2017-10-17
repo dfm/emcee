@@ -130,16 +130,8 @@ class EnsembleSampler(object):
         Reset the bookkeeping parameters
 
         """
-        # self.thinned_iteration = 0
-        # self.iteration = 0
-
         self._last_run_mcmc_result = None
         self.backend.reset(self.nwalkers, self.ndim)
-
-        # self.accepted = np.zeros(self.k)
-        # self._chain = np.empty((0, self.k, self.dim))
-        # self._log_prob = np.empty((0, self.k))
-        # self._blobs = None
 
     def __getstate__(self):
         # In order to be generally picklable, we need to discard the pool
@@ -221,18 +213,6 @@ class EnsembleSampler(object):
         if store:
             N = iterations // thin
             self.backend.grow(N, blobs)
-            # self._chain = np.concatenate((self._chain,
-            #                               np.empty((N, self.k, self.dim))),
-            #                              axis=0)
-            # self._log_prob = np.concatenate((self._log_prob,
-            #                                  np.empty((N, self.k))), axis=0)
-            # if blobs is not None:
-            #     dt = np.dtype((blobs[0].dtype, blobs[0].shape))
-            #     a = np.empty((N, self.k), dtype=dt)
-            #     if self._blobs is None:
-            #         self._blobs = a
-            #     else:
-            #         self._blobs = np.concatenate((self._blobs, a), axis=0)
 
         # Inject the progress bar
         total = int(iterations)
@@ -242,8 +222,6 @@ class EnsembleSampler(object):
             gen = range(total)
 
         for i in gen:
-            # self.iteration += 1
-
             # Choose a random move
             move = self._random.choice(self._moves, p=self._weights)
 
@@ -253,12 +231,8 @@ class EnsembleSampler(object):
 
             # Save the results
             if store and (i + 1) % thin == 0:
-                self.backend.save_step(p, log_prob, blobs, accepted)
-                # self._chain[self.thinned_iteration, :, :] = p
-                # self._log_prob[self.thinned_iteration, :] = log_prob
-                # if blobs is not None:
-                #     self._blobs[self.thinned_iteration, :] = blobs
-                # self.thinned_iteration += 1
+                self.backend.save_step(p, log_prob, blobs, accepted,
+                                       self.random_state)
 
             # Yield the result as an iterator so that the user can do all
             # sorts of fun stuff with the results so far.
