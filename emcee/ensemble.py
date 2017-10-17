@@ -42,11 +42,15 @@ class EnsembleSampler(object):
             calling sequence as the built-in ``map`` function. This is
             generally used to compute the log-probabilities for the ensemble
             in parallel.
+        vectorize (Optional[bool]): If ``True``, ``log_prob_fn`` is expected
+            to accept a list of position vectors instead of just one.
+            (default: ``False``)
 
     """
     def __init__(self, nwalkers, dim, log_prob_fn, a=None,
                  pool=None, moves=None,
                  args=None, kwargs=None,
+                 vectorize=False,
                  # Deprecated...
                  postargs=None, threads=None,  live_dangerously=None,
                  runtime_sortingfn=None):
@@ -80,6 +84,7 @@ class EnsembleSampler(object):
         self.dim = dim
         self.k = nwalkers
         self.pool = pool
+        self.vectorize = vectorize
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -335,7 +340,10 @@ class EnsembleSampler(object):
             M = map
 
         # Run the log-probability calculations (optionally in parallel).
-        results = list(M(self.log_prob_fn, [p[i] for i in range(len(p))]))
+        if self.vectorize:
+            results = self.log_prob_fn(p)
+        else:
+            results = list(M(self.log_prob_fn, [p[i] for i in range(len(p))]))
 
         try:
             log_prob = np.array([float(l[0]) for l in results])
