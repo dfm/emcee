@@ -22,6 +22,7 @@ Direct contributions to the code base:
 - `Leo Singer <https://github.com/lpsinger>`_
 - `Manodeep Sinha <https://bitbucket.org/manodeep/>`_
 - `Marco Tazzari <https://github.com/mtazzari>`_
+- `James Tocknell <https://github.com/aragilar>`_
 - `Erik Tollerud <https://github.com/eteq>`_
 - `Simon Walker <https://github.com/mindriot101>`_
 - `Peter K. G. Williams <https://github.com/pkgw>`_
