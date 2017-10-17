@@ -2,12 +2,8 @@
 
 from __future__ import division, print_function
 
-from itertools import product
-
-import pytest
 import numpy as np
-
-from emcee import moves, backends, EnsembleSampler
+from emcee import backends, EnsembleSampler
 
 __all__ = ["test_hdf", "test_hdf_reload"]
 

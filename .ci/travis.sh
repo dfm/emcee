@@ -16,7 +16,7 @@ conda update -q conda
 conda info -a
 conda create --yes -n test python=$PYTHON_VERSION
 source activate test
-conda install numpy=$NUMPY_VERSION scipy setuptools pytest pytest-cov pip
+conda install numpy=$NUMPY_VERSION scipy h5py setuptools pytest pytest-cov pip
 pip install coveralls
 
 # Build the extension
