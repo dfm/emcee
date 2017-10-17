@@ -28,8 +28,6 @@ emcee has been used in `quite a few projects in the astrophysical literature
     :target: http://arxiv.org/abs/1202.3665
 .. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat
     :target: https://coveralls.io/github/dfm/emcee?branch=master
-.. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
-    :target: http://emcee.readthedocs.io/en/latest/?badge=latest
 
 
 Basic Usage
