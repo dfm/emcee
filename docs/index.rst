@@ -16,6 +16,21 @@ emcee has been used in `quite a few projects in the astrophysical literature
 <testimonials>`_ and it is being actively developed on `GitHub
 <https://github.com/dfm/emcee>`_.
 
+.. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
+    :target: https://github.com/dfm/emcee
+.. image:: http://img.shields.io/travis/dfm/emcee/master.svg?style=flat
+    :target: http://travis-ci.org/dfm/emcee
+.. image:: https://ci.appveyor.com/api/projects/status/p8smxvleh8mrcn6m?svg=true&style=flat
+    :target: https://ci.appveyor.com/project/dfm/emcee
+.. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
+    :target: https://github.com/dfm/emcee/blob/master/LICENSE
+.. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
+    :target: http://arxiv.org/abs/1202.3665
+.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat
+    :target: https://coveralls.io/github/dfm/emcee?branch=master
+.. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
+    :target: http://emcee.readthedocs.io/en/latest/?badge=latest
+
 
 Basic Usage
 -----------
