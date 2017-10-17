@@ -24,7 +24,7 @@ class Backend(object):
 
     def get_value(self, name, flat=False, thin=1, discard=0):
         if self.iteration <= 0:
-            raise AttributeError("You must run the sampler with "
+            raise AttributeError("you must run the sampler with "
                                  "'store == True' before accessing the "
                                  "results")
 
@@ -42,8 +42,16 @@ class Backend(object):
     def shape(self):
         return self.nwalkers, self.ndim
 
+    def _check_blobs(self, blobs):
+        has_blobs = self.has_blobs()
+        if has_blobs and blobs is None:
+            raise ValueError("inconsistent use of blobs")
+        if self.iteration > 0 and blobs is not None and not has_blobs:
+            raise ValueError("inconsistent use of blobs")
+
     def grow(self, N, blobs):
         """Expand the storage space by ``N``"""
+        self._check_blobs(blobs)
         a = np.empty((N, self.nwalkers, self.ndim))
         self.chain = np.concatenate((self.chain, a), axis=0)
         a = np.empty((N, self.nwalkers))
@@ -58,6 +66,7 @@ class Backend(object):
 
     def _check(self, coords, log_prob, blobs, accepted):
         """Check the dimensions of a proposed state"""
+        self._check_blobs(blobs)
         nwalkers, ndim = self.shape
         has_blobs = self.has_blobs()
         if coords.shape != (nwalkers, ndim):
@@ -88,3 +97,9 @@ class Backend(object):
         self.accepted += accepted
         self.random_state = random_state
         self.iteration += 1
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass

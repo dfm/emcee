@@ -2,7 +2,10 @@
 
 from __future__ import division, print_function
 
-__all__ = ["HDFBackend"]
+__all__ = ["HDFBackend", "TempHDFBackend"]
+
+import os
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 
@@ -91,10 +94,13 @@ class HDFBackend(Backend):
             ]
         return elements if len(elements) else None
 
-    def grow(self, N, blobs):
+    def grow(self, delta_N, blobs):
         """Expand the storage space by ``N``"""
+        self._check_blobs(blobs)
+
         with self.open("a") as f:
             g = f[self.name]
+            N = g.attrs["iteration"] + delta_N
             g["chain"].resize(N, axis=0)
             g["log_prob"].resize(N, axis=0)
             if blobs is not None:
@@ -127,3 +133,15 @@ class HDFBackend(Backend):
                 g.attrs["random_state_{0}".format(i)] = v
 
             g.attrs["iteration"] = iteration + 1
+
+
+class TempHDFBackend(object):
+
+    def __enter__(self):
+        f = NamedTemporaryFile("w", delete=False)
+        f.close()
+        self.filename = f.name
+        return HDFBackend(f.name, "test")
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        os.remove(self.filename)

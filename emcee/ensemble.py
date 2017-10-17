@@ -242,7 +242,8 @@ class EnsembleSampler(object):
             else:
                 yield p, log_prob, self.random_state
 
-    def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, **kwargs):
+    def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, blobs0=None,
+                 **kwargs):
         """
         Iterate :func:`sample` for ``N`` iterations and return the result
 
@@ -274,19 +275,16 @@ class EnsembleSampler(object):
             if self._last_run_mcmc_result is None:
                 raise ValueError("Cannot have pos0=None if run_mcmc has never "
                                  "been called.")
-            pos0 = self._last_run_mcmc_result[0]
-            if log_prob0 is None:
-                log_prob0 = self._last_run_mcmc_result[1]
-            if rstate0 is None:
-                rstate0 = self._last_run_mcmc_result[2]
+            pos0, log_prob0, rstate0 = self._last_run_mcmc_result[:3]
+            if len(self._last_run_mcmc_result) > 3:
+                blobs0 = self._last_run_mcmc_result[3]
 
         for results in self.sample(pos0, log_prob0, rstate0=rstate0,
-                                   iterations=N, **kwargs):
+                                   blobs0=blobs0, iterations=N, **kwargs):
             pass
 
-        # Store so that the ``pos0=None`` case will work.  We throw out the
-        # blob if it's there because we don't need it
-        self._last_run_mcmc_result = results[:3]
+        # Store so that the ``pos0=None`` case will work
+        self._last_run_mcmc_result = results
 
         return results
 
