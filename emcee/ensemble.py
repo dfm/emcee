@@ -1,15 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-An affine invariant Markov chain Monte Carlo (MCMC) sampler.
 
-Goodman & Weare, Ensemble Samplers With Affine Invariance
-   Comm. App. Math. Comp. Sci., Vol. 5 (2010), No. 1, 65–80
-
-"""
-
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
+from __future__ import division, print_function
 
 __all__ = ["EnsembleSampler"]
 
