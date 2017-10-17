@@ -1,6 +1,7 @@
 [report]
 omit =
     docs/*
+    tests/*
     *__init__*
 
 exclude_lines =
