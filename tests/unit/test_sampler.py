@@ -36,9 +36,11 @@ def test_shapes(moves, nwalkers=32, ndim=3, nsteps=100, seed=1234):
     assert tau.shape == (ndim,)
 
     # Check the shapes.
-    assert sampler.chain.shape == (nsteps, nwalkers, ndim), \
+    assert sampler.chain.shape == (nwalkers, nsteps, ndim), \
         "incorrect coordinate dimensions"
-    assert sampler.log_prob.shape == (nsteps, nwalkers), \
+    assert sampler.get_chain().shape == (nsteps, nwalkers, ndim), \
+        "incorrect coordinate dimensions"
+    assert sampler.lnprobability.shape == (nsteps, nwalkers), \
         "incorrect probability dimensions"
 
     assert sampler.acceptance_fraction.shape == (nwalkers,), \
@@ -49,8 +51,6 @@ def test_shapes(moves, nwalkers=32, ndim=3, nsteps=100, seed=1234):
         (nsteps * nwalkers, ndim), "incorrect coordinate dimensions"
     assert sampler.get_log_prob(flat=True).shape == \
         (nsteps*nwalkers,), "incorrect probability dimensions"
-
-    # assert np.allclose(sampler.current_coords, sampler.coords[-1])
 
 
 def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
@@ -65,7 +65,7 @@ def test_errors(nwalkers=32, ndim=3, nsteps=5, seed=1234):
     with pytest.raises(AttributeError):
         sampler.chain
     with pytest.raises(AttributeError):
-        sampler.log_prob
+        sampler.lnprobability
 
     # What about not storing the chain.
     sampler.run_mcmc(coords, nsteps, store=False)
@@ -93,10 +93,12 @@ def test_thin():
     thinby = 3
     sampler1 = run_sampler()
     sampler2 = run_sampler(thin=thinby)
-    for k in ["chain", "log_prob"]:
-        a = getattr(sampler1, k)[thinby-1::thinby]
-        b = getattr(sampler2, k)
+    for k in ["get_chain", "get_log_prob"]:
+        a = getattr(sampler1, k)()[thinby-1::thinby]
+        b = getattr(sampler2, k)()
+        c = getattr(sampler1, k)(thin=thinby)
         assert np.allclose(a, b), "inconsistent {0}".format(k)
+        assert np.allclose(a, c), "inconsistent {0}".format(k)
 
 
 def test_restart():

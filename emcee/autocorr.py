@@ -49,27 +49,21 @@ def auto_window(taus, c):
 def integrated_time(x, c=5, tol=50, quiet=False):
     """Estimate the integrated autocorrelation time of a time series.
 
-    This estimate uses the iterative procedure described on page 16 of `Sokal's
-    notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ to determine a
-    reasonable window size.
+    This estimate uses the iterative procedure described on page 16 of
+    `Sokal's notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ to
+    determine a reasonable window size.
 
     Args:
         x: The time series. If multidimensional, set the time axis using the
             ``axis`` keyword argument and the function will be computed for
             every other axis.
-        low (Optional[int]): The minimum window size to test. (default: ``10``)
-        high (Optional[int]): The maximum window size to test. (default:
-            ``x.shape[axis] / 2``)
-        step (Optional[int]): The step size for the window search. (default:
-            ``1``)
-        c (Optional[float]): The minimum number of autocorrelation times
+        c (Optional[float]): The step size for the window search. (default:
+            ``5``)
+        tol (Optional[float]): The minimum number of autocorrelation times
             needed to trust the estimate. (default: ``10``)
-        full_output (Optional[bool]): Return the final window size as well as
-            the autocorrelation time. (default: ``False``)
-        axis (Optional[int]): The time axis of ``x``. Assumed to be the first
-            axis if not specified.
-        fast (Optional[bool]): (depricated) ignored; the algorithm
-            always pads to the nearest power of two.
+        quiet (Optional[bool]): This argument controls the behavior when the
+            chain is too short. If ``True``, give a warning instead of raising
+            an :class:`AutocorrError`. (default: ``False``)
 
     Returns:
         float or array: An estimate of the integrated autocorrelation time of
@@ -79,7 +73,8 @@ def integrated_time(x, c=5, tol=50, quiet=False):
 
     Raises
         AutocorrError: If the autocorrelation time can't be reliably estimated
-            from the chain. This normally means that the chain is too short.
+            from the chain and ``quiet`` is ``False``. This normally means
+            that the chain is too short.
 
     """
     x = np.atleast_1d(x)
@@ -116,7 +111,7 @@ def integrated_time(x, c=5, tol=50, quiet=False):
         ).format(tol, np.sum(flag))
         msg += "N/{0} = {1:.0f};\ntau: {2}".format(tol, n_t/tol, tau_est)
         if not quiet:
-            raise AutocorrError(msg)
+            raise AutocorrError(tau_est, msg)
         logging.warning(msg)
 
     return tau_est
@@ -125,5 +120,10 @@ def integrated_time(x, c=5, tol=50, quiet=False):
 class AutocorrError(Exception):
     """Raised if the chain is too short to estimate an autocorrelation time.
 
+    The current estimate of the autocorrelation time can be accessed via the
+    ``tau`` attribute of this exception.
+
     """
-    pass
+    def __init__(self, tau, *args, **kwargs):
+        self.tau = tau
+        super(AutocorrError, self).__init__(*args, **kwargs)

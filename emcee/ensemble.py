@@ -228,8 +228,14 @@ class EnsembleSampler(object):
                                               np.empty((N, self.k),
                                                        dtype=object)), axis=0)
 
+        # Inject the progress bar
         total = int(iterations)
-        for i in tqdm(range(total), total=total):
+        if progress:
+            gen = tqdm(range(total), total=total)
+        else:
+            gen = range(total)
+
+        for i in gen:
             self.iteration += 1
 
             # Choose a random move
@@ -452,7 +458,7 @@ class EnsembleSampler(object):
                                  "'store == True' before accessing the "
                                  "results")
 
-        v = getattr(self, name)[discard:self.thinned_iteration:thin]
+        v = getattr(self, name)[discard+thin-1:self.thinned_iteration:thin]
         if flat:
             s = list(v.shape[1:])
             s[0] = np.prod(v.shape[:2])
