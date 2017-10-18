@@ -6,8 +6,13 @@ __all__ = ["Backend"]
 
 import numpy as np
 
+from .. import autocorr
+
 
 class Backend(object):
+
+    def __init__(self):
+        self.initialized = False
 
     def reset(self, nwalkers, ndim):
         self.nwalkers = nwalkers
@@ -37,6 +42,79 @@ class Backend(object):
             s[0] = np.prod(v.shape[:2])
             return v.reshape(s)
         return v
+
+    def get_chain(self, **kwargs):
+        """Get the stored chain of MCMC samples
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers, ndim]: The MCMC samples.
+
+        """
+        return self.get_value("chain", **kwargs)
+
+    def get_blobs(self, **kwargs):
+        """Get the chain of blobs for each sample in the chain
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers]: The chain of blobs.
+
+        """
+        return self.get_value("blobs", **kwargs)
+
+    def get_log_prob(self, **kwargs):
+        """Get the chain of log probabilities evaluated at the MCMC samples
+
+        Args:
+            flat (Optional[bool]): Flatten the chain across the ensemble.
+                (default: ``False``)
+            thin (Optional[int]): Take only every ``thin`` steps from the
+                chain. (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Returns:
+            array[..., nwalkers]: The chain of log probabilities.
+
+        """
+        return self.get_value("log_prob", **kwargs)
+
+    def get_autocorr_time(self, discard=0, thin=1, **kwargs):
+        """Compute an estimate of the autocorrelation time for each parameter
+
+        Args:
+            thin (Optional[int]): Use only every ``thin`` steps from the
+                chain. The returned estimate is multiplied by ``thin`` so the
+                estimated time is in units of steps, not thinned steps.
+                (default: ``1``)
+            discard (Optional[int]): Discard the first ``discard`` steps in
+                the chain as burn-in. (default: ``0``)
+
+        Other arguments are passed directly to
+        :func:`emcee.autocorr.integrated_time`.
+
+        Returns:
+            array[ndim]: The integrated autocorrelation time estimate for the
+                chain for each parameter.
+
+        """
+        x = self.get_chain(discard=discard, thin=thin)
+        return thin * autocorr.integrated_time(x, **kwargs)
 
     @property
     def shape(self):

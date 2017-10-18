@@ -55,26 +55,27 @@ A more complete example is available in the `quickstart documentation
 <user/quickstart>`_.
 
 
-User Guide
-----------
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: User Guide
 
    user/install
-   tutorials/quickstart
    user/line
-   tutorials/autocorr
    user/advanced
    user/pt
    user/faq
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
 
-API Documentation
------------------
+   tutorials/quickstart
+   tutorials/autocorr
+   tutorials/incremental
 
 .. toctree::
    :maxdepth: 2
+   :caption: API Details
 
    api
 

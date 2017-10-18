@@ -1,6 +1,6 @@
 Author:
 
-- `Dan Foreman-Mackey (NYU) <https://github.com/dfm>`_
+- `Dan Foreman-Mackey <https://github.com/dfm>`_
 
 Direct contributions to the code base:
 

@@ -14,6 +14,7 @@ try:
 except ImportError:
     h5py = None
 
+from .. import __version__
 from .backend import Backend
 
 
@@ -25,12 +26,20 @@ class HDFBackend(Backend):
         self.filename = filename
         self.name = name
 
+    @property
+    def initialized(self):
+        if not os.path.exists(self.filename):
+            return False
+        with self.open() as f:
+            return self.name in f
+
     def open(self, mode="r"):
         return h5py.File(self.filename, mode)
 
     def reset(self, nwalkers, ndim):
         with self.open("w") as f:
             g = f.create_group(self.name)
+            g.attrs["version"] = __version__
             g.attrs["nwalkers"] = nwalkers
             g.attrs["ndim"] = ndim
             g.attrs["has_blobs"] = False

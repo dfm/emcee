@@ -26,5 +26,6 @@ if not __EMCEE_SETUP__:
 
     from . import moves
     from . import autocorr
+    from . import backends
 
-    __all__ = ["EnsembleSampler", "moves", "autocorr"]
+    __all__ = ["EnsembleSampler", "moves", "autocorr", "backends"]

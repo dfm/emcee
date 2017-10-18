@@ -17,7 +17,6 @@ except ImportError:
                      "indicators with emcee")
         return f
 
-from . import autocorr
 from .backends import Backend
 from .moves import StretchMove
 from .utils import deprecated, deprecation_warning
@@ -83,19 +82,47 @@ class EnsembleSampler(object):
         self._weights = np.atleast_1d(self._weights).astype(float)
         self._weights /= np.sum(self._weights)
 
+        self.pool = pool
+        self.vectorize = vectorize
+
         self.ndim = ndim
         self.nwalkers = nwalkers
         self.backend = Backend() if backend is None else backend
 
-        self.pool = pool
-        self.vectorize = vectorize
+        # Deal with re-used backends
+        if not self.backend.initialized:
+            self.reset()
+            state = np.random.get_state()
+        else:
+            # Check the backend shape
+            if self.backend.shape != (self.nwalkers, self.ndim):
+                raise ValueError(("the shape of the backend ({0}) is "
+                                  "incompatible with the shape of the sampler "
+                                  "({1})").format(
+                                      self.backend.shape,
+                                      (self.nwalkers, self.ndim)
+                                  ))
+
+            # Get the last random state
+            state = self.backend.random_state
+            if state is None:
+                state = np.random.get_state()
+
+            # Grab the last step so that we can restart
+            it = self.backend.iteration
+            if it > 0:
+                last = [self.backend.get_chain(discard=it-1)[0]]
+                last += [self.backend.get_log_prob(discard=it-1)[0]]
+                last += [state]
+                blob = self.backend.get_blobs(discard=it-1)
+                if blob is not None:
+                    last += [blob[0]]
+                self._last_run_mcmc_result = tuple(last)
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
         self._random = np.random.mtrand.RandomState()
-        self._random.set_state(np.random.get_state())
-
-        self.reset()
+        self._random.set_state(state)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -124,6 +151,10 @@ class EnsembleSampler(object):
             self._random.set_state(state)
         except:
             pass
+
+    @property
+    def iteration(self):
+        return self.backend.iteration
 
     def reset(self):
         """
@@ -386,55 +417,16 @@ class EnsembleSampler(object):
         return self.get_blobs(flat=True)
 
     def get_chain(self, **kwargs):
-        """Get the stored chain of MCMC samples
-
-        Args:
-            flat (Optional[bool]): Flatten the chain across the ensemble.
-                (default: ``False``)
-            thin (Optional[int]): Take only every ``thin`` steps from the
-                chain. (default: ``1``)
-            discard (Optional[int]): Discard the first ``discard`` steps in
-                the chain as burn-in. (default: ``0``)
-
-        Returns:
-            array[..., nwalkers, ndim]: The MCMC samples.
-
-        """
         return self.get_value("chain", **kwargs)
+    get_chain.__doc__ = Backend.get_chain.__doc__
 
     def get_blobs(self, **kwargs):
-        """Get the chain of blobs for each sample in the chain
-
-        Args:
-            flat (Optional[bool]): Flatten the chain across the ensemble.
-                (default: ``False``)
-            thin (Optional[int]): Take only every ``thin`` steps from the
-                chain. (default: ``1``)
-            discard (Optional[int]): Discard the first ``discard`` steps in
-                the chain as burn-in. (default: ``0``)
-
-        Returns:
-            array[..., nwalkers]: The chain of blobs.
-
-        """
         return self.get_value("blobs", **kwargs)
+    get_blobs.__doc__ = Backend.get_blobs.__doc__
 
     def get_log_prob(self, **kwargs):
-        """Get the chain of log probabilities evaluated at the MCMC samples
-
-        Args:
-            flat (Optional[bool]): Flatten the chain across the ensemble.
-                (default: ``False``)
-            thin (Optional[int]): Take only every ``thin`` steps from the
-                chain. (default: ``1``)
-            discard (Optional[int]): Discard the first ``discard`` steps in
-                the chain as burn-in. (default: ``0``)
-
-        Returns:
-            array[..., nwalkers]: The chain of log probabilities.
-
-        """
         return self.get_value("log_prob", **kwargs)
+    get_log_prob.__doc__ = Backend.get_log_prob.__doc__
 
     def get_value(self, name, **kwargs):
         return self.backend.get_value(name, **kwargs)
@@ -444,27 +436,9 @@ class EnsembleSampler(object):
     def acor(self):
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, discard=0, thin=1, **kwargs):
-        """Compute an estimate of the autocorrelation time for each parameter
-
-        Args:
-            thin (Optional[int]): Use only every ``thin`` steps from the
-                chain. The returned estimate is multiplied by ``thin`` so the
-                estimated time is in units of steps, not thinned steps.
-                (default: ``1``)
-            discard (Optional[int]): Discard the first ``discard`` steps in
-                the chain as burn-in. (default: ``0``)
-
-        Other arguments are passed directly to
-        :func:`emcee.autocorr.integrated_time`.
-
-        Returns:
-            array[ndim]: The integrated autocorrelation time estimate for the
-                chain for each parameter.
-
-        """
-        x = self.get_chain(discard=discard, thin=thin)
-        return thin * autocorr.integrated_time(x, **kwargs)
+    def get_autocorr_time(self, **kwargs):
+        return self.backend.get_autocorr_time(**kwargs)
+    get_autocorr_time.__doc__ = Backend.get_autocorr_time.__doc__
 
 
 class _function_wrapper(object):
