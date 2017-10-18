@@ -33,7 +33,7 @@ emcee has been used in `quite a few projects in the astrophysical literature
 Basic Usage
 -----------
 
-If you wanted to draw samples from a 10 dimensional Gaussian, you would do
+If you wanted to draw samples from a 5 dimensional Gaussian, you would do
 something like:
 
 .. code-block:: python
@@ -41,15 +41,15 @@ something like:
     import numpy as np
     import emcee
 
-    def lnprob(x, ivar):
+    def log_prob(x, ivar):
         return -0.5 * np.sum(ivar * x ** 2)
 
-    ndim, nwalkers = 10, 100
+    ndim, nwalkers = 5, 100
     ivar = 1. / np.random.rand(ndim)
-    p0 = [np.random.rand(ndim) for i in range(nwalkers)]
+    p0 = np.random.randn(nwalkers, ndim)
 
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
-    sampler.run_mcmc(p0, 1000)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, args=[ivar])
+    sampler.run_mcmc(p0, 10000)
 
 A more complete example is available in the :ref:`quickstart` tutorial.
 
