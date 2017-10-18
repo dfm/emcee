@@ -51,31 +51,22 @@ something like:
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[ivar])
     sampler.run_mcmc(p0, 1000)
 
-A more complete example is available in the `quickstart documentation
-<user/quickstart>`_.
+A more complete example is available in the :ref:`quickstart` tutorial.
 
 
 .. toctree::
    :maxdepth: 1
-   :caption: User Guide
+   :caption: User guide & tutorials
 
    user/install
-   user/line
-   user/advanced
-   user/pt
-   user/faq
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorials
-
    tutorials/quickstart
+   tutorials/line
    tutorials/autocorr
-   tutorials/incremental
+   tutorials/monitor
 
 .. toctree::
    :maxdepth: 2
-   :caption: API Details
+   :caption: API details
 
    api
 

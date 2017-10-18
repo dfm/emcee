@@ -17,7 +17,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 default: dirhtml
-TUTORIALS = tutorials/quickstart.rst tutorials/autocorr.rst tutorials/incremental.rst
+TUTORIALS = tutorials/quickstart.rst tutorials/autocorr.rst tutorials/monitor.rst
 
 tutorials/%.rst: _static/notebooks/%.ipynb tutorials/tutorial_rst.tpl
 	jupyter nbconvert --template tutorials/tutorial_rst --to rst $< --output-dir tutorials

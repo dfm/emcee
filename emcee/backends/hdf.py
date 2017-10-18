@@ -30,8 +30,11 @@ class HDFBackend(Backend):
     def initialized(self):
         if not os.path.exists(self.filename):
             return False
-        with self.open() as f:
-            return self.name in f
+        try:
+            with self.open() as f:
+                return self.name in f
+        except OSError:
+            return False
 
     def open(self, mode="r"):
         return h5py.File(self.filename, mode)

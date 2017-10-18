@@ -2,13 +2,13 @@
 .. module:: emcee
 
 **Note:** This tutorial was generated from an IPython notebook that can be
-downloaded `here <../../_static/notebooks/incremental.ipynb>`_.
+downloaded `here <../../_static/notebooks/monitor.ipynb>`_.
 
-.. _incremental:
+.. _monitor:
 
 
-Incrementally saving progress
-=============================
+Saving & monitoring progress
+============================
 
 It is often useful to incrementally save the state of the chain to a
 file. This makes it easier to monitor the chain’s progress and it makes
@@ -55,14 +55,15 @@ We will set up the problem as usual with one small change:
     
     # Set up the backend
     # Don't forget to clear it in case the file already exists
-    backend = emcee.backends.HDFBackend("incremental.h5")
+    filename = "tutorial.h5"
+    backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
     
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, backend=backend)
 
 The difference here was the addition of a "backend". This choice will
-save the samples to a file called ``incremental.h5`` in the current
+save the samples to a file called ``tutorial.h5`` in the current
 directory. Now, we'll run the chain for up to 10,000 steps and check the
 autocorrelation time every 100 steps. If the chain is longer than 100
 times the estimated autocorrelation time and if this estimate changed by
@@ -102,7 +103,7 @@ less than 1%, we'll consider things converged.
 
 .. parsed-literal::
 
-      6%|▋         | 6296/100000 [00:47<11:24, 136.86it/s]
+      6%|▋         | 6286/100000 [00:51<11:12, 139.36it/s]
 
 Now let's take a look at how the autocorrelation time estimate (averaged
 across dimensions) changed over the course of this run. In this plot,
@@ -125,7 +126,7 @@ plotted as a dashed line.
 
 
 
-.. image:: incremental_files/incremental_8_0.png
+.. image:: monitor_files/monitor_8_0.png
 
 
 As usual, we can also access all the properties of the chain:
@@ -167,7 +168,7 @@ As usual, we can also access all the properties of the chain:
 
 
 
-.. image:: incremental_files/incremental_10_1.png
+.. image:: monitor_files/monitor_10_1.png
 
 
 But, since you saved your samples to a file, you can also open them
@@ -175,7 +176,7 @@ after the fact using the :class:`backends.HDFBackend`:
 
 .. code:: python
 
-    reader = emcee.backends.HDFBackend("incremental.h5")
+    reader = emcee.backends.HDFBackend(filename)
     
     tau = reader.get_autocorr_time()
     burnin = int(2*np.max(tau))
@@ -208,7 +209,7 @@ call to :func:`backends.HDFBackend.reset`:
 
 .. code:: python
 
-    new_backend = emcee.backends.HDFBackend("incremental.h5")
+    new_backend = emcee.backends.HDFBackend(filename)
     print("Initial size: {0}".format(new_backend.iteration))
     new_sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, backend=new_backend)
     new_sampler.run_mcmc(None, 100)
