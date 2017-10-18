@@ -33,7 +33,7 @@ class HDFBackend(Backend):
         try:
             with self.open() as f:
                 return self.name in f
-        except OSError:
+        except (OSError, IOError):
             return False
 
     def open(self, mode="r"):
