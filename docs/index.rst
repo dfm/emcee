@@ -54,21 +54,34 @@ something like:
 A more complete example is available in the :ref:`quickstart` tutorial.
 
 
+How to Use This Guide
+---------------------
+
+To start, you're probably going to need to follow the :ref:`install` guide to
+get emcee installed on your computer.
+After you finish that, you can probably learn most of what you need from the
+from the tutorials listed below (you might want to start with
+:ref:`quickstart` and go form there).
+If you need more details about specific functionality, the User Guide below
+should have what you need.
+If you run into any issues, please don't hesitate to `open an issue on GitHub
+<https://github.com/dfm/emcee/issues>`_.
+
+
 .. toctree::
    :maxdepth: 1
-   :caption: User guide & tutorials
+   :caption: User Guide
 
    user/install
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
    tutorials/quickstart
    tutorials/line
    tutorials/autocorr
    tutorials/monitor
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API details
-
-   api
 
 
 Contributors
@@ -80,10 +93,10 @@ Contributors
 License & Attribution
 ---------------------
 
-Copyright 2010-2016 Dan Foreman-Mackey and contributors.
+Copyright 2010-2017 Dan Foreman-Mackey and contributors.
 
 emcee is free software made available under the MIT License. For details
-see `LICENSE <license>`_.
+see the ``LICENSE``.
 
 If you make use of emcee in your work, please cite our paper
 (`arXiv <http://arxiv.org/abs/1202.3665>`_,

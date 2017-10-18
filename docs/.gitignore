@@ -1,2 +1,3 @@
 _build
 *.h5
+_static/*/*.py
