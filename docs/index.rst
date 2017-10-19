@@ -80,6 +80,7 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
 
    tutorials/quickstart
    tutorials/line
+   tutorials/parallel
    tutorials/autocorr
    tutorials/monitor
 
