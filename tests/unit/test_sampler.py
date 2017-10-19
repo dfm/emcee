@@ -26,10 +26,6 @@ def normal_log_prob(params):
     ])
 )
 def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=100, seed=1234):
-    import emcee
-    print(emcee.__file__)
-    assert 0
-
     # Set up the random number generator.
     np.random.seed(seed)
 

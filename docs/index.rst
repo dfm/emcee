@@ -73,6 +73,7 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
    :caption: User Guide
 
    user/install
+   user/faq
 
 .. toctree::
    :maxdepth: 1
