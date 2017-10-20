@@ -15,3 +15,4 @@ exclude_lines =
     def __len__
     def __repr__
     logging.warn
+    deprecation_warning
