@@ -103,7 +103,7 @@ less than 1%, we'll consider things converged.
 
 .. parsed-literal::
 
-      6%|▋         | 6286/100000 [00:51<11:12, 139.36it/s]
+      6%|▋         | 6292/100000 [00:51<11:30, 135.63it/s] 
 
 Now let's take a look at how the autocorrelation time estimate (averaged
 across dimensions) changed over the course of this run. In this plot,
@@ -149,7 +149,7 @@ As usual, we can also access all the properties of the chain:
     print("flat log prior shape: {0}".format(log_prior_samples.shape))
     
     all_samples = np.concatenate((
-        samples, log_prob_samples[:, None], log_prior_samples
+        samples, log_prob_samples[:, None], log_prior_samples[:, None]
     ), axis=1)
     
     labels = list(map(r"$\theta_{{{0}}}$".format, range(1, ndim+1)))
@@ -164,7 +164,7 @@ As usual, we can also access all the properties of the chain:
     thin: 27
     flat chain shape: (7296, 5)
     flat log prob shape: (7296,)
-    flat log prior shape: (7296, 1)
+    flat log prior shape: (7296,)
 
 
 
@@ -198,7 +198,7 @@ after the fact using the :class:`backends.HDFBackend`:
     thin: 27
     flat chain shape: (7296, 5)
     flat log prob shape: (7296,)
-    flat log prior shape: (7296, 1)
+    flat log prior shape: (7296,)
 
 
 This should give the same output as the previous code block, but you'll
@@ -221,4 +221,8 @@ call to :func:`backends.HDFBackend.reset`:
     Initial size: 6300
     Final size: 6400
 
+
+.. parsed-literal::
+
+      6%|▋         | 6292/100000 [01:10<17:22, 89.85it/s]
 

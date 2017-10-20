@@ -69,11 +69,16 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: User Guide
 
    user/install
    user/faq
+   user/upgrade
+   user/sampler
+   user/moves
+   user/backends
+   user/autocorr
 
 .. toctree::
    :maxdepth: 1
