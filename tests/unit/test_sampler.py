@@ -9,7 +9,7 @@ import numpy as np
 
 from emcee import moves, backends, EnsembleSampler
 
-__all__ = ["test_shapes", "test_errors", "test_thin"]
+__all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
 
 
 def normal_log_prob(params):
@@ -25,7 +25,7 @@ def normal_log_prob(params):
         [(moves.StretchMove(), 0.3), (moves.GaussianMove(0.5), 0.1)],
     ])
 )
-def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=100, seed=1234):
+def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=10, seed=1234):
     # Set up the random number generator.
     np.random.seed(seed)
 
@@ -126,3 +126,16 @@ def test_restart(backend):
     with backend() as be:
         sampler = run_sampler(be)
         sampler.run_mcmc(None, 10)
+
+
+def test_vectorize():
+    def lp_vec(p):
+        return -0.5 * np.sum(p**2, axis=1)
+
+    np.random.seed(42)
+    nwalkers, ndim = 32, 3
+    coords = np.random.randn(nwalkers, ndim)
+    sampler = EnsembleSampler(nwalkers, ndim, lp_vec, vectorize=True)
+    sampler.run_mcmc(coords, 10)
+
+    assert sampler.get_chain().shape == (10, nwalkers, ndim)

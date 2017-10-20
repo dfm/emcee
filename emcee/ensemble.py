@@ -342,9 +342,9 @@ class EnsembleSampler(object):
 
         # Check that the parameters are in physical ranges.
         if np.any(np.isinf(p)):
-            raise ValueError("At least one parameter value was infinite.")
+            raise ValueError("At least one parameter value was infinite")
         if np.any(np.isnan(p)):
-            raise ValueError("At least one parameter value was NaN.")
+            raise ValueError("At least one parameter value was NaN")
 
         # If the `pool` property of the sampler has been set (i.e. we want
         # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
@@ -376,13 +376,7 @@ class EnsembleSampler(object):
 
         # Check for log_prob returning NaN.
         if np.any(np.isnan(log_prob)):
-            # Print some debugging stuff.
-            print("NaN value of log prob for parameters: ")
-            for pars in p[np.isnan(log_prob)]:
-                print(pars)
-
-            # Finally raise exception.
-            raise ValueError("log_prob returned NaN.")
+            raise ValueError("Probability function returned NaN")
 
         return log_prob, blob
 
