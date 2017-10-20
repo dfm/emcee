@@ -364,6 +364,12 @@ class EnsembleSampler(object):
             log_prob = np.array([float(l[0]) for l in results])
             blob = [l[1:] for l in results]
             blob = np.array(blob, dtype=np.atleast_1d(blob[0]).dtype)
+
+            # Deal with single blobs in a better way
+            if blob.shape[1] == 1:
+                m = [slice(None) for i in range(len(blob.shape))]
+                m[1] = 0
+                blob = blob[m]
         except (IndexError, TypeError):
             log_prob = np.array([float(l) for l in results])
             blob = None
