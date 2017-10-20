@@ -26,12 +26,17 @@ class EnsembleSampler(object):
     """An ensemble MCMC sampler
 
     Args:
-        nwalkers (int): The number of Goodman & Weare "walkers".
+        nwalkers (int): The number of walkers in the ensemble.
         ndim (int): Number of dimensions in the parameter space.
         log_prob_fn (callable): A function that takes a vector in the
             parameter space as input and returns the natural logarithm of the
             posterior probability (up to an additive constant) for that
             position.
+        moves (Optional): This can be a single move object, a list of moves,
+            or a "weighted" list of the form ``[(emcee3.moves.StretchMove(),
+            0.1), ...]``. When running, the sampler will randomly select a
+            move from this list (optionally with weights) for each proposal.
+            (default: :class:`StretchMove`)
         args (Optional): A list of extra positional arguments for
             ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
             ``log_pprob_fn(p, *args, **kwargs)``.
@@ -42,20 +47,28 @@ class EnsembleSampler(object):
             calling sequence as the built-in ``map`` function. This is
             generally used to compute the log-probabilities for the ensemble
             in parallel.
+        backend (Optional): Either a :class:`backends.Backend` or a subclass
+            (like :class:`backends.HDFBackend) that is used to store and
+            serialize the state of the chain. By default, the chain is stored
+            as a set of numpy arrays in memory, but new backends can be
+            written to support other mediums.
         vectorize (Optional[bool]): If ``True``, ``log_prob_fn`` is expected
             to accept a list of position vectors instead of just one.
             (default: ``False``)
 
     """
-    def __init__(self, nwalkers, ndim, log_prob_fn, a=None,
+    def __init__(self, nwalkers, ndim, log_prob_fn,
                  pool=None, moves=None,
                  args=None, kwargs=None,
                  backend=None,
                  vectorize=False,
                  # Deprecated...
-                 postargs=None, threads=None,  live_dangerously=None,
+                 a=None, postargs=None, threads=None,  live_dangerously=None,
                  runtime_sortingfn=None):
         # Warn about deprecated arguments
+        if a is not None:
+            deprecation_warning(
+                "the 'a' argument is deprecated, use 'moves' instead")
         if threads is not None:
             deprecation_warning(
                 "the 'threads' argument is deprecated")
