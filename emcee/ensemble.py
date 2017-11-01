@@ -68,16 +68,16 @@ class EnsembleSampler(object):
         # Warn about deprecated arguments
         if a is not None:
             deprecation_warning(
-                "the 'a' argument is deprecated, use 'moves' instead")
+                "The 'a' argument is deprecated, use 'moves' instead")
         if threads is not None:
             deprecation_warning(
-                "the 'threads' argument is deprecated")
+                "The 'threads' argument is deprecated")
         if runtime_sortingfn is not None:
             deprecation_warning(
-                "the 'runtime_sortingfn' argument is deprecated")
+                "The 'runtime_sortingfn' argument is deprecated")
         if live_dangerously is not None:
             deprecation_warning(
-                "the 'live_dangerously' argument is deprecated")
+                "The 'live_dangerously' argument is deprecated")
 
         # Parse the move schedule
         if moves is None:
@@ -185,7 +185,7 @@ class EnsembleSampler(object):
         return d
 
     def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
-               iterations=1, thin=1, store=True, progress=False):
+               iterations=1, thin_by=1, thin=None, store=True, progress=False):
         """Advance the chain as a generator
 
         Args:
@@ -198,7 +198,7 @@ class EnsembleSampler(object):
                 See the :attr:`EnsembleSampler.random_state` property for
                 details.
             iterations (Optional[int]): The number of steps to run.
-            thin (Optional[int]): If you only want to store and yield every
+            thin_by (Optional[int]): If you only want to store and yield every
                 ``thin`` samples in the chain, set thin to an integer greater
                 than 1.
             store (Optional[bool]): By default, the sampler stores (in memory)
@@ -245,18 +245,36 @@ class EnsembleSampler(object):
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
         if np.any(np.isnan(log_prob)):
-            raise ValueError("The initial log_prob was NaN.")
+            raise ValueError("The initial log_prob was NaN")
 
-        # Check that the thin keyword is reasonable.
-        thin = int(thin)
-        if thin <= 0:
-            raise ValueError("Invalid thinning argument")
+        # Deal with deprecated thin argument
+        if thin is not None:
+            deprecation_warning("The 'thin' argument is deprecated. "
+                                "Use 'thin_by' instead.")
 
-        # Here, we resize chain in advance for performance. This actually
-        # makes a pretty big difference.
-        if store:
-            N = iterations // thin
-            self.backend.grow(N, blobs)
+            # Check that the thin keyword is reasonable.
+            thin = int(thin)
+            if thin <= 0:
+                raise ValueError("Invalid thinning argument")
+
+            yield_step = 1
+            checkpoint_step = thin
+            iterations = int(iterations)
+            if store:
+                N = iterations // checkpoint_step
+                self.backend.grow(N, blobs)
+
+        else:
+            # Check that the thin keyword is reasonable.
+            thin_by = int(thin_by)
+            if thin_by <= 0:
+                raise ValueError("Invalid thinning argument")
+
+            yield_step = thin_by
+            checkpoint_step = thin_by
+            iterations = int(iterations)
+            if store:
+                self.backend.grow(iterations, blobs)
 
         # Inject the progress bar
         total = int(iterations)
@@ -265,28 +283,31 @@ class EnsembleSampler(object):
         else:
             gen = range(total)
 
-        for i in gen:
-            # Choose a random move
-            move = self._random.choice(self._moves, p=self._weights)
+        i = 0
+        for _ in gen:
+            for _ in range(yield_step):
+                # Choose a random move
+                move = self._random.choice(self._moves, p=self._weights)
 
-            # Propose
-            p, log_prob, blobs, accepted = move.propose(
-                p, log_prob, blobs, self.compute_log_prob, self._random)
+                # Propose
+                p, log_prob, blobs, accepted = move.propose(
+                    p, log_prob, blobs, self.compute_log_prob, self._random)
 
-            if (i + 1) % thin == 0:
-                # Save the results
-                if store:
+                # Save the new step
+                if store and (i + 1) % checkpoint_step == 0:
                     self.backend.save_step(p, log_prob, blobs, accepted,
                                            self.random_state)
 
-                # Yield the result as an iterator so that the user can do all
-                # sorts of fun stuff with the results so far.
-                if blobs is not None:
-                    # This is a bit of a hack to keep things backwards
-                    # compatible.
-                    yield p, log_prob, self.random_state, blobs
-                else:
-                    yield p, log_prob, self.random_state
+                i += 1
+
+            # Yield the result as an iterator so that the user can do all
+            # sorts of fun stuff with the results so far.
+            if blobs is not None:
+                # This is a bit of a hack to keep things backwards
+                # compatible.
+                yield p, log_prob, self.random_state, blobs
+            else:
+                yield p, log_prob, self.random_state
 
     def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, blobs0=None,
                  **kwargs):

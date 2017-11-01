@@ -12,12 +12,12 @@ def normal_log_prob(params):
     return -0.5 * np.sum(params**2)
 
 
-def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin=1):
+def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin_by=1):
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
-    sampler.run_mcmc(coords, nsteps, thin=thin)
+    sampler.run_mcmc(coords, nsteps, thin_by=thin_by)
     return sampler
 
 

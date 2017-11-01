@@ -94,12 +94,13 @@ def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
             list(sampler.run_mcmc(coords2, nsteps))
 
 
-def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin=1):
+def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
+                thin=None, thin_by=1):
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
-    sampler.run_mcmc(coords, nsteps, thin=thin)
+    sampler.run_mcmc(coords, nsteps // thin_by, thin=thin, thin_by=thin_by)
     return sampler
 
 
@@ -111,6 +112,22 @@ def test_thin(backend):
         thinby = 3
         sampler1 = run_sampler(None)
         sampler2 = run_sampler(be, thin=thinby)
+        for k in ["get_chain", "get_log_prob"]:
+            a = getattr(sampler1, k)()[thinby-1::thinby]
+            b = getattr(sampler2, k)()
+            c = getattr(sampler1, k)(thin=thinby)
+            assert np.allclose(a, b), "inconsistent {0}".format(k)
+            assert np.allclose(a, c), "inconsistent {0}".format(k)
+
+
+@pytest.mark.parametrize(
+    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
+)
+def test_thin_by(backend):
+    with backend() as be:
+        thinby = 3
+        sampler1 = run_sampler(None)
+        sampler2 = run_sampler(be, thin_by=thinby)
         for k in ["get_chain", "get_log_prob"]:
             a = getattr(sampler1, k)()[thinby-1::thinby]
             b = getattr(sampler2, k)()
