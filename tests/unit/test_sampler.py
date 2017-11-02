@@ -100,6 +100,7 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
+    print(nsteps//thin_by)
     sampler.run_mcmc(coords, nsteps // thin_by, thin=thin, thin_by=thin_by)
     return sampler
 

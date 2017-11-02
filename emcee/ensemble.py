@@ -4,21 +4,13 @@ from __future__ import division, print_function
 
 __all__ = ["EnsembleSampler"]
 
-import logging
 from collections import Iterable
 
 import numpy as np
 
-try:
-    from tqdm import tqdm
-except ImportError:
-    def tqdm(f, *args, **kwargs):
-        logging.warn("You must install the tqdm library to use progress "
-                     "indicators with emcee")
-        return f
-
 from .backends import Backend
 from .moves import StretchMove
+from .pbar import get_progress_bar
 from .utils import deprecated, deprecation_warning
 
 
@@ -277,37 +269,35 @@ class EnsembleSampler(object):
                 self.backend.grow(iterations, blobs)
 
         # Inject the progress bar
-        total = int(iterations)
-        if progress:
-            gen = tqdm(range(total), total=total)
-        else:
-            gen = range(total)
+        total = iterations * yield_step
+        with get_progress_bar(progress, total) as pbar:
+            i = 0
+            for _ in range(iterations):
+                for _ in range(yield_step):
+                    # Choose a random move
+                    move = self._random.choice(self._moves, p=self._weights)
 
-        i = 0
-        for _ in gen:
-            for _ in range(yield_step):
-                # Choose a random move
-                move = self._random.choice(self._moves, p=self._weights)
+                    # Propose
+                    p, log_prob, blobs, accepted = move.propose(
+                        p, log_prob, blobs, self.compute_log_prob,
+                        self._random)
 
-                # Propose
-                p, log_prob, blobs, accepted = move.propose(
-                    p, log_prob, blobs, self.compute_log_prob, self._random)
+                    # Save the new step
+                    if store and (i + 1) % checkpoint_step == 0:
+                        self.backend.save_step(p, log_prob, blobs, accepted,
+                                               self.random_state)
 
-                # Save the new step
-                if store and (i + 1) % checkpoint_step == 0:
-                    self.backend.save_step(p, log_prob, blobs, accepted,
-                                           self.random_state)
+                    pbar.update(1)
+                    i += 1
 
-                i += 1
-
-            # Yield the result as an iterator so that the user can do all
-            # sorts of fun stuff with the results so far.
-            if blobs is not None:
-                # This is a bit of a hack to keep things backwards
-                # compatible.
-                yield p, log_prob, self.random_state, blobs
-            else:
-                yield p, log_prob, self.random_state
+                # Yield the result as an iterator so that the user can do all
+                # sorts of fun stuff with the results so far.
+                if blobs is not None:
+                    # This is a bit of a hack to keep things backwards
+                    # compatible.
+                    yield p, log_prob, self.random_state, blobs
+                else:
+                    yield p, log_prob, self.random_state
 
     def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, blobs0=None,
                  **kwargs):

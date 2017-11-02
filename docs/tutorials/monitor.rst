@@ -103,7 +103,8 @@ less than 1%, we'll consider things converged.
 
 .. parsed-literal::
 
-      6%|▋         | 6292/100000 [00:51<11:30, 135.63it/s] 
+      6%|▋         | 6300/100000 [00:47<11:50, 131.92it/s]
+
 
 Now let's take a look at how the autocorrelation time estimate (averaged
 across dimensions) changed over the course of this run. In this plot,
@@ -218,11 +219,24 @@ call to :func:`backends.HDFBackend.reset`:
 
 .. parsed-literal::
 
+     14%|█▍        | 14/100 [00:00<00:00, 136.86it/s]
+
+.. parsed-literal::
+
     Initial size: 6300
+
+
+.. parsed-literal::
+
+    100%|██████████| 100/100 [00:00<00:00, 114.71it/s]
+
+.. parsed-literal::
+
     Final size: 6400
 
 
 .. parsed-literal::
 
-      6%|▋         | 6292/100000 [01:10<17:22, 89.85it/s]
+    
+
 
