@@ -55,7 +55,7 @@ class EnsembleSampler(object):
                  backend=None,
                  vectorize=False,
                  # Deprecated...
-                 a=None, postargs=None, threads=None,  live_dangerously=None,
+                 a=None, postargs=None, threads=None, live_dangerously=None,
                  runtime_sortingfn=None):
         # Warn about deprecated arguments
         if a is not None:
@@ -101,12 +101,11 @@ class EnsembleSampler(object):
         else:
             # Check the backend shape
             if self.backend.shape != (self.nwalkers, self.ndim):
-                raise ValueError(("the shape of the backend ({0}) is "
-                                  "incompatible with the shape of the sampler "
-                                  "({1})").format(
-                                      self.backend.shape,
-                                      (self.nwalkers, self.ndim)
-                                  ))
+                raise ValueError(
+                    ("the shape of the backend ({0}) is incompatible with the "
+                     "shape of the sampler ({1})")
+                    .format(self.backend.shape,
+                            (self.nwalkers, self.ndim)))
 
             # Get the last random state
             state = self.backend.random_state
@@ -131,7 +130,7 @@ class EnsembleSampler(object):
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
-        self.log_prob_fn = _function_wrapper(log_prob_fn, args, kwargs)
+        self.log_prob_fn = _FunctionWrapper(log_prob_fn, args, kwargs)
 
     @property
     def random_state(self):
@@ -253,8 +252,8 @@ class EnsembleSampler(object):
             checkpoint_step = thin
             iterations = int(iterations)
             if store:
-                N = iterations // checkpoint_step
-                self.backend.grow(N, blobs)
+                nsaves = iterations // checkpoint_step
+                self.backend.grow(nsaves, blobs)
 
         else:
             # Check that the thin keyword is reasonable.
@@ -299,16 +298,16 @@ class EnsembleSampler(object):
                 else:
                     yield p, log_prob, self.random_state
 
-    def run_mcmc(self, pos0, N, rstate0=None, log_prob0=None, blobs0=None,
-                 **kwargs):
+    def run_mcmc(self, pos0, nsteps, rstate0=None, log_prob0=None,
+                 blobs0=None, **kwargs):
         """
-        Iterate :func:`sample` for ``N`` iterations and return the result
+        Iterate :func:`sample` for ``nsteps`` iterations and return the result
 
         Args:
             pos0: The initial position vector. Can also be ``None`` to resume
                 from where :func:``run_mcmc`` left off the last time it
                 executed.
-            N: The number of steps to run.
+            nsteps: The number of steps to run.
             log_prob0 (Optional[ndarray[nwalkers]]): The log posterior
                 probabilities for the walkers at ``p0``. If ``log_prob0 is
                 None``, the initial values are calculated.
@@ -337,7 +336,7 @@ class EnsembleSampler(object):
                 blobs0 = self._last_run_mcmc_result[3]
 
         for results in self.sample(pos0, log_prob0, rstate0=rstate0,
-                                   blobs0=blobs0, iterations=N, **kwargs):
+                                   blobs0=blobs0, iterations=nsteps, **kwargs):
             pass
 
         # Store so that the ``pos0=None`` case will work
@@ -370,19 +369,19 @@ class EnsembleSampler(object):
         if np.any(np.isnan(p)):
             raise ValueError("At least one parameter value was NaN")
 
-        # If the `pool` property of the sampler has been set (i.e. we want
-        # to use `multiprocessing`), use the `pool`'s map method. Otherwise,
-        # just use the built-in `map` function.
-        if self.pool is not None:
-            M = self.pool.map
-        else:
-            M = map
-
         # Run the log-probability calculations (optionally in parallel).
         if self.vectorize:
             results = self.log_prob_fn(p)
         else:
-            results = list(M(self.log_prob_fn, [p[i] for i in range(len(p))]))
+            # If the `pool` property of the sampler has been set (i.e. we want
+            # to use `multiprocessing`), use the `pool`'s map method.
+            # Otherwise, just use the built-in `map` function.
+            if self.pool is not None:
+                map_func = self.pool.map
+            else:
+                map_func = map
+            results = list(map_func(self.log_prob_fn,
+                                    (p[i] for i in range(len(p)))))
 
         try:
             log_prob = np.array([float(l[0]) for l in results])
@@ -465,7 +464,7 @@ class EnsembleSampler(object):
     get_autocorr_time.__doc__ = Backend.get_autocorr_time.__doc__
 
 
-class _function_wrapper(object):
+class _FunctionWrapper(object):
     """
     This is a hack to make the likelihood function pickleable when ``args``
     or ``kwargs`` are also included.
