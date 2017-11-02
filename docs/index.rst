@@ -77,6 +77,7 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
    user/upgrade
    user/sampler
    user/moves
+   user/blobs
    user/backends
    user/autocorr
 
