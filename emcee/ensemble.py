@@ -20,21 +20,26 @@ class EnsembleSampler(object):
     Args:
         nwalkers (int): The number of walkers in the ensemble.
         ndim (int): Number of dimensions in the parameter space.
-        log_prob_fn (callable): A function that takes a vector in the
+        log_like_fn (callable): A function that takes a vector in the
             parameter space as input and returns the natural logarithm of the
-            posterior probability (up to an additive constant) for that
-            position.
+            likelihood function or posterior probability (up to an additive
+            constant) for that position.
+        log_prior_fn (Optional[callable]): A function that takes a vector in
+            the parameter space as input and returns the natural logarithm of
+            the prior probability (up to an additive constant) for that
+            position. If not provided, the prior is assumed to be included in
+            the output from ``log_like_fn``.
         moves (Optional): This can be a single move object, a list of moves,
             or a "weighted" list of the form ``[(emcee3.moves.StretchMove(),
             0.1), ...]``. When running, the sampler will randomly select a
             move from this list (optionally with weights) for each proposal.
             (default: :class:`StretchMove`)
         args (Optional): A list of extra positional arguments for
-            ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_like_fn`` and ``log_prior_fn``. These functions will be
+            called with the sequence ``log_like_fn(p, *args, **kwargs)``.
         kwargs (Optional): A dict of extra keyword arguments for
-            ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_like_fn`` and ``log_prior_fn``. These functions will be
+            called with the sequence ``log_like_fn(p, *args, **kwargs)``.
         pool (Optional): An object with a ``map`` method that follows the same
             calling sequence as the built-in ``map`` function. This is
             generally used to compute the log-probabilities for the ensemble
@@ -44,12 +49,13 @@ class EnsembleSampler(object):
             serialize the state of the chain. By default, the chain is stored
             as a set of numpy arrays in memory, but new backends can be
             written to support other mediums.
-        vectorize (Optional[bool]): If ``True``, ``log_prob_fn`` is expected
-            to accept a list of position vectors instead of just one.
-            (default: ``False``)
+        vectorize (Optional[bool]): If ``True``, ``log_like_fn`` and
+            ``log_prior_fn`` are expected to accept a list of position vectors
+            instead of just one. (default: ``False``)
 
     """
-    def __init__(self, nwalkers, ndim, log_prob_fn,
+    def __init__(self, nwalkers, ndim, log_like_fn,
+                 log_prior_fn=None,
                  pool=None, moves=None,
                  args=None, kwargs=None,
                  backend=None,
@@ -131,7 +137,8 @@ class EnsembleSampler(object):
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
-        self.log_prob_fn = _function_wrapper(log_prob_fn, args, kwargs)
+        self.log_prob_fn = _function_wrapper(log_prior_fn, log_like_fn,
+                                             args, kwargs)
 
     @property
     def random_state(self):
@@ -465,20 +472,46 @@ class EnsembleSampler(object):
     get_autocorr_time.__doc__ = Backend.get_autocorr_time.__doc__
 
 
+def _default_log_prior(params, *args, **kwargs):
+    params = np.atleast_1d(params)
+    if len(params.shape) == 1:
+        return 0.0
+    return np.zeros(len(params))
+
+
 class _function_wrapper(object):
     """
     This is a hack to make the likelihood function pickleable when ``args``
     or ``kwargs`` are also included.
 
     """
-    def __init__(self, f, args, kwargs):
-        self.f = f
+    def __init__(self, log_prior_fn, log_like_fn, args, kwargs):
+        self.log_prior_fn = log_prior_fn
+        if log_prior_fn is None:
+            self.log_prior_fn = _default_log_prior
+        self.log_like_fn = log_like_fn
         self.args = [] if args is None else args
         self.kwargs = {} if kwargs is None else kwargs
 
     def __call__(self, x):
+        # Compute log prior
         try:
-            return self.f(x, *self.args, **self.kwargs)
+            lp = self.log_prior_fn(x, *self.args, **self.kwargs)
+        except:
+            import traceback
+            print("emcee: Exception while calling your prior function:")
+            print("  params:", x)
+            print("  args:", self.args)
+            print("  kwargs:", self.kwargs)
+            print("  exception:")
+            traceback.print_exc()
+            raise
+
+        if not np.isfinite(lp):
+            return -np.inf, -np.inf
+
+        try:
+            ll = self.log_like_fn(x, *self.args, **self.kwargs)
         except:
             import traceback
             print("emcee: Exception while calling your likelihood function:")
@@ -488,3 +521,8 @@ class _function_wrapper(object):
             print("  exception:")
             traceback.print_exc()
             raise
+
+        if not np.isfinite(ll):
+            return -np.inf, -np.inf
+
+        return lp, ll
