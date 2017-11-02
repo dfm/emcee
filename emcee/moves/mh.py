@@ -13,7 +13,12 @@ class MHMove(Move):
     """
     A general Metropolis-Hastings proposal.
 
-    :param proposal:
+    Concrete implementations can be made by providing a ``proposal_function``
+    argument that implements the proposal as described below.
+    For standard Gaussian Metropolis moves, :class:`moves.GaussianMove` can be
+    used.
+
+    :param proposal_function:
         The proposal function. It should take 2 arguments: a numpy-compatible
         random number generator and a ``(K, ndim)`` list of coordinate
         vectors. This function should return the proposed position and the
