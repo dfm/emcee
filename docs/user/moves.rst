@@ -7,8 +7,8 @@ Moves
 
 emcee was originally built on the "stretch move" ensemble method from `Goodman
 & Weare (2010) <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_, but
-starting with version 0.3, emcee nows allows proposals generated from a
-mixture of "moves".
+starting with version 3, emcee nows allows proposals generated from a mixture
+of "moves".
 This can be used to get a more efficient sampler for models where the stretch
 move is not well suited, such as high dimensional or multi-modal probability
 surfaces.
