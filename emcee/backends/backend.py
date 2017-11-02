@@ -10,13 +10,21 @@ from .. import autocorr
 
 
 class Backend(object):
+    """A simple default backend that stores the chain in memory"""
 
     def __init__(self):
         self.initialized = False
 
     def reset(self, nwalkers, ndim):
-        self.nwalkers = nwalkers
-        self.ndim = ndim
+        """Clear the state of the chain and empty the backend
+
+        Args:
+            nwakers (int): The size of the ensemble
+            ndim (int): The number of dimensions
+
+        """
+        self.nwalkers = int(nwalkers)
+        self.ndim = int(ndim)
         self.iteration = 0
         self.accepted = np.zeros(self.nwalkers, dtype=int)
         self.chain = np.empty((0, self.nwalkers, self.ndim))
@@ -25,6 +33,7 @@ class Backend(object):
         self.random_state = None
 
     def has_blobs(self):
+        """Returns ``True`` if the model includes blobs"""
         return self.blobs is not None
 
     def get_value(self, name, flat=False, thin=1, discard=0):
@@ -118,6 +127,7 @@ class Backend(object):
 
     @property
     def shape(self):
+        """The dimensions of the ensemble ``(nwalkers, ndim)``"""
         return self.nwalkers, self.ndim
 
     def _check_blobs(self, blobs):
@@ -127,23 +137,29 @@ class Backend(object):
         if self.iteration > 0 and blobs is not None and not has_blobs:
             raise ValueError("inconsistent use of blobs")
 
-    def grow(self, N, blobs):
-        """Expand the storage space by ``N``"""
+    def grow(self, ngrow, blobs):
+        """Expand the storage space by some number of samples
+
+        Args:
+            ngrow (int): The number of steps to grow the chain.
+            blobs: The current list of blobs. This is used to compute the
+                dtype for the blobs array.
+
+        """
         self._check_blobs(blobs)
-        a = np.empty((N, self.nwalkers, self.ndim))
+        a = np.empty((ngrow, self.nwalkers, self.ndim))
         self.chain = np.concatenate((self.chain, a), axis=0)
-        a = np.empty((N, self.nwalkers))
+        a = np.empty((ngrow, self.nwalkers))
         self.log_prob = np.concatenate((self.log_prob, a), axis=0)
         if blobs is not None:
             dt = np.dtype((blobs[0].dtype, blobs[0].shape))
-            a = np.empty((N, self.nwalkers), dtype=dt)
+            a = np.empty((ngrow, self.nwalkers), dtype=dt)
             if self.blobs is None:
                 self.blobs = a
             else:
                 self.blobs = np.concatenate((self.blobs, a), axis=0)
 
     def _check(self, coords, log_prob, blobs, accepted):
-        """Check the dimensions of a proposed state"""
         self._check_blobs(blobs)
         nwalkers, ndim = self.shape
         has_blobs = self.has_blobs()
@@ -165,7 +181,18 @@ class Backend(object):
                              .format(nwalkers))
 
     def save_step(self, coords, log_prob, blobs, accepted, random_state):
-        """Save a step to the backend"""
+        """Save a step to the backend
+
+        Args:
+            coords (ndarray): The coordinates of the walkers in the ensemble.
+            log_prob (ndarray): The log probability for each walker.
+            blobs (ndarray or None): The blobs for each walker or ``None`` if
+                there are no blobs.
+            accepted (ndarray): An array of boolean flags indicating whether
+                or not the proposal for each walker was accepted.
+            random_state: The current state of the random number generator.
+
+        """
         self._check(coords, log_prob, blobs, accepted)
 
         self.chain[self.iteration, :, :] = coords

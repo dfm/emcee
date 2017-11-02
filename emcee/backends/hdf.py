@@ -14,8 +14,8 @@ try:
 except ImportError:
     h5py = None
 
-from .. import __version__
 from .backend import Backend
+from .. import __version__
 
 
 class HDFBackend(Backend):
@@ -106,29 +106,47 @@ class HDFBackend(Backend):
             ]
         return elements if len(elements) else None
 
-    def grow(self, delta_N, blobs):
-        """Expand the storage space by ``N``"""
+    def grow(self, ngrow, blobs):
+        """Expand the storage space by some number of samples
+
+        Args:
+            ngrow (int): The number of steps to grow the chain.
+            blobs: The current list of blobs. This is used to compute the
+                dtype for the blobs array.
+
+        """
         self._check_blobs(blobs)
 
         with self.open("a") as f:
             g = f[self.name]
-            N = g.attrs["iteration"] + delta_N
-            g["chain"].resize(N, axis=0)
-            g["log_prob"].resize(N, axis=0)
+            ntot = g.attrs["iteration"] + ngrow
+            g["chain"].resize(ntot, axis=0)
+            g["log_prob"].resize(ntot, axis=0)
             if blobs is not None:
                 has_blobs = g.attrs["has_blobs"]
                 if not has_blobs:
                     nwalkers = g.attrs["nwalkers"]
                     dt = np.dtype((blobs[0].dtype, blobs[0].shape))
-                    g.create_dataset("blobs", (N, nwalkers),
+                    g.create_dataset("blobs", (ntot, nwalkers),
                                      maxshape=(None, nwalkers),
                                      dtype=dt)
                 else:
-                    g["blobs"].resize(N, axis=0)
+                    g["blobs"].resize(ntot, axis=0)
                 g.attrs["has_blobs"] = True
 
     def save_step(self, coords, log_prob, blobs, accepted, random_state):
-        """Save a step to the backend"""
+        """Save a step to the file
+
+        Args:
+            coords (ndarray): The coordinates of the walkers in the ensemble.
+            log_prob (ndarray): The log probability for each walker.
+            blobs (ndarray or None): The blobs for each walker or ``None`` if
+                there are no blobs.
+            accepted (ndarray): An array of boolean flags indicating whether
+                or not the proposal for each walker was accepted.
+            random_state: The current state of the random number generator.
+
+        """
         self._check(coords, log_prob, blobs, accepted)
 
         with self.open("a") as f:

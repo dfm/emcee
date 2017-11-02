@@ -16,6 +16,9 @@ The main new features include:
 2. A more self consistent and user-friendly :ref:`blobs` interface,
 
 3. A :ref:`backends` interface that simplifies the process of serializing the
-   sampling results,
+   sampling results, and
 
-
+4. The long requested progress bar (implemented using `tqdm
+   <https://github.com/tqdm/tqdm>`_) so that users can watch the grass grow
+   while the sampler does its thing (this is as simple as installing tqdm and
+   setting ``progress=True`` in :class:`EnsembleSampler`).
