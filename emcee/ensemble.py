@@ -54,6 +54,7 @@ class EnsembleSampler(object):
                  args=None, kwargs=None,
                  backend=None,
                  vectorize=False,
+                 blobs_dtype=None,
                  # Deprecated...
                  a=None, postargs=None, threads=None, live_dangerously=None,
                  runtime_sortingfn=None):
@@ -89,6 +90,7 @@ class EnsembleSampler(object):
 
         self.pool = pool
         self.vectorize = vectorize
+        self.blobs_dtype = blobs_dtype
 
         self.ndim = ndim
         self.nwalkers = nwalkers
@@ -386,16 +388,22 @@ class EnsembleSampler(object):
         try:
             log_prob = np.array([float(l[0]) for l in results])
             blob = [l[1:] for l in results]
-            blob = np.array(blob, dtype=np.atleast_1d(blob[0]).dtype)
-
-            # Deal with single blobs in a better way
-            if blob.shape[1] == 1:
-                m = [slice(None) for i in range(len(blob.shape))]
-                m[1] = 0
-                blob = blob[m]
         except (IndexError, TypeError):
             log_prob = np.array([float(l) for l in results])
             blob = None
+        else:
+            # Get the blobs dtype
+            if self.blobs_dtype is not None:
+                dt = self.blobs_dtype
+            else:
+                dt = np.atleast_1d(blob[0]).dtype
+            blob = np.array(blob, dtype=dt)
+
+            # Deal with single blobs in a better way
+            if len(blob.shape) > 1 and blob.shape[1] == 1:
+                m = [slice(None) for i in range(len(blob.shape))]
+                m[1] = 0
+                blob = blob[m]
 
         # Check for log_prob returning NaN.
         if np.any(np.isnan(log_prob)):
