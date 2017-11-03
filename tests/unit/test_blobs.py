@@ -20,7 +20,8 @@ class BlobLogProb(object):
 
 
 @pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
+    "backend", [backends.Backend, backends.TempHDFBackend,
+                backends.TempFITSBackend],
 )
 def test_blob_shape(backend):
     with backend() as be:
@@ -42,8 +43,8 @@ def test_blob_shape(backend):
         sampler.run_mcmc(coords, nsteps)
         assert sampler.get_blobs().shape == (nsteps, nwalkers)
 
-        # HDF backend doesn't support the object type
-        if backend == backends.hdf.TempHDFBackend:
+        # HDF and FITS backends don't support the object type
+        if backend in (backends.TempHDFBackend, backends.TempFITSBackend):
             return
 
         model = BlobLogProb(lambda x: "face")

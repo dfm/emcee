@@ -5,6 +5,7 @@ from __future__ import division, print_function
 __all__ = ["FITSBackend", "TempFITSBackend"]
 
 import os
+import pickle
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -22,11 +23,14 @@ class FITSBackend(Backend):
 
     HDU_MAP = (None, "accepted", "chain", "log_prob", "blobs")
 
-    def __init__(self, filename):
+    def __init__(self, filename, pickle_filename=None):
         if fitsio is None:
             raise ImportError("you must install 'fitsio' to use the "
                               "FITSBackend")
         self.filename = filename
+        if pickle_filename is None:
+            pickle_filename = filename + ".pkl"
+        self.pickle_filename = pickle_filename
 
     @property
     def initialized(self):
@@ -99,14 +103,10 @@ class FITSBackend(Backend):
 
     @property
     def random_state(self):
-        None
-        # with self.open() as f:
-        #     elements = [
-        #         v
-        #         for k, v in sorted(f[self.name].attrs.items())
-        #         if k.startswith("random_state_")
-        #     ]
-        # return elements if len(elements) else None
+        if not os.path.exists(self.pickle_filename):
+            return None
+        with open(self.pickle_filename, "rb") as f:
+            return pickle.load(f)
 
     def grow(self, ngrow, blobs):
         """Expand the storage space by some number of samples
@@ -124,9 +124,10 @@ class FITSBackend(Backend):
             iteration = hdr["ITERAT"]
             nwalkers = hdr["NWALKERS"]
             ndim = hdr["NDIM"]
-            has_blobs = hdr["BLOBS"]
+            has_blobs = blobs is not None
             if has_blobs:
                 dtype = np.dtype((blobs[0].dtype, blobs[0].shape))
+            f[0].write_key("BLOBS", has_blobs)
 
             # Deal with things on the first update
             if iteration == 0:
@@ -140,19 +141,19 @@ class FITSBackend(Backend):
                 fs[3].write(np.zeros((ngrow, nwalkers), dtype=float),
                             extname="log_prob")
                 if has_blobs:
-                    fs[4].write(np.zeros(ngrow, nwalkers), dtype=dtype,
+                    fs[4].write(np.zeros((ngrow, nwalkers), dtype=dtype),
                                 extname="blobs")
 
             # Otherwise append
             else:
-                hdr = f[2].read_header()
-                i = ngrow - (hdr["NAXIS3"] - iteration)
+                hdr2 = f[2].read_header()
+                i = ngrow - (hdr2["NAXIS3"] - iteration)
                 f["chain"].write(np.zeros((i, nwalkers, ndim), dtype=float),
                                  start=(iteration, 0, 0))
                 f["log_prob"].write(np.zeros((i, nwalkers), dtype=float),
                                     start=(iteration, 0))
                 if has_blobs:
-                    f["blobs"].append(np.zeros(i, nwalkers), dtype=dtype,
+                    f["blobs"].append(np.zeros((i, nwalkers), dtype=dtype),
                                       start=(iteration, 0))
 
     def save_step(self, coords, log_prob, blobs, accepted, random_state):
@@ -178,18 +179,26 @@ class FITSBackend(Backend):
             f[2].write(coords[None, :, :], start=(iteration, 0, 0))
             f[3].write(log_prob[None, :], start=(iteration, 0))
             if blobs is not None:
-                f[4].write(blobs[None, :], start=(iteration, 0))
+                start = [iteration] + [0] * len(blobs.shape)
+                f[4].write(blobs[None, :], start=start)
 
             f[0].write_key("ITERAT", iteration + 1)
+
+        with open(self.pickle_filename, "wb") as f:
+            pickle.dump(random_state, f, -1)
 
 
 class TempFITSBackend(object):
 
     def __enter__(self):
-        f = NamedTemporaryFile("w", delete=False)
-        f.close()
-        self.filename = f.name
-        return FITSBackend(f.name)
+        f1 = NamedTemporaryFile("w", delete=False)
+        f1.close()
+        f2 = NamedTemporaryFile("w", delete=False)
+        f2.close()
+        self.filename = f1.name
+        self.pickle_filename = f2.name
+        return FITSBackend(f1.name, f2.name)
 
     def __exit__(self, exception_type, exception_value, traceback):
         os.remove(self.filename)
+        os.remove(self.pickle_filename)
