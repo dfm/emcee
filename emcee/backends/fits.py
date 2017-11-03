@@ -60,8 +60,6 @@ class FITSBackend(Backend):
             return bool(hdr["BLOBS"])
 
     def get_value(self, name, flat=False, thin=1, discard=0):
-        if name not in self.HDU_MAP:
-            raise ValueError("unrecognized value name")
         with self.open() as f:
             hdr = f[0].read_header()
             iteration = hdr["ITERAT"]
@@ -73,7 +71,7 @@ class FITSBackend(Backend):
             if name == "blobs" and not hdr["BLOBS"]:
                 return None
 
-            v = f[self.HDU_MAP.index(name)].read()
+            v = f[name].read()
 
         v = v[discard+thin-1:self.iteration:thin]
         if flat:
@@ -136,19 +134,26 @@ class FITSBackend(Backend):
                     fs = f
                 else:
                     fs = [None, f, f, f, f]
-                fs[1].write(np.zeros(nwalkers, dtype=int))
-                fs[2].write(np.empty((ngrow, nwalkers, ndim), dtype=float))
-                fs[3].write(np.empty((ngrow, nwalkers), dtype=float))
+                fs[1].write(np.zeros(nwalkers, dtype=int), extname="accept")
+                fs[2].write(np.zeros((ngrow, nwalkers, ndim), dtype=float),
+                            extname="chain")
+                fs[3].write(np.zeros((ngrow, nwalkers), dtype=float),
+                            extname="log_prob")
                 if has_blobs:
-                    fs[4].write(np.empty(ngrow, nwalkers), dtype=dtype)
+                    fs[4].write(np.zeros(ngrow, nwalkers), dtype=dtype,
+                                extname="blobs")
 
             # Otherwise append
             else:
-                i = ngrow - (len(f[1]) - iteration)
-                f[2].append(np.empty((i, nwalkers, ndim), dtype=float))
-                f[3].append(np.empty((i, nwalkers), dtype=float))
+                hdr = f[2].read_header()
+                i = ngrow - (hdr["NAXIS3"] - iteration)
+                f["chain"].write(np.zeros((i, nwalkers, ndim), dtype=float),
+                                 start=(iteration, 0, 0))
+                f["log_prob"].write(np.zeros((i, nwalkers), dtype=float),
+                                    start=(iteration, 0))
                 if has_blobs:
-                    f[4].append(np.empty(i, nwalkers), dtype=dtype)
+                    f["blobs"].append(np.zeros(i, nwalkers), dtype=dtype,
+                                      start=(iteration, 0))
 
     def save_step(self, coords, log_prob, blobs, accepted, random_state):
         """Save a step to the file
@@ -170,10 +175,10 @@ class FITSBackend(Backend):
             iteration = hdr["ITERAT"]
 
             f[1].write(f[1].read() + accepted)
-            f[2].write(coords[None, :, :], firstrow=iteration)
-            f[3].write(log_prob[None, :], firstrow=iteration)
+            f[2].write(coords[None, :, :], start=(iteration, 0, 0))
+            f[3].write(log_prob[None, :], start=(iteration, 0))
             if blobs is not None:
-                f[4].write(blobs[None, :], firstrow=iteration)
+                f[4].write(blobs[None, :], start=(iteration, 0))
 
             f[0].write_key("ITERAT", iteration + 1)
 

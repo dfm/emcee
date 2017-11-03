@@ -64,9 +64,7 @@ def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=10, seed=1234):
             (nsteps*nwalkers,), "incorrect probability dimensions"
 
 
-@pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
-)
+@pytest.mark.parametrize("backend", all_backends)
 def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
     # Set up the random number generator.
     np.random.seed(seed)
@@ -103,14 +101,11 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
-    print(nsteps//thin_by)
     sampler.run_mcmc(coords, nsteps // thin_by, thin=thin, thin_by=thin_by)
     return sampler
 
 
-@pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
-)
+@pytest.mark.parametrize("backend", all_backends)
 def test_thin(backend):
     with backend() as be:
         thinby = 3
@@ -124,9 +119,7 @@ def test_thin(backend):
             assert np.allclose(a, c), "inconsistent {0}".format(k)
 
 
-@pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
-)
+@pytest.mark.parametrize("backend", all_backends)
 def test_thin_by(backend):
     with backend() as be:
         thinby = 3
@@ -140,9 +133,7 @@ def test_thin_by(backend):
             assert np.allclose(a, c), "inconsistent {0}".format(k)
 
 
-@pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.hdf.TempHDFBackend],
-)
+@pytest.mark.parametrize("backend", all_backends)
 def test_restart(backend):
     with backend() as be:
         sampler = run_sampler(be)
