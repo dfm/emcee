@@ -147,13 +147,14 @@ class Backend(object):
 
         """
         self._check_blobs(blobs)
-        a = np.empty((ngrow, self.nwalkers, self.ndim))
+        i = ngrow - (len(self.chain) - self.iteration)
+        a = np.empty((i, self.nwalkers, self.ndim))
         self.chain = np.concatenate((self.chain, a), axis=0)
-        a = np.empty((ngrow, self.nwalkers))
+        a = np.empty((i, self.nwalkers))
         self.log_prob = np.concatenate((self.log_prob, a), axis=0)
         if blobs is not None:
             dt = np.dtype((blobs[0].dtype, blobs[0].shape))
-            a = np.empty((ngrow, self.nwalkers), dtype=dt)
+            a = np.empty((i, self.nwalkers), dtype=dt)
             if self.blobs is None:
                 self.blobs = a
             else:

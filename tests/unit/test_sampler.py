@@ -11,13 +11,16 @@ from emcee import moves, backends, EnsembleSampler
 
 __all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
 
+all_backends = [backends.Backend, backends.hdf.TempHDFBackend,
+                backends.TempFITSBackend]
+
 
 def normal_log_prob(params):
     return -0.5 * np.sum(params**2)
 
 
 @pytest.mark.parametrize("backend, moves", product(
-    [backends.Backend, backends.hdf.TempHDFBackend],
+    all_backends,
     [
         None,
         moves.GaussianMove(0.5),
