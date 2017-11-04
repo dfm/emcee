@@ -21,7 +21,7 @@ class DEMove(RedBlueMove):
             the proposal vector.
         gamma0 (Optional[float]): The mean stretch factor for the proposal
             vector. By default, it is :math:`2.38 / \sqrt{2\,\mathrm{ndim}}`
-            as recommended by MAGIC and the two references.
+            as recommended by the two references.
 
     """
     def __init__(self, sigma, gamma0=None, **kwargs):
@@ -32,7 +32,7 @@ class DEMove(RedBlueMove):
     def setup(self, coords):
         self.g0 = self.gamma0
         if self.g0 is None:
-            # Fuckin' MAGIC.
+            # Pure MAGIC:
             ndim = coords.shape[1]
             self.g0 = 2.38 / np.sqrt(2 * ndim)
 

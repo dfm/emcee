@@ -10,25 +10,22 @@ __all__ = ["MHMove"]
 
 
 class MHMove(Move):
-    """
-    A general Metropolis-Hastings proposal.
+    """A general Metropolis-Hastings proposal
 
     Concrete implementations can be made by providing a ``proposal_function``
     argument that implements the proposal as described below.
     For standard Gaussian Metropolis moves, :class:`moves.GaussianMove` can be
     used.
 
-    :param proposal_function:
-        The proposal function. It should take 2 arguments: a numpy-compatible
-        random number generator and a ``(K, ndim)`` list of coordinate
-        vectors. This function should return the proposed position and the
-        log-ratio of the proposal probabilities (:math:`\ln q(x;\,x^\prime) -
-        \ln q(x^\prime;\,x)` where :math:`x^\prime` is the proposed
-        coordinate).
-
-    :param ndim: (optional)
-        If this proposal is only valid for a specific dimension of parameter
-        space, set that here.
+    Args:
+        proposal_function: The proposal function. It should take 2 arguments: a
+            numpy-compatible random number generator and a ``(K, ndim)`` list
+            of coordinate vectors. This function should return the proposed
+            position and the log-ratio of the proposal probabilities
+            (:math:`\ln q(x;\,x^\prime) - \ln q(x^\prime;\,x)` where
+            :math:`x^\prime` is the proposed coordinate).
+        ndim (Optional[int]): If this proposal is only valid for a specific
+            dimension of parameter space, set that here.
 
     """
     def __init__(self, proposal_function, ndim=None):
@@ -36,19 +33,14 @@ class MHMove(Move):
         self.get_proposal = proposal_function
 
     def propose(self, coords, log_probs, blobs, log_prob_fn, random):
-        """
-        :param coords:
-            The initial coordinates of the walkers.
+        """Use the move to generate a proposal and compute the acceptance
 
-        :param log_probs:
-            The initial log probabilities of the walkers.
-
-        :param log_prob_fn:
-            A function that computes the log probabilities for a subset of
-            walkers.
-
-        :param random:
-            A numpy-compatible random number state.
+        Args:
+            coords: The initial coordinates of the walkers.
+            log_probs: The initial log probabilities of the walkers.
+            log_prob_fn: A function that computes the log probabilities for a
+                subset of walkers.
+            random: A numpy-compatible random number state.
 
         """
         # Check to make sure that the dimensions match.

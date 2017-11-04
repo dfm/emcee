@@ -13,6 +13,22 @@ class Move(object):
                coords, log_probs, blobs,
                new_coords, new_log_probs, new_blobs,
                accepted, subset=None):
+        """Update a given subset of the ensemble with an accepted proposal
+
+        Args:
+            coords: The original ensemble coordinates.
+            log_probs: The original log probabilities of the walkers.
+            blobs: The original blobs.
+            new_coords: The proposed coordinates.
+            new_log_probs: The proposed log probabilities.
+            new_blobs: The proposed blobs.
+            accepted: A vector of booleans indicating which walkers were
+                accepted.
+            subset (Optional): A boolean mask indicating which walkers were
+                included in the subset. This can be used, for example, when
+                updating only the primary ensemble in a :class:`RedBlueMove`.
+
+        """
         if subset is None:
             subset = np.ones(len(coords), dtype=bool)
         m1 = subset & accepted

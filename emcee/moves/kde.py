@@ -13,15 +13,16 @@ __all__ = ["KDEMove"]
 
 
 class KDEMove(RedBlueMove):
-    """
-    Use a continuously evolving KDE proposal. This is a simplified version of
-    the method used in `kombine <https://github.com/bfarr/kombine>`_. If you
-    use this proposal, you should use *a lot* of walkers in your ensemble.
+    """A proposal using a KDE of the complementary ensemble
 
-    :param bw_method:
-        The bandwidth estimation method. See `the scipy docs
-        <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html>`_
-        for allowed values.
+    This is a simplified version of the method used in `kombine
+    <https://github.com/bfarr/kombine>`_. If you use this proposal, you should
+    use *a lot* of walkers in your ensemble.
+
+    Args:
+        bw_method: The bandwidth estimation method. See `the scipy docs
+            <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html>`_
+            for allowed values.
 
     """
     def __init__(self, bw_method=None, **kwargs):

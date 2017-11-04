@@ -19,8 +19,8 @@ class DESnookerMove(RedBlueMove):
 
     Args:
         gammas (Optional[float]): The mean stretch factor for the proposal
-            vector. By default, it is :math:`1.7` as recommended by MAGIC and
-            the reference.
+            vector. By default, it is :math:`1.7` as recommended by the
+            reference.
 
     """
     def __init__(self, gammas=1.7, **kwargs):

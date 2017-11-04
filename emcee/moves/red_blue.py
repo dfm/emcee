@@ -50,21 +50,14 @@ class RedBlueMove(Move):
                                   "subclasses")
 
     def propose(self, coords, log_probs, blobs, log_prob_fn, random):
-        """
+        """Use the move to generate a proposal and compute the acceptance
 
-
-        :param coords:
-            The initial coordinates of the walkers.
-
-        :param log_probs:
-            The initial log probabilities of the walkers.
-
-        :param log_prob_fn:
-            A function that computes the log probabilities for a subset of
-            walkers.
-
-        :param random:
-            A numpy-compatible random number state.
+        Args:
+            coords: The initial coordinates of the walkers.
+            log_probs: The initial log probabilities of the walkers.
+            log_prob_fn: A function that computes the log probabilities for a
+                subset of walkers.
+            random: A numpy-compatible random number state.
 
         """
         # Check that the dimensions are compatible.
