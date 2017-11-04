@@ -12,8 +12,9 @@ except ImportError:
     tqdm = None
 
 
-class null_pbar(object):
-    def __init__(self, total=None):
+class _NoOpPBar(object):
+    """This class implements the progress bar interface but does nothing"""
+    def __init__(self):
         pass
 
     def __enter__(self, *args, **kwargs):
@@ -27,10 +28,20 @@ class null_pbar(object):
 
 
 def get_progress_bar(display, total):
+    """Get a progress bar interface with given properties
+
+    If the tqdm library is not installed, this will always return a "progress
+    bar" that does nothing.
+
+    Args:
+        display (bool): Should the bar actually show the progress?
+        total (int): The total size of the progress bar.
+
+    """
     if not display:
-        return null_pbar()
+        return _NoOpPBar()
     if tqdm is None:
         logging.warn("You must install the tqdm library to use progress "
                      "indicators with emcee")
-        return null_pbar()
+        return _NoOpPBar()
     return tqdm(total=total)
