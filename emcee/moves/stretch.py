@@ -25,6 +25,7 @@ class StretchMove(RedBlueMove):
         super(StretchMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
+        c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
         zz = ((self.a - 1.) * random.rand(Ns) + 1) ** 2. / self.a

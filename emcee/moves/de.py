@@ -27,6 +27,7 @@ class DEMove(RedBlueMove):
     def __init__(self, sigma, gamma0=None, **kwargs):
         self.sigma = sigma
         self.gamma0 = gamma0
+        kwargs["nsplits"] = 3
         super(DEMove, self).__init__(**kwargs)
 
     def setup(self, coords):
@@ -37,12 +38,14 @@ class DEMove(RedBlueMove):
             self.g0 = 2.38 / np.sqrt(2 * ndim)
 
     def get_proposal(self, s, c, random):
-        Ns, Nc = len(s), len(c)
+        Ns = len(s)
+        Nc = list(map(len, c))
         ndim = s.shape[1]
         q = np.empty((Ns, ndim), dtype=np.float64)
         f = random.randn(Ns)
         for i in range(Ns):
-            inds = random.choice(Nc, 2, replace=False)
-            g = np.diff(c[inds], axis=0) * (1 + self.g0 * f[i])
+            w1 = c[0][random.randint(Nc[0])]
+            w2 = c[1][random.randint(Nc[1])]
+            g = (w2 - w1) * (1 + self.g0 * f[i])
             q[i] = s[i] + g
         return q, np.zeros(Ns, dtype=np.float64)

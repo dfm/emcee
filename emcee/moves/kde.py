@@ -2,6 +2,8 @@
 
 from __future__ import division, print_function
 
+import numpy as np
+
 try:
     from scipy.stats import gaussian_kde
 except ImportError:
@@ -33,6 +35,7 @@ class KDEMove(RedBlueMove):
         super(KDEMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
+        c = np.concatenate(c, axis=0)
         kde = gaussian_kde(c.T, bw_method=self.bw_method)
         q = kde.resample(len(s))
         factor = kde.logpdf(s.T) - kde.logpdf(q)

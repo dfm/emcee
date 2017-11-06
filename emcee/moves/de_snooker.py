@@ -25,16 +25,19 @@ class DESnookerMove(RedBlueMove):
     """
     def __init__(self, gammas=1.7, **kwargs):
         self.gammas = gammas
+        kwargs["nsplits"] = 4
         super(DESnookerMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
-        Ns, Nc = len(s), len(c)
+        Ns = len(s)
+        Nc = list(map(len, c))
         ndim = s.shape[1]
         q = np.empty((Ns, ndim), dtype=np.float64)
         metropolis = np.empty(Ns, dtype=np.float64)
         for i in range(Ns):
-            inds = random.choice(Nc, 3, replace=False)
-            z, z1, z2 = c[inds]
+            z = c[0][random.randint(Nc[0])]
+            z1 = c[1][random.randint(Nc[1])]
+            z2 = c[2][random.randint(Nc[2])]
             delta = s[i] - z
             norm = np.linalg.norm(delta)
             u = delta / np.sqrt(norm)

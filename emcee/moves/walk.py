@@ -25,6 +25,7 @@ class WalkMove(RedBlueMove):
         super(WalkMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
+        c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
         q = np.empty((Ns, ndim), dtype=np.float64)
