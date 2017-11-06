@@ -76,13 +76,13 @@ class RedBlueMove(Move):
         inds = all_inds % self.nsplits
         if self.randomize_split:
             random.shuffle(inds)
-        for i in range(self.nsplits):
-            S1 = inds == i
+        for split in range(self.nsplits):
+            S1 = inds == split
 
             # Get the two halves of the ensemble.
-            sets = [coords[inds == i] for i in range(self.nsplits)]
-            s = sets[i]
-            c = sets[:i] + sets[i+1:]
+            sets = [coords[inds == j] for j in range(self.nsplits)]
+            s = sets[split]
+            c = sets[:split] + sets[split+1:]
 
             # Get the move-specific proposal.
             q, factors = self.get_proposal(s, c, random)
