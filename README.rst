@@ -32,6 +32,11 @@ Documentation
 
 Read the docs at `emcee.readthedocs.io <http://emcee.readthedocs.io/>`_.
 
+Installation
+-------------
+
+``pip install emcee``
+
 Attribution
 -----------
 
