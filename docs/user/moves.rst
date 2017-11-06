@@ -49,28 +49,28 @@ Ensemble moves
 --------------
 
 .. autoclass:: emcee.moves.RedBlueMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.StretchMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.WalkMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.KDEMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.DEMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.DESnookerMove
-    :inherited-members:
+    :members:
 
 Metropolis–Hastings moves
 -------------------------
 
 .. autoclass:: emcee.moves.MHMove
-    :inherited-members:
+    :members:
 
 .. autoclass:: emcee.moves.GaussianMove
-    :inherited-members:
+    :members:

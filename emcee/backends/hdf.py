@@ -19,12 +19,26 @@ from .. import __version__
 
 
 class HDFBackend(Backend):
+    """A backend that stores the chain in an HDF5 file using h5py
 
-    def __init__(self, filename, name="mcmc"):
+    .. note:: You must install `h5py <http://www.h5py.org/>`_ to use this
+        backend.
+
+    Args:
+        filename (str): The name of the HDF5 file where the chain will be
+            saved.
+        name (str; optional): The name of the group where the chain will
+            be saved.
+        read_only (bool; optional): If ``True``, the backend will throw a
+            ``RuntimeError`` if the file is opened with write access.
+
+    """
+    def __init__(self, filename, name="mcmc", read_only=False):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
         self.filename = filename
         self.name = name
+        self.read_only = read_only
 
     @property
     def initialized(self):
@@ -37,9 +51,20 @@ class HDFBackend(Backend):
             return False
 
     def open(self, mode="r"):
+        if self.read_only and mode != "r":
+            raise RuntimeError("The backend has been loaded in read-only "
+                               "mode. Set `read_only = False` to make "
+                               "changes.")
         return h5py.File(self.filename, mode)
 
     def reset(self, nwalkers, ndim):
+        """Clear the state of the chain and empty the backend
+
+        Args:
+            nwakers (int): The size of the ensemble
+            ndim (int): The number of dimensions
+
+        """
         with self.open("w") as f:
             g = f.create_group(self.name)
             g.attrs["version"] = __version__

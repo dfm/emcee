@@ -56,12 +56,17 @@ def test_reload(backend):
 
         # Load the file using a new backend object.
         if backend == backends.TempHDFBackend:
-            backend2 = backends.HDFBackend(backend1.filename, backend1.name)
+            backend2 = backends.HDFBackend(backend1.filename, backend1.name,
+                                           read_only=True)
         elif backend == backends.TempFITSBackend:
             backend2 = backends.FITSBackend(backend1.filename,
-                                            backend1.pickle_filename)
+                                            backend1.pickle_filename,
+                                            read_only=True)
         else:
             assert False
+
+        with pytest.raises(RuntimeError):
+            backend2.reset(32, 3)
 
         assert state[0] == backend2.random_state[0]
         assert all(np.allclose(a, b)

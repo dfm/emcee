@@ -20,10 +20,22 @@ from .. import __version__
 
 
 class FITSBackend(Backend):
+    """A backend that stores the chain in an FITS file using fitsio
 
-    HDU_MAP = (None, "accepted", "chain", "log_prob", "blobs")
+    .. note:: You must install `fitsio <https://github.com/esheldon/fitsio>`_
+        to use this backend.
 
-    def __init__(self, filename, pickle_filename=None):
+    Args:
+        filename (str): The name of the FITS file where the chain will be
+            saved.
+        pickle_filename (str; optional): The name of the file where the pickled
+            random state be saved. By default, this is ``filename + ".pkl"``.
+        read_only (bool; optional): If ``True``, the backend will throw a
+            ``RuntimeError`` if the file is opened with write access.
+
+    """
+
+    def __init__(self, filename, pickle_filename=None, read_only=False):
         if fitsio is None:
             raise ImportError("you must install 'fitsio' to use the "
                               "FITSBackend")
@@ -31,6 +43,7 @@ class FITSBackend(Backend):
         if pickle_filename is None:
             pickle_filename = filename + ".pkl"
         self.pickle_filename = pickle_filename
+        self.read_only = read_only
 
     @property
     def initialized(self):
@@ -44,9 +57,21 @@ class FITSBackend(Backend):
             return False
 
     def open(self, mode="r", clobber=False):
+        if self.read_only:
+            if mode != "r" or clobber:
+                raise RuntimeError("The backend has been loaded in read-only "
+                                   "mode. Set `read_only = False` to make "
+                                   "changes.")
         return fitsio.FITS(self.filename, mode, clobber=clobber)
 
     def reset(self, nwalkers, ndim):
+        """Clear the state of the chain and empty the backend
+
+        Args:
+            nwakers (int): The size of the ensemble
+            ndim (int): The number of dimensions
+
+        """
         with self.open("rw", clobber=True) as f:
             header = dict(
                 version=__version__,
