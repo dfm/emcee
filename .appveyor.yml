@@ -22,6 +22,7 @@ install:
     conda update -q conda
     conda info -a
     conda install -c conda-forge conda-build numpy scipy h5py setuptools pytest
+    pip install fitsio
     $env:CONDA_PREFIX = "C:\Miniconda$env:CONDA"
 build_script:
 - ps: python setup.py install

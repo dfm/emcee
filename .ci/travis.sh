@@ -17,7 +17,7 @@ conda info -a
 conda create --yes -n test python=$PYTHON_VERSION
 source activate test
 conda install numpy=$NUMPY_VERSION scipy h5py setuptools pytest pytest-cov pip
-pip install coveralls
+pip install coveralls fitsio
 
 # Build the extension
 python setup.py develop
