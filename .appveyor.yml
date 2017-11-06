@@ -21,7 +21,7 @@ install:
     conda config --set always_yes yes --set changeps1 no
     conda update -q conda
     conda info -a
-    conda install -c conda-forge conda-build numpy scipy h5py setuptools pytest
+    conda install -q conda-build numpy scipy h5py setuptools pytest
     $env:CONDA_PREFIX = "C:\Miniconda$env:CONDA"
 build_script:
 - ps: python setup.py install
