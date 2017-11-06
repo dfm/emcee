@@ -76,11 +76,11 @@ class RedBlueMove(Move):
         inds = all_inds % self.nsplits
         if self.randomize_split:
             random.shuffle(inds)
-        sets = [coords[inds == i] for i in range(self.nsplits)]
         for i in range(self.nsplits):
             S1 = inds == i
 
             # Get the two halves of the ensemble.
+            sets = [coords[inds == i] for i in range(self.nsplits)]
             s = sets[i]
             c = sets[:i] + sets[i+1:]
 
