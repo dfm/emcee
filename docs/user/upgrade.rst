@@ -45,3 +45,5 @@ The main removals are as follows:
 
 3. The ``PTSampler`` has been removed and forked to the `ptemcee
    <https://github.com/willvousden/ptemcee>`_ project.
+   The existing implementation had been gathering dust and there aren't enough
+   resources to maintain the sampler within the emcee project.
