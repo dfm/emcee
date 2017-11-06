@@ -13,7 +13,7 @@ emcee
     :target: https://github.com/dfm/emcee/blob/master/LICENSE
 .. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
     :target: http://arxiv.org/abs/1202.3665
-.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat&v=1
+.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat&v=2
     :target: https://coveralls.io/github/dfm/emcee?branch=master
 .. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
     :target: http://emcee.readthedocs.io/en/latest/?badge=latest
