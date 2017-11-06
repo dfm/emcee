@@ -6,6 +6,9 @@ Installation
 Since emcee is a pure Python module, it should be pretty easy to install.
 All you'll need `numpy <http://numpy.scipy.org/>`_.
 
+.. note:: For pre-release versions of emcee, you need to follow the
+    instructions in :ref:`source`.
+
 
 Package managers
 ----------------
