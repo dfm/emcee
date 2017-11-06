@@ -11,8 +11,7 @@ from emcee import moves, backends, EnsembleSampler
 
 __all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
 
-all_backends = [backends.Backend, backends.hdf.TempHDFBackend,
-                backends.TempFITSBackend]
+all_backends = backends.get_test_backends()
 
 
 def normal_log_prob(params):

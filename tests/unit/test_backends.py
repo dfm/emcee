@@ -3,9 +3,14 @@
 from __future__ import division, print_function
 
 import numpy as np
+
+import pytest
+
 from emcee import backends, EnsembleSampler
 
-__all__ = ["test_hdf", "test_hdf_reload"]
+__all__ = ["test_backend", "test_reload"]
+
+all_backends = backends.get_test_backends()[1:]
 
 
 def normal_log_prob(params):
@@ -21,12 +26,13 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin_by=1):
     return sampler
 
 
-def test_hdf():
+@pytest.mark.parametrize("backend", all_backends)
+def test_backend(backend):
     # Run a sampler with the default backend.
     sampler1 = run_sampler(backends.Backend())
 
-    with backends.hdf.TempHDFBackend() as backend:
-        sampler2 = run_sampler(backend)
+    with backend() as be:
+        sampler2 = run_sampler(be)
 
         # Check all of the components.
         for k in ["chain", "log_prob"]:
@@ -39,8 +45,9 @@ def test_hdf():
         assert np.allclose(a, b), "inconsistent acceptance fraction"
 
 
-def test_hdf_reload():
-    with backends.hdf.TempHDFBackend() as backend1:
+@pytest.mark.parametrize("backend", all_backends)
+def test_reload(backend):
+    with backend() as backend1:
         run_sampler(backend1)
 
         # Test the state
@@ -48,7 +55,13 @@ def test_hdf_reload():
         np.random.set_state(state)
 
         # Load the file using a new backend object.
-        backend2 = backends.HDFBackend(backend1.filename, backend1.name)
+        if backend == backends.TempHDFBackend:
+            backend2 = backends.HDFBackend(backend1.filename, backend1.name)
+        elif backend == backends.TempFITSBackend:
+            backend2 = backends.FITSBackend(backend1.filename,
+                                            backend1.pickle_filename)
+        else:
+            assert False
 
         assert state[0] == backend2.random_state[0]
         assert all(np.allclose(a, b)

@@ -19,10 +19,7 @@ class BlobLogProb(object):
         return -0.5 * np.sum(params**2), self.blob_function(params)
 
 
-@pytest.mark.parametrize(
-    "backend", [backends.Backend, backends.TempHDFBackend,
-                backends.TempFITSBackend],
-)
+@pytest.mark.parametrize("backend", backends.get_test_backends())
 def test_blob_shape(backend):
     with backend() as be:
         np.random.seed(42)
