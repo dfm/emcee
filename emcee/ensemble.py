@@ -5,6 +5,7 @@ from __future__ import division, print_function
 __all__ = ["EnsembleSampler"]
 
 from collections import Iterable
+from itertools import cycle
 
 import numpy as np
 
@@ -192,15 +193,15 @@ class EnsembleSampler(object):
                 details.
             iterations (Optional[int]): The number of steps to run.
             thin_by (Optional[int]): If you only want to store and yield every
-                ``thin`` samples in the chain, set thin to an integer greater
-                than 1.
+                ``thin_by`` samples in the chain, set thin_by to an integer
+                greater than 1.
             store (Optional[bool]): By default, the sampler stores (in memory)
                 the positions and log-probabilities of the samples in the
                 chain. If you are using another method to store the samples to
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
 
-        At each iteration, this generator yields:
+        Every ``thin_by`` steps this generator yields:
 
         * ``pos`` - A list of the current positions of the walkers in the
           parameter space. The shape of this object will be
@@ -240,65 +241,50 @@ class EnsembleSampler(object):
         if np.any(np.isnan(log_prob)):
             raise ValueError("The initial log_prob was NaN")
 
+        yield_step = int(thin_by)
+        checkpoint_step = int(thin_by)
         # Deal with deprecated thin argument
         if thin is not None:
             deprecation_warning("The 'thin' argument is deprecated. "
                                 "Use 'thin_by' instead.")
-
-            # Check that the thin keyword is reasonable.
-            thin = int(thin)
-            if thin <= 0:
-                raise ValueError("Invalid thinning argument")
-
             yield_step = 1
-            checkpoint_step = thin
-            iterations = int(iterations)
-            if store:
-                nsaves = iterations // checkpoint_step
-                self.backend.grow(nsaves, blobs)
+            checkpoint_step = int(thin)
 
-        else:
-            # Check that the thin keyword is reasonable.
-            thin_by = int(thin_by)
-            if thin_by <= 0:
-                raise ValueError("Invalid thinning argument")
+        # Check that the thin_by/thin keywords are reasonable.
+        if checkpoint_step <= 0:
+            raise ValueError("Invalid thinning argument")
 
-            yield_step = thin_by
-            checkpoint_step = thin_by
-            iterations = int(iterations)
-            if store:
-                self.backend.grow(iterations, blobs)
+        iterations = int(iterations)
+        if store:
+            self.backend.grow(iterations // checkpoint_step, blobs)
 
         # Inject the progress bar
-        total = iterations * yield_step
-        with get_progress_bar(progress, total) as pbar:
-            i = 0
-            for _ in range(iterations):
-                for _ in range(yield_step):
-                    # Choose a random move
-                    move = self._random.choice(self._moves, p=self._weights)
+        with get_progress_bar(progress, iterations) as pbar:
+            for it in range(iterations):
+                # Choose a random move
+                move = self._random.choice(self._moves, p=self._weights)
 
-                    # Propose
-                    p, log_prob, blobs, accepted = move.propose(
-                        p, log_prob, blobs, self.compute_log_prob,
-                        self._random)
+                # Propose
+                p, log_prob, blobs, accepted = move.propose(
+                    p, log_prob, blobs, self.compute_log_prob,
+                    self._random)
 
-                    # Save the new step
-                    if store and (i + 1) % checkpoint_step == 0:
-                        self.backend.save_step(p, log_prob, blobs, accepted,
-                                               self.random_state)
+                # Save the new step
+                if store and (it + 1) % checkpoint_step == 0:
+                    self.backend.save_step(p, log_prob, blobs, accepted,
+                                           self.random_state)
 
-                    pbar.update(1)
-                    i += 1
+                pbar.update(1)
 
-                # Yield the result as an iterator so that the user can do all
-                # sorts of fun stuff with the results so far.
-                if blobs is not None:
-                    # This is a bit of a hack to keep things backwards
-                    # compatible.
-                    yield p, log_prob, self.random_state, blobs
-                else:
-                    yield p, log_prob, self.random_state
+                if (it + 1) % yield_step:
+                    # Yield the result as an iterator so that the user can do all
+                    # sorts of fun stuff with the results so far.
+                    if blobs is not None:
+                        # This is a bit of a hack to keep things backwards
+                        # compatible.
+                        yield p, log_prob, self.random_state, blobs
+                    else:
+                        yield p, log_prob, self.random_state
 
     def run_mcmc(self, pos0, nsteps, rstate0=None, log_prob0=None,
                  blobs0=None, **kwargs):
