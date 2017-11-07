@@ -276,7 +276,7 @@ class EnsembleSampler(object):
 
                 pbar.update(1)
 
-                if (it + 1) % yield_step:
+                if (it + 1) % yield_step == 0:
                     # Yield the result as an iterator so that the user can do all
                     # sorts of fun stuff with the results so far.
                     if blobs is not None:
