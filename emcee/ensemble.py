@@ -190,17 +190,18 @@ class EnsembleSampler(object):
             rstate0 (Optional): The state of the random number generator.
                 See the :attr:`EnsembleSampler.random_state` property for
                 details.
-            iterations (Optional[int]): The number of steps to run.
+            iterations (Optional[int]): The number of steps to generate.
             thin_by (Optional[int]): If you only want to store and yield every
-                ``thin`` samples in the chain, set thin to an integer greater
-                than 1.
+                ``thin_by`` samples in the chain, set ``thin_by`` to an
+                integer greater than 1. When this is set, ``iterations *
+                thin_by`` proposals will be made.
             store (Optional[bool]): By default, the sampler stores (in memory)
                 the positions and log-probabilities of the samples in the
                 chain. If you are using another method to store the samples to
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
 
-        At each iteration, this generator yields:
+        Every ``thin_by`` steps, this generator yields:
 
         * ``pos`` - A list of the current positions of the walkers in the
           parameter space. The shape of this object will be
