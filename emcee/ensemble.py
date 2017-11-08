@@ -25,7 +25,7 @@ class EnsembleSampler(object):
             posterior probability (up to an additive constant) for that
             position.
         moves (Optional): This can be a single move object, a list of moves,
-            or a "weighted" list of the form ``[(emcee3.moves.StretchMove(),
+            or a "weighted" list of the form ``[(emcee.moves.StretchMove(),
             0.1), ...]``. When running, the sampler will randomly select a
             move from this list (optionally with weights) for each proposal.
             (default: :class:`StretchMove`)
