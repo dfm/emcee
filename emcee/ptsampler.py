@@ -3,7 +3,7 @@
 from __future__ import print_function, absolute_import
 
 try:
-    from ptsampler import Sampler
+    from ptemcee import Sampler as PTSampler
 except ImportError:
 
     class PTSampler(object):
