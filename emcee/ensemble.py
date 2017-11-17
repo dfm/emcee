@@ -40,7 +40,7 @@ class EnsembleSampler(object):
             generally used to compute the log-probabilities for the ensemble
             in parallel.
         backend (Optional): Either a :class:`backends.Backend` or a subclass
-            (like :class:`backends.HDFBackend) that is used to store and
+            (like :class:`backends.HDFBackend`) that is used to store and
             serialize the state of the chain. By default, the chain is stored
             as a set of numpy arrays in memory, but new backends can be
             written to support other mediums.
