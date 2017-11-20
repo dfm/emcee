@@ -10,6 +10,8 @@ downloaded `here <../../_static/notebooks/parallel.ipynb>`_.
 Parallelization
 ===============
 
+.. note:: Some builds of NumPy (including the version included with Anaconda) will automatically parallelize some operations using something like the MKL linear algebra. This can cause problems when used with the parallelization methods described here so it can be good to turn that off (by setting the environment variable ``OMP_NUM_THREADS=1``, for example).
+
 With emcee, it's easy to make use of multiple CPUs to speed up slow
 sampling. There will always be some computational overhead introduced by
 parallelization so it will only be beneficial in the case where the
