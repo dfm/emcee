@@ -68,7 +68,7 @@ class FITSBackend(Backend):
         """Clear the state of the chain and empty the backend
 
         Args:
-            nwakers (int): The size of the ensemble
+            nwalkers (int): The size of the ensemble
             ndim (int): The number of dimensions
 
         """
