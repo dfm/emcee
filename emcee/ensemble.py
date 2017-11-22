@@ -351,7 +351,7 @@ class EnsembleSampler(object):
         """Calculate the vector of log-probability for the walkers
 
         Args:
-            pos: (Optional[ndarray[..., ndim]]) The position vector in
+            coords: (Optional[ndarray[..., ndim]]) The position vector in
                 parameter space where the probability should be calculated.
                 This defaults to the current position unless a different one
                 is provided.
@@ -365,6 +365,12 @@ class EnsembleSampler(object):
 
         """
         p = coords
+
+        if p is None:
+            if self._last_run_mcmc_result is None:
+                raise ValueError("Cannot have coords=None if run_mcmc has never "
+                                 "been called.")
+            p, log_prob0, rstate0 = self._last_run_mcmc_result[:3]
 
         # Check that the parameters are in physical ranges.
         if np.any(np.isinf(p)):
