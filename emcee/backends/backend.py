@@ -31,6 +31,7 @@ class Backend(object):
         self.log_prob = np.empty((0, self.nwalkers))
         self.blobs = None
         self.random_state = None
+        self.initialized = True
 
     def has_blobs(self):
         """Returns ``True`` if the model includes blobs"""
@@ -123,11 +124,11 @@ class Backend(object):
           saved during sampling.
 
         """
-        it = self.iteration
-        if it <= 0:
+        if (not self.initialized) or self.iteration <= 0:
             raise AttributeError("you must run the sampler with "
                                  "'store == True' before accessing the "
                                  "results")
+        it = self.iteration
         last = [
             self.get_chain(discard=it-1)[0],
             self.get_log_prob(discard=it-1)[0],

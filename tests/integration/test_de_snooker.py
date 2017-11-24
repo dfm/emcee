@@ -9,6 +9,7 @@ __all__ = ["test_normal_de_snooker", "test_uniform_de_snooker"]
 
 
 def test_normal_de_snooker(**kwargs):
+    kwargs["nsteps"] = 4000
     _test_normal(moves.DESnookerMove(), **kwargs)
 
 
