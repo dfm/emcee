@@ -36,7 +36,7 @@ class RedBlueMove(Move):
     """
     def __init__(self,
                  nsplits=2,
-                 randomize_split=False,
+                 randomize_split=True,
                  live_dangerously=False):
         self.nsplits = int(nsplits)
         self.live_dangerously = live_dangerously

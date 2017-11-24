@@ -14,7 +14,7 @@ all_backends = backends.get_test_backends()[1:]
 
 
 def normal_log_prob(params):
-    return -0.5 * np.sum(params**2)
+    return -0.5 * np.sum(params**2), 0.1
 
 
 def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin_by=1):
@@ -35,10 +35,19 @@ def test_backend(backend):
         sampler2 = run_sampler(be)
 
         # Check all of the components.
-        for k in ["chain", "log_prob"]:
+        for k in ["chain", "log_prob", "blobs"]:
             a = getattr(sampler1, "get_" + k)()
             b = getattr(sampler2, "get_" + k)()
             assert np.allclose(a, b), "inconsistent {0}".format(k)
+
+        last1 = sampler1.get_last_sample()
+        last2 = sampler2.get_last_sample()
+        assert len(last1) == len(last2)
+        assert np.allclose(last1[0], last2[0])
+        assert np.allclose(last1[1], last2[1])
+        assert all(np.allclose(l1, l2) for l1, l2 in zip(last1[2][1:],
+                                                         last2[2][1:]))
+        assert np.allclose(last1[3], last2[3])
 
         a = sampler1.acceptance_fraction
         b = sampler2.acceptance_fraction
@@ -73,10 +82,19 @@ def test_reload(backend):
                    for a, b in zip(state[1:], backend2.random_state[1:]))
 
         # Check all of the components.
-        for k in ["chain", "log_prob"]:
+        for k in ["chain", "log_prob", "blobs"]:
             a = backend1.get_value(k)
             b = backend2.get_value(k)
             assert np.allclose(a, b), "inconsistent {0}".format(k)
+
+        last1 = backend1.get_last_sample()
+        last2 = backend2.get_last_sample()
+        assert len(last1) == len(last2)
+        assert np.allclose(last1[0], last2[0])
+        assert np.allclose(last1[1], last2[1])
+        assert all(np.allclose(l1, l2) for l1, l2 in zip(last1[2][1:],
+                                                         last2[2][1:]))
+        assert np.allclose(last1[3], last2[3])
 
         a = backend1.accepted
         b = backend2.accepted

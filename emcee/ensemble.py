@@ -117,13 +117,7 @@ class EnsembleSampler(object):
             # Grab the last step so that we can restart
             it = self.backend.iteration
             if it > 0:
-                last = [self.backend.get_chain(discard=it-1)[0]]
-                last += [self.backend.get_log_prob(discard=it-1)[0]]
-                last += [state]
-                blob = self.backend.get_blobs(discard=it-1)
-                if blob is not None:
-                    last += [blob[0]]
-                self._last_run_mcmc_result = tuple(last)
+                self._last_run_mcmc_result = self.get_last_sample()
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -174,7 +168,7 @@ class EnsembleSampler(object):
         # In order to be generally picklable, we need to discard the pool
         # object before trying.
         d = self.__dict__
-        d.pop("pool", None)
+        d["pool"] = None
         return d
 
     def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
@@ -203,7 +197,7 @@ class EnsembleSampler(object):
 
         Every ``thin_by`` steps, this generator yields:
 
-        * ``pos`` - A list of the current positions of the walkers in the
+        * ``coords`` - A list of the current positions of the walkers in the
           parameter space. The shape of this object will be
           ``(nwalkers, dim)``.
 
@@ -457,6 +451,10 @@ class EnsembleSampler(object):
     def get_log_prob(self, **kwargs):
         return self.get_value("log_prob", **kwargs)
     get_log_prob.__doc__ = Backend.get_log_prob.__doc__
+
+    def get_last_sample(self, **kwargs):
+        return self.backend.get_last_sample()
+    get_last_sample.__doc__ = Backend.get_last_sample.__doc__
 
     def get_value(self, name, **kwargs):
         return self.backend.get_value(name, **kwargs)

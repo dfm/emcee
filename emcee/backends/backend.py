@@ -103,6 +103,41 @@ class Backend(object):
         """
         return self.get_value("log_prob", **kwargs)
 
+    def get_last_sample(self):
+        """Access the most recent sample in the chain
+
+        This method returns a tuple with
+
+        * ``coords`` - A list of the current positions of the walkers in the
+          parameter space. The shape of this object will be
+          ``(nwalkers, dim)``.
+
+        * ``log_prob`` - The list of log posterior probabilities for the
+          walkers at positions given by ``coords`` . The shape of this object
+          is ``(nwalkers,)``.
+
+        * ``rstate`` - The current state of the random number generator.
+
+        * ``blobs`` - (optional) The metadata "blobs" associated with the
+          current position. The value is only returned if blobs have been
+          saved during sampling.
+
+        """
+        it = self.iteration
+        if it <= 0:
+            raise AttributeError("you must run the sampler with "
+                                 "'store == True' before accessing the "
+                                 "results")
+        last = [
+            self.get_chain(discard=it-1)[0],
+            self.get_log_prob(discard=it-1)[0],
+            self.random_state,
+        ]
+        blob = self.get_blobs(discard=it-1)
+        if blob is not None:
+            last.append(blob[0])
+        return tuple(last)
+
     def get_autocorr_time(self, discard=0, thin=1, **kwargs):
         """Compute an estimate of the autocorrelation time for each parameter
 
