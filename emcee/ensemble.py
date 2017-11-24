@@ -347,14 +347,12 @@ class EnsembleSampler(object):
 
         return results
 
-    def compute_log_prob(self, coords=None):
+    def compute_log_prob(self, coords):
         """Calculate the vector of log-probability for the walkers
 
         Args:
-            pos: (Optional[ndarray[..., ndim]]) The position vector in
-                parameter space where the probability should be calculated.
-                This defaults to the current position unless a different one
-                is provided.
+            coords: (ndarray[..., ndim]) The position vector in parameter
+                space where the probability should be calculated.
 
         This method returns:
 
