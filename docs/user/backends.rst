@@ -11,11 +11,10 @@ This can be useful in any scenario where you want to share the results of
 sampling or when sampling with an expensive model because, even if the
 sampler crashes, the current state of the chain will always be saved.
 
-There are currently two backends that can be used to serialize the chain to a
-file: :class:`emcee.backends.HDFBackend` and
-:class:`emcee.backends.FITSBackend`.
-The methods and options for these backends are documented below.
-These can also be used as readers for existing samplings.
+There is currently one backend that can be used to serialize the chain to a
+file: :class:`emcee.backends.HDFBackend`.
+The methods and options for this backend are documented below.
+It can also be used as a reader for existing samplings.
 For example, if a chain was saved using the :class:`backends.HDFBackend`, the
 results can be accessed as follows:
 
@@ -31,7 +30,4 @@ don't inadvertently overwrite the samples in the file.
    :inherited-members:
 
 .. autoclass:: emcee.backends.HDFBackend
-   :inherited-members:
-
-.. autoclass:: emcee.backends.FITSBackend
    :inherited-members:

@@ -40,8 +40,8 @@ def test_blob_shape(backend):
         sampler.run_mcmc(coords, nsteps)
         assert sampler.get_blobs().shape == (nsteps, nwalkers)
 
-        # HDF and FITS backends don't support the object type
-        if backend in (backends.TempHDFBackend, backends.TempFITSBackend):
+        # HDF backends don't support the object type
+        if backend in (backends.TempHDFBackend, ):
             return
 
         model = BlobLogProb(lambda x: "face")

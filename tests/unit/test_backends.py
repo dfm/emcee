@@ -12,7 +12,7 @@ from emcee import backends, EnsembleSampler
 
 __all__ = ["test_backend", "test_reload"]
 
-all_backends = backends.get_test_backends()[1:2]
+all_backends = backends.get_test_backends()[1:]
 dtypes = [
     None,
     [("log_prior", float), ("mean", int)]
@@ -36,7 +36,7 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234, thin_by=1,
 
 def _custom_allclose(a, b):
     if a.dtype.fields is None:
-        assert np.allclose(a, b), "inconsistent {0}".format(k)
+        assert np.allclose(a, b)
     else:
         for n in a.dtype.names:
             assert np.allclose(a[n], b[n])
@@ -80,15 +80,8 @@ def test_reload(backend, dtype):
         np.random.set_state(state)
 
         # Load the file using a new backend object.
-        if backend == backends.TempHDFBackend:
-            backend2 = backends.HDFBackend(backend1.filename, backend1.name,
-                                           read_only=True)
-        elif backend == backends.TempFITSBackend:
-            backend2 = backends.FITSBackend(backend1.filename,
-                                            backend1.pickle_filename,
-                                            read_only=True)
-        else:
-            assert False
+        backend2 = backends.HDFBackend(backend1.filename, backend1.name,
+                                       read_only=True)
 
         with pytest.raises(RuntimeError):
             backend2.reset(32, 3)
