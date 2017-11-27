@@ -411,34 +411,39 @@ class EnsembleSampler(object):
 
     @property
     @deprecated("get_chain()")
-    def chain(self):
+    def chain(self):  # pragma: no cover
         chain = self.get_chain()
         return np.swapaxes(chain, 0, 1)
 
     @property
     @deprecated("get_chain(flat=True)")
-    def flatchain(self):
+    def flatchain(self):  # pragma: no cover
         return self.get_chain(flat=True)
 
     @property
     @deprecated("get_log_prob()")
-    def lnprobability(self):
+    def lnprobability(self):  # pragma: no cover
         return self.get_log_prob()
 
     @property
     @deprecated("get_log_prob(flat=True)")
-    def flatlnprobability(self):
+    def flatlnprobability(self):  # pragma: no cover
         return self.get_log_prob(flat=True)
 
     @property
     @deprecated("get_blobs()")
-    def blobs(self):
+    def blobs(self):  # pragma: no cover
         return self.get_blobs()
 
     @property
     @deprecated("get_blobs(flat=True)")
-    def flatblobs(self):
+    def flatblobs(self):  # pragma: no cover
         return self.get_blobs(flat=True)
+
+    @property
+    @deprecated("get_autocorr_time")
+    def acor(self):  # pragma: no cover
+        return self.get_autocorr_time()
 
     def get_chain(self, **kwargs):
         return self.get_value("chain", **kwargs)
@@ -459,11 +464,6 @@ class EnsembleSampler(object):
     def get_value(self, name, **kwargs):
         return self.backend.get_value(name, **kwargs)
 
-    @property
-    @deprecated("get_autocorr_time")
-    def acor(self):
-        return self.get_autocorr_time()
-
     def get_autocorr_time(self, **kwargs):
         return self.backend.get_autocorr_time(**kwargs)
     get_autocorr_time.__doc__ = Backend.get_autocorr_time.__doc__
@@ -483,7 +483,7 @@ class _FunctionWrapper(object):
     def __call__(self, x):
         try:
             return self.f(x, *self.args, **self.kwargs)
-        except:
+        except:  # pragma: no cover
             import traceback
             print("emcee: Exception while calling your likelihood function:")
             print("  params:", x)
