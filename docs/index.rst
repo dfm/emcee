@@ -73,13 +73,13 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
    :caption: User Guide
 
    user/install
-   user/faq
-   user/upgrade
    user/sampler
    user/moves
    user/blobs
    user/backends
    user/autocorr
+   user/upgrade
+   user/faq
 
 .. toctree::
    :maxdepth: 1
