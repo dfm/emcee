@@ -2,6 +2,7 @@
 
 from __future__ import division, print_function
 
+import pickle
 from itertools import product
 
 import pytest
@@ -100,7 +101,7 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
-    sampler.run_mcmc(coords, nsteps // thin_by, thin=thin, thin_by=thin_by,
+    sampler.run_mcmc(coords, nsteps, thin=thin, thin_by=thin_by,
                      progress=progress)
     return sampler
 
@@ -108,6 +109,10 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
 @pytest.mark.parametrize("backend", all_backends)
 def test_thin(backend):
     with backend() as be:
+        with pytest.raises(ValueError):
+            run_sampler(be, thin=-1)
+        with pytest.raises(ValueError):
+            run_sampler(be, thin=0.1)
         thinby = 3
         sampler1 = run_sampler(None)
         sampler2 = run_sampler(be, thin=thinby)
@@ -123,15 +128,22 @@ def test_thin(backend):
                          product(all_backends, [True, False]))
 def test_thin_by(backend, progress):
     with backend() as be:
+        with pytest.raises(ValueError):
+            run_sampler(be, thin_by=-1)
+        with pytest.raises(ValueError):
+            run_sampler(be, thin_by=0.1)
+        nsteps = 25
         thinby = 3
-        sampler1 = run_sampler(None, progress=progress)
-        sampler2 = run_sampler(be, thin_by=thinby, progress=progress)
+        sampler1 = run_sampler(None, nsteps=nsteps*thinby, progress=progress)
+        sampler2 = run_sampler(be, thin_by=thinby, progress=progress,
+                               nsteps=nsteps)
         for k in ["get_chain", "get_log_prob"]:
             a = getattr(sampler1, k)()[thinby-1::thinby]
             b = getattr(sampler2, k)()
             c = getattr(sampler1, k)(thin=thinby)
             assert np.allclose(a, b), "inconsistent {0}".format(k)
             assert np.allclose(a, c), "inconsistent {0}".format(k)
+        assert sampler1.iteration == sampler2.iteration*thinby
 
 
 @pytest.mark.parametrize("backend", all_backends)
@@ -152,3 +164,15 @@ def test_vectorize():
     sampler.run_mcmc(coords, 10)
 
     assert sampler.get_chain().shape == (10, nwalkers, ndim)
+
+
+@pytest.mark.parametrize("backend", all_backends)
+def test_pickle(backend):
+    with backend() as be:
+        sampler1 = run_sampler(be)
+        s = pickle.dumps(sampler1, -1)
+        sampler2 = pickle.loads(s)
+        for k in ["get_chain", "get_log_prob"]:
+            a = getattr(sampler1, k)()
+            b = getattr(sampler2, k)()
+            assert np.allclose(a, b), "inconsistent {0}".format(k)

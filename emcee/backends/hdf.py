@@ -87,6 +87,10 @@ class HDFBackend(Backend):
             return f[self.name].attrs["has_blobs"]
 
     def get_value(self, name, flat=False, thin=1, discard=0):
+        if not self.initialized:
+            raise AttributeError("You must run the sampler with "
+                                 "'store == True' before accessing the "
+                                 "results")
         with self.open() as f:
             g = f[self.name]
             iteration = g.attrs["iteration"]
