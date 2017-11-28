@@ -332,6 +332,7 @@ class EnsembleSampler(object):
             if len(self._last_run_mcmc_result) > 3:
                 blobs0 = self._last_run_mcmc_result[3]
 
+        results = None
         for results in self.sample(pos0, log_prob0, rstate0=rstate0,
                                    blobs0=blobs0, iterations=nsteps, **kwargs):
             pass

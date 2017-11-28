@@ -149,6 +149,10 @@ def test_thin_by(backend, progress):
 @pytest.mark.parametrize("backend", all_backends)
 def test_restart(backend):
     with backend() as be:
+        sampler = run_sampler(be, nsteps=0)
+        with pytest.raises(ValueError):
+            sampler.run_mcmc(None, 10)
+
         sampler = run_sampler(be)
         sampler.run_mcmc(None, 10)
 
