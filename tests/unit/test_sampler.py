@@ -96,13 +96,13 @@ def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
 
 
 def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
-                thin=None, thin_by=1, progress=False):
+                thin=None, thin_by=1, progress=False, store=True):
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob,
                               backend=backend)
     sampler.run_mcmc(coords, nsteps, thin=thin, thin_by=thin_by,
-                     progress=progress)
+                     progress=progress, store=store)
     return sampler
 
 
@@ -154,6 +154,10 @@ def test_restart(backend):
             sampler.run_mcmc(None, 10)
 
         sampler = run_sampler(be)
+        sampler.run_mcmc(None, 10)
+
+    with backend() as be:
+        sampler = run_sampler(be, store=False)
         sampler.run_mcmc(None, 10)
 
 

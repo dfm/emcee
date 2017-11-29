@@ -52,10 +52,8 @@ def _custom_allclose(a, b):
 
 def test_uninit():
     fn = "EMCEE_TEST_FILE_DO_NOT_USE.h5"
-    try:
+    if os.path.exists(fn):
         os.remove(fn)
-    except FileNotFoundError:
-        pass
 
     with backends.HDFBackend(fn) as be:
         run_sampler(be)
