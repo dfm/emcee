@@ -60,7 +60,7 @@ def integrated_time(x, c=5, tol=50, quiet=False):
         c (Optional[float]): The step size for the window search. (default:
             ``5``)
         tol (Optional[float]): The minimum number of autocorrelation times
-            needed to trust the estimate. (default: ``10``)
+            needed to trust the estimate. (default: ``50``)
         quiet (Optional[bool]): This argument controls the behavior when the
             chain is too short. If ``True``, give a warning instead of raising
             an :class:`AutocorrError`. (default: ``False``)
