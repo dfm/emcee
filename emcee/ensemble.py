@@ -45,7 +45,8 @@ class EnsembleSampler(object):
             as a set of numpy arrays in memory, but new backends can be
             written to support other mediums.
         vectorize (Optional[bool]): If ``True``, ``log_prob_fn`` is expected
-            to accept a list of position vectors instead of just one.
+            to accept a list of position vectors instead of just one. Note
+            that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
 
     """
