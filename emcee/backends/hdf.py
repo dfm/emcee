@@ -5,7 +5,6 @@ from __future__ import division, print_function
 __all__ = ["HDFBackend", "TempHDFBackend"]
 
 import os
-import time
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -34,15 +33,12 @@ class HDFBackend(Backend):
             ``RuntimeError`` if the file is opened with write access.
 
     """
-    def __init__(self, filename, name="mcmc", read_only=False, retries=0,
-                 timeout=1.0):
+    def __init__(self, filename, name="mcmc", read_only=False):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
         self.filename = filename
         self.name = name
         self.read_only = read_only
-        self.retries = retries
-        self.timeout = timeout
 
     @property
     def initialized(self):
@@ -59,16 +55,7 @@ class HDFBackend(Backend):
             raise RuntimeError("The backend has been loaded in read-only "
                                "mode. Set `read_only = False` to make "
                                "changes.")
-        tries = 0
-        while True:
-            try:
-                return h5py.File(self.filename, mode)
-            except (OSError, IOError):
-                if tries < self.retries:
-                    tries += 1
-                    time.sleep(self.timeout)
-                    continue
-                raise
+        return h5py.File(self.filename, mode)
 
     def reset(self, nwalkers, ndim):
         """Clear the state of the chain and empty the backend
