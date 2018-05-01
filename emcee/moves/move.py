@@ -9,10 +9,14 @@ __all__ = ["Move"]
 
 class Move(object):
 
+    def tune(self, state, accepted):
+        pass
+
     def update(self,
-               coords, log_probs, blobs,
-               new_coords, new_log_probs, new_blobs,
-               accepted, subset=None):
+               old_state,
+               new_state,
+               accepted,
+               subset=None):
         """Update a given subset of the ensemble with an accepted proposal
 
         Args:
@@ -30,18 +34,18 @@ class Move(object):
 
         """
         if subset is None:
-            subset = np.ones(len(coords), dtype=bool)
+            subset = np.ones(len(old_state.coords), dtype=bool)
         m1 = subset & accepted
         m2 = accepted[subset]
-        coords[m1] = new_coords[m2]
-        log_probs[m1] = new_log_probs[m2]
+        old_state.coords[m1] = new_state.coords[m2]
+        old_state.log_prob[m1] = new_state.log_prob[m2]
 
-        if new_blobs is not None:
-            if blobs is None:
+        if new_state.blobs is not None:
+            if old_state.blobs is None:
                 raise ValueError(
-                    "If you start sampling with a given lnprob, "
+                    "If you start sampling with a given log_prob, "
                     "you also need to provide the current list of "
                     "blobs at that position.")
-            blobs[m1] = new_blobs[m2]
+            old_state.blobs[m1] = new_state.blobs[m2]
 
-        return coords, log_probs, blobs
+        return old_state

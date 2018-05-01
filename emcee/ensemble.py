@@ -8,6 +8,7 @@ from collections import Iterable
 
 import numpy as np
 
+from .state import State
 from .backends import Backend
 from .moves import StretchMove
 from .pbar import get_progress_bar
@@ -24,6 +25,9 @@ class EnsembleSampler(object):
             parameter space as input and returns the natural logarithm of the
             posterior probability (up to an additive constant) for that
             position.
+        grad_log_prob_fn (Optional): A function that takes a vector in the
+            parameter space as input and returns the gradient of
+            ``log_prob_fn`` with respect to the parameters for that position.
         moves (Optional): This can be a single move object, a list of moves,
             or a "weighted" list of the form ``[(emcee.moves.StretchMove(),
             0.1), ...]``. When running, the sampler will randomly select a
@@ -50,7 +54,7 @@ class EnsembleSampler(object):
             (default: ``False``)
 
     """
-    def __init__(self, nwalkers, ndim, log_prob_fn,
+    def __init__(self, nwalkers, ndim, log_prob_fn, grad_log_prob_fn=None,
                  pool=None, moves=None,
                  args=None, kwargs=None,
                  backend=None,
@@ -128,6 +132,11 @@ class EnsembleSampler(object):
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
         self.log_prob_fn = _FunctionWrapper(log_prob_fn, args, kwargs)
+        if grad_log_prob_fn is None:
+            self.grad_log_prob_fn = None
+        else:
+            self.grad_log_prob_fn = _FunctionWrapper(grad_log_prob_fn, args,
+                                                     kwargs)
 
     @property
     def random_state(self):
@@ -172,20 +181,27 @@ class EnsembleSampler(object):
         d["pool"] = None
         return d
 
-    def sample(self, p0, log_prob0=None, rstate0=None, blobs0=None,
-               iterations=1, thin_by=1, thin=None, store=True, progress=False):
+    def sample(self,
+               initial_state,
+               log_prob0=None,  # Deprecated
+               rstate0=None,
+               blobs0=None,  # Deprecated
+               iterations=1,
+               tune=False,
+               thin_by=1, thin=None,
+               store=True, progress=False):
         """Advance the chain as a generator
 
         Args:
-            p0 (ndarray[nwalkers, ndim]): The initial positions of the walkers
-                in the parameter space.
-            log_prob0 (Optional[ndarray[nwalkers]]): The log posterior
-                probabilities for the walkers at ``p0``. If ``log_prob0 is
-                None``, the initial values are calculated.
+            initial_state (State or ndarray[nwalkers, ndim]): The initial
+                :class:`State` or positions of the walkers in the parameter
+                space.
             rstate0 (Optional): The state of the random number generator.
                 See the :attr:`EnsembleSampler.random_state` property for
                 details.
             iterations (Optional[int]): The number of steps to generate.
+            tune (Optional[bool]): If ``True``, the parameters of some moves
+                will be automatically tuned.
             thin_by (Optional[int]): If you only want to store and yield every
                 ``thin_by`` samples in the chain, set ``thin_by`` to an
                 integer greater than 1. When this is set, ``iterations *
@@ -212,28 +228,41 @@ class EnsembleSampler(object):
           current position. The value is only returned if ``log_prob_fn``
           returns blobs too.
 
+        * ``grad_log_prob`` - The list of log posterior gradients for the
+          walkers at positions given by ``pos`` . The shape of this object
+          is ``(nwalkers, dim)``.
+
         """
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
         # we'll just interpret any garbage as letting the generator stay in
         # it's current state.
         self.random_state = rstate0
-        p = np.array(p0)
-        if np.shape(p) != (self.nwalkers, self.ndim):
+
+        # Interpret the input as a walker state and check the dimensions.
+        state = State(initial_state)
+        if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
-        log_prob = log_prob0
-        blobs = blobs0
-        if log_prob is None:
-            log_prob, blobs = self.compute_log_prob(p)
-        if np.shape(log_prob) != (self.nwalkers, ):
+        if log_prob0 is not None:
+            deprecation_warning(
+                "The 'log_prob0' argument is deprecated, use a 'State' "
+                "instead")
+            state.log_prob = log_prob0
+        if blobs0 is not None:
+            deprecation_warning(
+                "The 'blobs0' argument is deprecated, use a 'State' instead")
+            state.blobs = blobs0
+        if state.log_prob is None:
+            state.log_prob, state.blobs = self.compute_log_prob(state.coords)
+        if np.shape(state.log_prob) != (self.nwalkers, ):
             raise ValueError("incompatible input dimensions")
 
         # Check to make sure that the probability function didn't return
         # ``np.nan``.
-        if np.any(np.isnan(log_prob)):
+        if np.any(np.isnan(state.log_prob)):
             raise ValueError("The initial log_prob was NaN")
 
         # Deal with deprecated thin argument
@@ -251,7 +280,7 @@ class EnsembleSampler(object):
             iterations = int(iterations)
             if store:
                 nsaves = iterations // checkpoint_step
-                self.backend.grow(nsaves, blobs)
+                self.backend.grow(nsaves, state.blobs)
 
         else:
             # Check that the thin keyword is reasonable.
@@ -263,7 +292,7 @@ class EnsembleSampler(object):
             checkpoint_step = thin_by
             iterations = int(iterations)
             if store:
-                self.backend.grow(iterations, blobs)
+                self.backend.grow(iterations, state.blobs)
 
         # Inject the progress bar
         total = iterations * yield_step
@@ -275,13 +304,17 @@ class EnsembleSampler(object):
                     move = self._random.choice(self._moves, p=self._weights)
 
                     # Propose
-                    p, log_prob, blobs, accepted = move.propose(
-                        p, log_prob, blobs, self.compute_log_prob,
-                        self._random)
+                    state, accepted = move.propose(state,
+                                                   self.compute_log_prob,
+                                                   self.grad_log_prob_fn,
+                                                   self._random)
+
+                    if tune:
+                        move.tune(state, accepted)
 
                     # Save the new step
                     if store and (i + 1) % checkpoint_step == 0:
-                        self.backend.save_step(p, log_prob, blobs, accepted,
+                        self.backend.save_step(state, accepted,
                                                self.random_state)
 
                     pbar.update(1)
@@ -289,57 +322,41 @@ class EnsembleSampler(object):
 
                 # Yield the result as an iterator so that the user can do all
                 # sorts of fun stuff with the results so far.
-                if blobs is not None:
-                    # This is a bit of a hack to keep things backwards
-                    # compatible.
-                    yield p, log_prob, self.random_state, blobs
-                else:
-                    yield p, log_prob, self.random_state
+                # results = [p, log_prob, self.random_state]
+                # if blobs is not None:
+                #     results.append(blobs)
+                # if grad_log_prob is not None:
+                #     results.append(grad_log_prob)
+                yield state, self.random_state
 
-    def run_mcmc(self, pos0, nsteps, rstate0=None, log_prob0=None,
-                 blobs0=None, **kwargs):
+    def run_mcmc(self, initial_state, nsteps, rstate0=None, **kwargs):
         """
         Iterate :func:`sample` for ``nsteps`` iterations and return the result
 
         Args:
-            pos0: The initial position vector. Can also be ``None`` to resume
-                from where :func:``run_mcmc`` left off the last time it
-                executed.
+            initial_state: The initial state or position vector. Can also be
+                ``None`` to resume from where :func:``run_mcmc`` left off the
+                last time it executed.
             nsteps: The number of steps to run.
-            log_prob0 (Optional[ndarray[nwalkers]]): The log posterior
-                probabilities for the walkers at ``p0``. If ``log_prob0 is
-                None``, the initial values are calculated.
-            rstate0 (Optional): The state of the random number generator.
-                See the :attr:`EnsembleSampler.random_state` property for
-                details.
 
         Other parameters are directly passed to :func:`sample`.
 
-        This method returns the most recent result from :func:`sample`. The
-        particular values vary from sampler to sampler, but the result is
-        generally a tuple ``(pos, log_prob, rstate)`` or
-        ``(pos, log_prob, rstate, blobs)`` where ``pos`` is the most recent
-        position vector (or ensemble thereof), ``log_prob`` is the most recent
-        log posterior probability (or ensemble thereof), ``rstate`` is the
-        state of the random number generator, and the optional ``blobs`` are
-        user-provided large data blobs.
+        This method returns the most recent result from :func:`sample`.
 
         """
-        if pos0 is None:
-            if self._last_run_mcmc_result is None:
+        if initial_state is None:
+            if self._previous_state is None:
                 raise ValueError("Cannot have pos0=None if run_mcmc has never "
                                  "been called.")
-            pos0, log_prob0, rstate0 = self._last_run_mcmc_result[:3]
-            if len(self._last_run_mcmc_result) > 3:
-                blobs0 = self._last_run_mcmc_result[3]
+            initial_state, rstate0 = self._previous_state
 
         results = None
-        for results in self.sample(pos0, log_prob0, rstate0=rstate0,
-                                   blobs0=blobs0, iterations=nsteps, **kwargs):
+        for results in self.sample(initial_state, iterations=nsteps,
+                                   rstate0=rstate0, **kwargs):
             pass
 
         # Store so that the ``pos0=None`` case will work
-        self._last_run_mcmc_result = results
+        self._previous_state = results
 
         return results
 

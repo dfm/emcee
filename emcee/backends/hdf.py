@@ -72,7 +72,7 @@ class HDFBackend(Backend):
             g.attrs["ndim"] = ndim
             g.attrs["has_blobs"] = False
             g.attrs["iteration"] = 0
-            g.create_dataset("accepted", data=np.zeros(nwalkers, dtype=int))
+            g.create_dataset("accepted", data=np.zeros(nwalkers))
             g.create_dataset("chain",
                              (0, nwalkers, ndim),
                              maxshape=(None, nwalkers, ndim),
@@ -163,7 +163,7 @@ class HDFBackend(Backend):
                     g["blobs"].resize(ntot, axis=0)
                 g.attrs["has_blobs"] = True
 
-    def save_step(self, coords, log_prob, blobs, accepted, random_state):
+    def save_step(self, state, accepted, random_state):
         """Save a step to the file
 
         Args:
@@ -176,16 +176,16 @@ class HDFBackend(Backend):
             random_state: The current state of the random number generator.
 
         """
-        self._check(coords, log_prob, blobs, accepted)
+        self._check(state, accepted)
 
         with self.open("a") as f:
             g = f[self.name]
             iteration = g.attrs["iteration"]
 
-            g["chain"][iteration, :, :] = coords
-            g["log_prob"][iteration, :] = log_prob
-            if blobs is not None:
-                g["blobs"][iteration, :] = blobs
+            g["chain"][iteration, :, :] = state.coords
+            g["log_prob"][iteration, :] = state.log_prob
+            if state.blobs is not None:
+                g["blobs"][iteration, :] = state.blobs
             g["accepted"][:] += accepted
 
             for i, v in enumerate(random_state):

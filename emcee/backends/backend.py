@@ -26,7 +26,7 @@ class Backend(object):
         self.nwalkers = int(nwalkers)
         self.ndim = int(ndim)
         self.iteration = 0
-        self.accepted = np.zeros(self.nwalkers, dtype=int)
+        self.accepted = np.zeros(self.nwalkers)
         self.chain = np.empty((0, self.nwalkers, self.ndim))
         self.log_prob = np.empty((0, self.nwalkers))
         self.blobs = None
@@ -196,46 +196,43 @@ class Backend(object):
             else:
                 self.blobs = np.concatenate((self.blobs, a), axis=0)
 
-    def _check(self, coords, log_prob, blobs, accepted):
-        self._check_blobs(blobs)
+    def _check(self, state, accepted):
+        self._check_blobs(state.blobs)
         nwalkers, ndim = self.shape
         has_blobs = self.has_blobs()
-        if coords.shape != (nwalkers, ndim):
+        if state.coords.shape != (nwalkers, ndim):
             raise ValueError("invalid coordinate dimensions; expected {0}"
                              .format((nwalkers, ndim)))
-        if log_prob.shape != (nwalkers, ):
+        if state.log_prob.shape != (nwalkers, ):
             raise ValueError("invalid log probability size; expected {0}"
                              .format(nwalkers))
-        if blobs is not None and not has_blobs:
+        if state.blobs is not None and not has_blobs:
             raise ValueError("unexpected blobs")
-        if blobs is None and has_blobs:
+        if state.blobs is None and has_blobs:
             raise ValueError("expected blobs, but none were given")
-        if blobs is not None and len(blobs) != nwalkers:
+        if state.blobs is not None and len(state.blobs) != nwalkers:
             raise ValueError("invalid blobs size; expected {0}"
                              .format(nwalkers))
         if accepted.shape != (nwalkers, ):
             raise ValueError("invalid acceptance size; expected {0}"
                              .format(nwalkers))
 
-    def save_step(self, coords, log_prob, blobs, accepted, random_state):
+    def save_step(self, state, accepted, random_state):
         """Save a step to the backend
 
         Args:
-            coords (ndarray): The coordinates of the walkers in the ensemble.
-            log_prob (ndarray): The log probability for each walker.
-            blobs (ndarray or None): The blobs for each walker or ``None`` if
-                there are no blobs.
+            state (State): The walker state.
             accepted (ndarray): An array of boolean flags indicating whether
                 or not the proposal for each walker was accepted.
             random_state: The current state of the random number generator.
 
         """
-        self._check(coords, log_prob, blobs, accepted)
+        self._check(state, accepted)
 
-        self.chain[self.iteration, :, :] = coords
-        self.log_prob[self.iteration, :] = log_prob
-        if blobs is not None:
-            self.blobs[self.iteration, :] = blobs
+        self.chain[self.iteration, :, :] = state.coords
+        self.log_prob[self.iteration, :] = state.log_prob
+        if state.blobs is not None:
+            self.blobs[self.iteration, :] = state.blobs
         self.accepted += accepted
         self.random_state = random_state
         self.iteration += 1

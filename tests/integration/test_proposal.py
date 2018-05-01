@@ -14,6 +14,10 @@ def normal_log_prob(params):
     return -0.5 * np.sum(params**2)
 
 
+def grad_normal_log_prob(params):
+    return -params
+
+
 def uniform_log_prob(params):
     if np.any(params > 1) or np.any(params < 0):
         return -np.inf
@@ -29,6 +33,7 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
     coords = np.random.randn(nwalkers, ndim)
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, normal_log_prob,
+                                    grad_log_prob_fn=grad_normal_log_prob,
                                     moves=proposal)
     sampler.run_mcmc(coords, nsteps)
 

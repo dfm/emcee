@@ -5,6 +5,7 @@ from __future__ import division, print_function
 import numpy as np
 
 from .move import Move
+from ..state import State
 
 __all__ = ["MHMove"]
 
@@ -32,7 +33,7 @@ class MHMove(Move):
         self.ndim = ndim
         self.get_proposal = proposal_function
 
-    def propose(self, coords, log_probs, blobs, log_prob_fn, random):
+    def propose(self, state, log_prob_fn, grad_log_prob_fn, random):
         """Use the move to generate a proposal and compute the acceptance
 
         Args:
@@ -44,24 +45,22 @@ class MHMove(Move):
 
         """
         # Check to make sure that the dimensions match.
-        nwalkers, ndim = coords.shape
+        nwalkers, ndim = state.coords.shape
         if self.ndim is not None and self.ndim != ndim:
             raise ValueError("Dimension mismatch in proposal")
 
         # Get the move-specific proposal.
-        q, factors = self.get_proposal(coords, random)
+        q, factors = self.get_proposal(state.coords, random)
 
         # Compute the lnprobs of the proposed position.
         new_log_probs, new_blobs = log_prob_fn(q)
 
         # Loop over the walkers and update them accordingly.
-        lnpdiff = new_log_probs - log_probs + factors
+        lnpdiff = new_log_probs - state.log_prob + factors
         accepted = np.log(random.rand(nwalkers)) < lnpdiff
 
         # Update the parameters
-        coords, log_probs, blobs = self.update(
-            coords, log_probs, blobs,
-            q, new_log_probs, new_blobs,
-            accepted)
+        new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)
+        state = self.update(state, new_state, accepted)
 
-        return coords, log_probs, blobs, accepted
+        return state, accepted

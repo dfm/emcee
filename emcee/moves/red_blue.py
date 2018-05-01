@@ -5,6 +5,7 @@ from __future__ import division, print_function
 import numpy as np
 
 from .move import Move
+from ..state import State
 
 __all__ = ["RedBlueMove"]
 
@@ -49,7 +50,7 @@ class RedBlueMove(Move):
         raise NotImplementedError("The proposal must be implemented by "
                                   "subclasses")
 
-    def propose(self, coords, log_probs, blobs, log_prob_fn, random):
+    def propose(self, state, log_prob_fn, grad_log_prob_fn, random):
         """Use the move to generate a proposal and compute the acceptance
 
         Args:
@@ -61,14 +62,14 @@ class RedBlueMove(Move):
 
         """
         # Check that the dimensions are compatible.
-        nwalkers, ndim = coords.shape
+        nwalkers, ndim = state.coords.shape
         if nwalkers < 2 * ndim and not self.live_dangerously:
             raise RuntimeError("It is unadvisable to use a red-blue move "
                                "with fewer walkers than twice the number of "
                                "dimensions.")
 
         # Run any move-specific setup.
-        self.setup(coords)
+        self.setup(state.coords)
 
         # Split the ensemble in half and iterate over these two halves.
         accepted = np.zeros(nwalkers, dtype=bool)
@@ -80,7 +81,7 @@ class RedBlueMove(Move):
             S1 = inds == split
 
             # Get the two halves of the ensemble.
-            sets = [coords[inds == j] for j in range(self.nsplits)]
+            sets = [state.coords[inds == j] for j in range(self.nsplits)]
             s = sets[split]
             c = sets[:split] + sets[split+1:]
 
@@ -93,13 +94,11 @@ class RedBlueMove(Move):
             # Loop over the walkers and update them accordingly.
             for i, (j, f, nlp) in enumerate(zip(
                     all_inds[S1], factors, new_log_probs)):
-                lnpdiff = f + nlp - log_probs[j]
+                lnpdiff = f + nlp - state.log_prob[j]
                 if lnpdiff > np.log(random.rand()):
                     accepted[j] = True
 
-            coords, log_probs, blobs = self.update(
-                coords, log_probs, blobs,
-                q, new_log_probs, new_blobs,
-                accepted, S1)
+            new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)
+            state = self.update(state, new_state, accepted, S1)
 
-        return coords, log_probs, blobs, accepted
+        return state, accepted
