@@ -50,7 +50,7 @@ class RedBlueMove(Move):
         raise NotImplementedError("The proposal must be implemented by "
                                   "subclasses")
 
-    def propose(self, state, log_prob_fn, grad_log_prob_fn, random):
+    def propose(self, model, state):
         """Use the move to generate a proposal and compute the acceptance
 
         Args:
@@ -76,7 +76,7 @@ class RedBlueMove(Move):
         all_inds = np.arange(nwalkers)
         inds = all_inds % self.nsplits
         if self.randomize_split:
-            random.shuffle(inds)
+            model.random.shuffle(inds)
         for split in range(self.nsplits):
             S1 = inds == split
 
@@ -86,16 +86,16 @@ class RedBlueMove(Move):
             c = sets[:split] + sets[split+1:]
 
             # Get the move-specific proposal.
-            q, factors = self.get_proposal(s, c, random)
+            q, factors = self.get_proposal(s, c, model.random)
 
             # Compute the lnprobs of the proposed position.
-            new_log_probs, new_blobs = log_prob_fn(q)
+            new_log_probs, new_blobs = model.compute_log_prob_fn(q)
 
             # Loop over the walkers and update them accordingly.
             for i, (j, f, nlp) in enumerate(zip(
                     all_inds[S1], factors, new_log_probs)):
                 lnpdiff = f + nlp - state.log_prob[j]
-                if lnpdiff > np.log(random.rand()):
+                if lnpdiff > np.log(model.random.rand()):
                     accepted[j] = True
 
             new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)

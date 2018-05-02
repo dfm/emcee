@@ -2,9 +2,12 @@
 
 __all__ = [
     "NUTSMove",
-    "StepSize", "metric",
+    "StepSize",
+    "IdentityMetric", "IsotropicMetric", "DiagonalMetric", "DenseMetric"
 ]
 
-from . import metric
 from .nuts import NUTSMove
 from .step_size import StepSize
+from .metric import (
+    IdentityMetric, IsotropicMetric, DiagonalMetric, DenseMetric
+)

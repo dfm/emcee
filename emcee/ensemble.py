@@ -9,6 +9,7 @@ from collections import Iterable
 import numpy as np
 
 from .state import State
+from .model import Model
 from .backends import Backend
 from .moves import StretchMove
 from .pbar import get_progress_bar
@@ -294,6 +295,16 @@ class EnsembleSampler(object):
             if store:
                 self.backend.grow(iterations, state.blobs)
 
+        # Set up a wrapper around the relevant model functions
+        if self.pool is not None:
+            map_fn = self.pool.map
+        else:
+            map_fn = map
+        model = Model(
+            self.log_prob_fn, self.grad_log_prob_fn, self.compute_log_prob,
+            map_fn, self._random
+        )
+
         # Inject the progress bar
         total = iterations * yield_step
         with get_progress_bar(progress, total) as pbar:
@@ -304,10 +315,7 @@ class EnsembleSampler(object):
                     move = self._random.choice(self._moves, p=self._weights)
 
                     # Propose
-                    state, accepted = move.propose(state,
-                                                   self.compute_log_prob,
-                                                   self.grad_log_prob_fn,
-                                                   self._random)
+                    state, accepted = move.propose(model, state)
 
                     if tune:
                         move.tune(state, accepted)
@@ -322,11 +330,6 @@ class EnsembleSampler(object):
 
                 # Yield the result as an iterator so that the user can do all
                 # sorts of fun stuff with the results so far.
-                # results = [p, log_prob, self.random_state]
-                # if blobs is not None:
-                #     results.append(blobs)
-                # if grad_log_prob is not None:
-                #     results.append(grad_log_prob)
                 yield state, self.random_state
 
     def run_mcmc(self, initial_state, nsteps, rstate0=None, **kwargs):

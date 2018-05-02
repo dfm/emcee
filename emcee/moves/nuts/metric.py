@@ -6,7 +6,12 @@ __all__ = ["IdentityMetric", "IsotropicMetric", "DiagonalMetric",
            "DenseMetric"]
 
 import numpy as np
-from scipy.linalg import cholesky, solve_triangular
+
+try:
+    from scipy.linalg import cholesky, solve_triangular
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 
 class IdentityMetric(object):
@@ -47,7 +52,8 @@ class IsotropicMetric(IdentityMetric):
     def sample_p(self, random=None):
         if random is None:
             random = np.random
-        return random.randn(self.ndim) / np.sqrt(self.variance)
+        n = random.randn(self.ndim)
+        return n / np.sqrt(self.variance)
 
     def dot(self, p):
         return p * self.variance
@@ -84,6 +90,8 @@ class DiagonalMetric(IsotropicMetric):
 class DenseMetric(IdentityMetric):
 
     def __init__(self, variance):
+        if not HAS_SCIPY:
+            raise ImportError("scipy is required to use the DenseMetric")
         self.ndim = len(variance)
         self.update_variance(variance)
         self.restart()
@@ -95,8 +103,8 @@ class DenseMetric(IdentityMetric):
     def sample_p(self, random=None):
         if random is None:
             random = np.random
-        return solve_triangular(self.L, random.randn(self.ndim),
-                                lower=False)
+        n = random.randn(self.ndim)
+        return solve_triangular(self.L, n, lower=False)
 
     def dot(self, p):
         return np.dot(self.variance, p)

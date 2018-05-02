@@ -10,5 +10,5 @@ __all__ = ["test_normal_nuts"]
 
 def test_normal_nuts(**kwargs):
     kwargs["check_acceptance"] = False
-    kwargs["nsteps"] = 200
+    kwargs["nsteps"] = 100
     _test_normal(moves.NUTSMove(), **kwargs)

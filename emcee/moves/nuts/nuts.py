@@ -25,14 +25,13 @@ def _nuts_criterion(p_sharp_minus, p_sharp_plus, rho):
 
 def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
                depth, z, z_propose, p_sharp_left, p_sharp_right, rho, H0,
-               sign, n_leapfrog, log_sum_weight, sum_metro_prob, max_depth,
+               sign, nleapfrog, log_sum_weight, sum_metro_prob, max_depth,
                max_delta_h, random):
     if depth == 0:
         q, p, dUdq = leapfrog(grad_log_prob_fn, metric, z.q, z.p,
                               sign * epsilon, z.dUdq)
-        lp, _ = log_prob_fn([q])
-        z = Point(q, p, -lp[0], dUdq)
-        n_leapfrog += 1
+        z = Point(q, p, -log_prob_fn(q), dUdq)
+        nleapfrog += 1
 
         h = 0.5 * np.dot(p, metric.dot(p))
         h += z.U
@@ -51,7 +50,7 @@ def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
 
         return (
             valid_subtree, z, z_propose, p_sharp_left, p_sharp_right, rho,
-            n_leapfrog, log_sum_weight, sum_metro_prob
+            nleapfrog, log_sum_weight, sum_metro_prob
         )
 
     p_sharp_dummy = np.empty_like(p_sharp_left)
@@ -62,16 +61,16 @@ def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
     results_left = _nuts_tree(
         log_prob_fn, grad_log_prob_fn, metric, epsilon,
         depth - 1, z, z_propose, p_sharp_left, p_sharp_dummy, rho_left,
-        H0, sign, n_leapfrog, log_sum_weight_left, sum_metro_prob, max_depth,
+        H0, sign, nleapfrog, log_sum_weight_left, sum_metro_prob, max_depth,
         max_delta_h, random
     )
     (valid_left, z, z_propose, p_sharp_left, p_sharp_dummy, rho_left,
-     n_leapfrog, log_sum_weight_left, sum_metro_prob) = results_left
+     nleapfrog, log_sum_weight_left, sum_metro_prob) = results_left
 
     if not valid_left:
         return (
             False, z, z_propose, p_sharp_left, p_sharp_right, rho,
-            n_leapfrog, log_sum_weight, sum_metro_prob
+            nleapfrog, log_sum_weight, sum_metro_prob
         )
 
     # Right
@@ -81,16 +80,16 @@ def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
     results_right = _nuts_tree(
         log_prob_fn, grad_log_prob_fn, metric, epsilon,
         depth - 1, z, z_propose_right, p_sharp_dummy, p_sharp_right, rho_right,
-        H0, sign, n_leapfrog, log_sum_weight_right, sum_metro_prob, max_depth,
+        H0, sign, nleapfrog, log_sum_weight_right, sum_metro_prob, max_depth,
         max_delta_h, random
     )
     (valid_right, z, z_propose_right, p_sharp_dummy, p_sharp_right, rho_right,
-     n_leapfrog, log_sum_weight_right, sum_metro_prob) = results_right
+     nleapfrog, log_sum_weight_right, sum_metro_prob) = results_right
 
     if not valid_right:
         return (
             False, z, z_propose, p_sharp_left, p_sharp_right, rho,
-            n_leapfrog, log_sum_weight, sum_metro_prob
+            nleapfrog, log_sum_weight, sum_metro_prob
         )
 
     # Multinomial sample from the right
@@ -111,7 +110,7 @@ def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
     return (
         _nuts_criterion(p_sharp_left, p_sharp_right, rho_subtree),
         z, z_propose, p_sharp_left, p_sharp_right, rho,
-        n_leapfrog, log_sum_weight, sum_metro_prob
+        nleapfrog, log_sum_weight, sum_metro_prob
     )
 
 
@@ -130,7 +129,7 @@ def step_nuts(log_prob_fn, grad_log_prob_fn, metric, q, log_prob,
     p_sharp_minus = np.array(p_sharp_plus, copy=True)
     rho = np.array(p, copy=True)
 
-    n_leapfrog = 0
+    nleapfrog = 0
     log_sum_weight = 0.0
     sum_metro_prob = 0.0
     H0 = 0.5 * np.dot(p, metric.dot(p))
@@ -145,20 +144,20 @@ def step_nuts(log_prob_fn, grad_log_prob_fn, metric, q, log_prob,
             results = _nuts_tree(
                 log_prob_fn, grad_log_prob_fn, metric, epsilon,
                 depth, z_plus, z_propose, p_sharp_dummy, p_sharp_plus,
-                rho_subtree, H0, 1, n_leapfrog, log_sum_weight_subtree,
+                rho_subtree, H0, 1, nleapfrog, log_sum_weight_subtree,
                 sum_metro_prob, max_depth, max_delta_h, random)
             (valid_subtree, z_plus, z_propose, p_sharp_dummy, p_sharp_plus,
-             rho_subtree, n_leapfrog, log_sum_weight_subtree, sum_metro_prob) \
+             rho_subtree, nleapfrog, log_sum_weight_subtree, sum_metro_prob) \
                 = results
 
         else:
             results = _nuts_tree(
                 log_prob_fn, grad_log_prob_fn, metric, epsilon,
                 depth, z_minus, z_propose, p_sharp_dummy, p_sharp_minus,
-                rho_subtree, H0, -1, n_leapfrog, log_sum_weight_subtree,
+                rho_subtree, H0, -1, nleapfrog, log_sum_weight_subtree,
                 sum_metro_prob, max_depth, max_delta_h, random)
             (valid_subtree, z_minus, z_propose, p_sharp_dummy, p_sharp_minus,
-             rho_subtree, n_leapfrog, log_sum_weight_subtree, sum_metro_prob) \
+             rho_subtree, nleapfrog, log_sum_weight_subtree, sum_metro_prob) \
                 = results
 
         if not valid_subtree:
@@ -177,7 +176,7 @@ def step_nuts(log_prob_fn, grad_log_prob_fn, metric, q, log_prob,
         if not _nuts_criterion(p_sharp_minus, p_sharp_plus, rho):
             break
 
-    accept_prob = sum_metro_prob / n_leapfrog
+    accept_prob = sum_metro_prob / nleapfrog
     return z_sample.q, float(accept_prob)
 
 
@@ -185,8 +184,9 @@ class NUTSMove(Move):
 
     def __init__(self, step_size=None, metric=None, max_depth=5,
                  max_delta_h=1000.0,
-                 n_tune=0, tune_step_size=True, tune_metric=True,
-                 initial_buffer=100, final_buffer=100, window=25):
+                 ntune=0, tune_step_size=True, tune_metric=True,
+                 initial_buffer=100, final_buffer=100, window=25,
+                 parallel_safe=True):
         if step_size is None:
             step_size = StepSize()
         elif not hasattr(step_size, "sample_step_size"):
@@ -195,29 +195,30 @@ class NUTSMove(Move):
         self.metric = metric
         self.max_depth = max_depth
         self.max_delta_h = max_delta_h
+        self.parallel_safe = parallel_safe
 
-        self.n_tune = max(int(n_tune), 0)
+        self.ntune = max(int(ntune), 0)
         self.tune_metric = tune_metric
         self.tune_step_size = tune_step_size
-        if n_tune > 0 and tune_metric:
+        if ntune > 0 and tune_metric:
             # First, how many inner steps do we get?
             self.initial_buffer = max(int(initial_buffer), 0)
             self.final_buffer = max(int(final_buffer), 0)
-            n_inner = self.n_tune - self.initial_buffer - self.final_buffer
-            if n_inner <= window:
+            ninner = self.ntune - self.initial_buffer - self.final_buffer
+            if ninner <= window:
                 logging.warn("not enough tuning samples for proposed "
                              "schedule; resizing to 20%/70%/10%")
-                self.initial_buffer, n_inner, self.final_buffer = \
-                    (np.array([0.2, 0.7, 0.1]) * n_tune).astype(int)
+                self.initial_buffer, ninner, self.final_buffer = \
+                    (np.array([0.2, 0.7, 0.1]) * self.ntune).astype(int)
 
             # Compute the tuning schedule
-            p = max(1, np.ceil(np.log2(n_inner) - np.log2(window)) + 1)
+            p = max(1, np.ceil(np.log2(ninner) - np.log2(window)) + 1)
             windows = window * 2 ** np.arange(p)
             if len(windows) <= 1:
-                windows = np.array([n_inner])
+                windows = np.array([ninner])
             else:
-                if windows[-1] > n_inner:
-                    windows = np.append(windows[:-2], n_inner)
+                if windows[-1] > ninner:
+                    windows = np.append(windows[:-2], ninner)
 
             self.windows = set((np.append(0, windows) +
                                 self.initial_buffer).astype(int))
@@ -229,9 +230,9 @@ class NUTSMove(Move):
 
     def tune(self, state, accepted):
         self.step_count += 1
-        if self.step_count > self.n_tune:
+        if self.step_count > self.ntune:
             return
-        elif self.step_count == self.n_tune:
+        elif self.step_count == self.ntune:
             if self.tune_step_size:
                 self.step_size.finalize()
             return
@@ -241,7 +242,7 @@ class NUTSMove(Move):
 
         if self.tune_metric:
             if self.step_count >= self.initial_buffer and \
-                    self.step_count < self.n_tune - self.final_buffer:
+                    self.step_count < self.ntune - self.final_buffer:
                 for vector in state.coords:
                     self.metric.update(vector)
 
@@ -250,8 +251,8 @@ class NUTSMove(Move):
                 if self.tune_step_size:
                     self.step_size.restart()
 
-    def propose(self, state, log_prob_fn, grad_log_prob_fn, random):
-        if not callable(grad_log_prob_fn):
+    def propose(self, model, state):
+        if not callable(model.grad_log_prob_fn):
             raise ValueError("a grad_log_prob function must be provided to "
                              "use the NUTSMove")
 
@@ -261,19 +262,25 @@ class NUTSMove(Move):
             raise ValueError("dimension mismatch between initial coordinates "
                              "and metric")
 
+        nwalkers = state.coords.shape[0]
         q = np.empty_like(state.coords)
-        accepted = np.zeros(state.coords.shape[0])
-        for i in range(state.coords.shape[0]):
+        accepted = np.zeros(nwalkers)
+        for i in range(nwalkers):
             # Sample the step size including jitter
-            step = self.step_size.sample_step_size(random=random)
+            step = self.step_size.sample_step_size(random=model.random)
+
+            if self.parallel_safe:
+                random = np.random.RandomState(model.random.randint(2**32))
+            else:
+                random = model.random
 
             # Run one step of NUTS
             q[i], accepted[i] = step_nuts(
-                log_prob_fn, grad_log_prob_fn, self.metric,
+                model.log_prob_fn, model.grad_log_prob_fn, self.metric,
                 state.coords[i], state.log_prob[i], step,
                 self.max_depth, self.max_delta_h, random)
 
-        new_log_probs, new_blobs = log_prob_fn(q)
+        new_log_probs, new_blobs = model.compute_log_prob_fn(q)
         new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)
         state = self.update(state, new_state,
                             np.ones(state.coords.shape[0], dtype=bool))
