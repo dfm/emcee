@@ -9,6 +9,7 @@ import numpy as np
 
 from emcee import moves
 from emcee.state import State
+from emcee.model import Model
 
 __all__ = ["test_live_dangerously"]
 
@@ -20,15 +21,20 @@ def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
     np.random.seed(seed)
     state = State(np.random.randn(nwalkers, 2 * nwalkers),
                   log_prob=np.random.randn(nwalkers))
+    model = Model(
+        None,
+        None,
+        lambda x: (np.zeros(len(x)), None),
+        map,
+        np.random
+    )
     proposal = moves.StretchMove()
 
     # Test to make sure that the error is thrown if there aren't enough
     # walkers.
     with pytest.raises(RuntimeError):
-        proposal.propose(state, lambda x: (np.zeros(len(x)), None), None,
-                         np.random)
+        proposal.propose(model, state)
 
     # Living dangerously...
     proposal.live_dangerously = True
-    proposal.propose(state, lambda x: (np.zeros(len(x)), None), None,
-                     np.random)
+    proposal.propose(model, state)
