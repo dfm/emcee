@@ -23,7 +23,7 @@ setup(
     version=emcee.__version__,
     author="Daniel Foreman-Mackey",
     author_email="foreman.mackey@gmail.com",
-    packages=["emcee", "emcee.moves", "emcee.moves.nuts", "emcee.backends"],
+    packages=["emcee", "emcee.moves", "emcee.moves.hmc", "emcee.backends"],
     url="http://emcee.readthedocs.io",
     license="MIT",
     description=("The Python ensemble sampling toolkit for affine-invariant "
