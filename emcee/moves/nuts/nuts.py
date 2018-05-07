@@ -5,6 +5,7 @@ from __future__ import division, print_function
 __all__ = ["NUTSMove"]
 
 import logging
+from functools import partial
 from collections import namedtuple
 
 import numpy as np
@@ -114,8 +115,9 @@ def _nuts_tree(log_prob_fn, grad_log_prob_fn, metric, epsilon,
     )
 
 
-def step_nuts(log_prob_fn, grad_log_prob_fn, metric, q, log_prob,
-              epsilon, max_depth, max_delta_h, random):
+def step_nuts(log_prob_fn, grad_log_prob_fn, metric, max_depth, max_delta_h,
+              args):
+    q, log_prob, epsilon, random = args
     dUdq = -grad_log_prob_fn(q)
     p = metric.sample_p(random=random)
 
@@ -265,20 +267,21 @@ class NUTSMove(Move):
         nwalkers = state.coords.shape[0]
         q = np.empty_like(state.coords)
         accepted = np.zeros(nwalkers)
+
+        steps = []
+        randoms = []
         for i in range(nwalkers):
-            # Sample the step size including jitter
-            step = self.step_size.sample_step_size(random=model.random)
-
+            steps.append(self.step_size.sample_step_size(random=model.random))
             if self.parallel_safe:
-                random = np.random.RandomState(model.random.randint(2**32))
+                randoms.append(
+                    np.random.RandomState(model.random.randint(2**16)))
             else:
-                random = model.random
+                randoms.append(model.random)
 
-            # Run one step of NUTS
-            q[i], accepted[i] = step_nuts(
-                model.log_prob_fn, model.grad_log_prob_fn, self.metric,
-                state.coords[i], state.log_prob[i], step,
-                self.max_depth, self.max_delta_h, random)
+        args = zip(state.coords, state.log_prob, steps, randoms)
+        f = partial(step_nuts, model.log_prob_fn, model.grad_log_prob_fn,
+                    self.metric, self.max_depth, self.max_delta_h)
+        q, accepted = map(np.array, zip(*model.map_fn(f, args)))
 
         new_log_probs, new_blobs = model.compute_log_prob_fn(q)
         new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)
