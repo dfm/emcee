@@ -23,17 +23,19 @@ __all__ = ["test_normal_hmc"]
 @pytest.mark.parametrize("pool", [True, False])
 @pytest.mark.parametrize("tune", [True, False])
 @pytest.mark.parametrize("blobs", [True, False])
-def test_normal_hmc(pool, metric, tune, blobs, **kwargs):
-    if pool:
-        kwargs["pool"] = Pool()
+def test_normal_hmc(pool, tune, blobs, metric, **kwargs):
     if tune:
-        move = moves.HamiltonianMove(10, ntune=300, parallel_safe=pool)
+        move = moves.HamiltonianMove(5, metric=metric, ntune=500)
     else:
-        move = moves.HamiltonianMove(10, parallel_safe=pool)
+        move = moves.HamiltonianMove(10, step_size=0.5, metric=metric)
     kwargs["ndim"] = 3
+    kwargs["nwalkers"] = 2
     kwargs["check_acceptance"] = False
-    kwargs["nsteps"] = 100
+    kwargs["nsteps"] = 500 + int(tune) * 500
     kwargs["blobs"] = blobs
-    _test_normal(move, **kwargs)
     if pool:
-        kwargs["pool"].close()
+        with Pool() as p:
+            kwargs["pool"] = p
+            _test_normal(move, **kwargs)
+    else:
+        _test_normal(move, **kwargs)

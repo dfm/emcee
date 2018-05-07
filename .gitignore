@@ -16,3 +16,4 @@ docs.tar
 
 .coverage
 .pytest_cache
+htmlcov

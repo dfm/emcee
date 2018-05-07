@@ -57,6 +57,7 @@ class NoUTurnMove(HamiltonianMove):
     def __init__(self, max_depth=5, max_delta_h=1000.0, **kwargs):
         self.max_depth = max_depth
         self.max_delta_h = max_delta_h
+        kwargs["target_accept"] = kwargs.get("target_accept", 0.5)
         super(NoUTurnMove, self).__init__(0, **kwargs)
 
     def __call__(self, log_prob_fn, grad_log_prob_fn, args):

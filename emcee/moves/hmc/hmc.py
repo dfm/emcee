@@ -24,15 +24,14 @@ class HamiltonianMove(Move):
     def __init__(self, nstep, step_size=None, metric=None,
                  ntune=0, tune_step_size=True, tune_metric=True,
                  initial_buffer=100, final_buffer=100, window=25,
-                 parallel_safe=True):
+                 target_accept=0.8):
         self.nstep = int(nstep)
         if step_size is None:
-            step_size = StepSize()
+            step_size = StepSize(delta=target_accept)
         elif not hasattr(step_size, "sample_step_size"):
-            step_size = StepSize(step_size)
+            step_size = StepSize(step_size, delta=target_accept)
         self.step_size = step_size
         self.metric = metric
-        self.parallel_safe = parallel_safe
 
         self.ntune = max(int(ntune), 0)
         self.tune_metric = tune_metric
@@ -121,11 +120,8 @@ class HamiltonianMove(Move):
         randoms = []
         for i in range(nwalkers):
             steps.append(self.step_size.sample_step_size(random=model.random))
-            if self.parallel_safe:
-                randoms.append(
-                    np.random.RandomState(model.random.randint(2**16)))
-            else:
-                randoms.append(model.random)
+            randoms.append(
+                np.random.RandomState(model.random.randint(2**16)))
 
         # Loop over walkers and run a step for each walker (possibly
         # in parallel)

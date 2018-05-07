@@ -24,16 +24,18 @@ __all__ = ["test_normal_nuts"]
 @pytest.mark.parametrize("tune", [True, False])
 @pytest.mark.parametrize("blobs", [True, False])
 def test_normal_nuts(pool, metric, tune, blobs, **kwargs):
-    if pool:
-        kwargs["pool"] = Pool()
     if tune:
-        move = moves.NoUTurnMove(ntune=300, parallel_safe=pool)
+        move = moves.NoUTurnMove(ntune=500, metric=metric)
     else:
-        move = moves.NoUTurnMove(parallel_safe=pool)
+        move = moves.NoUTurnMove(metric=metric)
     kwargs["ndim"] = 3
+    kwargs["nwalkers"] = 2
     kwargs["check_acceptance"] = False
-    kwargs["nsteps"] = 100
+    kwargs["nsteps"] = 500 + int(tune) * 500
     kwargs["blobs"] = blobs
-    _test_normal(move, **kwargs)
     if pool:
-        kwargs["pool"].close()
+        with Pool() as p:
+            kwargs["pool"] = p
+            _test_normal(move, **kwargs)
+    else:
+        _test_normal(move, **kwargs)
