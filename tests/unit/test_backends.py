@@ -110,15 +110,15 @@ def test_backend(backend, dtype, blobs):
 
         last1 = sampler1.get_last_sample()
         last2 = sampler2.get_last_sample()
-        assert len(last1) == len(last2)
-        assert np.allclose(last1[0], last2[0])
-        assert np.allclose(last1[1], last2[1])
-        assert all(np.allclose(l1, l2) for l1, l2 in zip(last1[2][1:],
-                                                         last2[2][1:]))
+        assert np.allclose(last1.coords, last2.coords)
+        assert np.allclose(last1.log_prob, last2.log_prob)
+        assert all(np.allclose(l1, l2)
+                   for l1, l2 in zip(last1.random_state[1:],
+                                     last2.random_state[1:]))
         if blobs:
-            _custom_allclose(last1[3], last2[3])
+            _custom_allclose(last1.blobs, last2.blobs)
         else:
-            assert len(last1) == 3
+            assert last1.blobs is None and last2.blobs is None
 
         a = sampler1.acceptance_fraction
         b = sampler2.acceptance_fraction
@@ -153,12 +153,12 @@ def test_reload(backend, dtype):
 
         last1 = backend1.get_last_sample()
         last2 = backend2.get_last_sample()
-        assert len(last1) == len(last2)
-        assert np.allclose(last1[0], last2[0])
-        assert np.allclose(last1[1], last2[1])
-        assert all(np.allclose(l1, l2) for l1, l2 in zip(last1[2][1:],
-                                                         last2[2][1:]))
-        _custom_allclose(last1[3], last2[3])
+        assert np.allclose(last1.coords, last2.coords)
+        assert np.allclose(last1.log_prob, last2.log_prob)
+        assert all(np.allclose(l1, l2)
+                   for l1, l2 in zip(last1.random_state[1:],
+                                     last2.random_state[1:]))
+        _custom_allclose(last1.blobs, last2.blobs)
 
         a = backend1.accepted
         b = backend2.accepted
@@ -184,12 +184,12 @@ def test_restart(backend, dtype):
 
         last1 = sampler1.get_last_sample()
         last2 = sampler2.get_last_sample()
-        assert len(last1) == len(last2)
-        assert np.allclose(last1[0], last2[0])
-        assert np.allclose(last1[1], last2[1])
-        assert all(np.allclose(l1, l2) for l1, l2 in zip(last1[2][1:],
-                                                         last2[2][1:]))
-        _custom_allclose(last1[3], last2[3])
+        assert np.allclose(last1.coords, last2.coords)
+        assert np.allclose(last1.log_prob, last2.log_prob)
+        assert all(np.allclose(l1, l2)
+                   for l1, l2 in zip(last1.random_state[1:],
+                                     last2.random_state[1:]))
+        _custom_allclose(last1.blobs, last2.blobs)
 
         a = sampler1.acceptance_fraction
         b = sampler2.acceptance_fraction

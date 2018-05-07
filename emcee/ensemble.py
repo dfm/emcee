@@ -104,6 +104,7 @@ class EnsembleSampler(object):
 
         # Deal with re-used backends
         if not self.backend.initialized:
+            self._previous_state = None
             self.reset()
             state = np.random.get_state()
         else:
@@ -123,7 +124,7 @@ class EnsembleSampler(object):
             # Grab the last step so that we can restart
             it = self.backend.iteration
             if it > 0:
-                self._last_run_mcmc_result = self.get_last_sample()
+                self._previous_state = self.get_last_sample()
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
@@ -172,7 +173,6 @@ class EnsembleSampler(object):
         Reset the bookkeeping parameters
 
         """
-        self._last_run_mcmc_result = None
         self.backend.reset(self.nwalkers, self.ndim)
 
     def __getstate__(self):
@@ -185,7 +185,7 @@ class EnsembleSampler(object):
     def sample(self,
                initial_state,
                log_prob0=None,  # Deprecated
-               rstate0=None,
+               rstate0=None,  # Deprecated
                blobs0=None,  # Deprecated
                iterations=1,
                tune=False,
@@ -197,9 +197,6 @@ class EnsembleSampler(object):
             initial_state (State or ndarray[nwalkers, ndim]): The initial
                 :class:`State` or positions of the walkers in the parameter
                 space.
-            rstate0 (Optional): The state of the random number generator.
-                See the :attr:`EnsembleSampler.random_state` property for
-                details.
             iterations (Optional[int]): The number of steps to generate.
             tune (Optional[bool]): If ``True``, the parameters of some moves
                 will be automatically tuned.
@@ -213,37 +210,25 @@ class EnsembleSampler(object):
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
 
-        Every ``thin_by`` steps, this generator yields:
-
-        * ``coords`` - A list of the current positions of the walkers in the
-          parameter space. The shape of this object will be
-          ``(nwalkers, dim)``.
-
-        * ``log_prob`` - The list of log posterior probabilities for the
-          walkers at positions given by ``pos`` . The shape of this object
-          is ``(nwalkers,)``.
-
-        * ``rstate`` - The current state of the random number generator.
-
-        * ``blobs`` - (optional) The metadata "blobs" associated with the
-          current position. The value is only returned if ``log_prob_fn``
-          returns blobs too.
-
-        * ``grad_log_prob`` - The list of log posterior gradients for the
-          walkers at positions given by ``pos`` . The shape of this object
-          is ``(nwalkers, dim)``.
+        Every ``thin_by`` steps, this generator yields the :class:`State` of
+        the ensemble.
 
         """
-        # Try to set the initial value of the random number generator. This
-        # fails silently if it doesn't work but that's what we want because
-        # we'll just interpret any garbage as letting the generator stay in
-        # it's current state.
-        self.random_state = rstate0
-
         # Interpret the input as a walker state and check the dimensions.
         state = State(initial_state)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
+
+        # Try to set the initial value of the random number generator. This
+        # fails silently if it doesn't work but that's what we want because
+        # we'll just interpret any garbage as letting the generator stay in
+        # it's current state.
+        if rstate0 is not None:
+            deprecation_warning(
+                "The 'rstate0' argument is deprecated, use a 'State' "
+                "instead")
+            state.random_state = rstate0
+        self.random_state = state.random_state
 
         # If the initial log-probabilities were not provided, calculate them
         # now.
@@ -316,23 +301,23 @@ class EnsembleSampler(object):
 
                     # Propose
                     state, accepted = move.propose(model, state)
+                    state.random_state = self.random_state
 
                     if tune:
                         move.tune(state, accepted)
 
                     # Save the new step
                     if store and (i + 1) % checkpoint_step == 0:
-                        self.backend.save_step(state, accepted,
-                                               self.random_state)
+                        self.backend.save_step(state, accepted)
 
                     pbar.update(1)
                     i += 1
 
                 # Yield the result as an iterator so that the user can do all
                 # sorts of fun stuff with the results so far.
-                yield state, self.random_state
+                yield state
 
-    def run_mcmc(self, initial_state, nsteps, rstate0=None, **kwargs):
+    def run_mcmc(self, initial_state, nsteps, **kwargs):
         """
         Iterate :func:`sample` for ``nsteps`` iterations and return the result
 
@@ -351,11 +336,10 @@ class EnsembleSampler(object):
             if self._previous_state is None:
                 raise ValueError("Cannot have pos0=None if run_mcmc has never "
                                  "been called.")
-            initial_state, rstate0 = self._previous_state
+            initial_state = self._previous_state
 
         results = None
-        for results in self.sample(initial_state, iterations=nsteps,
-                                   rstate0=rstate0, **kwargs):
+        for results in self.sample(initial_state, iterations=nsteps, **kwargs):
             pass
 
         # Store so that the ``pos0=None`` case will work

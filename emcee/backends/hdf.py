@@ -163,7 +163,7 @@ class HDFBackend(Backend):
                     g["blobs"].resize(ntot, axis=0)
                 g.attrs["has_blobs"] = True
 
-    def save_step(self, state, accepted, random_state):
+    def save_step(self, state, accepted):
         """Save a step to the file
 
         Args:
@@ -173,7 +173,6 @@ class HDFBackend(Backend):
                 there are no blobs.
             accepted (ndarray): An array of boolean flags indicating whether
                 or not the proposal for each walker was accepted.
-            random_state: The current state of the random number generator.
 
         """
         self._check(state, accepted)
@@ -188,7 +187,7 @@ class HDFBackend(Backend):
                 g["blobs"][iteration, :] = state.blobs
             g["accepted"][:] += accepted
 
-            for i, v in enumerate(random_state):
+            for i, v in enumerate(state.random_state):
                 g.attrs["random_state_{0}".format(i)] = v
 
             g.attrs["iteration"] = iteration + 1

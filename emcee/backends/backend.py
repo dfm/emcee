@@ -7,6 +7,7 @@ __all__ = ["Backend"]
 import numpy as np
 
 from .. import autocorr
+from ..state import State
 
 
 class Backend(object):
@@ -105,39 +106,21 @@ class Backend(object):
         return self.get_value("log_prob", **kwargs)
 
     def get_last_sample(self):
-        """Access the most recent sample in the chain
-
-        This method returns a tuple with
-
-        * ``coords`` - A list of the current positions of the walkers in the
-          parameter space. The shape of this object will be
-          ``(nwalkers, dim)``.
-
-        * ``log_prob`` - The list of log posterior probabilities for the
-          walkers at positions given by ``coords`` . The shape of this object
-          is ``(nwalkers,)``.
-
-        * ``rstate`` - The current state of the random number generator.
-
-        * ``blobs`` - (optional) The metadata "blobs" associated with the
-          current position. The value is only returned if blobs have been
-          saved during sampling.
-
-        """
+        """Access the most recent sample in the chain"""
         if (not self.initialized) or self.iteration <= 0:
             raise AttributeError("you must run the sampler with "
                                  "'store == True' before accessing the "
                                  "results")
         it = self.iteration
-        last = [
+        blobs = self.get_blobs(discard=it-1)
+        if blobs is not None:
+            blobs = blobs[0]
+        return State(
             self.get_chain(discard=it-1)[0],
-            self.get_log_prob(discard=it-1)[0],
-            self.random_state,
-        ]
-        blob = self.get_blobs(discard=it-1)
-        if blob is not None:
-            last.append(blob[0])
-        return tuple(last)
+            log_prob=self.get_log_prob(discard=it-1)[0],
+            blobs=blobs,
+            random_state=self.random_state,
+        )
 
     def get_autocorr_time(self, discard=0, thin=1, **kwargs):
         """Compute an estimate of the autocorrelation time for each parameter
@@ -217,14 +200,13 @@ class Backend(object):
             raise ValueError("invalid acceptance size; expected {0}"
                              .format(nwalkers))
 
-    def save_step(self, state, accepted, random_state):
+    def save_step(self, state, accepted):
         """Save a step to the backend
 
         Args:
             state (State): The walker state.
             accepted (ndarray): An array of boolean flags indicating whether
                 or not the proposal for each walker was accepted.
-            random_state: The current state of the random number generator.
 
         """
         self._check(state, accepted)
@@ -234,7 +216,7 @@ class Backend(object):
         if state.blobs is not None:
             self.blobs[self.iteration, :] = state.blobs
         self.accepted += accepted
-        self.random_state = random_state
+        self.random_state = state.random_state
         self.iteration += 1
 
     def __enter__(self):
