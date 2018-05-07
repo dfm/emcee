@@ -27,9 +27,9 @@ def test_normal_hmc(pool, metric, tune, blobs, **kwargs):
     if pool:
         kwargs["pool"] = Pool()
     if tune:
-        move = moves.HamiltonianMove(10, ntune=300)
+        move = moves.HamiltonianMove(10, ntune=300, parallel_safe=pool)
     else:
-        move = moves.HamiltonianMove(10)
+        move = moves.HamiltonianMove(10, parallel_safe=pool)
     kwargs["ndim"] = 3
     kwargs["check_acceptance"] = False
     kwargs["nsteps"] = 100

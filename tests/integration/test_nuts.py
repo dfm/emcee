@@ -27,9 +27,9 @@ def test_normal_nuts(pool, metric, tune, blobs, **kwargs):
     if pool:
         kwargs["pool"] = Pool()
     if tune:
-        move = moves.NoUTurnMove(ntune=300)
+        move = moves.NoUTurnMove(ntune=300, parallel_safe=pool)
     else:
-        move = moves.NoUTurnMove()
+        move = moves.NoUTurnMove(parallel_safe=pool)
     kwargs["ndim"] = 3
     kwargs["check_acceptance"] = False
     kwargs["nsteps"] = 100

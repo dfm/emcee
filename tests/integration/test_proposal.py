@@ -44,7 +44,7 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lp,
                                     grad_log_prob_fn=grad_normal_log_prob,
                                     moves=proposal, pool=pool)
-    sampler.run_mcmc(coords, nsteps)
+    sampler.run_mcmc(coords, nsteps, tune=True)
 
     # Check the acceptance fraction.
     if check_acceptance:

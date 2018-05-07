@@ -162,7 +162,7 @@ class HamiltonianMove(Move):
         H = 0.5 * np.dot(p, self.metric.dot(p))
         H -= lp
         accept = np.exp(H0 - H)
-        if accept < 1.0 and random.rand() > accept:
+        if (not np.isfinite(H)) or accept < 1.0 and random.rand() > accept:
             q = initial_q
 
         return q, accept
