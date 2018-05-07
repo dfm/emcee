@@ -13,7 +13,7 @@ from emcee.moves.hmc import (
 
 from .test_proposal import _test_normal
 
-__all__ = ["test_normal_nuts"]
+__all__ = ["test_normal_hmc"]
 
 
 @pytest.mark.parametrize("metric", [None, IdentityMetric(3),
@@ -23,13 +23,13 @@ __all__ = ["test_normal_nuts"]
 @pytest.mark.parametrize("pool", [True, False])
 @pytest.mark.parametrize("tune", [True, False])
 @pytest.mark.parametrize("blobs", [True, False])
-def test_normal_nuts(pool, metric, tune, blobs, **kwargs):
+def test_normal_hmc(pool, metric, tune, blobs, **kwargs):
     if pool:
         kwargs["pool"] = Pool()
     if tune:
-        move = moves.NoUTurnMove(ntune=300)
+        move = moves.HamiltonianMove(10, ntune=300)
     else:
-        move = moves.NoUTurnMove()
+        move = moves.HamiltonianMove(10)
     kwargs["ndim"] = 3
     kwargs["check_acceptance"] = False
     kwargs["nsteps"] = 100

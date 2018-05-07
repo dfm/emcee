@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 __all__ = [
-    "NUTSMove",
+    "HamiltonianMove", "NoUTurnMove",
     "StepSize",
     "IdentityMetric", "IsotropicMetric", "DiagonalMetric", "DenseMetric"
 ]
 
-from .nuts import NUTSMove
+from .hmc import HamiltonianMove
+from .nuts import NoUTurnMove
 from .step_size import StepSize
 from .metric import (
     IdentityMetric, IsotropicMetric, DiagonalMetric, DenseMetric

@@ -164,13 +164,10 @@ class HDFBackend(Backend):
                 g.attrs["has_blobs"] = True
 
     def save_step(self, state, accepted):
-        """Save a step to the file
+        """Save a step to the backend
 
         Args:
-            coords (ndarray): The coordinates of the walkers in the ensemble.
-            log_prob (ndarray): The log probability for each walker.
-            blobs (ndarray or None): The blobs for each walker or ``None`` if
-                there are no blobs.
+        state (State): The :class:`State` of the ensemble.
             accepted (ndarray): An array of boolean flags indicating whether
                 or not the proposal for each walker was accepted.
 

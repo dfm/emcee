@@ -2,6 +2,7 @@
 
 from __future__ import division, print_function
 
+import pytest
 from emcee import moves
 from .test_proposal import _test_normal, _test_uniform
 
@@ -9,7 +10,9 @@ __all__ = ["test_normal_stretch", "test_uniform_stretch",
            "test_nsplits_stretch"]
 
 
-def test_normal_stretch(**kwargs):
+@pytest.mark.parametrize("blobs", [True, False])
+def test_normal_stretch(blobs, **kwargs):
+    kwargs["blobs"] = blobs
     _test_normal(moves.StretchMove(), **kwargs)
 
 
