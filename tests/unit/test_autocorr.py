@@ -7,8 +7,6 @@ import numpy as np
 
 from emcee.autocorr import integrated_time, AutocorrError
 
-__all__ = ["test_nd", "test_too_short"]
-
 
 def get_chain(seed=1234, ndim=3, N=100000):
     np.random.seed(seed)
