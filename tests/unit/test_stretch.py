@@ -23,7 +23,6 @@ def test_live_dangerously(nwalkers=32, nsteps=3000, seed=1234):
                   log_prob=np.random.randn(nwalkers))
     model = Model(
         None,
-        None,
         lambda x: (np.zeros(len(x)), None),
         map,
         np.random
