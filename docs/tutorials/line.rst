@@ -10,10 +10,10 @@ downloaded `here <../../_static/notebooks/line.ipynb>`_.
 Fitting a Model to Data
 =======================
 
-If you're reading this right now then you're probably interested in
-using emcee to fit a model to some noisy data. On this page, I'll
+If you’re reading this right now then you’re probably interested in
+using emcee to fit a model to some noisy data. On this page, I’ll
 demonstrate how you might do this in the simplest non-trivial model that
-I could think of: fitting a line to data when you don't believe the
+I could think of: fitting a line to data when you don’t believe the
 error bars on your data. The interested reader should check out `Hogg,
 Bovy & Lang (2010) <http://arxiv.org/abs/1008.4686>`__ for a much more
 complete discussion of how to fit a line to data in The Real World™ and
@@ -29,6 +29,12 @@ This tutorial was generated with the following version of emcee:
 
 .. parsed-literal::
 
+    /Users/dforeman/anaconda/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+      from ._conv import register_converters as _register_converters
+
+
+.. parsed-literal::
+
     3.0.0.dev0
 
 
@@ -38,7 +44,7 @@ The generative probabilistic model
 When you approach a new problem, the first step is generally to write
 down the *likelihood function* (the probability of a dataset given the
 model parameters). This is equivalent to describing the generative
-procedure for the data. In this case, we're going to consider a linear
+procedure for the data. In this case, we’re going to consider a linear
 model where the quoted uncertainties are underestimated by a constant
 fractional amount. You can generate a synthetic dataset from this model:
 
@@ -115,7 +121,7 @@ solution to these data is
 
 
 This figure shows the least-squares estimate of the line parameters as a
-dashed line. This isn't an unreasonable result but the uncertainties on
+dashed line. This isn’t an unreasonable result but the uncertainties on
 the slope and intercept seem a little small (because of the small error
 bars on most of the data points).
 
@@ -124,8 +130,8 @@ Maximum likelihood estimation
 
 The least squares solution found in the previous section is the maximum
 likelihood result for a model where the error bars are assumed correct,
-Gaussian and independent. We know, of course, that this isn't the right
-model. Unfortunately, there isn't a generalization of least squares that
+Gaussian and independent. We know, of course, that this isn’t the right
+model. Unfortunately, there isn’t a generalization of least squares that
 supports a model like the one that we know to be true. Instead, we need
 to write down the likelihood function and numerically optimize it. In
 mathematical notation, the correct likelihood function is:
@@ -158,10 +164,10 @@ would code this up as:
         sigma2 = yerr**2 + model**2*np.exp(2*log_f)
         return -0.5*np.sum((y-model)**2/sigma2 + np.log(sigma2))
 
-In this code snippet, you'll notice that we're using the logarithm of
+In this code snippet, you’ll notice that we’re using the logarithm of
 :math:`f` instead of :math:`f` itself for reasons that will become clear
 in the next section. For now, it should at least be clear that this
-isn't a bad idea because it will force :math:`f` to be always positive.
+isn’t a bad idea because it will force :math:`f` to be always positive.
 A good way of finding this numerical optimum of this likelihood function
 is to use the
 `scipy.optimize <http://docs.scipy.org/doc/scipy/reference/optimize.html>`__
@@ -203,7 +209,7 @@ module:
 .. image:: line_files/line_11_1.png
 
 
-It's worth noting that the optimize module *minimizes* functions whereas
+It’s worth noting that the optimize module *minimizes* functions whereas
 we would like to maximize the likelihood. This goal is equivalent to
 minimizing the *negative* likelihood (or in this case, the negative
 *log* likelihood). In this figure, the maximum likelihood (ML) result is
@@ -211,7 +217,7 @@ plotted as a dotted black line—compared to the true model (grey line)
 and linear least-squares (LS; dashed line). That looks better!
 
 The problem now: how do we estimate the uncertainties on *m* and *b*?
-What's more, we probably don't really care too much about the value of
+What’s more, we probably don’t really care too much about the value of
 *f* but it seems worthwhile to propagate any uncertainties about its
 value to our final estimates of *m* and *b*. This is where MCMC comes
 in.
@@ -219,10 +225,10 @@ in.
 Marginalization & uncertainty estimation
 ----------------------------------------
 
-This isn't the place to get into the details of why you might want to
+This isn’t the place to get into the details of why you might want to
 use MCMC in your research but it is worth commenting that a common
-reason is that you would like to marginalize over some "nuisance
-parameters" and find an estimate of the posterior probability function
+reason is that you would like to marginalize over some “nuisance
+parameters” and find an estimate of the posterior probability function
 (the distribution of parameters that is consistent with your dataset)
 for others. MCMC lets you do both of these things in one fell swoop! You
 need to start by writing down the posterior probability function (up to
@@ -241,7 +247,7 @@ function
 
    p(y\,|\,x,\sigma,m,b,f)
 
-so the missing component is the "prior" function
+so the missing component is the “prior” function
 
 .. math::
 
@@ -250,7 +256,7 @@ so the missing component is the "prior" function
 
 This function encodes any previous knowledge that we have about the
 parameters: results from other experiments, physically acceptable
-ranges, etc. It is necessary that you write down priors if you're going
+ranges, etc. It is necessary that you write down priors if you’re going
 to use MCMC because all that MCMC does is draw samples from a
 probability distribution and you want that to be a probability
 distribution for your parameters. This is important: **you cannot draw
@@ -260,8 +266,8 @@ conditioned on model parameters, you can draw representative datasets
 (as demonstrated at the beginning of this exercise) but you cannot draw
 parameter samples.
 
-In this example, we'll use uniform (so-called "uninformative") priors on
-:math:`m`, :math:`b` and the logarithm of :math:`f`. For example, we'll
+In this example, we’ll use uniform (so-called “uninformative”) priors on
+:math:`m`, :math:`b` and the logarithm of :math:`f`. For example, we’ll
 use the following conservative prior on :math:`m`:
 
 .. math::
@@ -294,9 +300,9 @@ above, the full log-probability function is:
             return -np.inf
         return lp + log_likelihood(theta, x, y, yerr)
 
-After all this setup, it's easy to sample this distribution using emcee.
-We'll start by initializing the walkers in a tiny Gaussian ball around
-the maximum likelihood result (I've found that this tends to be a pretty
+After all this setup, it’s easy to sample this distribution using emcee.
+We’ll start by initializing the walkers in a tiny Gaussian ball around
+the maximum likelihood result (I’ve found that this tends to be a pretty
 good initialization in most cases) and then run 5,000 steps of MCMC.
 
 .. code:: python
@@ -310,10 +316,10 @@ good initialization in most cases) and then run 5,000 steps of MCMC.
 
 .. parsed-literal::
 
-    100%|██████████| 5000/5000 [00:04<00:00, 1092.12it/s]
+    100%|██████████| 5000/5000 [00:07<00:00, 688.00it/s]
 
 
-Let's take a look at what the sampler has done. A good first step is to
+Let’s take a look at what the sampler has done. A good first step is to
 look at the time series of the parameters in the chain. The samples can
 be accessed using the :func:`EnsembleSampler.get_chain` method. This
 will return an array with the shape ``(5000, 32, 3)`` giving the
@@ -343,7 +349,7 @@ steps in the chain:
 As mentioned above, the walkers start in small distributions around the
 maximum likelihood values and then they quickly wander and start
 exploring the full posterior distribution. In fact, after fewer than 50
-steps, the samples seem pretty well "burnt-in". That is a hard statement
+steps, the samples seem pretty well “burnt-in”. That is a hard statement
 to make quantitatively, but we can look at an estimate of the integrated
 autocorrelation time (see the :ref:`autocorr` tutorial for more
 details):
@@ -356,12 +362,12 @@ details):
 
 .. parsed-literal::
 
-    [ 37.55648981  37.21930604  37.18073363]
+    [39.99526726 39.76501919 41.02623912]
 
 
 This suggests that only about 40 steps are needed for the chain to
-"forget" where it started. It's not unreasonable to throw away a few
-times this number of steps as "burn-in". Let's discard the initial 100
+“forget” where it started. It’s not unreasonable to throw away a few
+times this number of steps as “burn-in”. Let’s discard the initial 100
 steps, thin by about half the autocorrelation time (15 steps), and
 flatten the chain so that we have a flat list of samples:
 
@@ -379,8 +385,8 @@ flatten the chain so that we have a flat list of samples:
 Results
 -------
 
-Now that we have this list of samples, let's make one of the most useful
-plots you can make with your MCMC results: *a corner plot*. You'll need
+Now that we have this list of samples, let’s make one of the most useful
+plots you can make with your MCMC results: *a corner plot*. You’ll need
 the `corner.py module <http://corner.readthedocs.io>`__ but once you
 have it, generating a corner plot is as simple as:
 
@@ -448,18 +454,18 @@ numbers for this example, you would run:
 
 .. math::
 
-    \mathrm{m} = -1.009_{-0.079}^{0.080}
+    \mathrm{m} = -1.007_{-0.078}^{0.080}
 
 
 
 .. math::
 
-    \mathrm{b} = 4.554_{-0.366}^{0.360}
+    \mathrm{b} = 4.544_{-0.357}^{0.359}
 
 
 
 .. math::
 
-    \mathrm{log(f)} = -0.770_{-0.153}^{0.168}
+    \mathrm{log(f)} = -0.771_{-0.151}^{0.162}
 
 

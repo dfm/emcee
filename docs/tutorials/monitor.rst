@@ -18,16 +18,22 @@ in the middle of an expensive MCMC run.
 In this demo, we will demonstrate how you can use the new
 :class:`backends.HDFBackend` to save your results to a
 `HDF5 <https://en.wikipedia.org/wiki/Hierarchical_Data_Format>`__ file
-as the chain runs. To execute this, you'll first need to install the
+as the chain runs. To execute this, you’ll first need to install the
 `h5py library <http://www.h5py.org>`__.
 
-We'll also monitor the autocorrelation time at regular intervals (see
+We’ll also monitor the autocorrelation time at regular intervals (see
 :ref:`autocorr`) to judge convergence.
 
 .. code:: python
 
     import emcee
     print(emcee.__version__)
+
+
+.. parsed-literal::
+
+    /Users/dforeman/anaconda/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+      from ._conv import register_converters as _register_converters
 
 
 .. parsed-literal::
@@ -62,12 +68,12 @@ We will set up the problem as usual with one small change:
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, backend=backend)
 
-The difference here was the addition of a "backend". This choice will
+The difference here was the addition of a “backend”. This choice will
 save the samples to a file called ``tutorial.h5`` in the current
-directory. Now, we'll run the chain for up to 10,000 steps and check the
+directory. Now, we’ll run the chain for up to 10,000 steps and check the
 autocorrelation time every 100 steps. If the chain is longer than 100
 times the estimated autocorrelation time and if this estimate changed by
-less than 1%, we'll consider things converged.
+less than 1%, we’ll consider things converged.
 
 .. code:: python
 
@@ -103,10 +109,10 @@ less than 1%, we'll consider things converged.
 
 .. parsed-literal::
 
-      6%|▋         | 6300/100000 [00:47<11:50, 131.92it/s]
+      6%|▌         | 5900/100000 [01:00<16:01, 97.84it/s]
 
 
-Now let's take a look at how the autocorrelation time estimate (averaged
+Now let’s take a look at how the autocorrelation time estimate (averaged
 across dimensions) changed over the course of this run. In this plot,
 the :math:`\tau` estimate is plotted (in blue) as a function of chain
 length and, for comparison, the :math:`N > 100\,\tau` threshold is
@@ -161,11 +167,11 @@ As usual, we can also access all the properties of the chain:
 
 .. parsed-literal::
 
-    burn-in: 124
-    thin: 27
-    flat chain shape: (7296, 5)
-    flat log prob shape: (7296,)
-    flat log prior shape: (7296,)
+    burn-in: 117
+    thin: 24
+    flat chain shape: (7680, 5)
+    flat log prob shape: (7680,)
+    flat log prior shape: (7680,)
 
 
 
@@ -195,14 +201,14 @@ after the fact using the :class:`backends.HDFBackend`:
 
 .. parsed-literal::
 
-    burn-in: 124
-    thin: 27
-    flat chain shape: (7296, 5)
-    flat log prob shape: (7296,)
-    flat log prior shape: (7296,)
+    burn-in: 117
+    thin: 24
+    flat chain shape: (7680, 5)
+    flat log prob shape: (7680,)
+    flat log prior shape: (7680,)
 
 
-This should give the same output as the previous code block, but you'll
+This should give the same output as the previous code block, but you’ll
 notice that there was no reference to ``sampler`` here at all.
 
 If you want to restart from the last sample, you can just leave out the
@@ -219,24 +225,7 @@ call to :func:`backends.HDFBackend.reset`:
 
 .. parsed-literal::
 
-     14%|█▍        | 14/100 [00:00<00:00, 136.86it/s]
-
-.. parsed-literal::
-
-    Initial size: 6300
-
-
-.. parsed-literal::
-
-    100%|██████████| 100/100 [00:00<00:00, 114.71it/s]
-
-.. parsed-literal::
-
-    Final size: 6400
-
-
-.. parsed-literal::
-
-    
+    Initial size: 5900
+    Final size: 6000
 
 

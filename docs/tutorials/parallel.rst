@@ -12,7 +12,12 @@ Parallelization
 
 .. note:: Some builds of NumPy (including the version included with Anaconda) will automatically parallelize some operations using something like the MKL linear algebra. This can cause problems when used with the parallelization methods described here so it can be good to turn that off (by setting the environment variable ``OMP_NUM_THREADS=1``, for example).
 
-With emcee, it's easy to make use of multiple CPUs to speed up slow
+.. code:: python
+
+    import os
+    os.environ["OMP_NUM_THREADS"] = "1"
+
+With emcee, it’s easy to make use of multiple CPUs to speed up slow
 sampling. There will always be some computational overhead introduced by
 parallelization so it will only be beneficial in the case where the
 model is expensive, but this is often true for real research problems.
@@ -33,10 +38,16 @@ This tutorial was executed with the following version of emcee:
 
 .. parsed-literal::
 
+    /Users/dforeman/anaconda/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+      from ._conv import register_converters as _register_converters
+
+
+.. parsed-literal::
+
     3.0.0.dev0
 
 
-In all of the following examples, we'll test the code with the following
+In all of the following examples, we’ll test the code with the following
 convoluted model:
 
 .. code:: python
@@ -55,7 +66,7 @@ This probability function will randomly sleep for a fraction of a second
 every time it is called. This is meant to emulate a more realistic
 situation where the model is computationally expensive to compute.
 
-To start, let's sample the usual (serial) way:
+To start, let’s sample the usual (serial) way:
 
 .. code:: python
 
@@ -74,11 +85,11 @@ To start, let's sample the usual (serial) way:
 
 .. parsed-literal::
 
-    100%|██████████| 100/100 [00:21<00:00,  4.71it/s]
+    100%|██████████| 100/100 [00:21<00:00,  4.70it/s]
 
 .. parsed-literal::
 
-    Serial took 21.2 seconds
+    Serial took 21.3 seconds
 
 
 .. parsed-literal::
@@ -110,7 +121,7 @@ parallelize the above sampling, you could update the code as follows:
 
 .. parsed-literal::
 
-    100%|██████████| 100/100 [00:06<00:00, 16.45it/s]
+    100%|██████████| 100/100 [00:06<00:00, 16.05it/s]
 
 .. parsed-literal::
 
@@ -137,8 +148,8 @@ I have 4 cores on the machine where this is being tested:
     4 CPUs
 
 
-We don't quite get the factor of 4 runtime decrease that you might
-expect because there is some overhead in the parallelization, but we're
+We don’t quite get the factor of 4 runtime decrease that you might
+expect because there is some overhead in the parallelization, but we’re
 getting pretty close with this example and this will get even closer for
 more expensive models.
 
@@ -147,12 +158,12 @@ MPI
 
 Multiprocessing can only be used for distributing calculations across
 processors on one machine. If you want to take advantage of a bigger
-cluster, you'll need to use MPI. In that case, you need to execute the
+cluster, you’ll need to use MPI. In that case, you need to execute the
 code using the ``mpiexec`` executable, so this demo is slightly more
-convoluted. For this example, we'll write the code to a file called
+convoluted. For this example, we’ll write the code to a file called
 ``script.py`` and then execute it using MPI, but when you really use the
-MPI pool, you'll probably just want to edit the script directly. To run
-this example, you'll first need to install `the schwimmbad
+MPI pool, you’ll probably just want to edit the script directly. To run
+this example, you’ll first need to install `the schwimmbad
 library <https://github.com/adrn/schwimmbad>`__ because emcee no longer
 includes its own ``MPIPool``.
 
@@ -198,8 +209,8 @@ includes its own ``MPIPool``.
 
 .. parsed-literal::
 
-    MPI took 9.0 seconds
-    2.4 times faster than serial
+    MPI took 8.3 seconds
+    2.6 times faster than serial
 
 
 There is often more overhead introduced by MPI than multiprocessing so
@@ -242,11 +253,11 @@ see here:
 
 .. parsed-literal::
 
-    100%|██████████| 100/100 [00:21<00:00,  4.77it/s]
+    100%|██████████| 100/100 [00:21<00:00,  4.71it/s]
 
 .. parsed-literal::
 
-    Serial took 21.2 seconds
+    Serial took 21.3 seconds
 
 
 .. parsed-literal::
@@ -255,7 +266,7 @@ see here:
 
 
 We basically get no change in performance when we include the ``data``
-argument here. Now let's try including this naively using
+argument here. Now let’s try including this naively using
 multiprocessing:
 
 .. code:: python
@@ -272,12 +283,12 @@ multiprocessing:
 
 .. parsed-literal::
 
-    100%|██████████| 100/100 [02:18<00:00,  1.40s/it]
+    100%|██████████| 100/100 [01:17<00:00,  1.32it/s]
 
 .. parsed-literal::
 
-    Multiprocessing took 138.7 seconds
-    0.2 times faster(?) than serial
+    Multiprocessing took 77.7 seconds
+    0.3 times faster(?) than serial
 
 
 .. parsed-literal::
@@ -287,7 +298,7 @@ multiprocessing:
 
 Brutal.
 
-We can do better than that though. It's a bit ugly, but if we just make
+We can do better than that though. It’s a bit ugly, but if we just make
 ``data`` a global variable and use that variable within the model
 calculation, then we take no hit at all.
 
@@ -313,7 +324,7 @@ calculation, then we take no hit at all.
 
 .. parsed-literal::
 
-    100%|██████████| 100/100 [00:06<00:00, 16.22it/s]
+    100%|██████████| 100/100 [00:06<00:00, 16.46it/s]
 
 .. parsed-literal::
 
@@ -326,7 +337,7 @@ calculation, then we take no hit at all.
     
 
 
-That's better! This works because, in the global variable case, the
+That’s better! This works because, in the global variable case, the
 dataset is only pickled and passed between processes once (when the pool
 is created) instead of once for every model evaluation.
 
