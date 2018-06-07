@@ -20,38 +20,32 @@ class BlobLogProb(object):
 
 
 @pytest.mark.parametrize("backend", backends.get_test_backends())
-def test_blob_shape(backend):
+@pytest.mark.parametrize("blob_spec", [
+    (True, 5, lambda x: np.random.randn(5)),
+    (True, 0, lambda x: np.random.randn()),
+    (False, 2, lambda x: (1.0, np.random.randn(3))),
+    (False, 0, lambda x: "face"),
+    (False, 2, lambda x: (np.random.randn(5), "face")),
+])
+def test_blob_shape(backend, blob_spec):
+    # HDF backends don't support the object type
+    if backend in (backends.TempHDFBackend, ) and not blob_spec[0]:
+        return
+
     with backend() as be:
         np.random.seed(42)
 
-        nblobs = 5
-        model = BlobLogProb(lambda x: np.random.randn(nblobs))
-
+        model = BlobLogProb(blob_spec[2])
         coords = np.random.randn(32, 3)
         nwalkers, ndim = coords.shape
+
         sampler = EnsembleSampler(nwalkers, ndim, model, backend=be)
         nsteps = 10
-        sampler.run_mcmc(coords, nsteps)
-        assert sampler.get_blobs().shape == (nsteps, nwalkers, nblobs)
 
-        model = BlobLogProb(lambda x: np.random.randn())
-        be.reset(nwalkers, ndim)
-        sampler = EnsembleSampler(nwalkers, ndim, model, backend=be)
         sampler.run_mcmc(coords, nsteps)
-        assert sampler.get_blobs().shape == (nsteps, nwalkers)
 
-        # HDF backends don't support the object type
-        if backend in (backends.TempHDFBackend, ):
-            return
+        shape = [nsteps, nwalkers]
+        if blob_spec[1] > 0:
+            shape += [blob_spec[1]]
 
-        model = BlobLogProb(lambda x: "face")
-        be.reset(nwalkers, ndim)
-        sampler = EnsembleSampler(nwalkers, ndim, model, backend=be)
-        sampler.run_mcmc(coords, nsteps)
-        assert sampler.get_blobs().shape == (nsteps, nwalkers)
-
-        model = BlobLogProb(lambda x: (np.random.randn(nblobs), "face"))
-        be.reset(nwalkers, ndim)
-        sampler = EnsembleSampler(nwalkers, ndim, model, backend=be)
-        sampler.run_mcmc(coords, nsteps)
-        assert sampler.get_blobs().shape == (nsteps, nwalkers, 2)
+        assert sampler.get_blobs().shape == tuple(shape)

@@ -386,14 +386,18 @@ class EnsembleSampler(object):
             if self.blobs_dtype is not None:
                 dt = self.blobs_dtype
             else:
-                dt = np.atleast_1d(blob[0]).dtype
+                try:
+                    dt = np.atleast_1d(blob[0]).dtype
+                except ValueError:
+                    dt = np.dtype("object")
             blob = np.array(blob, dtype=dt)
 
-            # Deal with single blobs in a better way
-            if len(blob.shape) > 1 and blob.shape[1] == 1:
-                m = [slice(None) for i in range(len(blob.shape))]
-                m[1] = 0
-                blob = blob[m]
+            # Deal with single blobs properly
+            shape = blob.shape[1:]
+            if len(shape):
+                axes = np.arange(len(shape))[np.array(shape) == 1] + 1
+                if len(axes):
+                    blob = np.squeeze(blob, axes)
 
         # Check for log_prob returning NaN.
         if np.any(np.isnan(log_prob)):
