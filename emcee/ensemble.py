@@ -325,15 +325,17 @@ class EnsembleSampler(object):
         """
         if initial_state is None:
             if self._previous_state is None:
-                raise ValueError("Cannot have pos0=None if run_mcmc has never "
-                                 "been called.")
+                raise ValueError(
+                    "Cannot have `initial_state=None` if run_mcmc has never "
+                    "been called."
+                )
             initial_state = self._previous_state
 
         results = None
         for results in self.sample(initial_state, iterations=nsteps, **kwargs):
             pass
 
-        # Store so that the ``pos0=None`` case will work
+        # Store so that the ``initial_state=None`` case will work
         self._previous_state = results
 
         return results
