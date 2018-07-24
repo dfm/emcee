@@ -141,13 +141,13 @@ initial guess ``p0``:
 
 .. code:: python
 
-    state, _ = sampler.run_mcmc(p0, 100)
+    state = sampler.run_mcmc(p0, 100)
     sampler.reset()
 
 You’ll notice that I saved the final position of the walkers (after the
-100 steps) to a variable called ``pos``. You can check out what will be
-contained in the other output variables by looking at the documentation
-for the :func:`EnsembleSampler.run_mcmc` function. The call to the
+100 steps) to a variable called ``state``. You can check out what that
+is and how to access it by looking at the documentation
+for the :func:`EnsembleSampler.sample` function. The call to the
 :func:`EnsembleSampler.reset` method clears all of the important
 bookkeeping parameters in the sampler so that we get a fresh start. It
 also clears the current positions of the walkers so it’s a good thing
