@@ -201,6 +201,9 @@ class EnsembleSampler(object):
                 chain. If you are using another method to store the samples to
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
+            progress (Optional[bool]): If ``True``, a progress bar will be shown
+                as the sampler progresses.
+
 
         Every ``thin_by`` steps, this generator yields the :class:`State` of
         the ensemble.
