@@ -201,8 +201,11 @@ class EnsembleSampler(object):
                 chain. If you are using another method to store the samples to
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
-            progress (Optional[bool]): If ``True``, a progress bar will be shown
-                as the sampler progresses.
+            progress (Optional[bool or str]): If ``True``, a progress bar will
+                be shown as the sampler progresses. If a string, will select a
+                specific ``tqdm`` progress bar - most notable is ``'notebook'``,
+                which shows a progress bar suitable for Jupyter notebooks.  If
+                ``False``, no progress bar will be shown.
 
 
         Every ``thin_by`` steps, this generator yields the :class:`State` of
