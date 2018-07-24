@@ -65,7 +65,10 @@ class HDFBackend(Backend):
             ndim (int): The number of dimensions
 
         """
-        with self.open("w") as f:
+        with self.open("a") as f:
+            if self.name in f:
+                del f[self.name]
+
             g = f.create_group(self.name)
             g.attrs["version"] = __version__
             g.attrs["nwalkers"] = nwalkers
