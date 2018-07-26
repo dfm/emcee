@@ -11,6 +11,8 @@ import pytest
 
 from emcee import backends, EnsembleSampler
 
+import h5py
+
 __all__ = ["test_backend", "test_reload"]
 
 all_backends = backends.get_test_backends()
@@ -194,3 +196,15 @@ def test_restart(backend, dtype):
         a = sampler1.acceptance_fraction
         b = sampler2.acceptance_fraction
         assert np.allclose(a, b), "inconsistent acceptance fraction"
+
+def test_multi_hdf5(tmpdir):
+    fn = str(tmpdir.join('test_multi_hdf5.h5'))
+
+    backend1 = backends.HDFBackend(fn)
+    run_sampler(backend1)
+
+    backend2 = backends.HDFBackend(fn, name='mcmc2')
+    run_sampler(backend2)
+
+    with h5py.File(fn, 'r') as f:
+        assert set(f.keys()) == {'mcmc', 'mcmc2'}
