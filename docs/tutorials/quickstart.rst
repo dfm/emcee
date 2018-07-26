@@ -28,7 +28,7 @@ This notebook was made with the following version of emcee:
 
 .. parsed-literal::
 
-    '3.0.0.dev0'
+    '3.0rc1'
 
 
 
@@ -141,7 +141,7 @@ initial guess ``p0``:
 
 .. code:: python
 
-    state, _ = sampler.run_mcmc(p0, 100)
+    state = sampler.run_mcmc(p0, 100)
     sampler.reset()
 
 You’ll notice that I saved the final position of the walkers (after the
