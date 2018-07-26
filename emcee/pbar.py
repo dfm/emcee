@@ -7,7 +7,7 @@ __all__ = ["get_progress_bar"]
 import logging
 
 try:
-    from tqdm import tqdm
+    import tqdm
 except ImportError:
     tqdm = None
 
@@ -34,14 +34,21 @@ def get_progress_bar(display, total):
     bar" that does nothing.
 
     Args:
-        display (bool): Should the bar actually show the progress?
+        display (bool or str): Should the bar actually show the progress? Or a
+                               string to indicate which tqdm bar to use.
         total (int): The total size of the progress bar.
 
     """
-    if not display:
-        return _NoOpPBar()
-    if tqdm is None:
-        logging.warn("You must install the tqdm library to use progress "
-                     "indicators with emcee")
-        return _NoOpPBar()
-    return tqdm(total=total)
+    if display:
+        if tqdm is None:
+            logging.warn("You must install the tqdm library to use progress "
+                         "indicators with emcee")
+            return _NoOpPBar()
+        else:
+            if display is True:
+                return tqdm.tqdm(total=total)
+            else:
+                return getattr(tqdm, 'tqdm_' + display)(total=total)
+
+    return _NoOpPBar()
+
