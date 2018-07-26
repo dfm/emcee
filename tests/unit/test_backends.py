@@ -52,8 +52,8 @@ def _custom_allclose(a, b):
             assert np.allclose(a[n], b[n])
 
 
-def test_uninit():
-    fn = "EMCEE_TEST_FILE_DO_NOT_USE.h5"
+def test_uninit(tmpdir):
+    fn = str(tmpdir.join("EMCEE_TEST_FILE_DO_NOT_USE.h5"))
     if os.path.exists(fn):
         os.remove(fn)
 
