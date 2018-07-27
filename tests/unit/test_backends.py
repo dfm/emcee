@@ -197,14 +197,19 @@ def test_restart(backend, dtype):
         b = sampler2.acceptance_fraction
         assert np.allclose(a, b), "inconsistent acceptance fraction"
 
-def test_multi_hdf5(tmpdir):
-    fn = str(tmpdir.join('test_multi_hdf5.h5'))
 
-    backend1 = backends.HDFBackend(fn)
-    run_sampler(backend1)
+def test_multi_hdf5():
+    with backends.TempHDFBackend() as backend1:
+        run_sampler(backend1)
 
-    backend2 = backends.HDFBackend(fn, name='mcmc2')
-    run_sampler(backend2)
+        backend2 = backends.HDFBackend(backend1.filename, name='mcmc2')
+        run_sampler(backend2)
+        chain2 = backend2.get_chain()
 
-    with h5py.File(fn, 'r') as f:
-        assert set(f.keys()) == {'mcmc', 'mcmc2'}
+        with h5py.File(backend1.filename, 'r') as f:
+            assert set(f.keys()) == {backend1.name, 'mcmc2'}
+
+        backend1.reset(10, 2)
+        assert np.allclose(backend2.get_chain(), chain2)
+        with pytest.raises(AttributeError):
+            backend1.get_chain()
