@@ -187,8 +187,8 @@ class EnsembleSampler(object):
 
         Args:
             initial_state (State or ndarray[nwalkers, ndim]): The initial
-                :class:`State` or positions of the walkers in the parameter
-                space.
+                :class:`~emcee.state.State` or positions of the walkers in the
+                parameter space.
             iterations (Optional[int]): The number of steps to generate.
             tune (Optional[bool]): If ``True``, the parameters of some moves
                 will be automatically tuned.
@@ -208,8 +208,8 @@ class EnsembleSampler(object):
                 ``False``, no progress bar will be shown.
 
 
-        Every ``thin_by`` steps, this generator yields the :class:`State` of
-        the ensemble.
+        Every ``thin_by`` steps, this generator yields the
+        :class:`~emcee.state.State` of the ensemble.
 
         """
         # Interpret the input as a walker state and check the dimensions.

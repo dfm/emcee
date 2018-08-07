@@ -204,7 +204,7 @@ class Backend(object):
         """Save a step to the backend
 
         Args:
-        state (State): The :class:`State` of the ensemble.
+        state (State): The :class:`~emcee.state.State` of the ensemble.
             accepted (ndarray): An array of boolean flags indicating whether
                 or not the proposal for each walker was accepted.
 
