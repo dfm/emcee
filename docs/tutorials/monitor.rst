@@ -18,10 +18,10 @@ in the middle of an expensive MCMC run.
 In this demo, we will demonstrate how you can use the new
 :class:`backends.HDFBackend` to save your results to a
 `HDF5 <https://en.wikipedia.org/wiki/Hierarchical_Data_Format>`__ file
-as the chain runs. To execute this, you'll first need to install the
+as the chain runs. To execute this, you’ll first need to install the
 `h5py library <http://www.h5py.org>`__.
 
-We'll also monitor the autocorrelation time at regular intervals (see
+We’ll also monitor the autocorrelation time at regular intervals (see
 :ref:`autocorr`) to judge convergence.
 
 .. code:: python
@@ -62,12 +62,12 @@ We will set up the problem as usual with one small change:
     # Initialize the sampler
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob, backend=backend)
 
-The difference here was the addition of a "backend". This choice will
+The difference here was the addition of a “backend”. This choice will
 save the samples to a file called ``tutorial.h5`` in the current
-directory. Now, we'll run the chain for up to 10,000 steps and check the
+directory. Now, we’ll run the chain for up to 10,000 steps and check the
 autocorrelation time every 100 steps. If the chain is longer than 100
 times the estimated autocorrelation time and if this estimate changed by
-less than 1%, we'll consider things converged.
+less than 1%, we’ll consider things converged.
 
 .. code:: python
 
@@ -106,7 +106,7 @@ less than 1%, we'll consider things converged.
       6%|▌         | 5900/100000 [01:25<22:49, 68.72it/s]
 
 
-Now let's take a look at how the autocorrelation time estimate (averaged
+Now let’s take a look at how the autocorrelation time estimate (averaged
 across dimensions) changed over the course of this run. In this plot,
 the :math:`\tau` estimate is plotted (in blue) as a function of chain
 length and, for comparison, the :math:`N > 100\,\tau` threshold is
@@ -202,7 +202,7 @@ after the fact using the :class:`backends.HDFBackend`:
     flat log prior shape: (7104,)
 
 
-This should give the same output as the previous code block, but you'll
+This should give the same output as the previous code block, but you’ll
 notice that there was no reference to ``sampler`` here at all.
 
 If you want to restart from the last sample, you can just leave out the
