@@ -406,7 +406,7 @@ class EnsembleSampler(object):
             if len(shape):
                 axes = np.arange(len(shape))[np.array(shape) == 1] + 1
                 if len(axes):
-                    blob = np.squeeze(blob, axes)
+                    blob = np.squeeze(blob, tuple(axes))
 
         # Check for log_prob returning NaN.
         if np.any(np.isnan(log_prob)):
