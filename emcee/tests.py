@@ -90,7 +90,7 @@ class Tests:
 
         self.ntemp = 20
 
-        self.N = 2000
+        self.N = 3000
 
         self.mean = np.zeros(self.ndim)
         self.cov = 0.5 - np.random.rand(self.ndim ** 2) \
@@ -121,8 +121,8 @@ class Tests:
                       < maxdiff)
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2 / self.N ** 2
                       < maxdiff)
-        print(self.sampler.get_autocorr_time())
-        assert 0
+        tau = self.sampler.get_autocorr_time()
+        assert tau.shape == (self.ndim, )
 
     def check_pt_sampler(self, cutoff, N=None, p0=None):
         if N is None:
