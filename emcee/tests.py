@@ -90,7 +90,7 @@ class Tests:
 
         self.ntemp = 20
 
-        self.N = 1000
+        self.N = 2000
 
         self.mean = np.zeros(self.ndim)
         self.cov = 0.5 - np.random.rand(self.ndim ** 2) \
@@ -121,6 +121,8 @@ class Tests:
                       < maxdiff)
         assert np.all((np.cov(chain, rowvar=0) - self.cov) ** 2 / self.N ** 2
                       < maxdiff)
+        print(self.sampler.get_autocorr_time())
+        assert 0
 
     def check_pt_sampler(self, cutoff, N=None, p0=None):
         if N is None:
@@ -151,7 +153,6 @@ class Tests:
             + 0.5 * np.log(np.linalg.det(self.cov))
 
         lnZ, dlnZ = self.sampler.thermodynamic_integration_log_evidence()
-        print(self.sampler.get_autocorr_time(c=2))
 
         assert np.abs(lnZ - (gaussian_integral - log_volume)) < 3 * dlnZ, \
             ("evidence incorrect: {0:g} versus correct {1:g} (uncertainty "

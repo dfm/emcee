@@ -475,7 +475,8 @@ class EnsembleSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False):
+    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False,
+                          tol=50, quiet=False):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
@@ -497,10 +498,11 @@ class EnsembleSampler(Sampler):
             If ``True``, only use the first ``2^n`` (for the largest power)
             entries for efficiency.
             (default: False)
+
         """
-        return autocorr.integrated_time(np.mean(self.chain, axis=0), axis=0,
+        return autocorr.integrated_time(self.chain, axis=0,
                                         low=low, high=high, step=step, c=c,
-                                        fast=fast)
+                                        fast=fast, tol=tol, quiet=quiet)
 
 
 class _function_wrapper(object):

@@ -140,7 +140,7 @@ class MHSampler(Sampler):
         """
         return self.get_autocorr_time()
 
-    def get_autocorr_time(self, low=10, high=None, step=1, c=10, fast=False):
+    def get_autocorr_time(self, **kwargs):
         """
         Compute an estimate of the autocorrelation time for each parameter
         (length: ``dim``).
@@ -163,5 +163,4 @@ class MHSampler(Sampler):
             entries for efficiency.
             (default: False)
         """
-        return autocorr.integrated_time(self.chain, axis=0, low=low,
-                                        high=high, step=step, c=c, fast=fast)
+        return autocorr.integrated_time(self.chain[None, :, :], **kwargs)
