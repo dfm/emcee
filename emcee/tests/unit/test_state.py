@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 import numpy as np
 from emcee.state import State
+from emcee import EnsembleSampler
 
 
 def test_back_compat(seed=1234):
@@ -25,3 +26,18 @@ def test_back_compat(seed=1234):
     assert np.allclose(coords, c)
     assert np.allclose(log_prob, l)
     assert all(np.allclose(a, b) for a, b in zip(rstate[1:], r[1:]))
+
+
+def test_overwrite(seed=1234):
+    np.random.seed(seed)
+
+    def ll(x):
+        return -0.5 * np.sum(x**2)
+
+    nwalkers = 64
+    p0 = np.random.normal(size=(nwalkers, 1))
+    init = np.copy(p0)
+
+    sampler = EnsembleSampler(nwalkers, 1, ll)
+    sampler.run_mcmc(p0, 10)
+    assert np.allclose(init, p0)

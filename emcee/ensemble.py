@@ -214,7 +214,7 @@ class EnsembleSampler(object):
 
         """
         # Interpret the input as a walker state and check the dimensions.
-        state = State(initial_state)
+        state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
 
