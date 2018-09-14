@@ -6,7 +6,7 @@ import sys
 from setuptools import setup
 
 if sys.argv[-1] == "publish":
-    os.system("python setup.py sdist upload")
+    os.system("python setup.py sdist; twine upload dist/*")
     sys.exit()
 
 # Hackishly inject a constant into builtins to enable importing of the
@@ -23,7 +23,11 @@ setup(
     version=emcee.__version__,
     author="Daniel Foreman-Mackey",
     author_email="foreman.mackey@gmail.com",
-    packages=["emcee", "emcee.moves", "emcee.backends"],
+    packages=[
+        "emcee",
+        "emcee.moves", "emcee.backends",
+        "emcee.tests", "emcee.tests.unit", "emcee.tests.integration",
+    ],
     url="http://emcee.readthedocs.io",
     license="MIT",
     description=("The Python ensemble sampling toolkit for affine-invariant "

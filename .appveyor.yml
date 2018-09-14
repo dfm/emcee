@@ -26,4 +26,4 @@ install:
 build_script:
 - ps: python setup.py install
 test_script:
-- ps: pytest -v
+- ps: pytest -v emcee/tests

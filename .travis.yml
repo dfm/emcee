@@ -33,7 +33,7 @@ install:
     - source .ci/travis.sh
 
 script:
-    - py.test -v --cov emcee
+    - py.test -v emcee/tests --cov emcee
 
 after_success:
     - coveralls
