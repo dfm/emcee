@@ -9,7 +9,7 @@ __all__ = ["Move"]
 
 class Move(object):
 
-    def tune(self, state, accepted):
+    def finalize(self):
         pass
 
     def update(self,

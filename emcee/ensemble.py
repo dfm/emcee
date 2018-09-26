@@ -26,6 +26,9 @@ class EnsembleSampler(object):
             parameter space as input and returns the natural logarithm of the
             posterior probability (up to an additive constant) for that
             position.
+        grad_log_prob_fn (Optional): A function that takes a vector in the
+            parameter space as input and returns the gradient of
+            ``log_prob_fn`` with respect to the parameters for that position.
         moves (Optional): This can be a single move object, a list of moves,
             or a "weighted" list of the form ``[(emcee.moves.StretchMove(),
             0.1), ...]``. When running, the sampler will randomly select a
@@ -52,7 +55,7 @@ class EnsembleSampler(object):
             (default: ``False``)
 
     """
-    def __init__(self, nwalkers, ndim, log_prob_fn,
+    def __init__(self, nwalkers, ndim, log_prob_fn, grad_log_prob_fn=None,
                  pool=None, moves=None,
                  args=None, kwargs=None,
                  backend=None,
@@ -131,6 +134,11 @@ class EnsembleSampler(object):
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
         self.log_prob_fn = _FunctionWrapper(log_prob_fn, args, kwargs)
+        if grad_log_prob_fn is None:
+            self.grad_log_prob_fn = None
+        else:
+            self.grad_log_prob_fn = _FunctionWrapper(grad_log_prob_fn, args,
+                                                     kwargs)
 
     @property
     def random_state(self):
@@ -180,7 +188,6 @@ class EnsembleSampler(object):
                rstate0=None,  # Deprecated
                blobs0=None,  # Deprecated
                iterations=1,
-               tune=False,
                thin_by=1, thin=None,
                store=True, progress=False):
         """Advance the chain as a generator
@@ -190,8 +197,6 @@ class EnsembleSampler(object):
                 :class:`State` or positions of the walkers in the
                 parameter space.
             iterations (Optional[int]): The number of steps to generate.
-            tune (Optional[bool]): If ``True``, the parameters of some moves
-                will be automatically tuned.
             thin_by (Optional[int]): If you only want to store and yield every
                 ``thin_by`` samples in the chain, set ``thin_by`` to an
                 integer greater than 1. When this is set, ``iterations *
@@ -285,7 +290,8 @@ class EnsembleSampler(object):
         else:
             map_fn = map
         model = Model(
-            self.log_prob_fn, self.compute_log_prob, map_fn, self._random
+            self.log_prob_fn, self.grad_log_prob_fn,
+            self.compute_log_prob, map_fn, self._random
         )
 
         # Inject the progress bar
@@ -300,9 +306,6 @@ class EnsembleSampler(object):
                     # Propose
                     state, accepted = move.propose(model, state)
                     state.random_state = self.random_state
-
-                    if tune:
-                        move.tune(state, accepted)
 
                     # Save the new step
                     if store and (i + 1) % checkpoint_step == 0:

@@ -18,6 +18,10 @@ def normal_log_prob(params):
     return -0.5 * np.sum(params**2)
 
 
+def grad_normal_log_prob(params):
+    return -params
+
+
 def uniform_log_prob(params):
     if np.any(params > 1) or np.any(params < 0):
         return -np.inf
@@ -25,7 +29,7 @@ def uniform_log_prob(params):
 
 
 def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
-                 check_acceptance=True, pool=None, blobs=False):
+                 check_acceptance=True, pool=None, blobs=False, tune=False):
     # Set up the random number generator.
     np.random.seed(seed)
 
@@ -38,9 +42,29 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
         lp = normal_log_prob
 
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lp,
+                                    grad_log_prob_fn=grad_normal_log_prob,
                                     moves=proposal, pool=pool)
-    if hasattr(proposal, "ntune") and proposal.ntune > 0:
-        coords = sampler.run_mcmc(coords, proposal.ntune, tune=True)
+    if tune:
+        steps = (np.array([0.0, 0.1, 0.9, 1.0]) * tune).astype(int)
+        steps = np.diff(steps)
+        print(steps)
+
+        coords = sampler.run_mcmc(coords, steps[0])
+        proposal.step_size.restart()
+        proposal.metric.restart()
+
+        coords = sampler.run_mcmc(coords, steps[1])
+        proposal.metric.finalize()
+        proposal.step_size.restart()
+        try:
+            print(proposal.metric.variance)
+        except:
+            pass
+
+        coords = sampler.run_mcmc(coords, steps[2])
+        proposal.step_size.finalize()
+        print(proposal.step_size.x, proposal.step_size.x_bar)
+
         sampler.reset()
     sampler.run_mcmc(coords, nsteps)
 

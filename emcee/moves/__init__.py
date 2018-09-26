@@ -15,9 +15,12 @@ from .kde import KDEMove
 from .de import DEMove
 from .de_snooker import DESnookerMove
 
+from .hmc import HamiltonianMove, NoUTurnMove
+
 __all__ = [
     "Move",
     "MHMove", "GaussianMove",
     "RedBlueMove", "StretchMove", "WalkMove", "KDEMove",
     "DEMove", "DESnookerMove",
+    "HamiltonianMove", "NoUTurnMove",
 ]
