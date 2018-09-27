@@ -68,8 +68,6 @@ def integrated_time(x, c=5, tol=50, quiet=False):
     Returns:
         float or array: An estimate of the integrated autocorrelation time of
             the time series ``x`` computed along the axis ``axis``.
-        Optional[int]: The final window size that was used. Only returned if
-            ``full_output`` is ``True``.
 
     Raises
         AutocorrError: If the autocorrelation time can't be reliably estimated
