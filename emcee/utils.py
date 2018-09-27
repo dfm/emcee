@@ -4,14 +4,14 @@ from __future__ import division, print_function
 
 __all__ = ["sample_ball", "deprecated", "deprecation_warning"]
 
-import logging
+import warnings
 from functools import wraps
 
 import numpy as np
 
 
 def deprecation_warning(msg):
-    logging.warning(msg, category=DeprecationWarning, stacklevel=2)
+    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
 
 
 def deprecated(alternate):
