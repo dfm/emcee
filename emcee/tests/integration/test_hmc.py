@@ -32,7 +32,7 @@ def test_normal_hmc(pool, tune, blobs, metric, **kwargs):
     kwargs["ndim"] = 3
     kwargs["nwalkers"] = 2
     kwargs["check_acceptance"] = False
-    kwargs["nsteps"] = 1000
+    kwargs["nsteps"] = 1500
     kwargs["blobs"] = blobs
     if pool:
         with Pool() as p:

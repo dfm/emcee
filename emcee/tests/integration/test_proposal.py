@@ -47,7 +47,6 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
     if tune:
         steps = (np.array([0.0, 0.1, 0.9, 1.0]) * tune).astype(int)
         steps = np.diff(steps)
-        print(steps)
 
         coords = sampler.run_mcmc(coords, steps[0])
         proposal.step_size.restart()
@@ -56,14 +55,9 @@ def _test_normal(proposal, ndim=1, nwalkers=32, nsteps=2000, seed=1234,
         coords = sampler.run_mcmc(coords, steps[1])
         proposal.metric.finalize()
         proposal.step_size.restart()
-        try:
-            print(proposal.metric.variance)
-        except:
-            pass
 
         coords = sampler.run_mcmc(coords, steps[2])
         proposal.step_size.finalize()
-        print(proposal.step_size.x, proposal.step_size.x_bar)
 
         sampler.reset()
     sampler.run_mcmc(coords, nsteps)
