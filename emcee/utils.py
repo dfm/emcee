@@ -11,7 +11,7 @@ import numpy as np
 
 
 def deprecation_warning(msg):
-    warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
+    warnings.warning(msg, category=DeprecationWarning, stacklevel=2)
 
 
 def deprecated(alternate):
