@@ -12,8 +12,8 @@ of resources available for that (try `this one
 We also `published a paper <http://arxiv.org/abs/1202.3665>`_ explaining
 the emcee algorithm and implementation in detail.
 
-emcee has been used in `quite a few projects in the astrophysical literature
-<testimonials>`_ and it is being actively developed on `GitHub
+emcee has been used in :doc:`quite a few projects in the astrophysical literature
+<testimonials>` and it is being actively developed on `GitHub
 <https://github.com/dfm/emcee>`_.
 
 .. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
