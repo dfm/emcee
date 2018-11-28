@@ -4,7 +4,11 @@ from __future__ import division, print_function
 
 __all__ = ["EnsembleSampler"]
 
-from collections.abc import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    # for py2.7, will be an Exception in 3.8
+    from collections import Iterable
 
 import numpy as np
 
