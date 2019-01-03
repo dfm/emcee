@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # The code in this module is a port of the nuts_base proposal from the Stan
-# project to Python. Stan is licensed under the following license:
+# project to Python.
+#
+# This implementation is not related to or endorsed by the Stan developers.
+#
+# Stan is licensed under the following license:
 #
 # BSD 3-Clause License
 #
