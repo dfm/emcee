@@ -47,11 +47,15 @@ def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=10, seed=1234):
         assert tau.shape == (ndim,)
 
         # Check the shapes.
-        assert sampler.chain.shape == (nwalkers, nsteps, ndim), \
-            "incorrect coordinate dimensions"
+        with pytest.warns(DeprecationWarning):
+            assert sampler.chain.shape == (nwalkers, nsteps, ndim), \
+                "incorrect coordinate dimensions"
+        with pytest.warns(DeprecationWarning):
+            assert sampler.lnprobability.shape == (nwalkers, nsteps), \
+                "incorrect probability dimensions"
         assert sampler.get_chain().shape == (nsteps, nwalkers, ndim), \
             "incorrect coordinate dimensions"
-        assert sampler.lnprobability.shape == (nsteps, nwalkers), \
+        assert sampler.get_log_prob().shape == (nsteps, nwalkers), \
             "incorrect probability dimensions"
 
         assert sampler.acceptance_fraction.shape == (nwalkers,), \
@@ -77,14 +81,14 @@ def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
 
         # Test for not running.
         with pytest.raises(AttributeError):
-            sampler.chain
+            sampler.get_chain()
         with pytest.raises(AttributeError):
-            sampler.lnprobability
+            sampler.get_log_prob()
 
         # What about not storing the chain.
         sampler.run_mcmc(coords, nsteps, store=False)
         with pytest.raises(AttributeError):
-            sampler.chain
+            sampler.get_chain()
 
         # Now what about if we try to continue using the sampler with an
         # ensemble of a different shape.
@@ -121,12 +125,15 @@ def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
 def test_thin(backend):
     with backend() as be:
         with pytest.raises(ValueError):
-            run_sampler(be, thin=-1)
+            with pytest.warns(DeprecationWarning):
+                run_sampler(be, thin=-1)
         with pytest.raises(ValueError):
-            run_sampler(be, thin=0.1)
+            with pytest.warns(DeprecationWarning):
+                run_sampler(be, thin=0.1)
         thinby = 3
         sampler1 = run_sampler(None)
-        sampler2 = run_sampler(be, thin=thinby)
+        with pytest.warns(DeprecationWarning):
+            sampler2 = run_sampler(be, thin=thinby)
         for k in ["get_chain", "get_log_prob"]:
             a = getattr(sampler1, k)()[thinby-1::thinby]
             b = getattr(sampler2, k)()
