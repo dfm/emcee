@@ -2,6 +2,8 @@
 
 from __future__ import print_function, absolute_import
 
+# comment to generate a PR from this branch and ensure
+# appveyor builds are not failing due to any of my changes
 __version__ = "3.0rc2"
 __bibtex__ = """
 @article{emcee,
