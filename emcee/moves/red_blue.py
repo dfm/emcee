@@ -23,7 +23,7 @@ class RedBlueMove(Move):
 
         randomize_split (Optional[bool]): Randomly shuffle walkers between
             sub-ensembles. The same number of walkers will be assigned to
-            each sub-ensemble on each iteration. By default, this is ``False``.
+            each sub-ensemble on each iteration. By default, this is ``True``.
 
         live_dangerously (Optional[bool]): By default, an update will fail with
             a ``RuntimeError`` if the number of walkers is smaller than twice
