@@ -9,7 +9,7 @@ __all__ = ["DEMove"]
 
 
 class DEMove(RedBlueMove):
-    """A proposal using differential evolution.
+    r"""A proposal using differential evolution.
 
     This `Differential evolution proposal
     <http://www.stat.columbia.edu/~gelman/stuff_for_blog/cajo.pdf>`_ is
@@ -24,6 +24,7 @@ class DEMove(RedBlueMove):
             as recommended by the two references.
 
     """
+
     def __init__(self, sigma=1.0e-5, gamma0=None, **kwargs):
         self.sigma = sigma
         self.gamma0 = gamma0

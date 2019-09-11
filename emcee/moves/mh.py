@@ -11,7 +11,7 @@ __all__ = ["MHMove"]
 
 
 class MHMove(Move):
-    """A general Metropolis-Hastings proposal
+    r"""A general Metropolis-Hastings proposal
 
     Concrete implementations can be made by providing a ``proposal_function``
     argument that implements the proposal as described below.
@@ -29,6 +29,7 @@ class MHMove(Move):
             dimension of parameter space, set that here.
 
     """
+
     def __init__(self, proposal_function, ndim=None):
         self.ndim = ndim
         self.get_proposal = proposal_function
