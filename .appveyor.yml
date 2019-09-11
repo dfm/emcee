@@ -6,10 +6,9 @@ environment:
 build: off
 
 install:
-- pip install --upgrade pip
-- pip install --upgrade -r requirements-dev.txt
-- pip install tox
+- python -m pip install -U pip
+- python -m pip install -U -r requirements-dev.txt
+- python -m pip install -U tox
 
 test_script:
 - tox
-

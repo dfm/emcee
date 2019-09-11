@@ -7,9 +7,6 @@ cache:
   directories:
   - "$HOME/.cache/pip"
 
-os:
-  - osx
-  - linux
 python:
   - "3.6"
   - "3.7"
