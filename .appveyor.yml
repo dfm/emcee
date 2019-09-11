@@ -1,5 +1,3 @@
-build: false
-
 environment:
   matrix:
   - TOXENV: py36
@@ -15,31 +13,3 @@ install:
 test_script:
 - tox
 
-# image: Visual Studio 2015
-# shallow_clone: false
-# platform:
-# - x86
-# - x64
-# environment:
-#   global:
-#     DISTUTILS_USE_SDK: 1
-#     MSSdk: 1
-#   matrix:
-#     - CONDA: 27
-#     - CONDA: 35
-# install:
-# - cmd: '"%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %PLATFORM%'
-# - ps: |
-#     git submodule update -q --init --recursive
-#     if ($env:CONDA -eq "27") { $env:CONDA = "" }
-#     if ($env:PLATFORM -eq "x64") { $env:CONDA = "$env:CONDA-x64" }
-#     $env:PATH = "C:\Miniconda$env:CONDA\;C:\Miniconda$env:CONDA\Scripts\;$env:PATH"
-#     conda config --set always_yes yes --set changeps1 no
-#     conda update -q conda
-#     conda info -a
-#     conda install -q conda-build numpy scipy h5py setuptools pytest
-#     $env:CONDA_PREFIX = "C:\Miniconda$env:CONDA"
-# build_script:
-# - ps: python setup.py install
-# test_script:
-# - ps: pytest -v emcee/tests
