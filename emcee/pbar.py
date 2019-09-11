@@ -14,6 +14,7 @@ except ImportError:
 
 class _NoOpPBar(object):
     """This class implements the progress bar interface but does nothing"""
+
     def __init__(self):
         pass
 
@@ -41,14 +42,16 @@ def get_progress_bar(display, total):
     """
     if display:
         if tqdm is None:
-            logging.warn("You must install the tqdm library to use progress "
-                         "indicators with emcee")
+            logging.warning(
+                "You must install the tqdm library to use progress "
+                "indicators with emcee"
+            )
             return _NoOpPBar()
         else:
             if display is True:
                 return tqdm.tqdm(total=total)
             else:
-                return getattr(tqdm, 'tqdm_' + display)(total=total)
+                return getattr(tqdm, "tqdm_" + display)(total=total)
 
     return _NoOpPBar()
 

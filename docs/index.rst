@@ -101,7 +101,7 @@ Contributors
 License & Attribution
 ---------------------
 
-Copyright 2010-2017 Dan Foreman-Mackey and contributors.
+Copyright 2010-2019 Dan Foreman-Mackey and contributors.
 
 emcee is free software made available under the MIT License. For details
 see the ``LICENSE``.

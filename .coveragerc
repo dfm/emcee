@@ -14,7 +14,7 @@ exclude_lines =
     except ImportError
     def __len__
     def __repr__
-    logging.warn
+    logging.warning
     deprecation_warning
     deprecated
     if tqdm is None
