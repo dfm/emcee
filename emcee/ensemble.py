@@ -186,6 +186,7 @@ class EnsembleSampler(object):
                blobs0=None,  # Deprecated
                iterations=1,
                tune=False,
+               skip_initial_state_check=False,
                thin_by=1, thin=None,
                store=True, progress=False):
         """Advance the chain as a generator
@@ -212,6 +213,9 @@ class EnsembleSampler(object):
                 ``'notebook'``, which shows a progress bar suitable for
                 Jupyter notebooks.  If ``False``, no progress bar will be
                 shown.
+            skip_initial_state_check (Optional[bool]): If ``True``, a check that
+                the initial_state can fully explore the space will be skipped.
+                (default: ``False``)
 
 
         Every ``thin_by`` steps, this generator yields the
@@ -222,7 +226,7 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        if np.isclose(np.linalg.det(np.cov(
+        if (not skip_initial_state_check) and np.isclose(np.linalg.det(np.cov(
             state.coords, rowvar=False).reshape((self.ndim, self.ndim))), 0):
             warnings.warn("Initial state does not allow a full exploration "
                     "of parameter space", category=RuntimeWarning)
