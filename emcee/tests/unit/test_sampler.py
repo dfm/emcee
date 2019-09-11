@@ -94,6 +94,11 @@ def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
         with pytest.raises(ValueError):
             list(sampler.run_mcmc(coords2, nsteps))
 
+        # Ensure that a warning is thrown if the inital coords don't allow
+        # the chain to explore all of parameter space
+        with pytest.warns(RuntimeWarning):
+            coords = np.ones((nwalkers, ndim))
+            sampler.run_mcmc(coords, nsteps)
 
 def run_sampler(backend, nwalkers=32, ndim=3, nsteps=25, seed=1234,
                 thin=None, thin_by=1, progress=False, store=True):

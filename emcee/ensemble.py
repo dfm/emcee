@@ -11,6 +11,7 @@ except ImportError:
     from collections import Iterable
 
 import numpy as np
+import warnings
 
 from .state import State
 from .model import Model
@@ -221,6 +222,10 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
+        if np.isclose(np.linalg.det(np.cov(
+            state.coords, rowvar=False).reshape((self.ndim, self.ndim))), 0):
+            warnings.warn("Initial state does not allow a full exploration "
+                    "of parameter space", category=RuntimeWarning)
 
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
