@@ -57,28 +57,41 @@ class EnsembleSampler(object):
             (default: ``False``)
 
     """
-    def __init__(self, nwalkers, ndim, log_prob_fn,
-                 pool=None, moves=None,
-                 args=None, kwargs=None,
-                 backend=None,
-                 vectorize=False,
-                 blobs_dtype=None,
-                 # Deprecated...
-                 a=None, postargs=None, threads=None, live_dangerously=None,
-                 runtime_sortingfn=None):
+
+    def __init__(
+        self,
+        nwalkers,
+        ndim,
+        log_prob_fn,
+        pool=None,
+        moves=None,
+        args=None,
+        kwargs=None,
+        backend=None,
+        vectorize=False,
+        blobs_dtype=None,
+        # Deprecated...
+        a=None,
+        postargs=None,
+        threads=None,
+        live_dangerously=None,
+        runtime_sortingfn=None,
+    ):
         # Warn about deprecated arguments
         if a is not None:
             deprecation_warning(
-                "The 'a' argument is deprecated, use 'moves' instead")
+                "The 'a' argument is deprecated, use 'moves' instead"
+            )
         if threads is not None:
-            deprecation_warning(
-                "The 'threads' argument is deprecated")
+            deprecation_warning("The 'threads' argument is deprecated")
         if runtime_sortingfn is not None:
             deprecation_warning(
-                "The 'runtime_sortingfn' argument is deprecated")
+                "The 'runtime_sortingfn' argument is deprecated"
+            )
         if live_dangerously is not None:
             deprecation_warning(
-                "The 'live_dangerously' argument is deprecated")
+                "The 'live_dangerously' argument is deprecated"
+            )
 
         # Parse the move schedule
         if moves is None:
@@ -113,10 +126,11 @@ class EnsembleSampler(object):
             # Check the backend shape
             if self.backend.shape != (self.nwalkers, self.ndim):
                 raise ValueError(
-                    ("the shape of the backend ({0}) is incompatible with the "
-                     "shape of the sampler ({1})")
-                    .format(self.backend.shape,
-                            (self.nwalkers, self.ndim)))
+                    (
+                        "the shape of the backend ({0}) is incompatible with the "
+                        "shape of the sampler ({1})"
+                    ).format(self.backend.shape, (self.nwalkers, self.ndim))
+                )
 
             # Get the last random state
             state = self.backend.random_state
@@ -179,16 +193,20 @@ class EnsembleSampler(object):
         d["pool"] = None
         return d
 
-    def sample(self,
-               initial_state,
-               log_prob0=None,  # Deprecated
-               rstate0=None,  # Deprecated
-               blobs0=None,  # Deprecated
-               iterations=1,
-               tune=False,
-               skip_initial_state_check=False,
-               thin_by=1, thin=None,
-               store=True, progress=False):
+    def sample(
+        self,
+        initial_state,
+        log_prob0=None,  # Deprecated
+        rstate0=None,  # Deprecated
+        blobs0=None,  # Deprecated
+        iterations=1,
+        tune=False,
+        skip_initial_state_check=False,
+        thin_by=1,
+        thin=None,
+        store=True,
+        progress=False,
+    ):
         """Advance the chain as a generator
 
         Args:
@@ -226,10 +244,19 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        if (not skip_initial_state_check) and np.isclose(np.linalg.det(np.cov(
-            state.coords, rowvar=False).reshape((self.ndim, self.ndim))), 0):
-            warnings.warn("Initial state does not allow a full exploration "
-                    "of parameter space", category=RuntimeWarning)
+        if (not skip_initial_state_check) and np.isclose(
+            np.linalg.det(
+                np.cov(state.coords, rowvar=False).reshape(
+                    (self.ndim, self.ndim)
+                )
+            ),
+            0,
+        ):
+            warnings.warn(
+                "Initial state is not linearly independent and it will not "
+                "allow a full exploration of parameter space",
+                category=RuntimeWarning,
+            )
 
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
@@ -238,7 +265,8 @@ class EnsembleSampler(object):
         if rstate0 is not None:
             deprecation_warning(
                 "The 'rstate0' argument is deprecated, use a 'State' "
-                "instead")
+                "instead"
+            )
             state.random_state = rstate0
         self.random_state = state.random_state
 
@@ -247,15 +275,17 @@ class EnsembleSampler(object):
         if log_prob0 is not None:
             deprecation_warning(
                 "The 'log_prob0' argument is deprecated, use a 'State' "
-                "instead")
+                "instead"
+            )
             state.log_prob = log_prob0
         if blobs0 is not None:
             deprecation_warning(
-                "The 'blobs0' argument is deprecated, use a 'State' instead")
+                "The 'blobs0' argument is deprecated, use a 'State' instead"
+            )
             state.blobs = blobs0
         if state.log_prob is None:
             state.log_prob, state.blobs = self.compute_log_prob(state.coords)
-        if np.shape(state.log_prob) != (self.nwalkers, ):
+        if np.shape(state.log_prob) != (self.nwalkers,):
             raise ValueError("incompatible input dimensions")
 
         # Check to make sure that the probability function didn't return
@@ -265,8 +295,9 @@ class EnsembleSampler(object):
 
         # Deal with deprecated thin argument
         if thin is not None:
-            deprecation_warning("The 'thin' argument is deprecated. "
-                                "Use 'thin_by' instead.")
+            deprecation_warning(
+                "The 'thin' argument is deprecated. " "Use 'thin_by' instead."
+            )
 
             # Check that the thin keyword is reasonable.
             thin = int(thin)
@@ -394,8 +425,9 @@ class EnsembleSampler(object):
                 map_func = self.pool.map
             else:
                 map_func = map
-            results = list(map_func(self.log_prob_fn,
-                                    (p[i] for i in range(len(p)))))
+            results = list(
+                map_func(self.log_prob_fn, (p[i] for i in range(len(p))))
+            )
 
         try:
             log_prob = np.array([float(l[0]) for l in results])
@@ -470,18 +502,22 @@ class EnsembleSampler(object):
 
     def get_chain(self, **kwargs):
         return self.get_value("chain", **kwargs)
+
     get_chain.__doc__ = Backend.get_chain.__doc__
 
     def get_blobs(self, **kwargs):
         return self.get_value("blobs", **kwargs)
+
     get_blobs.__doc__ = Backend.get_blobs.__doc__
 
     def get_log_prob(self, **kwargs):
         return self.get_value("log_prob", **kwargs)
+
     get_log_prob.__doc__ = Backend.get_log_prob.__doc__
 
     def get_last_sample(self, **kwargs):
         return self.backend.get_last_sample()
+
     get_last_sample.__doc__ = Backend.get_last_sample.__doc__
 
     def get_value(self, name, **kwargs):
@@ -489,6 +525,7 @@ class EnsembleSampler(object):
 
     def get_autocorr_time(self, **kwargs):
         return self.backend.get_autocorr_time(**kwargs)
+
     get_autocorr_time.__doc__ = Backend.get_autocorr_time.__doc__
 
 
@@ -498,6 +535,7 @@ class _FunctionWrapper(object):
     or ``kwargs`` are also included.
 
     """
+
     def __init__(self, f, args, kwargs):
         self.f = f
         self.args = [] if args is None else args
@@ -508,6 +546,7 @@ class _FunctionWrapper(object):
             return self.f(x, *self.args, **self.kwargs)
         except:  # pragma: no cover
             import traceback
+
             print("emcee: Exception while calling your likelihood function:")
             print("  params:", x)
             print("  args:", self.args)
