@@ -92,12 +92,6 @@ If you run into any issues, please don't hesitate to `open an issue on GitHub
    tutorials/monitor
 
 
-Contributors
-------------
-
-.. include:: ../AUTHORS.rst
-
-
 License & Attribution
 ---------------------
 
