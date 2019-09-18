@@ -478,8 +478,8 @@ class EnsembleSampler(object):
     @property
     @deprecated("get_log_prob()")
     def lnprobability(self):  # pragma: no cover
-        return self.get_log_prob()
-
+        log_prob = self.get_log_prob()
+        return np.swapaxes(log_prob, 0, 1)
     @property
     @deprecated("get_log_prob(flat=True)")
     def flatlnprobability(self):  # pragma: no cover

@@ -23,7 +23,7 @@ install:
   - travis_retry python setup.py develop
 
 script:
-  - py.test -v emcee/tests --cov emcee
+  - pytest -v emcee/tests --cov emcee
 
 after_success:
   - coveralls
