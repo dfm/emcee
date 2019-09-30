@@ -1,12 +1,14 @@
 .. :changelog:
 
-3.0.0 (upcoming)
-++++++++++++++++
+3.0.0 (2019-09-30)
+++++++++++++++++++
 
 - Added progress bars using `tqdm <https://github.com/tqdm/tqdm>`_.
 - Added HDF5 backend using `h5py <http://www.h5py.org/>`_.
+- Added new ``Move`` interface for more flexible specification of proposals.
 - Improved autocorrelation time estimation algorithm.
 - Switched documentation to using Jupyter notebooks for tutorials.
+- More details can be found `on the docs <https://emcee.readthedocs.io/en/v3.0.0/user/upgrade/>`_.
 
 2.2.0 (2016-07-12)
 ++++++++++++++++++
