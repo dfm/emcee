@@ -18,17 +18,11 @@ This notebook was made with the following version of emcee:
     emcee.__version__
 
 
-.. parsed-literal::
-
-    /Users/dforeman/anaconda/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
-      from ._conv import register_converters as _register_converters
-
-
 
 
 .. parsed-literal::
 
-    '3.0rc1'
+    '3.0.0'
 
 
 
@@ -71,12 +65,12 @@ requires the logarithm of :math:`p`. We’ll call it ``log_prob``:
         return -0.5*np.dot(diff, np.linalg.solve(cov,diff))
 
 It is important that the first argument of the probability function is
-the position of a single “walker” (a *N* dimensional ``numpy`` array).
+the position of a single "walker" (a *N* dimensional ``numpy`` array).
 The following arguments are going to be constant every time the function
 is called and the values come from the ``args`` parameter of our
-:class:`EnsembleSampler` that we’ll see soon.
+:class:`EnsembleSampler` that we'll see soon.
 
-Now, we’ll set up the specific values of those “hyperparameters” in 5
+Now, we'll set up the specific values of those "hyperparameters" in 5
 dimensions:
 
 .. code:: python
@@ -96,7 +90,7 @@ and where ``cov`` is :math:`\Sigma`.
 How about we use 32 walkers? Before we go on, we need to guess a
 starting point for each of the 32 walkers. This position will be a
 5-dimensional vector so the initial guess should be a 32-by-5 array.
-It’s not a very good guess but we’ll just guess a random number between
+It's not a very good guess but we'll just guess a random number between
 0 and 1 for each component:
 
 .. code:: python
@@ -104,9 +98,9 @@ It’s not a very good guess but we’ll just guess a random number between
     nwalkers = 32
     p0 = np.random.rand(nwalkers, ndim)
 
-Now that we’ve gotten past all the bookkeeping stuff, we can move on to
+Now that we've gotten past all the bookkeeping stuff, we can move on to
 the fun stuff. The main interface provided by ``emcee`` is the
-:class:`EnsembleSampler` object so let’s get ourselves one of those:
+:class:`EnsembleSampler` object so let's get ourselves one of those:
 
 .. code:: python
 
@@ -114,7 +108,7 @@ the fun stuff. The main interface provided by ``emcee`` is the
 
 Remember how our function ``log_prob`` required two extra arguments when
 it was called? By setting up our sampler with the ``args`` argument,
-we’re saying that the probability function should be called as:
+we're saying that the probability function should be called as:
 
 .. code:: python
 
@@ -129,14 +123,14 @@ we’re saying that the probability function should be called as:
 
 
 
-If we didn’t provide any ``args`` parameter, the calling sequence would
+If we didn't provide any ``args`` parameter, the calling sequence would
 be ``log_prob(p0[0])`` instead.
 
-It’s generally a good idea to run a few “burn-in” steps in your MCMC
+It's generally a good idea to run a few "burn-in" steps in your MCMC
 chain to let the walkers explore the parameter space a bit and get
-settled into the maximum of the density. We’ll run a burn-in of 100
-steps (yep, I just made that number up… it’s hard to really know how
-many steps of burn-in you’ll need before you start) starting from our
+settled into the maximum of the density. We'll run a burn-in of 100
+steps (yep, I just made that number up... it's hard to really know how
+many steps of burn-in you'll need before you start) starting from our
 initial guess ``p0``:
 
 .. code:: python
@@ -144,13 +138,13 @@ initial guess ``p0``:
     state = sampler.run_mcmc(p0, 100)
     sampler.reset()
 
-You’ll notice that I saved the final position of the walkers (after the
+You'll notice that I saved the final position of the walkers (after the
 100 steps) to a variable called ``pos``. You can check out what will be
 contained in the other output variables by looking at the documentation
 for the :func:`EnsembleSampler.run_mcmc` function. The call to the
 :func:`EnsembleSampler.reset` method clears all of the important
 bookkeeping parameters in the sampler so that we get a fresh start. It
-also clears the current positions of the walkers so it’s a good thing
+also clears the current positions of the walkers so it's a good thing
 that we saved them first.
 
 Now, we can do our production run of 10000 steps:

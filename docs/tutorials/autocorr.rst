@@ -12,7 +12,7 @@ Autocorrelation analysis & convergence
 
 In this tutorial, we will discuss a method for convincing yourself that
 your chains are sufficiently converged. This can be a difficult subject
-to discuss because it isn’t formally possible to guarantee convergence
+to discuss because it isn't formally possible to guarantee convergence
 for any but the simplest models, and therefore any argument that you
 make will be circular and heuristic. However, some discussion of
 autocorrelation analysis is (or should be!) a necessary part of any
@@ -72,13 +72,13 @@ error is actually given by
 where :math:`\tau_f` is the *integrated autocorrelation time* for the
 chain :math:`f(\theta^{(n)})`. In other words, :math:`N/\tau_f` is the
 effective number of samples and :math:`\tau_f` is the number of steps
-that are needed before the chain “forgets” where it started. This means
+that are needed before the chain "forgets" where it started. This means
 that, if you can estimate :math:`\tau_f`, then you can estimate the
 number of samples that you need to generate to reduce the relative error
 on your target integral to (say) a few percent.
 
 **Note:** It is important to remember that :math:`\tau_f` depends on the
-specific function :math:`f(\theta)`. This means that there isn’t just
+specific function :math:`f(\theta)`. This means that there isn't just
 *one* integrated autocorrelation time for a given Markov chain. Instead,
 you must compute a different :math:`\tau_f` for any integral you
 estimate using the samples.
@@ -90,7 +90,7 @@ There is a great discussion of methods for autocorrelation estimation in
 `a set of lecture notes by Alan
 Sokal <https://pdfs.semanticscholar.org/0bfe/9e3db30605fe2d4d26e1a288a5e2997e7225.pdf>`__
 and the interested reader should take a look at that for a more formal
-discussion, but I’ll include a summary of some of the relevant points
+discussion, but I'll include a summary of some of the relevant points
 here. The integrated autocorrelation time is defined as
 
 .. math::
@@ -134,7 +134,7 @@ estimator for :math:`\rho_f(\tau)` as
 
    \hat{\tau}_f \stackrel{?}{=} \sum_{\tau=-N}^{N} \hat{\rho}_f(\tau) = 1 + 2\,\sum_{\tau=1}^N \hat{\rho}_f(\tau)
 
-but this isn’t actually a very good idea. At longer lags,
+but this isn't actually a very good idea. At longer lags,
 :math:`\hat{\rho}_f(\tau)` starts to contain more noise than signal and
 summing all the way out to :math:`N` will result in a very noisy
 estimate of :math:`\tau_f`. Instead, we want to estimate :math:`\tau_f`
@@ -152,15 +152,15 @@ smallest value of :math:`M` where :math:`M \ge C\,\hat{\tau}_f (M)` for
 a constant :math:`C \sim 5`. Sokal says that he finds this procedure to
 work well for chains longer than :math:`1000\,\tau_f`, but the situation
 is a bit better with emcee because we can use the parallel chains to
-reduce the variance and we’ve found that chains longer than about
+reduce the variance and we've found that chains longer than about
 :math:`50\,\tau` are often sufficient.
 
 A toy problem
 -------------
 
-To demonstrate this method, we’ll start by generating a set of “chains”
+To demonstrate this method, we'll start by generating a set of "chains"
 from a process with known autocorrelation structure. To generate a large
-enough dataset, we’ll use `celerite <http://celerite.readthedocs.io>`__:
+enough dataset, we'll use `celerite <http://celerite.readthedocs.io>`__:
 
 .. code:: python
 
@@ -198,7 +198,7 @@ enough dataset, we’ll use `celerite <http://celerite.readthedocs.io>`__:
 .. image:: autocorr_files/autocorr_5_0.png
 
 
-Now we’ll estimate the empirical autocorrelation function for each of
+Now we'll estimate the empirical autocorrelation function for each of
 these parallel chains and compare this to the true function.
 
 .. code:: python
@@ -258,7 +258,7 @@ the empricial estimator is shown as a blue line.
 Instead of estimating the autocorrelation function using a single chain,
 we can assume that each chain is sampled from the same stochastic
 process and average the estimate over ensemble members to reduce the
-variance. It turns out that we’ll actually do this averaging later in
+variance. It turns out that we'll actually do this averaging later in
 the process below, but it can be useful to show the mean autocorrelation
 function for visualization purposes.
 
@@ -285,7 +285,7 @@ function for visualization purposes.
 .. image:: autocorr_files/autocorr_9_0.png
 
 
-Now let’s estimate the autocorrelation time using these estimated
+Now let's estimate the autocorrelation time using these estimated
 autocorrelation functions. Goodman & Weare (2010) suggested averaging
 the ensemble over walkers and computing the autocorrelation function of
 the mean chain to lower the variance of the estimator and that was what
@@ -293,7 +293,7 @@ was originally implemented in emcee. Since then, @fardal on GitHub
 `suggested that other estimators might have lower
 variance <https://github.com/dfm/emcee/issues/209>`__. This is
 absolutely correct and, instead of the Goodman & Weare method, we now
-recommend computing the autocorrelation time for each walker (it’s
+recommend computing the autocorrelation time for each walker (it's
 actually possible to still use the ensemble to choose the appropriate
 window) and then average these estimates.
 
@@ -357,7 +357,7 @@ fact, even for moderately long chains, the old method can give
 dangerously over-confident estimates. For comparison, we have also
 plotted the :math:`\tau = N/50` line to show that, once the estimate
 crosses that line, The estimates are starting to get more reasonable.
-This suggests that you probably shouldn’t trust any estimate of
+This suggests that you probably shouldn't trust any estimate of
 :math:`\tau` unless you have more than :math:`F\times\tau` samples for
 some :math:`F \ge 50`. Larger values of :math:`F` will be more
 conservative, but they will also (obviously) require longer chains.
@@ -365,8 +365,8 @@ conservative, but they will also (obviously) require longer chains.
 A more realistic example
 ------------------------
 
-Now, let’s run an actual Markov chain and test these methods using those
-samples. So that the sampling isn’t completely trivial, we’ll sample a
+Now, let's run an actual Markov chain and test these methods using those
+samples. So that the sampling isn't completely trivial, we'll sample a
 multimodal density in three dimensions.
 
 .. code:: python
@@ -384,12 +384,10 @@ multimodal density in three dimensions.
 
 .. parsed-literal::
 
-    /Users/dforeman/anaconda/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
-      from ._conv import register_converters as _register_converters
-    100%|██████████| 500000/500000 [06:23<00:00, 1302.86it/s]
+    100%|██████████| 500000/500000 [08:41<00:00, 958.87it/s] 
 
 
-Here’s the marginalized density in the first dimension.
+Here's the marginalized density in the first dimension.
 
 .. code:: python
 
@@ -405,7 +403,7 @@ Here’s the marginalized density in the first dimension.
 .. image:: autocorr_files/autocorr_16_0.png
 
 
-And here’s the comparison plot showing how the autocorrelation time
+And here's the comparison plot showing how the autocorrelation time
 estimates converge with longer chains.
 
 .. code:: python
@@ -449,11 +447,11 @@ fit an `autoregressive
 model <https://en.wikipedia.org/wiki/Autoregressive_model>`__ to the
 chain and using that to estimate the autocorrelation time.
 
-As an example, we’ll use `celerite <http://celerite.readthdocs.io>`__ to
+As an example, we'll use `celerite <http://celerite.readthdocs.io>`__ to
 fit for the maximum likelihood autocorrelation function and then compute
 an estimate of :math:`\tau` based on that model. The celerite model that
-we’re using is equivalent to a second-order ARMA model and it appears to
-be a good choice for this example, but we’re not going to promise
+we're using is equivalent to a second-order ARMA model and it appears to
+be a good choice for this example, but we're not going to promise
 anything here about the general applicability and we caution care
 whenever estimating autocorrelation times using short chains.
 
@@ -509,6 +507,13 @@ whenever estimating autocorrelation times using short chains.
         thin = max(1, int(0.05*new[i]))
         ml[i] = autocorr_ml(chain[:, :n], thin=thin)
 
+
+.. parsed-literal::
+
+    /Users/dforeman/anaconda3/lib/python3.6/site-packages/autograd/numpy/numpy_vjps.py:444: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+      return lambda g: g[idxs]
+
+
 .. code:: python
 
     # Plot the comparisons
@@ -523,17 +528,11 @@ whenever estimating autocorrelation times using short chains.
     plt.legend(fontsize=14);
 
 
-.. parsed-literal::
 
-    /Users/dforeman/anaconda/lib/python3.6/site-packages/matplotlib/scale.py:114: RuntimeWarning: invalid value encountered in less_equal
-      out[a <= 0] = -1000
+.. image:: autocorr_files/autocorr_22_0.png
 
 
-
-.. image:: autocorr_files/autocorr_22_1.png
-
-
-This figure is the same as the previous one, but we’ve added the maximum
+This figure is the same as the previous one, but we've added the maximum
 likelihood estimates for :math:`\tau` in green. In this case, this
 estimate seems to be robust even for very short chains with
 :math:`N \sim \tau`.
