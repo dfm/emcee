@@ -243,8 +243,9 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
+        ok_type = complex if np.iscomplex(state.coords).any() else float
         if (not skip_initial_state_check) and np.linalg.cond(
-            np.atleast_2d(np.cov(state.coords, rowvar=False))
+            np.atleast_2d(np.cov(state.coords, rowvar=False)).astype(ok_type)
         ) > 1e8:
             warnings.warn(
                 "Initial state is not linearly independent and it will not "
