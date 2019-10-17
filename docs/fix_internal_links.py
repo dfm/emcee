@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division, print_function
-
 import re
 import sys
 
 if len(sys.argv) <= 1:
     sys.exit(0)
 
+
 def subber(m):
     return m.group(0).replace("``", "`")
+
 
 prog = re.compile(r":(.+):``(.+)``")
 

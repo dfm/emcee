@@ -1,14 +1,30 @@
 # -*- coding: utf-8 -*-
 
+import glob
 import os
-import sys
+import subprocess
 
-from emcee import __version__  # NOQA
+from pkg_resources import DistributionNotFound, get_distribution
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.join(os.path.abspath(".."), "src"))
+try:
+    __version__ = get_distribution("emcee").version
+except DistributionNotFound:
+    __version__ = "unknown version"
+
+
+# Convert the tutorials
+for fn in glob.glob("_static/notebooks/*.ipynb"):
+    name = os.path.splitext(os.path.split(fn)[1])[0]
+    outfn = os.path.join("tutorials", name + ".rst")
+    print("Building {0}...".format(name))
+    subprocess.check_call(
+        "jupyter nbconvert --template tutorials/tutorial_rst --to rst "
+        + fn
+        + " --output-dir tutorials",
+        shell=True,
+    )
+    subprocess.check_call("python fix_internal_links.py " + outfn, shell=True)
+
 
 extensions = [
     "sphinx.ext.autodoc",
