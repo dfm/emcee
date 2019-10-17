@@ -7,9 +7,15 @@ authors:
   - name: Daniel Foreman-Mackey
     orcid: 0000-0003-0872-7098
     affiliation: 1
+  - name: Andrew R. J. Nelson
+    orcid: 0000-0002-4548-3558
+    affiliation: 2
+
 affiliations:
  - name: Center for Computational Astrophysics, Flatiron Institute
    index: 1
+ - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
+   index: 2
 date: 17 October 2019
 bibliography: paper.bib
 ---
