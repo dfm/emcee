@@ -1,15 +1,15 @@
 import os
 import sys
 import time
-
-import numpy as np
-import matplotlib.pyplot as pl
-import h5py
-
 from multiprocessing import Pool
 
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..", "..")))
+import h5py
+import matplotlib.pyplot as pl
+import numpy as np
+
 import emcee
+
+sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..", "..")))
 
 # import acor
 
@@ -20,8 +20,9 @@ def lnprobfn(p, icov):
 
 def random_cov(ndim, dof=1):
     v = np.random.randn(ndim * (ndim + dof)).reshape((ndim + dof, ndim))
-    return (sum([np.outer(v[i], v[i]) for i in range(ndim + dof)])
-            / (ndim + dof))
+    return sum([np.outer(v[i], v[i]) for i in range(ndim + dof)]) / (
+        ndim + dof
+    )
 
 
 _rngs = {}
@@ -31,33 +32,34 @@ def _worker(args):
     i, outfn, nsteps = args
 
     pid = os.getpid()
-    _random = _rngs.get(pid, np.random.RandomState(int(int(pid)
-        + time.time())))
+    _random = _rngs.get(
+        pid, np.random.RandomState(int(int(pid) + time.time()))
+    )
     _rngs[pid] = _random
 
     ndim = int(np.ceil(2 ** (7 * _random.rand())))
     nwalkers = 2 * ndim + 2
     # nwalkers += nwalkers % 2
-    print ndim, nwalkers
+    print(ndim, nwalkers)
 
     cov = random_cov(ndim)
     icov = np.linalg.inv(cov)
 
-    ens_samp = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn,
-            args=[icov])
+    ens_samp = emcee.EnsembleSampler(nwalkers, ndim, lnprobfn, args=[icov])
     ens_samp.random_state = _random.get_state()
-    pos, lnprob, state = ens_samp.run_mcmc(np.random.randn(nwalkers * ndim)
-            .reshape([nwalkers, ndim]), nsteps)
+    pos, lnprob, state = ens_samp.run_mcmc(
+        np.random.randn(nwalkers * ndim).reshape([nwalkers, ndim]), nsteps
+    )
 
     proposal = np.diag(cov.diagonal())
-    mh_samp = emcee.MHSampler(proposal, ndim, lnprobfn,
-            args=[icov])
+    mh_samp = emcee.MHSampler(proposal, ndim, lnprobfn, args=[icov])
     mh_samp.random_state = state
     mh_samp.run_mcmc(np.random.randn(ndim), nsteps)
 
     f = h5py.File(outfn)
-    f["data"][i, :] = np.array([ndim, np.mean(ens_samp.acor),
-                                np.mean(mh_samp.acor)])
+    f["data"][i, :] = np.array(
+        [ndim, np.mean(ens_samp.acor), np.mean(mh_samp.acor)]
+    )
     f.close()
 
 
@@ -67,7 +69,7 @@ def oned():
     nthreads = 2
 
     outfn = os.path.join(os.path.split(__file__)[0], "gauss_scaling.h5")
-    print outfn
+    print(outfn)
     f = h5py.File(outfn, "w")
     f.create_dataset("data", (niter, 3), "f")
     f.close()
