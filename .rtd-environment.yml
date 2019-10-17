@@ -1,5 +1,0 @@
-name: emcee
-
-dependencies:
-  - python=3.5
-  - numpy
