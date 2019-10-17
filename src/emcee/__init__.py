@@ -16,13 +16,12 @@ __uri__ = "https://emcee.readthedocs.io"
 __author__ = "Daniel Foreman-Mackey"
 __email__ = "foreman.mackey@gmail.com"
 __license__ = "MIT"
-__description__ = (
-    "The Python ensemble sampling toolkit for affine-invariant MCMC"
-)
+__description__ = "The Python ensemble sampling toolkit for MCMC"
 
+
+from .emcee_version import __version__  # isort:skip
 
 from . import autocorr, backends, moves
-from .emcee_version import __version__
 from .ensemble import EnsembleSampler
 from .state import State
 

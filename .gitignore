@@ -17,3 +17,4 @@ docs.tar
 .coverage
 .pytest_cache
 htmlcov
+emcee_version.py
