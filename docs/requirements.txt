@@ -2,3 +2,5 @@ sphinx>=1.7.5
 pandoc
 jupyter
 numpy
+setuptools>=40.6.0
+setuptools_scm
