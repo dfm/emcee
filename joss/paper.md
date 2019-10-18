@@ -7,12 +7,18 @@ authors:
   - name: Daniel Foreman-Mackey
     orcid: 0000-0003-0872-7098
     affiliation: 1
+  - name: Will M. Farr
+    orcid: 0000-0003-1540-8562
+    affiliation: "10, 1"
   - name: Manodeep Sinha
     orcid: 0000-0002-4845-1228
     affiliation: "2, 3"
   - name: Joe Zuntz
     orcid: 0000-0001-9789-9646
     affiliation: 6
+  - name: Peter K. G. Williams
+    orcid: 0000-0003-3734-3587
+    affiliation: "8, 9"
   - name: Andrew R. J. Nelson
     orcid: 0000-0002-4548-3558
     affiliation: 4
@@ -23,9 +29,9 @@ authors:
     orcid: 0000-0002-9404-7023
     affiliation: 7
 affiliations:
-  - name: Center for Computational Astrophysics, Flatiron Institute
+  - name: Center for Computational Astrophysics, Flatiron Institute, United States
     index: 1
-  - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology
+  - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology, Australia
     index: 2
   - name: ARC Centre of Excellence for All Sky Astrophysics in 3 Dimensions (ASTRO 3D)
     index: 3
@@ -37,6 +43,12 @@ affiliations:
     index: 6
   - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
     index: 7
+  - name: "Center for Astrophysics | Harvard & Smithsonian"
+    index: 8
+  - name: American Astronomical Society
+    index: 9
+  - name: Department of Physics and Astronomy, Stony Brook University, United States
+    index: 10
 
 date: 17 October 2019
 bibliography: paper.bib
