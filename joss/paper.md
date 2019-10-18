@@ -7,9 +7,37 @@ authors:
   - name: Daniel Foreman-Mackey
     orcid: 0000-0003-0872-7098
     affiliation: 1
+  - name: Manodeep Sinha
+    orcid: 0000-0002-4845-1228
+    affiliation: "2, 3"
+  - name: Joe Zuntz
+    orcid: 0000-0001-9789-9646
+    affiliation: 6
+  - name: Andrew R. J. Nelson
+    orcid: 0000-0002-4548-3558
+    affiliation: 4
+  - name: Tobias Erhardt
+    orcid: 0000-0002-6683-6746
+    affiliation: 5
+  - name: Ilya Pashchenko
+    orcid: 0000-0002-9404-7023
+    affiliation: 7
 affiliations:
- - name: Center for Computational Astrophysics, Flatiron Institute
-   index: 1
+  - name: Center for Computational Astrophysics, Flatiron Institute
+    index: 1
+  - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology
+    index: 2
+  - name: ARC Centre of Excellence for All Sky Astrophysics in 3 Dimensions (ASTRO 3D)
+    index: 3
+  - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
+    index: 4
+  - name: Climate and Environmental Physics and Oeschger Center for Climate Change Research, University of Bern, Bern, Switzerland
+    index: 5
+  - name: Institute for Astronomy, University of Edinburgh, Edinburgh, EH9 3HJ, UK
+    index: 6
+  - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
+    index: 7
+
 date: 17 October 2019
 bibliography: paper.bib
 ---
