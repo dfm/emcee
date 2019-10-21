@@ -12,7 +12,7 @@ emcee
 .. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
     :target: https://github.com/dfm/emcee/blob/master/LICENSE
 .. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
-    :target: http://arxiv.org/abs/1202.3665
+    :target: https://arxiv.org/abs/1202.3665
 .. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat&v=2
     :target: https://coveralls.io/github/dfm/emcee?branch=master
 .. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
@@ -36,7 +36,7 @@ Attribution
 -----------
 
 Please cite `Foreman-Mackey, Hogg, Lang & Goodman (2012)
-<http://arxiv.org/abs/1202.3665>`_ if you find this code useful in your
+<https://arxiv.org/abs/1202.3665>`_ if you find this code useful in your
 research and add your paper to `the testimonials list
 <https://github.com/dfm/emcee/blob/master/docs/testimonials.rst>`_.
 The BibTeX entry for the paper is::
@@ -55,7 +55,7 @@ The BibTeX entry for the paper is::
 License
 -------
 
-Copyright 2010-2017 Dan Foreman-Mackey and contributors.
+Copyright 2010-2019 Dan Foreman-Mackey and contributors.
 
 emcee is free software made available under the MIT License. For details see
 the LICENSE file.

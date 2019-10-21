@@ -22,7 +22,7 @@ class KDEMove(RedBlueMove):
 
     Args:
         bw_method: The bandwidth estimation method. See `the scipy docs
-            <http://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html>`_
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html>`_
             for allowed values.
 
     """
