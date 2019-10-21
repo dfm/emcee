@@ -9,60 +9,60 @@ authors:
     affiliation: 1
   - name: David W. Hogg
     orcid: 0000-0003-2866-9403
-    affiliation: "1, 13"
+    affiliation: "1, 2"
   - name: Will M. Farr
     orcid: 0000-0003-1540-8562
-    affiliation: "10, 1"
+    affiliation: "1, 3"
   - name: Manodeep Sinha
     orcid: 0000-0002-4845-1228
-    affiliation: "2, 3"
+    affiliation: "4, 5"
   - name: Joe Zuntz
     orcid: 0000-0001-9789-9646
     affiliation: 6
   - name: Peter K. G. Williams
     orcid: 0000-0003-3734-3587
-    affiliation: "8, 9"
+    affiliation: "7, 8"
   - name: Andrew R. J. Nelson
     orcid: 0000-0002-4548-3558
-    affiliation: 4
+    affiliation: 9
   - name: Tobias Erhardt
     orcid: 0000-0002-6683-6746
-    affiliation: 5
+    affiliation: 10
   - name: Ilya Pashchenko
     orcid: 0000-0002-9404-7023
-    affiliation: 7
+    affiliation: 11
   - name: Oriol Abril Pla
     orcid: 0000-0002-1847-9481
-    affiliation: 11
+    affiliation: 12
   - name: Miguel de Val-Borro
     orcid: 0000-0002-0455-9384
-    affiliation: 12
+    affiliation: 13
 affiliations:
   - name: Center for Computational Astrophysics, Flatiron Institute
     index: 1
-  - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology, Australia
+  - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
     index: 2
-  - name: ARC Centre of Excellence for All Sky Astrophysics in 3 Dimensions (ASTRO 3D)
+  - name: Department of Physics and Astronomy, Stony Brook University, United States
     index: 3
-  - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
+  - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology, Australia
     index: 4
-  - name: Climate and Environmental Physics and Oeschger Center for Climate Change Research, University of Bern, Bern, Switzerland
+  - name: ARC Centre of Excellence for All Sky Astrophysics in 3 Dimensions (ASTRO 3D)
     index: 5
   - name: Institute for Astronomy, University of Edinburgh, Edinburgh, EH9 3HJ, UK
     index: 6
-  - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
-    index: 7
   - name: "Center for Astrophysics | Harvard & Smithsonian"
-    index: 8
+    index: 7
   - name: American Astronomical Society
+    index: 8
+  - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
     index: 9
-  - name: Department of Physics and Astronomy, Stony Brook University, United States
+  - name: Climate and Environmental Physics and Oeschger Center for Climate Change Research, University of Bern, Bern, Switzerland
     index: 10
-  - name: Universitat Pompeu Fabra, Barcelona
+  - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
     index: 11
-  - name: Planetary Science Institute, 1700 East Fort Lowell Rd., Suite 106, Tucson, AZ 85719, USA
+  - name: Universitat Pompeu Fabra, Barcelona
     index: 12
-  - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
+  - name: Planetary Science Institute, 1700 East Fort Lowell Rd., Suite 106, Tucson, AZ 85719, USA
     index: 13
 
 date: 17 October 2019
