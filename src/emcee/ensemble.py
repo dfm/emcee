@@ -18,6 +18,12 @@ try:
 except ImportError:
     # for py2.7, will be an Exception in 3.8
     from collections import Iterable
+try:
+    from scipy import linalg
+    longdouble_linalg = True
+except ImportError:
+    from numpy import linalg
+    longdouble_linalg = False
 
 
 class EnsembleSampler(object):
@@ -243,7 +249,7 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        ok_type = complex if np.iscomplex(state.coords).any() else float
+        ok_type = np.longdouble if longdouble_linalg else np.float
         if (not skip_initial_state_check) and np.linalg.cond(
             np.atleast_2d(np.cov(state.coords, rowvar=False)).astype(ok_type)
         ) > 1e8:

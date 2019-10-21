@@ -11,8 +11,11 @@ __all__ = ["Backend"]
 class Backend(object):
     """A simple default backend that stores the chain in memory"""
 
-    def __init__(self):
+    def __init__(self, dtype=None):
         self.initialized = False
+        if dtype is None:
+            dtype = np.float
+        self.dtype = dtype
 
     def reset(self, nwalkers, ndim):
         """Clear the state of the chain and empty the backend
@@ -25,9 +28,9 @@ class Backend(object):
         self.nwalkers = int(nwalkers)
         self.ndim = int(ndim)
         self.iteration = 0
-        self.accepted = np.zeros(self.nwalkers)
-        self.chain = np.empty((0, self.nwalkers, self.ndim))
-        self.log_prob = np.empty((0, self.nwalkers))
+        self.accepted = np.zeros(self.nwalkers, dtype=self.dtype)
+        self.chain = np.empty((0, self.nwalkers, self.ndim), dtype=self.dtype)
+        self.log_prob = np.empty((0, self.nwalkers), dtype=self.dtype)
         self.blobs = None
         self.random_state = None
         self.initialized = True
@@ -169,9 +172,9 @@ class Backend(object):
         """
         self._check_blobs(blobs)
         i = ngrow - (len(self.chain) - self.iteration)
-        a = np.empty((i, self.nwalkers, self.ndim))
+        a = np.empty((i, self.nwalkers, self.ndim), dtype=self.dtype)
         self.chain = np.concatenate((self.chain, a), axis=0)
-        a = np.empty((i, self.nwalkers))
+        a = np.empty((i, self.nwalkers), dtype=self.dtype)
         self.log_prob = np.concatenate((self.log_prob, a), axis=0)
         if blobs is not None:
             dt = np.dtype((blobs[0].dtype, blobs[0].shape))

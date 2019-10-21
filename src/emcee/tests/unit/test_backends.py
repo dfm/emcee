@@ -223,3 +223,9 @@ def test_multi_hdf5():
         assert np.allclose(backend2.get_chain(), chain2)
         with pytest.raises(AttributeError):
             backend1.get_chain()
+
+
+@pytest.mark.parametrize("backend", all_backends)
+def test_longdouble(backend):
+    with backend(dtype=np.longdouble):
+        pass
