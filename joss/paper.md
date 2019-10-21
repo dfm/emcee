@@ -7,6 +7,9 @@ authors:
   - name: Daniel Foreman-Mackey
     orcid: 0000-0003-0872-7098
     affiliation: 1
+  - name: David W. Hogg
+    orcid: 0000-0003-2866-9403
+    affiliation: "1, 13"
   - name: Will M. Farr
     orcid: 0000-0003-1540-8562
     affiliation: "10, 1"
@@ -28,8 +31,14 @@ authors:
   - name: Ilya Pashchenko
     orcid: 0000-0002-9404-7023
     affiliation: 7
+  - name: Oriol Abril Pla
+    orcid: 0000-0002-1847-9481
+    affiliation: 11
+  - name: Miguel de Val-Borro
+    orcid: 0000-0002-0455-9384
+    affiliation: 12
 affiliations:
-  - name: Center for Computational Astrophysics, Flatiron Institute, United States
+  - name: Center for Computational Astrophysics, Flatiron Institute
     index: 1
   - name: Centre for Astrophysics & Supercomputing, Swinburne University of Technology, Australia
     index: 2
@@ -49,6 +58,12 @@ affiliations:
     index: 9
   - name: Department of Physics and Astronomy, Stony Brook University, United States
     index: 10
+  - name: Universitat Pompeu Fabra, Barcelona
+    index: 11
+  - name: Planetary Science Institute, 1700 East Fort Lowell Rd., Suite 106, Tucson, AZ 85719, USA
+    index: 12
+  - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
+    index: 13
 
 date: 17 October 2019
 bibliography: paper.bib
