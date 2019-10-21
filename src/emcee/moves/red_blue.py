@@ -11,7 +11,7 @@ __all__ = ["RedBlueMove"]
 class RedBlueMove(Move):
     """
     An abstract red-blue ensemble move with parallelization as described in
-    `Foreman-Mackey et al. (2013) <http://arxiv.org/abs/1202.3665>`_.
+    `Foreman-Mackey et al. (2013) <https://arxiv.org/abs/1202.3665>`_.
 
     Args:
         nsplits (Optional[int]): The number of sub-ensembles to use. Each

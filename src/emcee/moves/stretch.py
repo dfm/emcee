@@ -10,9 +10,9 @@ __all__ = ["StretchMove"]
 class StretchMove(RedBlueMove):
     """
     A `Goodman & Weare (2010)
-    <http://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ "stretch move" with
+    <https://msp.org/camcos/2010/5-1/p04.xhtml>`_ "stretch move" with
     parallelization as described in `Foreman-Mackey et al. (2013)
-    <http://arxiv.org/abs/1202.3665>`_.
+    <https://arxiv.org/abs/1202.3665>`_.
 
     :param a: (optional)
         The stretch scale parameter. (default: ``2.0``)
