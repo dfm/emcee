@@ -13,7 +13,7 @@ class DEMove(RedBlueMove):
     This `Differential evolution proposal
     <http://www.stat.columbia.edu/~gelman/stuff_for_blog/cajo.pdf>`_ is
     implemented following `Nelson et al. (2013)
-    <http://arxiv.org/abs/1311.5229>`_.
+    <https://arxiv.org/abs/1311.5229>`_.
 
     Args:
         sigma (float): The standard deviation of the Gaussian used to stretch
