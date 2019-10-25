@@ -226,7 +226,7 @@ def test_multi_hdf5():
 
 
 @pytest.mark.parametrize("backend", all_backends)
-def test_longdouble_coords_preserved(backend):
+def test_longdouble_preserved(backend):
     nwalkers = 10
     ndim = 2
     nsteps = 5
@@ -239,8 +239,9 @@ def test_longdouble_coords_preserved(backend):
             coords += np.arange(nwalkers)[:, None]
             coords[:, 1] += coords[:, 0]*2*np.finfo(np.longdouble).eps
             assert not np.any(coords[:, 1] == coords[:, 0])
+            lp = 1+np.arange(nwalkers)*np.finfo(np.longdouble).eps
             state = State(coords,
-                          log_prob=np.zeros(nwalkers),
+                          log_prob=lp,
                           random_state=())
             b.save_step(state, np.ones((nwalkers,), dtype=bool))
             s = b.get_last_sample()
@@ -248,3 +249,17 @@ def test_longdouble_coords_preserved(backend):
             assert s.coords.dtype == np.longdouble
             assert not np.any(s.coords[:, 1] == s.coords[:, 0])
             assert np.all(s.coords == coords)
+
+            assert s.log_prob.dtype == np.longdouble
+            assert np.all(s.log_prob == lp)
+
+
+def test_hdf5_dtypes():
+    nwalkers = 10
+    ndim = 2
+    with backends.TempHDFBackend(dtype=np.longdouble) as b:
+        assert b.dtype == np.longdouble
+        b.reset(nwalkers, ndim)
+        with h5py.File(b.filename, "r") as f:
+            g = f["test"]
+            assert g["chain"].dtype == np.longdouble

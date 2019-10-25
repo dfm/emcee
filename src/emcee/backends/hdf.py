@@ -232,7 +232,7 @@ class TempHDFBackend(object):
                                delete=False)
         f.close()
         self.filename = f.name
-        return HDFBackend(f.name, "test")
+        return HDFBackend(f.name, "test", dtype=self.dtype)
 
     def __exit__(self, exception_type, exception_value, traceback):
         os.remove(self.filename)
