@@ -550,5 +550,6 @@ class _FunctionWrapper(object):
             raise
 
 def _scaled_cond(a):
-    b = (a/np.sqrt((a**2).sum(axis=0))[None,:])/np.sqrt((a**2).sum(axis=1))[:,None]
-    return np.linalg.cond(b.astype(float))
+    b = a/np.sqrt((a**2).sum(axis=0))[None,:]
+    c = b/np.sqrt((b**2).sum(axis=1))[:,None]
+    return np.linalg.cond(c.astype(float))
