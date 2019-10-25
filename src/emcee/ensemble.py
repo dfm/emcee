@@ -19,6 +19,7 @@ except ImportError:
     # for py2.7, will be an Exception in 3.8
     from collections import Iterable
 
+
 class EnsembleSampler(object):
     """An ensemble MCMC sampler
 
@@ -549,7 +550,8 @@ class _FunctionWrapper(object):
             traceback.print_exc()
             raise
 
+
 def _scaled_cond(a):
-    b = a/np.sqrt((a**2).sum(axis=0))[None,:]
-    c = b/np.sqrt((b**2).sum(axis=1))[:,None]
+    b = a/np.sqrt((a**2).sum(axis=0))[None, :]
+    c = b/np.sqrt((b**2).sum(axis=1))[:, None]
     return np.linalg.cond(c.astype(float))

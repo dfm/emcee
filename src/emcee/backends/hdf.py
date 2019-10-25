@@ -4,7 +4,6 @@ from __future__ import division, print_function
 
 __all__ = ["HDFBackend", "TempHDFBackend"]
 
-import contextlib
 import os
 from tempfile import NamedTemporaryFile
 
