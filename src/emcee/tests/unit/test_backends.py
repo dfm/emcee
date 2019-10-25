@@ -7,7 +7,7 @@ import h5py
 import numpy as np
 import pytest
 
-from emcee import EnsembleSampler, backends
+from emcee import EnsembleSampler, backends, State
 
 __all__ = ["test_backend", "test_reload"]
 
@@ -226,6 +226,25 @@ def test_multi_hdf5():
 
 
 @pytest.mark.parametrize("backend", all_backends)
-def test_longdouble(backend):
-    with backend(dtype=np.longdouble):
-        pass
+def test_longdouble_coords_preserved(backend):
+    nwalkers = 10
+    ndim = 2
+    nsteps = 5
+    with backend(dtype=np.longdouble) as b:
+        b.reset(nwalkers, ndim)
+        b.grow(nsteps, None)
+        for i in range(nsteps):
+            coords = np.zeros((nwalkers, ndim), dtype=np.longdouble)
+            coords += i + 1
+            coords += np.arange(nwalkers)[:, None]
+            coords[:, 1] += coords[:, 0]*2*np.finfo(np.longdouble).eps
+            assert not np.any(coords[:, 1] == coords[:, 0])
+            state = State(coords,
+                          log_prob=np.zeros(nwalkers),
+                          random_state=())
+            b.save_step(state, np.ones((nwalkers,), dtype=bool))
+            s = b.get_last_sample()
+            # check s has adequate precision and equals state
+            assert s.coords.dtype == np.longdouble
+            assert not np.any(s.coords[:, 1] == s.coords[:, 0])
+            assert np.all(s.coords == coords)
