@@ -18,13 +18,6 @@ try:
 except ImportError:
     # for py2.7, will be an Exception in 3.8
     from collections import Iterable
-try:
-    from scipy import linalg
-    longdouble_linalg = True
-except ImportError:
-    from numpy import linalg
-    longdouble_linalg = False
-
 
 class EnsembleSampler(object):
     """An ensemble MCMC sampler
@@ -249,9 +242,8 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        ok_type = np.longdouble if longdouble_linalg else np.float
-        if (not skip_initial_state_check) and np.linalg.cond(
-            np.atleast_2d(np.cov(state.coords, rowvar=False)).astype(ok_type)
+        if (not skip_initial_state_check) and _scaled_cond(
+            np.atleast_2d(np.cov(state.coords, rowvar=False))
         ) > 1e8:
             warnings.warn(
                 "Initial state is not linearly independent and it will not "
@@ -556,3 +548,7 @@ class _FunctionWrapper(object):
             print("  exception:")
             traceback.print_exc()
             raise
+
+def _scaled_cond(a):
+    b = (a/np.sqrt((a**2).sum(axis=0))[None,:])/np.sqrt((a**2).sum(axis=1))[:,None]
+    return np.linalg.cond(b.astype(float))
