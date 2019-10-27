@@ -14,6 +14,11 @@ env:
   - NUMPY_VERSION=1.17
   - NUMPY_VERSION=1.16
   - NUMPY_VERSION=1.15
+jobs:
+  include:
+    - python: "3.7"
+      arch: arm64
+      env: NUMPY_VERSION=1.17
 
 install:
   - travis_retry pip install --upgrade pip
