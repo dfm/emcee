@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division, print_function
+
+__all__ = ["HDFBackend", "TempHDFBackend"]
+
 import os
 from tempfile import NamedTemporaryFile
 
@@ -7,8 +11,6 @@ import numpy as np
 
 from .. import __version__
 from .backend import Backend
-
-__all__ = ["HDFBackend", "TempHDFBackend"]
 
 
 try:
@@ -32,13 +34,18 @@ class HDFBackend(Backend):
             ``RuntimeError`` if the file is opened with write access.
 
     """
-
-    def __init__(self, filename, name="mcmc", read_only=False):
+    def __init__(self, filename, name="mcmc", read_only=False, dtype=None):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
         self.filename = filename
         self.name = name
         self.read_only = read_only
+        if dtype is None:
+            self.dtype_set = False
+            self.dtype = np.float64
+        else:
+            self.dtype_set = True
+            self.dtype = dtype
 
     @property
     def initialized(self):
@@ -57,7 +64,13 @@ class HDFBackend(Backend):
                 "mode. Set `read_only = False` to make "
                 "changes."
             )
-        return h5py.File(self.filename, mode)
+        f = h5py.File(self.filename, mode)
+        if not self.dtype_set and self.name in f:
+            g = f[self.name]
+            if "chain" in g:
+                self.dtype = g["chain"].dtype
+                self.dtype_set = True
+        return f
 
     def reset(self, nwalkers, ndim):
         """Clear the state of the chain and empty the backend
@@ -82,13 +95,13 @@ class HDFBackend(Backend):
                 "chain",
                 (0, nwalkers, ndim),
                 maxshape=(None, nwalkers, ndim),
-                dtype=np.float64,
+                dtype=self.dtype,
             )
             g.create_dataset(
                 "log_prob",
                 (0, nwalkers),
                 maxshape=(None, nwalkers),
-                dtype=np.float64,
+                dtype=self.dtype,
             )
 
     def has_blobs(self):
@@ -207,11 +220,18 @@ class HDFBackend(Backend):
 
 
 class TempHDFBackend(object):
+
+    def __init__(self, dtype=None):
+        self.dtype = dtype
+        self.filename = None
+
     def __enter__(self):
-        f = NamedTemporaryFile("w", delete=False)
+        f = NamedTemporaryFile(prefix="emcee-temporary-hdf5",
+                               suffix=".hdf5",
+                               delete=False)
         f.close()
         self.filename = f.name
-        return HDFBackend(f.name, "test")
+        return HDFBackend(f.name, "test", dtype=self.dtype)
 
     def __exit__(self, exception_type, exception_value, traceback):
         os.remove(self.filename)

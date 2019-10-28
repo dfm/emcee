@@ -18,3 +18,5 @@ docs.tar
 .pytest_cache
 htmlcov
 emcee_version.py
+
+.tox

@@ -243,7 +243,7 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        if (not skip_initial_state_check) and np.linalg.cond(
+        if (not skip_initial_state_check) and _scaled_cond(
             np.atleast_2d(np.cov(state.coords, rowvar=False))
         ) > 1e8:
             warnings.warn(
@@ -549,3 +549,9 @@ class _FunctionWrapper(object):
             print("  exception:")
             traceback.print_exc()
             raise
+
+
+def _scaled_cond(a):
+    b = a/np.sqrt((a**2).sum(axis=0))[None, :]
+    c = b/np.sqrt((b**2).sum(axis=1))[:, None]
+    return np.linalg.cond(c.astype(float))
