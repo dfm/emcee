@@ -60,7 +60,7 @@ How to Use This Guide
 To start, you're probably going to need to follow the :ref:`install` guide to
 get emcee installed on your computer.
 After you finish that, you can probably learn most of what you need from the
-from the tutorials listed below (you might want to start with
+tutorials listed below (you might want to start with
 :ref:`quickstart` and go from there).
 If you need more details about specific functionality, the User Guide below
 should have what you need.
