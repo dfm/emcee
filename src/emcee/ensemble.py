@@ -230,9 +230,9 @@ class EnsembleSampler(object):
                 ``'notebook'``, which shows a progress bar suitable for
                 Jupyter notebooks.  If ``False``, no progress bar will be
                 shown.
-            skip_initial_state_check (Optional[bool]): If ``True``, a check that
-                the initial_state can fully explore the space will be skipped.
-                (default: ``False``)
+            skip_initial_state_check (Optional[bool]): If ``True``, a check
+                that the initial_state can fully explore the space will be
+                skipped. (default: ``False``)
 
 
         Every ``thin_by`` steps, this generator yields the
@@ -247,8 +247,9 @@ class EnsembleSampler(object):
             np.atleast_2d(np.cov(state.coords, rowvar=False))
         ) > 1e8:
             warnings.warn(
-                "Initial state is not linearly independent and it will not "
-                "allow a full exploration of parameter space",
+                "Initial state has a large condition number. "
+                "Make sure that your walkers are linearly independent for the "
+                "best performance",
                 category=RuntimeWarning,
             )
 
@@ -552,6 +553,6 @@ class _FunctionWrapper(object):
 
 
 def _scaled_cond(a):
-    b = a/np.sqrt((a**2).sum(axis=0))[None, :]
-    c = b/np.sqrt((b**2).sum(axis=1))[:, None]
+    b = a / np.sqrt((a ** 2).sum(axis=0))[None, :]
+    c = b / np.sqrt((b ** 2).sum(axis=1))[:, None]
     return np.linalg.cond(c.astype(float))
