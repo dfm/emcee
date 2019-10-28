@@ -1,5 +1,14 @@
 .. :changelog:
 
+3.0.1 (2010-10-28)
+++++++++++++++++++
+
+- Added support for long double dtypes
+- Prepared manuscript to submit to `JOSS <https://joss.theoj.org/>`_
+- Improved packaging and release infrastructure
+- Fixed bug in initial linear dependence test
+
+
 3.0.0 (2019-09-30)
 ++++++++++++++++++
 
