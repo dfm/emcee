@@ -15,6 +15,11 @@ env:
   - NUMPY_VERSION=1.16
   - NUMPY_VERSION=1.15
 
+jobs:
+  include:
+    - python: "2.7"
+      env: NUMPY_VERSION=1.16
+
 install:
   - travis_retry pip install --upgrade pip
   - travis_retry pip install --upgrade setuptools
