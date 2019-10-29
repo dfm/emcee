@@ -10,27 +10,22 @@ All you'll need `numpy <https://numpy.org/>`_.
     instructions in :ref:`source`.
 
 
-Dependencies
-------------
-
-On some systems, it can be useful to install the dependencies first:
-
-.. code-block:: bash
-
-    pip install -U pip
-    pip install -U setuptools setuptools_scm
-
-
 Package managers
 ----------------
 
 The easiest way to install the stable version of emcee is using
-`pip <http://www.pip-installer.org/>`_ or `conda <https://conda.io>`_
+`pip <http://www.pip-installer.org/>`_
 
 .. code-block:: bash
 
+    python -m pip install -U pip
+    pip install -U setuptools setuptools_scm pep517
     pip install -U emcee
-    # or...
+
+or `conda <https://conda.io>`_
+
+.. code-block:: bash
+
     conda install -c conda-forge emcee
 
 
