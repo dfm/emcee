@@ -41,6 +41,8 @@ source repository and install from there
 
 .. code-block:: bash
 
+    python -m pip install -U pip
+    pip install -U setuptools setuptools_scm pep517
     git clone https://github.com/dfm/emcee.git
     cd emcee
     pip install .
