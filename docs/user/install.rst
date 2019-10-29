@@ -26,6 +26,7 @@ or `conda <https://conda.io>`_
 
 .. code-block:: bash
 
+    conda update conda
     conda install -c conda-forge emcee
 
 
