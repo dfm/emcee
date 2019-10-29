@@ -17,8 +17,10 @@ env:
 
 install:
   - travis_retry pip install --upgrade pip
-  - travis_retry pip install --upgrade setuptools setuptools_scm
+  - travis_retry pip install --upgrade setuptools
   - travis_retry pip install --upgrade numpy==$NUMPY_VERSION
+  - pip install -vv .
+  - python -c 'import emcee;print(emcee.__version__)'
   - travis_retry pip install --upgrade -r requirements-dev.txt
   - travis_retry python setup.py develop
 
