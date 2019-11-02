@@ -65,6 +65,11 @@ class Sampler(object):
         if it doesn't work. Don't say I didn't warn you...
 
         """
+        if isinstance(state, (np.random.mtrand.RandomState,
+                              np.random.RandomState)):
+            # The user provided the state object instead of the state info
+            state = state.get_state()
+
         try:
             self._random.set_state(state)
         except:
