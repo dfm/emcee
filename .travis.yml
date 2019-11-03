@@ -1,17 +1,20 @@
+sudo: false
+dist: xenial
 language: python
-
-python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+jobs:
+  include:
+    - python: '2.7'
+    - python: '3.5'
+    - python: '3.6'
+    - python: '3.7'
 
 install:
-  - pip install numpy
-  - pip install nose
-  - pip install coverage
-  - pip install codecov
+  - python -m pip install -U pip
+  - python -m pip install -U numpy
+  - python -m pip install -U nose coverage codecov
 
 script:
   - nosetests --with-coverage --cover-package=emcee -sv
