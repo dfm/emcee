@@ -19,13 +19,7 @@ def lnprob_gaussian(x, icov):
 
 
 def lnprob_gaussian_nan(x, icov):
-    # if walker's parameters are zeros => return NaN
-    if not (np.array(x)).any():
-        result = np.nan
-    else:
-        result = -np.dot(x, np.dot(icov, x)) / 2.0
-
-    return result
+    return np.nan
 
 
 def log_unit_sphere_volume(ndim):
