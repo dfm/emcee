@@ -282,3 +282,20 @@ class Tests:
         # None is given and that it records whatever it does
         s.run_mcmc(None, N=self.N)
         assert s.chain.shape[1] == 2 * self.N
+
+    def test_deterministic(self):
+        self.sampler = s = EnsembleSampler(self.nwalkers, self.ndim,
+                                           lnprob_gaussian, args=[self.icov])
+
+        # Normal usage
+        rstate0 = s.random_state
+        p1, lnprob1 = s.run_mcmc(self.p0, self.N)[:2]
+        p2, lnprob2 = s.run_mcmc(self.p0, self.N, rstate0=rstate0)[:2]
+        assert np.all(p1 == p2) and np.all(lnprob1 == lnprob2)
+
+        # Using the RandomState() object directly
+        rstate_obj = np.random.mtrand.RandomState()
+        rstate_obj.set_state(rstate0)
+        p3, lnprob3 = s.run_mcmc(self.p0, self.N, rstate0=rstate_obj)[:2]
+        assert np.all(p1 == p3) and np.all(lnprob1 == lnprob3), \
+           "Failed to set state from np.mtrand.RandomState object"

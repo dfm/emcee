@@ -7,7 +7,6 @@ from __future__ import (division, print_function, absolute_import,
 __all__ = ["PTSampler"]
 
 import numpy as np
-import numpy.random as nr
 import multiprocessing as multi
 
 from . import autocorr
@@ -165,6 +164,10 @@ class PTSampler(Sampler):
         self.nwalkers = nwalkers
         self.dim = dim
 
+        # This is a random number generator that we can easily set the state
+        # of without affecting the numpy-wide generator
+        self._random = np.random.mtrand.RandomState()
+
         if betas is None:
             self._betas = default_beta_ladder(self.dim, ntemps=ntemps, Tmax=Tmax)
         else:
@@ -305,12 +308,15 @@ class PTSampler(Sampler):
                 pupdate = p[:, jupdate::2, :]
                 psample = p[:, jsample::2, :]
 
-                zs = np.exp(np.random.uniform(low=-np.log(self.a), high=np.log(self.a), size=(self.ntemps, self.nwalkers//2)))
+                zs = np.exp(self._random.uniform(low=-np.log(self.a),
+                                                 high=np.log(self.a),
+                                                 size=(self.ntemps,
+                                                       self.nwalkers//2)))
 
                 qs = np.zeros((self.ntemps, self.nwalkers//2, self.dim))
                 for k in range(self.ntemps):
-                    js = np.random.randint(0, high=self.nwalkers // 2,
-                                           size=self.nwalkers // 2)
+                    js = self._random.randint(0, high=self.nwalkers // 2,
+                                              size=self.nwalkers // 2)
                     qs[k, :, :] = psample[k, js, :] + zs[k, :].reshape(
                         (self.nwalkers // 2, 1)) * (pupdate[k, :, :] -
                                                    psample[k, js, :])
@@ -333,9 +339,9 @@ class PTSampler(Sampler):
 
                 logpaccept = self.dim*np.log(zs) + qslnprob \
                     - lnprob[:, jupdate::2]
-                logrs = np.log(np.random.uniform(low=0.0, high=1.0,
-                                                 size=(self.ntemps,
-                                                       self.nwalkers//2)))
+                logrs = np.log(self._random.uniform(low=0.0, high=1.0,
+                                                    size=(self.ntemps,
+                                                          self.nwalkers//2)))
 
                 accepts = logrs < logpaccept
                 accepts = accepts.flatten()
@@ -377,10 +383,10 @@ class PTSampler(Sampler):
 
             dbeta = bi1 - bi
 
-            iperm = nr.permutation(self.nwalkers)
-            i1perm = nr.permutation(self.nwalkers)
+            iperm = self._random.permutation(self.nwalkers)
+            i1perm = self._random.permutation(self.nwalkers)
 
-            raccept = np.log(nr.uniform(size=self.nwalkers))
+            raccept = np.log(self._random.uniform(size=self.nwalkers))
             paccept = dbeta * (logl[i, iperm] - logl[i - 1, i1perm])
 
             self.nswap[i] += self.nwalkers

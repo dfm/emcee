@@ -65,6 +65,11 @@ class Sampler(object):
         if it doesn't work. Don't say I didn't warn you...
 
         """
+        if isinstance(state, (np.random.mtrand.RandomState,
+                              np.random.RandomState)):
+            # The user provided the state object instead of the state info
+            state = state.get_state()
+
         try:
             self._random.set_state(state)
         except:
@@ -164,7 +169,7 @@ class Sampler(object):
                                  "been called.")
             pos0 = self._last_run_mcmc_result[0]
             if lnprob0 is None:
-                rstate0 = self._last_run_mcmc_result[1]
+                lnprob0 = self._last_run_mcmc_result[1]
             if rstate0 is None:
                 rstate0 = self._last_run_mcmc_result[2]
 
