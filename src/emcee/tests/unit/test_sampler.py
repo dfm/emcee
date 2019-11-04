@@ -307,7 +307,12 @@ def test_walkers_independent_scaled():
 
 @pytest.mark.parametrize(
     "nwalkers, ndim, offset",
-    [(10, 2, 1e5), (20, 5, 1e10), (30, 10, 1e14), (40, 15, 1e17)],
+    [
+        (10, 2, 1e5),
+        (20, 5, 1e10),
+        (30, 10, 1e14),
+        (40, 15, 0.1 / np.finfo(np.longdouble).eps),
+    ],
 )
 def test_walkers_independent_randn_offset_longdouble(nwalkers, ndim, offset):
     assert walkers_independent(
