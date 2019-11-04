@@ -13,12 +13,12 @@ authors:
   - name: Manodeep Sinha
     orcid: 0000-0002-4845-1228
     affiliation: "3, 4"
-  - name: David W. Hogg
-    orcid: 0000-0003-2866-9403
-    affiliation: "1, 5"
   - name: Anne M. Archibald
     orcid: 0000-0003-0638-3340
-    affiliation: 6
+    affiliation: 5
+  - name: David W. Hogg
+    orcid: 0000-0003-2866-9403
+    affiliation: "1, 6"
   - name: Jeremy S. Sanders
     orcid: 0000-0003-2189-4501
     affiliation: 7
@@ -52,9 +52,9 @@ affiliations:
     index: 3
   - name: ARC Centre of Excellence for All Sky Astrophysics in 3 Dimensions (ASTRO 3D)
     index: 4
-  - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
-    index: 5
   - name: University of Newcastle
+    index: 5
+  - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
     index: 6
   - name: Max Planck Institute for Extraterrestrial Physics
     index: 7
