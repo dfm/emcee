@@ -16,30 +16,33 @@ authors:
   - name: David W. Hogg
     orcid: 0000-0003-2866-9403
     affiliation: "1, 5"
+  - name: Anne M. Archibald
+    orcid: 0000-0003-0638-3340
+    affiliation: 6
   - name: Jeremy S. Sanders
     orcid: 0000-0003-2189-4501
-    affiliation: 6
+    affiliation: 7
   - name: Joe Zuntz
     orcid: 0000-0001-9789-9646
-    affiliation: 7
+    affiliation: 8
   - name: Peter K. G. Williams
     orcid: 0000-0003-3734-3587
-    affiliation: "8, 9"
+    affiliation: "9, 10"
   - name: Andrew R. J. Nelson
     orcid: 0000-0002-4548-3558
-    affiliation: 10
-  - name: Tobias Erhardt
-    orcid: 0000-0002-6683-6746
     affiliation: 11
-  - name: Ilya Pashchenko
-    orcid: 0000-0002-9404-7023
-    affiliation: 12
-  - name: Oriol Abril Pla
-    orcid: 0000-0002-1847-9481
-    affiliation: 13
   - name: Miguel de Val-Borro
     orcid: 0000-0002-0455-9384
+    affiliation: 12
+  - name: Tobias Erhardt
+    orcid: 0000-0002-6683-6746
+    affiliation: 13
+  - name: Ilya Pashchenko
+    orcid: 0000-0002-9404-7023
     affiliation: 14
+  - name: Oriol Abril Pla
+    orcid: 0000-0002-1847-9481
+    affiliation: 15
 affiliations:
   - name: Center for Computational Astrophysics, Flatiron Institute
     index: 1
@@ -51,24 +54,26 @@ affiliations:
     index: 4
   - name: Center for Cosmology and Particle Physics, Department of Physics, New York University
     index: 5
-  - name: Max Planck Institute for Extraterrestrial Physics
+  - name: University of Newcastle
     index: 6
-  - name: Institute for Astronomy, University of Edinburgh, Edinburgh, EH9 3HJ, UK
+  - name: Max Planck Institute for Extraterrestrial Physics
     index: 7
-  - name: "Center for Astrophysics | Harvard & Smithsonian"
+  - name: Institute for Astronomy, University of Edinburgh, Edinburgh, EH9 3HJ, UK
     index: 8
-  - name: American Astronomical Society
+  - name: "Center for Astrophysics | Harvard & Smithsonian"
     index: 9
-  - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
+  - name: American Astronomical Society
     index: 10
-  - name: Climate and Environmental Physics and Oeschger Center for Climate Change Research, University of Bern, Bern, Switzerland
+  - name: Australian Nuclear Science and Technology Organisation, NSW, Australia
     index: 11
-  - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
-    index: 12
-  - name: Universitat Pompeu Fabra, Barcelona
-    index: 13
   - name: Planetary Science Institute, 1700 East Fort Lowell Rd., Suite 106, Tucson, AZ 85719, USA
+    index: 12
+  - name: Climate and Environmental Physics and Oeschger Center for Climate Change Research, University of Bern, Bern, Switzerland
+    index: 13
+  - name: P.N. Lebedev Physical Institute of the Russian Academy of Sciences, Moscow, Russia
     index: 14
+  - name: Universitat Pompeu Fabra, Barcelona
+    index: 15
 
 date: 17 October 2019
 bibliography: paper.bib
