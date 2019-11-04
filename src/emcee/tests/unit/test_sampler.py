@@ -6,7 +6,7 @@ from itertools import product
 import numpy as np
 import pytest
 
-from emcee import EnsembleSampler, backends, moves
+from emcee import EnsembleSampler, backends, moves, walkers_independent
 
 __all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
 
@@ -116,17 +116,12 @@ def test_errors(backend, nwalkers=32, ndim=3, nsteps=5, seed=1234):
         # Ensure that a warning is logged if the inital coords don't allow
         # the chain to explore all of parameter space, and that one is not
         # if we explicitly disable it, or the initial coords can.
-        with pytest.warns(RuntimeWarning) as recorded_warnings:
+        with pytest.raises(ValueError):
             sampler.run_mcmc(np.ones((nwalkers, ndim)), nsteps)
-            assert len(recorded_warnings) == 1
-        with pytest.warns(None) as recorded_warnings:
-            sampler.run_mcmc(
-                np.ones((nwalkers, ndim)),
-                nsteps,
-                skip_initial_state_check=True,
-            )
-            sampler.run_mcmc(np.random.randn(nwalkers, ndim), nsteps)
-            assert len(recorded_warnings) == 0
+        sampler.run_mcmc(
+            np.ones((nwalkers, ndim)), nsteps, skip_initial_state_check=True
+        )
+        sampler.run_mcmc(np.random.randn(nwalkers, ndim), nsteps)
 
 
 def run_sampler(
@@ -144,12 +139,7 @@ def run_sampler(
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, backend=backend)
     sampler.run_mcmc(
-        coords,
-        nsteps,
-        thin=thin,
-        thin_by=thin_by,
-        progress=progress,
-        store=store,
+        coords, nsteps, thin=thin, thin_by=thin_by, progress=progress, store=store
     )
     return sampler
 
@@ -175,9 +165,7 @@ def test_thin(backend):
             assert np.allclose(a, c), "inconsistent {0}".format(k)
 
 
-@pytest.mark.parametrize(
-    "backend,progress", product(all_backends, [True, False])
-)
+@pytest.mark.parametrize("backend,progress", product(all_backends, [True, False]))
 def test_thin_by(backend, progress):
     with backend() as be:
         with pytest.raises(ValueError):
@@ -187,9 +175,7 @@ def test_thin_by(backend, progress):
         nsteps = 25
         thinby = 3
         sampler1 = run_sampler(None, nsteps=nsteps * thinby, progress=progress)
-        sampler2 = run_sampler(
-            be, thin_by=thinby, progress=progress, nsteps=nsteps
-        )
+        sampler2 = run_sampler(be, thin_by=thinby, progress=progress, nsteps=nsteps)
         for k in ["get_chain", "get_log_prob"]:
             a = getattr(sampler1, k)()[thinby - 1 :: thinby]
             b = getattr(sampler2, k)()
@@ -237,3 +223,85 @@ def test_pickle(backend):
             a = getattr(sampler1, k)()
             b = getattr(sampler2, k)()
             assert np.allclose(a, b), "inconsistent {0}".format(k)
+
+
+@pytest.mark.parametrize("nwalkers, ndim", [(10, 2), (20, 5)])
+def test_walkers_dependent_ones(nwalkers, ndim):
+    assert not walkers_independent(np.ones((nwalkers, ndim)))
+
+
+@pytest.mark.parametrize("nwalkers, ndim", [(10, 11), (2, 3)])
+def test_walkers_dependent_toofew(nwalkers, ndim):
+    assert not walkers_independent(np.random.randn(nwalkers, ndim))
+
+
+@pytest.mark.parametrize("nwalkers, ndim", [(10, 2), (20, 5)])
+def test_walkers_independent_randn(nwalkers, ndim):
+    assert walkers_independent(np.random.randn(nwalkers, ndim))
+
+
+@pytest.mark.parametrize(
+    "nwalkers, ndim, offset", [(10, 2, 1e5), (20, 5, 1e10), (30, 10, 1e14)]
+)
+def test_walkers_independent_randn_offset(nwalkers, ndim, offset):
+    assert walkers_independent(
+        np.random.randn(nwalkers, ndim) + np.ones((nwalkers, ndim)) * offset
+    )
+
+
+def test_walkers_dependent_big_offset():
+    nwalkers, ndim = 30, 10
+    offset = 10 / np.finfo(float).eps
+    assert not walkers_independent(
+        np.random.randn(nwalkers, ndim) + np.ones((nwalkers, ndim)) * offset
+    )
+
+
+def test_walkers_dependent_subtle():
+    nwalkers, ndim = 30, 10
+    w = np.random.randn(nwalkers, ndim)
+    assert walkers_independent(w)
+    # random unit vector
+    p = np.random.randn(ndim)
+    p /= np.sqrt(np.dot(p, p))
+    # project away the direction of p
+    w -= np.sum(p[None, :] * w, axis=1)[:, None] * p[None, :]
+    assert not walkers_independent(w)
+    # shift away from the origin
+    w += p[None, :]
+    assert not walkers_independent(w)
+
+
+def test_walkers_almost_dependent():
+    nwalkers, ndim = 30, 10
+    squash = 1e-8
+    w = np.random.randn(nwalkers, ndim)
+    assert walkers_independent(w)
+    # random unit vector
+    p = np.random.randn(ndim)
+    p /= np.sqrt(np.dot(p, p))
+    # project away the direction of p
+    proj = np.sum(p[None, :] * w, axis=1)[:, None] * p[None, :]
+    w -= proj
+    w += squash * proj
+    assert not walkers_independent(w)
+
+
+def test_walkers_independent_scaled():
+    # Some of these scales will overflow if squared, hee hee
+    scales = np.array([1, 1e10, 1e100, 1e200, 1e-10, 1e-100, 1e-200])
+    ndim = len(scales)
+    nwalkers = 5 * ndim
+    w = np.random.randn(nwalkers, ndim) * scales[None, :]
+    assert walkers_independent(w)
+
+
+@pytest.mark.parametrize(
+    "nwalkers, ndim, offset",
+    [(10, 2, 1e5), (20, 5, 1e10), (30, 10, 1e14), (40, 15, 1e17)],
+)
+def test_walkers_independent_randn_offset_longdouble(nwalkers, ndim, offset):
+    assert walkers_independent(
+        np.random.randn(nwalkers, ndim)
+        + np.ones((nwalkers, ndim), dtype=np.longdouble) * offset
+    )

@@ -11,7 +11,7 @@ from .pbar import get_progress_bar
 from .state import State
 from .utils import deprecated, deprecation_warning
 
-__all__ = ["EnsembleSampler"]
+__all__ = ["EnsembleSampler", "walkers_independent"]
 
 try:
     from collections.abc import Iterable
@@ -78,19 +78,13 @@ class EnsembleSampler(object):
     ):
         # Warn about deprecated arguments
         if a is not None:
-            deprecation_warning(
-                "The 'a' argument is deprecated, use 'moves' instead"
-            )
+            deprecation_warning("The 'a' argument is deprecated, use 'moves' instead")
         if threads is not None:
             deprecation_warning("The 'threads' argument is deprecated")
         if runtime_sortingfn is not None:
-            deprecation_warning(
-                "The 'runtime_sortingfn' argument is deprecated"
-            )
+            deprecation_warning("The 'runtime_sortingfn' argument is deprecated")
         if live_dangerously is not None:
-            deprecation_warning(
-                "The 'live_dangerously' argument is deprecated"
-            )
+            deprecation_warning("The 'live_dangerously' argument is deprecated")
 
         # Parse the move schedule
         if moves is None:
@@ -243,14 +237,11 @@ class EnsembleSampler(object):
         state = State(initial_state, copy=True)
         if np.shape(state.coords) != (self.nwalkers, self.ndim):
             raise ValueError("incompatible input dimensions")
-        if (not skip_initial_state_check) and _scaled_cond(
-            np.atleast_2d(np.cov(state.coords, rowvar=False))
-        ) > 1e8:
-            warnings.warn(
+        if (not skip_initial_state_check) and (not walkers_independent(state.coords)):
+            raise ValueError(
                 "Initial state has a large condition number. "
                 "Make sure that your walkers are linearly independent for the "
-                "best performance",
-                category=RuntimeWarning,
+                "best performance"
             )
 
         # Try to set the initial value of the random number generator. This
@@ -259,8 +250,7 @@ class EnsembleSampler(object):
         # it's current state.
         if rstate0 is not None:
             deprecation_warning(
-                "The 'rstate0' argument is deprecated, use a 'State' "
-                "instead"
+                "The 'rstate0' argument is deprecated, use a 'State' " "instead"
             )
             state.random_state = rstate0
         self.random_state = state.random_state
@@ -269,8 +259,7 @@ class EnsembleSampler(object):
         # now.
         if log_prob0 is not None:
             deprecation_warning(
-                "The 'log_prob0' argument is deprecated, use a 'State' "
-                "instead"
+                "The 'log_prob0' argument is deprecated, use a 'State' " "instead"
             )
             state.log_prob = log_prob0
         if blobs0 is not None:
@@ -323,9 +312,7 @@ class EnsembleSampler(object):
             map_fn = self.pool.map
         else:
             map_fn = map
-        model = Model(
-            self.log_prob_fn, self.compute_log_prob, map_fn, self._random
-        )
+        model = Model(self.log_prob_fn, self.compute_log_prob, map_fn, self._random)
 
         # Inject the progress bar
         total = iterations * yield_step
@@ -420,9 +407,7 @@ class EnsembleSampler(object):
                 map_func = self.pool.map
             else:
                 map_func = map
-            results = list(
-                map_func(self.log_prob_fn, (p[i] for i in range(len(p))))
-            )
+            results = list(map_func(self.log_prob_fn, (p[i] for i in range(len(p)))))
 
         try:
             log_prob = np.array([float(l[0]) for l in results])
@@ -552,7 +537,33 @@ class _FunctionWrapper(object):
             raise
 
 
+def walkers_independent(coords):
+    if not np.all(np.isfinite(coords)):
+        return False
+    C = coords - np.mean(coords, axis=0)[None, :]
+    C_colmax = np.amax(np.abs(C), axis=0)
+    if np.any(C_colmax == 0):
+        return False
+    C /= C_colmax
+    C_colsum = np.sqrt(np.sum(C ** 2, axis=0))
+    C /= C_colsum
+    return np.linalg.cond(C.astype(float)) <= 1e8
+
+
+def walkers_independent_cov(coords):
+    C = np.cov(coords, rowvar=False)
+    if np.any(np.isnan(C)):
+        return False
+    return _scaled_cond(np.atleast_2d(C)) <= 1e8
+
+
 def _scaled_cond(a):
-    b = a / np.sqrt((a ** 2).sum(axis=0))[None, :]
-    c = b / np.sqrt((b ** 2).sum(axis=1))[:, None]
+    asum = np.sqrt((a ** 2).sum(axis=0))[None, :]
+    if np.any(asum == 0):
+        return np.inf
+    b = a / asum
+    bsum = np.sqrt((b ** 2).sum(axis=1))[:, None]
+    if np.any(bsum == 0):
+        return np.inf
+    c = b / bsum
     return np.linalg.cond(c.astype(float))
