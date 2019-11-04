@@ -139,7 +139,12 @@ def run_sampler(
     coords = np.random.randn(nwalkers, ndim)
     sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, backend=backend)
     sampler.run_mcmc(
-        coords, nsteps, thin=thin, thin_by=thin_by, progress=progress, store=store
+        coords,
+        nsteps,
+        thin=thin,
+        thin_by=thin_by,
+        progress=progress,
+        store=store,
     )
     return sampler
 
@@ -165,7 +170,9 @@ def test_thin(backend):
             assert np.allclose(a, c), "inconsistent {0}".format(k)
 
 
-@pytest.mark.parametrize("backend,progress", product(all_backends, [True, False]))
+@pytest.mark.parametrize(
+    "backend,progress", product(all_backends, [True, False])
+)
 def test_thin_by(backend, progress):
     with backend() as be:
         with pytest.raises(ValueError):
@@ -175,7 +182,9 @@ def test_thin_by(backend, progress):
         nsteps = 25
         thinby = 3
         sampler1 = run_sampler(None, nsteps=nsteps * thinby, progress=progress)
-        sampler2 = run_sampler(be, thin_by=thinby, progress=progress, nsteps=nsteps)
+        sampler2 = run_sampler(
+            be, thin_by=thinby, progress=progress, nsteps=nsteps
+        )
         for k in ["get_chain", "get_log_prob"]:
             a = getattr(sampler1, k)()[thinby - 1 :: thinby]
             b = getattr(sampler2, k)()
