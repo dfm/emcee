@@ -1,6 +1,6 @@
 .. :changelog:
 
-3.0.1 (2010-10-28)
+3.0.1 (2019-10-28)
 ++++++++++++++++++
 
 - Added support for long double dtypes
