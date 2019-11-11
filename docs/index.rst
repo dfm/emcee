@@ -15,6 +15,10 @@ the emcee algorithm and implementation in detail.
 emcee has been used in :doc:`quite a few projects in the astrophysical literature
 <testimonials>` and it is being actively developed on `GitHub
 <https://github.com/dfm/emcee>`_.
+We welcome bug reports, patches, feature requests and other comments via `the GitHub
+issue tracker <https://github.com/dfm/emcee/issues>`_, but you should check out the
+`contribution guidelines <https://github.com/dfm/emcee/blob/master/CONTRIBUTING.md>`_
+first.
 
 .. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
     :target: https://github.com/dfm/emcee
