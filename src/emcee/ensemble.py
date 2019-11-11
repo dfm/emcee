@@ -23,6 +23,12 @@ except ImportError:
 class EnsembleSampler(object):
     """An ensemble MCMC sampler
 
+    If you are upgrading from an earlier version of emcee, you might notice
+    that some arguments are now deprecated. The parameters that control the
+    proposals have been moved to the :ref:`moves` interface (``a`` and
+    ``live_dangerously``), and the parameters related to parallelization can
+    now be controlled via the ``pool`` argument (:ref:`parallel`).
+
     Args:
         nwalkers (int): The number of walkers in the ensemble.
         ndim (int): Number of dimensions in the parameter space.
