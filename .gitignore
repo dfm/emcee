@@ -20,3 +20,4 @@ htmlcov
 emcee_version.py
 
 .tox
+env

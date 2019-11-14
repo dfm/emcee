@@ -10,7 +10,7 @@ That being said, we've made every attempt to maintain backwards compatibility
 while still offering new features.
 The main new features include:
 
-1. A :ref:`moves` interface that allows the use of a variety of ensemble
+1. A :ref:`moves-user` interface that allows the use of a variety of ensemble
    proposals,
 
 2. A more self consistent and user-friendly :ref:`blobs` interface,

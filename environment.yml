@@ -1,0 +1,15 @@
+name: emcee
+dependencies:
+- python=3.7
+- numpy
+- scipy
+- matplotlib
+- pip
+- pip:
+  - -r requirements-dev.txt
+  - jupyterlab
+  - flake8
+  - black
+  - schwimmbad
+  - isort
+  - celerite

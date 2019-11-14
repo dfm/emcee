@@ -1,6 +1,6 @@
 .. module:: emcee
 
-.. _moves:
+.. _moves-user:
 
 Moves
 =====
@@ -44,6 +44,9 @@ proposals.
 :class:`moves.MHMove` is the base class for this type of move and a concrete
 implementation of a Gaussian Metropolis proposal is found in
 :class:`moves.GaussianMove`.
+
+.. note:: The :ref:`moves` tutorial shows a concrete example of how to use
+    this interface.
 
 Ensemble moves
 --------------

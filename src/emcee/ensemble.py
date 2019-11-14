@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-
 import numpy as np
 
 from .backends import Backend
@@ -25,7 +23,7 @@ class EnsembleSampler(object):
 
     If you are upgrading from an earlier version of emcee, you might notice
     that some arguments are now deprecated. The parameters that control the
-    proposals have been moved to the :ref:`moves` interface (``a`` and
+    proposals have been moved to the :ref:`moves-user` interface (``a`` and
     ``live_dangerously``), and the parameters related to parallelization can
     now be controlled via the ``pool`` argument (:ref:`parallel`).
 
