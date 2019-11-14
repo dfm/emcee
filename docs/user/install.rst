@@ -54,10 +54,10 @@ source repository and install from there
 .. code-block:: bash
 
     python -m pip install -U pip
-    pip install -U setuptools setuptools_scm pep517
+    python -m pip install -U setuptools setuptools_scm pep517
     git clone https://github.com/dfm/emcee.git
     cd emcee
-    pip install .
+    python -m pip install -e .
 
 
 Test the installation
@@ -72,7 +72,8 @@ directory of the source code:
 
 .. code-block:: bash
 
-    pytest -v src/emcee/tests
+    python -m pip install -U pytest h5py
+    python -m pytest -v src/emcee/tests
 
 This might take a few minutes but you shouldn't get any errors if all went
 as planned.
