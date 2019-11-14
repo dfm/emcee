@@ -15,12 +15,6 @@ the emcee algorithm and implementation in detail.
 emcee has been used in :doc:`quite a few projects in the astrophysical literature
 <testimonials>` and it is being actively developed on `GitHub
 <https://github.com/dfm/emcee>`_.
-We welcome bug reports, patches, feature requests, and other comments via `the GitHub
-issue tracker <https://github.com/dfm/emcee/issues>`_, but you should check out the
-`contribution guidelines <https://github.com/dfm/emcee/blob/master/CONTRIBUTING.md>`_
-first.
-If you have a question about the use of emcee, please post it to `the users list
-<https://groups.google.com/forum/#!forum/emcee-users>`_ instead of the issue tracker.
 
 .. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
     :target: https://github.com/dfm/emcee
@@ -70,8 +64,13 @@ tutorials listed below (you might want to start with
 :ref:`quickstart` and go from there).
 If you need more details about specific functionality, the User Guide below
 should have what you need.
-If you run into any issues, please don't hesitate to `open an issue on GitHub
-<https://github.com/dfm/emcee/issues>`_.
+
+We welcome bug reports, patches, feature requests, and other comments via `the GitHub
+issue tracker <https://github.com/dfm/emcee/issues>`_, but you should check out the
+`contribution guidelines <https://github.com/dfm/emcee/blob/master/CONTRIBUTING.md>`_
+first.
+If you have a question about the use of emcee, please post it to `the users list
+<https://groups.google.com/forum/#!forum/emcee-users>`_ instead of the issue tracker.
 
 
 .. toctree::
