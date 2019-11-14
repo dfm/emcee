@@ -13,7 +13,7 @@ All you'll need `numpy <https://numpy.org/>`_.
 Package managers
 ----------------
 
-The easiest way to install the stable version of emcee is using
+The recommended way to install the stable version of emcee is using
 `pip <http://www.pip-installer.org/>`_
 
 .. code-block:: bash
@@ -29,6 +29,18 @@ or `conda <https://conda.io>`_
     conda update conda
     conda install -c conda-forge emcee
 
+Distribution packages
+---------------------
+
+Some distributions contain `emcee` packages that can be installed with the
+system package manager as listed in the `Repology packaging status
+<https://repology.org/project/python:emcee/versions>`_. Note that the packages
+in some of these distributions may be out-of-date. You can always get the
+current stable version via `pip` or `conda`, or the latest development version
+as described in :ref:`source` below.
+
+.. image:: https://repology.org/badge/vertical-allrepos/python:emcee.svg?header=emcee%20packaging%20status
+    :target: https://repology.org/project/python:emcee/versions
 
 .. _source:
 
