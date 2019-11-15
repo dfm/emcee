@@ -1,5 +1,15 @@
 .. :changelog:
 
+3.0.2 (2019-11-15)
+++++++++++++++++++
+
+- Added tutorial for moves interface
+- Added information about contributions to documentation
+- Improved documentation for installation and testing
+- Fixed dtype issues and instability in linear dependence test
+- Final release for `JOSS <https://joss.theoj.org/>`_ submission
+
+
 3.0.1 (2019-10-28)
 ++++++++++++++++++
 
