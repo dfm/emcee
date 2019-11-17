@@ -93,7 +93,7 @@ For example, the new ``backends`` interface implements real time serialization o
 By default ``emcee`` saves its results in memory (as in the original implementation), but it now also includes a ``HDFBackend`` class that serializes the chain to disk using [h5py](https://www.h5py.org).
 
 The most important new feature included in the version 3.0 release of ``emcee`` is the new ``moves`` interface.
-Originally, ``emcee`` was implementation of the affine-invariant "stretch move" proposed by @Goodman:2010, but there are other ensemble proposals that can get better performance for certain applications.
+Originally, ``emcee`` implemented the affine-invariant "stretch move" proposed by @Goodman:2010, but there are other ensemble proposals that can get better performance for certain applications.
 ``emcee`` now includes implementations of several other ensemble moves and an interface for defining custom proposals.
 The implemented moves include:
 
