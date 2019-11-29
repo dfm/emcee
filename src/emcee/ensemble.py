@@ -61,6 +61,7 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
+        seed (Optional[int]): Seed for the random number generator.
 
     """
 
@@ -76,6 +77,7 @@ class EnsembleSampler(object):
         backend=None,
         vectorize=False,
         blobs_dtype=None,
+        seed=None,
         # Deprecated...
         a=None,
         postargs=None,
@@ -152,6 +154,8 @@ class EnsembleSampler(object):
         # of without affecting the numpy-wide generator
         self._random = np.random.mtrand.RandomState()
         self._random.set_state(state)
+        if seed is not None:
+            self._random.seed(seed)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
