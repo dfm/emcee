@@ -138,7 +138,9 @@ def run_sampler(
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, ndim)
     np.random.seed(None)
-    sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, backend=backend, seed=seed)
+    sampler = EnsembleSampler(
+        nwalkers, ndim, normal_log_prob, backend=backend, seed=seed
+    )
     sampler.run_mcmc(
         coords,
         nsteps,
@@ -336,19 +338,16 @@ def test_infinite_iterations(backend, nwalkers=32, ndim=3):
             pass
 
 def test_sampler_seed():
-    nwalkers=32
-    ndim=3
-    nsteps=25
+    nwalkers = 32
+    ndim = 3
+    nsteps = 25
     np.random.seed(456)
     coords = np.random.randn(nwalkers, ndim)
     sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
     sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=2234)
     sampler3 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
     for sampler in (sampler1, sampler2, sampler3):
-        sampler.run_mcmc(
-            coords,
-            nsteps,
-        )
+        sampler.run_mcmc(coords, nsteps)
     for k in ["get_chain", "get_log_prob"]:
         a = getattr(sampler1, k)()
         b = getattr(sampler2, k)()
