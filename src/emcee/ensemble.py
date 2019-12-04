@@ -61,7 +61,13 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
-        seed (Optional[int]): Seed for the random number generator.
+        seed (Optional[Union[int, np.random.RandomState]]): If `seed` is not
+            specified the `np.RandomState` singleton is used.
+            If `seed` is an int, a new `np.random.RandomState` instance is used,
+            seeded with seed.
+            If `seed` is already a `np.random.RandomState instance`, then that
+            `np.random.RandomState` instance is used, omitting the stored state if
+            re-using a backend.
 
     """
 
@@ -126,6 +132,7 @@ class EnsembleSampler(object):
         self.backend = Backend() if backend is None else backend
 
         # Deal with re-used backends
+        state = None
         if not self.backend.initialized:
             self._previous_state = None
             self.reset()
@@ -152,10 +159,24 @@ class EnsembleSampler(object):
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
-        self._random = np.random.mtrand.RandomState()
-        self._random.set_state(state)
-        if seed is not None:
-            self._random.seed(seed)
+        if isinstance(seed, int) or seed is None:
+            self._random = np.random.mtrand.RandomState()
+            self._random.set_state(state)
+            if seed is not None:
+                self._random.seed(seed)
+        elif isinstance(seed, np.random.RandomState):
+            self._random = seed
+        else:
+            try:
+            # Generator is only available in numpy >= 1.17
+                if isinstance(seed, np.random.Generator):
+                    self._random = seed
+            except AttributeError:
+                pass
+            raise TypeError(
+                "seed must be an int, np.random.RandomState or None but is "
+                "of type {}".format(type(seed))
+            )
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
