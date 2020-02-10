@@ -159,7 +159,7 @@ class EnsembleSampler(object):
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
-        self._check_random_state(seed)
+        self._check_random_state(seed, state)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -189,7 +189,7 @@ class EnsembleSampler(object):
         except:
             pass
 
-    def _check_random_state(self, seed):
+    def _check_random_state(self, seed, state):
         """Check seed argument and set RandomState."""
         if isinstance(seed, int) or seed is None:
             self._random = np.random.mtrand.RandomState()
