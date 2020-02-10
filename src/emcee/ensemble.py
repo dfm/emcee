@@ -159,24 +159,7 @@ class EnsembleSampler(object):
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
-        if isinstance(seed, int) or seed is None:
-            self._random = np.random.mtrand.RandomState()
-            self._random.set_state(state)
-            if seed is not None:
-                self._random.seed(seed)
-        elif isinstance(seed, np.random.RandomState):
-            self._random = seed
-        else:
-            try:
-            # Generator is only available in numpy >= 1.17
-                if isinstance(seed, np.random.Generator):
-                    self._random = seed
-            except AttributeError:
-                pass
-            raise TypeError(
-                "seed must be an int, np.random.RandomState or None but is "
-                "of type {}".format(type(seed))
-            )
+        self._check_random_state(seed)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -205,6 +188,27 @@ class EnsembleSampler(object):
             self._random.set_state(state)
         except:
             pass
+
+    def _check_random_state(self, seed):
+        """Check seed argument and set RandomState."""
+        if isinstance(seed, int) or seed is None:
+            self._random = np.random.mtrand.RandomState()
+            self._random.set_state(state)
+            if seed is not None:
+                self._random.seed(seed)
+        elif isinstance(seed, np.random.RandomState):
+            self._random = seed
+        else:
+            try:
+            # Generator is only available in numpy >= 1.17
+                if isinstance(seed, np.random.Generator):
+                    self._random = seed
+            except AttributeError:
+                pass
+            raise TypeError(
+                "seed must be an int, np.random.RandomState or None but is "
+                "of type {}".format(type(seed))
+            )
 
     @property
     def iteration(self):
