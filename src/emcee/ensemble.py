@@ -190,8 +190,11 @@ class EnsembleSampler(object):
             pass
 
     def _check_random_state(self, seed, state):
-        """Check seed argument and set RandomState."""
-        if isinstance(seed, int) or seed is None:
+        """Check seed argument and set RandomState.
+
+        Based on scikit-learn utils/validation.py.
+        """
+        if isinstance(seed, (int, np.integer)) or seed is None:
             self._random = np.random.mtrand.RandomState()
             self._random.set_state(state)
             if seed is not None:
