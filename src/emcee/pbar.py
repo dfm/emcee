@@ -4,6 +4,7 @@ import logging
 
 __all__ = ["get_progress_bar"]
 
+logger = logging.getLogger(__name__)
 
 try:
     import tqdm
@@ -41,7 +42,7 @@ def get_progress_bar(display, total):
     """
     if display:
         if tqdm is None:
-            logging.warning(
+            logger.warning(
                 "You must install the tqdm library to use progress "
                 "indicators with emcee"
             )
