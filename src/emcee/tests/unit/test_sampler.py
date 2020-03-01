@@ -344,13 +344,16 @@ def test_sampler_seed():
     np.random.seed(456)
     coords = np.random.randn(nwalkers, ndim)
     sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
-    sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=2234)
+    sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=2)
     sampler3 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
-    for sampler in (sampler1, sampler2, sampler3):
+    sampler4 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=sampler1._random)
+    for sampler in (sampler1, sampler2, sampler3, sampler4):
         sampler.run_mcmc(coords, nsteps)
     for k in ["get_chain", "get_log_prob"]:
-        a = getattr(sampler1, k)()
-        b = getattr(sampler2, k)()
-        c = getattr(sampler3, k)()
-        assert not np.allclose(a, b), "inconsistent {0}".format(k)
-        assert np.allclose(a, c), "inconsistent {0}".format(k)
+        attr1 = getattr(sampler1, k)()
+        attr2 = getattr(sampler2, k)()
+        attr3 = getattr(sampler3, k)()
+        attr4 = getattr(sampler4, k)()
+        assert not np.allclose(attr1, attr2), "inconsistent {0}".format(k)
+        assert np.allclose(attr1, attr3), "inconsistent {0}".format(k)
+        assert np.allclose(attr1, attr4), "inconsistent {0}".format(k)
