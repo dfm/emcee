@@ -2,6 +2,7 @@
 
 import pickle
 from itertools import product
+from copy import deepcopy
 
 import numpy as np
 import pytest
@@ -333,7 +334,9 @@ def test_sampler_seed():
     sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
     sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=2)
     sampler3 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
-    sampler4 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=sampler1._random)
+    sampler4 = EnsembleSampler(
+        nwalkers, ndim, normal_log_prob, seed=deepcopy(sampler1._random)
+    )
     for sampler in (sampler1, sampler2, sampler3, sampler4):
         sampler.run_mcmc(coords, nsteps)
     for k in ["get_chain", "get_log_prob"]:
