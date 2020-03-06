@@ -58,13 +58,15 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
-        seed (Optional[Union[int, np.random.RandomState]]): If `seed` is not
-            specified the `np.RandomState` singleton is used.
+        seed (Union[int, np.random.RandomState, np.random.Generator, None]): If
+            `seed` is not specified the `np.RandomState` singleton is used.
             If `seed` is an int, a new `np.random.RandomState` instance is used,
             seeded with seed.
-            If `seed` is already a `np.random.RandomState instance`, then that
-            `np.random.RandomState` instance is used, omitting the stored state if
+            If `seed` is already a `np.random.RandomState` or a
+            `np.random.Generator` instance, then that `RandomState` or
+            `Generator` instance is used, omitting the stored state if
             re-using a backend.
+            Specify `seed` for reproducable minimizations.
 
     """
 
