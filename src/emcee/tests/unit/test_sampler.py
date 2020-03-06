@@ -43,6 +43,7 @@ def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=10, seed=1234):
 
         # Run the sampler.
         sampler.run_mcmc(coords, nsteps)
+
         chain = sampler.get_chain()
         assert len(chain) == nsteps, "wrong number of steps"
 
@@ -360,3 +361,27 @@ def test_sampler_seed():
         assert not np.allclose(attr1, attr2), "inconsistent {0}".format(k)
         assert np.allclose(attr1, attr3), "inconsistent {0}".format(k)
         assert np.allclose(attr1, attr4), "inconsistent {0}".format(k)
+
+
+def test_sampler_bad_seed():
+    nwalkers = 32
+    ndim = 3
+    with pytest.raises(TypeError, match="seed must be"):
+        EnsembleSampler(nwalkers, ndim, normal_log_prob, seed="bad_seed")
+
+
+def test_sampler_generator():
+    nwalkers = 32
+    ndim = 3
+    nsteps = 25
+    np.random.seed(456)
+    coords = np.random.randn(nwalkers, ndim)
+    try:
+        seed = np.random.default_rng()
+    except AttributeError:
+        pass
+    else:
+        sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed)
+        sampler.run_mcmc(coords, nsteps)
+        assert sampler.get_chain().shape == (nwalkers, nsteps, ndim)
+        assert sampler.get_log_prob().shape == (nwalkers, nsteps)

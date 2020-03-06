@@ -12,7 +12,7 @@ def get_chain(seed=1234, ndim=3, N=100000):
     x = np.empty((N, ndim))
     x[0] = np.zeros(ndim)
     for i in range(1, N):
-        x[i] = x[i - 1] * a + np.random.rand(ndim)
+        x[i] = x[i - 1] * a + np.random.random(ndim)
     return x
 
 
