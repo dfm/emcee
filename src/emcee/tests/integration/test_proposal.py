@@ -75,7 +75,7 @@ def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234):
     np.random.seed(seed)
 
     # Initialize the ensemble and proposal.
-    coords = np.random.rand(nwalkers, 1)
+    coords = np.random.random((nwalkers, 1))
 
     sampler = emcee.EnsembleSampler(
         nwalkers, 1, normal_log_prob, moves=proposal

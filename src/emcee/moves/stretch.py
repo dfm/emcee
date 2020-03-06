@@ -24,10 +24,14 @@ class StretchMove(RedBlueMove):
         super(StretchMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
+        try:
+            rg_integers = random.integers
+        except AttributeError:
+            rg_integers = random.randint
         c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
-        zz = ((self.a - 1.0) * random.rand(Ns) + 1) ** 2.0 / self.a
+        zz = ((self.a - 1.0) * random.random(Ns) + 1) ** 2.0 / self.a
         factors = (ndim - 1.0) * np.log(zz)
-        rint = random.randint(Nc, size=(Ns,))
+        rint = rg_integers(Nc, size=(Ns,))
         return c[rint] - (c[rint] - s) * zz[:, None], factors

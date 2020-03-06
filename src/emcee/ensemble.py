@@ -172,7 +172,10 @@ class EnsembleSampler(object):
         so silently.
 
         """
-        return self._random.get_state()
+        try:
+            return self._random.get_state()
+        except AttributeError:
+            return self._random.bit_generator.state
 
     @random_state.setter  # NOQA
     def random_state(self, state):
@@ -203,11 +206,12 @@ class EnsembleSampler(object):
             # Generator is only available in numpy >= 1.17
                 if isinstance(seed, np.random.Generator):
                     self._random = seed
+                    return
             except AttributeError:
                 pass
             raise TypeError(
-                "seed must be an int, np.random.RandomState or None but is "
-                "of type {}".format(type(seed))
+                "seed must be an int, np.random.RandomState, np.random.Generator or "
+                "None of type {}".format(type(seed))
             )
 
     @property
