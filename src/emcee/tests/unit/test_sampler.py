@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+import packaging
 
 from emcee import EnsembleSampler, backends, moves, walkers_independent
 
@@ -356,19 +357,18 @@ def test_sampler_bad_seed():
     with pytest.raises(TypeError, match="seed must be"):
         EnsembleSampler(nwalkers, ndim, normal_log_prob, seed="bad_seed")
 
-
+@pytest.mark.skipif(
+        packaging.version.parse(np.__version__) < packaging.version.parse("1.17.0"),
+        reason="requires numpy 1.17.0 or higher",
+    )
 def test_sampler_generator():
     nwalkers = 32
     ndim = 3
     nsteps = 25
     np.random.seed(456)
     coords = np.random.randn(nwalkers, ndim)
-    try:
-        seed = np.random.default_rng()
-    except AttributeError:
-        pass
-    else:
-        sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed)
-        sampler.run_mcmc(coords, nsteps)
-        assert sampler.get_chain().shape == (nwalkers, nsteps, ndim)
-        assert sampler.get_log_prob().shape == (nwalkers, nsteps)
+    seed = np.random.default_rng()
+    sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed)
+    sampler.run_mcmc(coords, nsteps)
+    assert sampler.get_chain().shape == (nsteps, nwalkers, ndim)
+    assert sampler.get_log_prob().shape == (nsteps, nwalkers)
