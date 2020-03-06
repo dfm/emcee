@@ -31,7 +31,11 @@ class StretchMove(RedBlueMove):
         c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
-        zz = ((self.a - 1.0) * random.random(Ns) + 1) ** 2.0 / self.a
+        try:
+            rg_random = random.random
+        except AttributeError:
+            rg_random = random.rand
+        zz = ((self.a - 1.0) * rg_random(Ns) + 1) ** 2.0 / self.a
         factors = (ndim - 1.0) * np.log(zz)
         rint = rg_integers(Nc, size=(Ns,))
         return c[rint] - (c[rint] - s) * zz[:, None], factors
