@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
-from numpy.random import default_rng
+import packaging
+import numpy as np
 
 from emcee import moves
 
@@ -10,8 +11,15 @@ from .test_proposal import _test_normal, _test_uniform
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {},
-        {"nwalkers": 10, "nsteps": 10, "generator": default_rng(1)}
+        pytest.param({}, id="default"),
+        pytest.param(
+            {"nwalkers": 10, "nsteps": 10, "generator": True},
+            marks=pytest.mark.skipif(
+                packaging.version.parse(np.__version__) < packaging.version.parse("1.17.0"),
+                reason="requires numpy 1.17.0 or higher",
+            ),
+            id="Generator"
+        )
     ]
 )
 class TestDE:
