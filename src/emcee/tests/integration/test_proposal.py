@@ -28,6 +28,7 @@ def _test_normal(
     nwalkers=32,
     nsteps=2000,
     seed=1234,
+    generator=None,
     check_acceptance=True,
     pool=None,
     blobs=False,
@@ -43,8 +44,11 @@ def _test_normal(
     else:
         lp = normal_log_prob
 
+    if generator is not None:
+        seed = generator
+
     sampler = emcee.EnsembleSampler(
-        nwalkers, ndim, lp, moves=proposal, pool=pool
+        nwalkers, ndim, lp, moves=proposal, pool=pool, seed=seed
     )
     if hasattr(proposal, "ntune") and proposal.ntune > 0:
         coords = sampler.run_mcmc(coords, proposal.ntune, tune=True)
