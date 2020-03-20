@@ -93,15 +93,11 @@ class RedBlueMove(Move):
             new_log_probs, new_blobs = model.compute_log_prob_fn(q)
 
             # Loop over the walkers and update them accordingly.
-            try:
-                rg_random = model.random.random
-            except AttributeError:
-                rg_random = model.random.rand
             for i, (j, f, nlp) in enumerate(
                 zip(all_inds[S1], factors, new_log_probs)
             ):
                 lnpdiff = f + nlp - state.log_prob[j]
-                if lnpdiff > np.log(rg_random()):
+                if lnpdiff > np.log(model.random.uniform()):
                     accepted[j] = True
 
             new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)

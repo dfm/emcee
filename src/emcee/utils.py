@@ -60,3 +60,47 @@ def sample_ellipsoid(p0, covmat, size=1):
     return np.random.multivariate_normal(
         np.atleast_1d(p0), np.atleast_2d(covmat), size=size
     )
+
+try:
+    Generator = np.random.Generator
+except AttributeError:
+    Generator = None
+
+def rng_integers(gen, low, **kwargs):
+    """
+    Generate integers from a Generator or RandomState.
+
+    :param gen: Generator or RandomState object
+    :param low: Passed as first argument to gen.integers() or to
+        gen.randint() depending of its type.
+    :param kwargs: Passed to gen.integers() or to gen.randint()
+        depending on its type.
+
+    """
+    if isinstance(gen, Generator):
+        return gen.integers(low, **kwargs)
+    return gen.randint(low, **kwargs)
+
+def _check_random_state(seed, state):
+    """Check seed argument and set RandomState.
+
+    Based on scikit-learn utils/validation.py.
+    """
+    if isinstance(seed, (int, np.integer)) or seed is None:
+        random = np.random.mtrand.RandomState()
+        random.set_state(state)
+        if seed is not None:
+            random.seed(seed)
+        return random
+    if isinstance(seed, np.random.RandomState):
+        return seed
+    try:
+    # Generator is only available in numpy >= 1.17
+        if isinstance(seed, np.random.Generator):
+            return seed
+    except AttributeError:
+        pass
+    raise TypeError(
+        "seed must be an int, np.random.RandomState, np.random.Generator or "
+        "None of type {}".format(type(seed))
+    )

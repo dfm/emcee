@@ -3,6 +3,7 @@
 import numpy as np
 
 from .mh import MHMove
+from ..utils import rng_integers
 
 __all__ = ["GaussianMove"]
 
@@ -91,14 +92,10 @@ class _isotropic_proposal(object):
         return x0 + self.get_factor(rng) * self.scale * rng.standard_normal((x0.shape))
 
     def __call__(self, x0, rng):
-        try:
-            rg_integers = rng.integers
-        except AttributeError:
-            rg_integers = rng.randint
         nw, nd = x0.shape
         xnew = self.get_updated_vector(rng, x0)
         if self.mode == "random":
-            m = (range(nw), rg_integers(x0.shape[-1], size=nw))
+            m = (range(nw), rng_integers(rng, x0.shape[-1], size=nw))
         elif self.mode == "sequential":
             m = (range(nw), self.index % nd + np.zeros(nw, dtype=int))
             self.index = (self.index + 1) % nd

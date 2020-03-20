@@ -10,7 +10,7 @@ from .model import Model
 from .moves import StretchMove
 from .pbar import get_progress_bar
 from .state import State
-from .utils import deprecated, deprecation_warning
+from .utils import deprecated, deprecation_warning, _check_random_state
 
 __all__ = ["EnsembleSampler", "walkers_independent"]
 
@@ -161,7 +161,7 @@ class EnsembleSampler(object):
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
-        self._check_random_state(seed, state)
+        self._random = _check_random_state(seed, state)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -193,31 +193,6 @@ class EnsembleSampler(object):
             self._random.set_state(state)
         except:
             pass
-
-    def _check_random_state(self, seed, state):
-        """Check seed argument and set RandomState.
-
-        Based on scikit-learn utils/validation.py.
-        """
-        if isinstance(seed, (int, np.integer)) or seed is None:
-            self._random = np.random.mtrand.RandomState()
-            self._random.set_state(state)
-            if seed is not None:
-                self._random.seed(seed)
-        elif isinstance(seed, np.random.RandomState):
-            self._random = seed
-        else:
-            try:
-            # Generator is only available in numpy >= 1.17
-                if isinstance(seed, np.random.Generator):
-                    self._random = seed
-                    return
-            except AttributeError:
-                pass
-            raise TypeError(
-                "seed must be an int, np.random.RandomState, np.random.Generator or "
-                "None of type {}".format(type(seed))
-            )
 
     @property
     def iteration(self):
