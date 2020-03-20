@@ -32,7 +32,7 @@ def _test_normal(
     nwalkers=32,
     nsteps=2000,
     seed=1234,
-    generator=None,
+    generator=False,
     check_acceptance=True,
     pool=None,
     blobs=False,
