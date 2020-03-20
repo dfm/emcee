@@ -48,8 +48,8 @@ def _test_normal(
     else:
         lp = normal_log_prob
 
-    if generator is not None:
-        seed = generator
+    if generator:
+        seed = np.random.default_rng(seed)
 
     sampler = emcee.EnsembleSampler(
         nwalkers, ndim, lp, moves=proposal, pool=pool, seed=seed

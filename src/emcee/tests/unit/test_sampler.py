@@ -371,9 +371,9 @@ def test_sampler_bad_seed():
         EnsembleSampler(nwalkers, ndim, normal_log_prob, seed="bad_seed")
 
 @pytest.mark.skipif(
-        packaging.version.parse(np.__version__) < packaging.version.parse("1.17.0"),
-        reason="requires numpy 1.17.0 or higher",
-    )
+    packaging.version.parse(np.__version__) < packaging.version.parse("1.17.0"),
+    reason="requires numpy 1.17.0 or higher",
+)
 def test_sampler_generator():
     nwalkers = 32
     ndim = 3
