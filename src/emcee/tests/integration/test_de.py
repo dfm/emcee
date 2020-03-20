@@ -25,8 +25,8 @@ class TestDE:
     def test_normal_de(self, generator):
         _test_normal(moves.DEMove(), generator=generator)
 
-    def test_normal_de_no_gamma(self, kwargs):
+    def test_normal_de_no_gamma(self, generator):
         _test_normal(moves.DEMove(gamma0=1.0), generator=generator)
 
-    def test_uniform_de(self, kwargs):
+    def test_uniform_de(self, generator):
         _test_uniform(moves.DEMove(), generator=generator)
