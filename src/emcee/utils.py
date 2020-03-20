@@ -77,7 +77,7 @@ def rng_integers(gen, low, **kwargs):
         depending on its type.
 
     """
-    if isinstance(gen, Generator):
+    if Generator is not None and isinstance(gen, Generator):
         return gen.integers(low, **kwargs)
     return gen.randint(low, **kwargs)
 
