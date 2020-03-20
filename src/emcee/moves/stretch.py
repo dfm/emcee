@@ -3,6 +3,7 @@
 import numpy as np
 
 from .red_blue import RedBlueMove
+from ..utils import rng_integers
 
 __all__ = ["StretchMove"]
 
@@ -24,18 +25,10 @@ class StretchMove(RedBlueMove):
         super(StretchMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
-        try:
-            rg_integers = random.integers
-        except AttributeError:
-            rg_integers = random.randint
         c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
-        try:
-            rg_random = random.random
-        except AttributeError:
-            rg_random = random.rand
-        zz = ((self.a - 1.0) * rg_random(Ns) + 1) ** 2.0 / self.a
+        zz = random.uniform(low=1, high=self.a, size=Ns) ** 2.0 / self.a
         factors = (ndim - 1.0) * np.log(zz)
-        rint = rg_integers(Nc, size=(Ns,))
+        rint = rng_integers(random, Nc, size=(Ns,))
         return c[rint] - (c[rint] - s) * zz[:, None], factors

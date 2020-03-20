@@ -3,6 +3,7 @@
 import numpy as np
 
 from .red_blue import RedBlueMove
+from ..utils import rng_integers
 
 __all__ = ["DESnookerMove"]
 
@@ -29,17 +30,13 @@ class DESnookerMove(RedBlueMove):
         super(DESnookerMove, self).__init__(**kwargs)
 
     def get_proposal(self, s, c, random):
-        try:
-            rg_integers = random.integers
-        except AttributeError:
-            rg_integers = random.randint
         Ns = len(s)
         Nc = list(map(len, c))
         ndim = s.shape[1]
         q = np.empty((Ns, ndim), dtype=np.float64)
         metropolis = np.empty(Ns, dtype=np.float64)
         for i in range(Ns):
-            w = np.array([c[j][rg_integers(Nc[j])] for j in range(3)])
+            w = np.array([c[j][rng_integers(random, Nc[j])] for j in range(3)])
             random.shuffle(w)
             z, z1, z2 = w
             delta = s[i] - z

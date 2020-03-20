@@ -347,8 +347,8 @@ def test_sampler_seed():
         attr3 = getattr(sampler3, k)()
         attr4 = getattr(sampler4, k)()
         assert not np.allclose(attr1, attr2), "inconsistent {0}".format(k)
-        assert np.allclose(attr1, attr3), "inconsistent {0}".format(k)
-        assert np.allclose(attr1, attr4), "inconsistent {0}".format(k)
+        np.testing.assert_allclose(attr1, attr3, err_msg="inconsistent {0}".format(k))
+        np.testing.assert_allclose(attr1, attr4, err_msg="inconsistent {0}".format(k))
 
 
 def test_sampler_bad_seed():
@@ -364,11 +364,14 @@ def test_sampler_bad_seed():
 def test_sampler_generator():
     nwalkers = 32
     ndim = 3
-    nsteps = 25
+    nsteps = 5
     np.random.seed(456)
     coords = np.random.randn(nwalkers, ndim)
-    seed = np.random.default_rng()
-    sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed)
-    sampler.run_mcmc(coords, nsteps)
-    assert sampler.get_chain().shape == (nsteps, nwalkers, ndim)
-    assert sampler.get_log_prob().shape == (nsteps, nwalkers)
+    seed1 = np.random.default_rng(1)
+    sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed1)
+    sampler1.run_mcmc(coords, nsteps)
+    seed2 = np.random.default_rng(1)
+    sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed2)
+    sampler2.run_mcmc(coords, nsteps)
+    np.testing.assert_allclose(sampler1.get_chain(), sampler2.get_chain())
+    np.testing.assert_allclose(sampler1.get_log_prob(), sampler2.get_log_prob())
