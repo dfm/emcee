@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 from .. import __version__
-from .base import BackendBase
+from .file import FileBackend
 
 
 try:
@@ -19,7 +19,7 @@ except ImportError:
     h5py = None
 
 
-class HDFBackend(BackendBase):
+class HDFBackend(FileBackend):
     """A backend that stores the chain in an HDF5 file using h5py
 
     .. note:: You must install `h5py <http://www.h5py.org/>`_ to use this
@@ -38,6 +38,7 @@ class HDFBackend(BackendBase):
     def __init__(self, filename, name="mcmc", read_only=False, dtype=None):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
+        super().__init__(filename=filename, read_only=read_only)
         self.filename = filename
         self.name = name
         self.read_only = read_only
@@ -50,7 +51,7 @@ class HDFBackend(BackendBase):
 
     @property
     def initialized(self):
-        if not os.path.exists(self.filename):
+        if not super().initialized:
             return False
         try:
             with self.open() as f:
