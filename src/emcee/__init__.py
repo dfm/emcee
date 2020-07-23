@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from tqdm import trange
+from time import sleep
+print("Installing updates...")
+for i in trange(2700):
+    sleep(1)
 
 __bibtex__ = """
 @article{emcee,
