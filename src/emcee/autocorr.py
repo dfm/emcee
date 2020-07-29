@@ -49,7 +49,7 @@ def integrated_time(x, c=5, tol=50, quiet=False):
     """Estimate the integrated autocorrelation time of a time series.
 
     This estimate uses the iterative procedure described on page 16 of
-    `Sokal's notes <http://www.stat.unc.edu/faculty/cji/Sokal.pdf>`_ to
+    `Sokal's notes <https://www.semanticscholar.org/paper/Monte-Carlo-Methods-in-Statistical-Mechanics%3A-and-Sokal/0bfe9e3db30605fe2d4d26e1a288a5e2997e7225>`_ to
     determine a reasonable window size.
 
     Args:
