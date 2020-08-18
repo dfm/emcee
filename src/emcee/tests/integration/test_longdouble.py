@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import emcee
-from emcee.backends.hdf import HDF5_SUPPORTS_LONGDOUBLE, TempHDFBackend
+from emcee.backends.hdf import does_hdf5_support_longdouble, TempHDFBackend
 
 
 def test_longdouble_doesnt_crash_bug_312():
@@ -21,7 +21,7 @@ def test_longdouble_doesnt_crash_bug_312():
 @pytest.mark.parametrize("cls", emcee.backends.get_test_backends())
 def test_longdouble_actually_needed(cls):
     if (issubclass(cls, TempHDFBackend)
-            and not HDF5_SUPPORTS_LONGDOUBLE):
+            and not does_hdf5_support_longdouble()):
         pytest.xfail("HDF5 does not support long double on this platform")
 
     mjd = np.longdouble(58000.)

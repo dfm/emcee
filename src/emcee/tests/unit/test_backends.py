@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from emcee import EnsembleSampler, backends, State
-from emcee.backends.hdf import HDF5_SUPPORTS_LONGDOUBLE
+from emcee.backends.hdf import does_hdf5_support_longdouble
 
 try:
     import h5py
@@ -236,7 +236,7 @@ def test_multi_hdf5():
 @pytest.mark.parametrize("backend", all_backends)
 def test_longdouble_preserved(backend):
     if (issubclass(backend, backends.TempHDFBackend)
-            and not HDF5_SUPPORTS_LONGDOUBLE):
+            and not does_hdf5_support_longdouble()):
         pytest.xfail("HDF5 does not support long double on this platform")
     nwalkers = 10
     ndim = 2

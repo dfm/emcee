@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["HDFBackend", "TempHDFBackend", "HDF5_SUPPORTS_LONGDOUBLE"]
+__all__ = ["HDFBackend", "TempHDFBackend", "does_hdf5_support_longdouble"]
 
 import os
 from tempfile import NamedTemporaryFile
@@ -36,9 +36,6 @@ def does_hdf5_support_longdouble():
             if hf["group"]["data"].dtype != np.longdouble:
                 return False
     return True
-
-
-HDF5_SUPPORTS_LONGDOUBLE = does_hdf5_support_longdouble()
 
 
 class HDFBackend(Backend):
