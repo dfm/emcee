@@ -260,6 +260,7 @@ def test_hdf5_dtypes():
     with backends.TempHDFBackend(dtype=np.longdouble) as b:
         assert b.dtype == np.longdouble
         b.reset(nwalkers, ndim)
+        b.grow(1, None)
         with h5py.File(b.filename, "r") as f:
             g = f["test"]
             assert g["chain"].dtype == np.longdouble
