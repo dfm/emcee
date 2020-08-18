@@ -2,12 +2,18 @@
 
 import os
 from itertools import product
+from tempfile import NamedTemporaryFile
 
-import h5py
 import numpy as np
 import pytest
 
 from emcee import EnsembleSampler, backends, State
+from emcee.backends.hdf import HDF5_SUPPORTS_LONGDOUBLE
+
+try:
+    import h5py
+except ImportError:
+    h5py = None
 
 __all__ = ["test_backend", "test_reload"]
 
@@ -55,6 +61,7 @@ def _custom_allclose(a, b):
             assert np.allclose(a[n], b[n])
 
 
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
 def test_uninit(tmpdir):
     fn = str(tmpdir.join("EMCEE_TEST_FILE_DO_NOT_USE.h5"))
     if os.path.exists(fn):
@@ -208,6 +215,7 @@ def test_restart(backend, dtype):
         assert np.allclose(a, b), "inconsistent acceptance fraction"
 
 
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
 def test_multi_hdf5():
     with backends.TempHDFBackend() as backend1:
         run_sampler(backend1)
@@ -227,6 +235,9 @@ def test_multi_hdf5():
 
 @pytest.mark.parametrize("backend", all_backends)
 def test_longdouble_preserved(backend):
+    if (issubclass(backend, backends.TempHDFBackend)
+            and not HDF5_SUPPORTS_LONGDOUBLE):
+        pytest.xfail("HDF5 does not support long double on this platform")
     nwalkers = 10
     ndim = 2
     nsteps = 5
@@ -252,15 +263,3 @@ def test_longdouble_preserved(backend):
 
             assert s.log_prob.dtype == np.longdouble
             assert np.all(s.log_prob == lp)
-
-
-def test_hdf5_dtypes():
-    nwalkers = 10
-    ndim = 2
-    with backends.TempHDFBackend(dtype=np.longdouble) as b:
-        assert b.dtype == np.longdouble
-        b.reset(nwalkers, ndim)
-        b.grow(1, None)
-        with h5py.File(b.filename, "r") as f:
-            g = f["test"]
-            assert g["chain"].dtype == np.longdouble
