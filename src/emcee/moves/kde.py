@@ -30,7 +30,7 @@ class KDEMove(RedBlueMove):
     def __init__(self, bw_method=None, **kwargs):
         if gaussian_kde is None:
             raise ImportError(
-                "you need scipy.stats.gaussian_kde to use the " "KDEMove"
+                "you need scipy.stats.gaussian_kde to use the KDEMove"
             )
         self.bw_method = bw_method
         super(KDEMove, self).__init__(**kwargs)
