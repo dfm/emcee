@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 from .. import __version__
-from .backend import Backend
+from .file import FileBackend
 
 
 try:
@@ -19,7 +19,7 @@ except ImportError:
     h5py = None
 
 
-class HDFBackend(Backend):
+class HDFBackend(FileBackend):
     """A backend that stores the chain in an HDF5 file using h5py
 
     .. note:: You must install `h5py <http://www.h5py.org/>`_ to use this
@@ -34,9 +34,11 @@ class HDFBackend(Backend):
             ``RuntimeError`` if the file is opened with write access.
 
     """
+
     def __init__(self, filename, name="mcmc", read_only=False, dtype=None):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
+        super().__init__(filename=filename, read_only=read_only)
         self.filename = filename
         self.name = name
         self.read_only = read_only
@@ -49,7 +51,7 @@ class HDFBackend(Backend):
 
     @property
     def initialized(self):
-        if not os.path.exists(self.filename):
+        if not super().initialized:
             return False
         try:
             with self.open() as f:
@@ -108,13 +110,7 @@ class HDFBackend(Backend):
         with self.open() as f:
             return f[self.name].attrs["has_blobs"]
 
-    def get_value(self, name, flat=False, thin=1, discard=0):
-        if not self.initialized:
-            raise AttributeError(
-                "You must run the sampler with "
-                "'store == True' before accessing the "
-                "results"
-            )
+    def _get_value(self, name, flat, thin, discard):
         with self.open() as f:
             g = f[self.name]
             iteration = g.attrs["iteration"]
@@ -219,16 +215,15 @@ class HDFBackend(Backend):
             g.attrs["iteration"] = iteration + 1
 
 
-class TempHDFBackend(object):
-
+class TempHDFBackend:
     def __init__(self, dtype=None):
         self.dtype = dtype
         self.filename = None
 
     def __enter__(self):
-        f = NamedTemporaryFile(prefix="emcee-temporary-hdf5",
-                               suffix=".hdf5",
-                               delete=False)
+        f = NamedTemporaryFile(
+            prefix="emcee-temporary-hdf5", suffix=".hdf5", delete=False
+        )
         f.close()
         self.filename = f.name
         return HDFBackend(f.name, "test", dtype=self.dtype)
