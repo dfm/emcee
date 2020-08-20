@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function
 
-__all__ = ["HDFBackend", "TempHDFBackend"]
+__all__ = ["HDFBackend", "TempHDFBackend", "does_hdf5_support_longdouble"]
 
 import os
 from tempfile import NamedTemporaryFile
@@ -17,6 +17,25 @@ try:
     import h5py
 except ImportError:
     h5py = None
+
+
+def does_hdf5_support_longdouble():
+    if h5py is None:
+        return False
+    with NamedTemporaryFile(prefix="emcee-temporary-hdf5",
+                            suffix=".hdf5",
+                            delete=False) as f:
+        f.close()
+
+        with h5py.File(f.name, "w") as hf:
+            g = hf.create_group("group")
+            g.create_dataset("data", data=np.ones(1, dtype=np.longdouble))
+            if g["data"].dtype != np.longdouble:
+                return False
+        with h5py.File(f.name, "r") as hf:
+            if hf["group"]["data"].dtype != np.longdouble:
+                return False
+    return True
 
 
 class HDFBackend(Backend):
