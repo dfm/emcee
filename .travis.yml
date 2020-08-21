@@ -24,11 +24,11 @@ jobs:
     - python: "3.7"
       env: NUMPY_VERSION=1.16
     - python: "3.8"
-      env: NUMPY_VERSION=default
+      env: NUMPY_VERSION=noextras
 
 install: |
   python -m pip install --upgrade pip
-  if [[ $NUMPY_VERSION == default ]]
+  if [[ $NUMPY_VERSION == noextras ]]
   then
     python -m pip install -e ".[tests]"
   else
