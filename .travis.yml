@@ -19,12 +19,12 @@ jobs:
   include:
     - python: "2.7"
       env: NUMPY_VERSION=1.16
-    - python: "3.8"
-      env: NUMPY_VERSION=default
     - python: "3.6"
       env: NUMPY_VERSION=1.15
     - python: "3.7"
       env: NUMPY_VERSION=1.16
+    - python: "3.8"
+      env: NUMPY_VERSION=default
 
 install: |
   python -m pip install --upgrade pip
