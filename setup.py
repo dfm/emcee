@@ -23,6 +23,15 @@ CLASSIFIERS = [
     "Programming Language :: Python",
 ]
 INSTALL_REQUIRES = ["numpy"]
+SETUP_REQUIRES = INSTALL_REQUIRES + [
+    "setuptools>=40.6.0",
+    "setuptools_scm",
+    "wheel",
+]
+EXTRA_REQUIRE = {
+    "extras": ["h5py", "scipy"],
+    "tests": ["pytest", "pytest-cov"],
+}
 
 # END PROJECT SPECIFIC
 
@@ -66,6 +75,8 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         include_package_data=True,
         install_requires=INSTALL_REQUIRES,
+        setup_requires=SETUP_REQUIRES,
+        extras_require=EXTRA_REQUIRE,
         classifiers=CLASSIFIERS,
         zip_safe=False,
         options={"bdist_wheel": {"universal": "1"}},
