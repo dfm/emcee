@@ -23,6 +23,7 @@ jobs:
       env: NUMPY_VERSION=1.15
     - python: "3.7"
       env: NUMPY_VERSION=1.16
+  allow_failures:
     - python: "3.8"
       env: NUMPY_VERSION=noextras
 
