@@ -1,8 +1,6 @@
 sudo: false
 dist: xenial
 language: python
-matrix:
-  fast_finish: true
 cache:
   directories:
     - "$HOME/.cache/pip"
@@ -16,6 +14,7 @@ env:
   - NUMPY_VERSION=1.15
 
 jobs:
+  fast_finish: true
   include:
     - python: "2.7"
       env: NUMPY_VERSION=1.16
