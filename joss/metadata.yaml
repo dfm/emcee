@@ -1,0 +1,20 @@
+
+repository: https://github.com/dfm/emcee
+archive_doi: https://doi.org/10.5281/zenodo.3543502
+paper_url: https://doi.org/10.21105/joss.01864
+journal_name: Journal of Open Source Software
+review_issue_url: https://github.com/openjournals/joss-reviews/issues/1864
+issue: 4
+volume: 43
+page: 1864
+logo_path: logo.png
+aas_logo_path: aas-logo.png
+year: 2019
+submitted: 28 October 2019
+published: 17 November 2019
+formatted_doi: 10.21105/joss.01864
+citation_author: Foreman-Mackey
+editor_name: Juanjo Bazán
+reviewers:
+  - benjaminrose
+  - mattpitkin
