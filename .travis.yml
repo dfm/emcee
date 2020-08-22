@@ -1,36 +1,47 @@
-sudo: false
+os: linux
 dist: xenial
 language: python
-matrix:
-  fast_finish: true
 cache:
   directories:
-  - "$HOME/.cache/pip"
+    - "$HOME/.cache/pip"
 
 python:
   - "3.6"
   - "3.7"
+  - "3.8"
 env:
+  - NUMPY_VERSION=1.19
+  - NUMPY_VERSION=1.18
   - NUMPY_VERSION=1.17
-  - NUMPY_VERSION=1.16
-  - NUMPY_VERSION=1.15
 
 jobs:
+  fast_finish: true
   include:
     - python: "2.7"
       env: NUMPY_VERSION=1.16
+    - python: "3.6"
+      env: NUMPY_VERSION=1.15
+    - python: "3.7"
+      env: NUMPY_VERSION=1.16
+    - python: "3.8"
+      env: NUMPY_VERSION=noextras
+  allow_failures:
+    - python: "3.8"
+      env: NUMPY_VERSION=noextras
 
-install:
-  - travis_retry pip install --upgrade pip
-  - travis_retry pip install --upgrade setuptools
-  - travis_retry pip install --upgrade numpy==$NUMPY_VERSION
-  - pip install -vv .
-  - python -c 'import emcee;print(emcee.__version__)'
-  - travis_retry pip install --upgrade -r requirements-dev.txt
-  - travis_retry python setup.py develop
+install: |
+  python -m pip install --upgrade pip
+  if [[ $NUMPY_VERSION == noextras ]]
+  then
+    python -m pip install -e ".[tests]"
+  else
+    python -m pip install numpy==$NUMPY_VERSION
+    python -m pip install -e ".[extras,tests]"
+  fi
+  python -c 'import emcee;print(emcee.__version__)'
 
 script:
-  - pytest -v src/emcee/tests --cov emcee
+  - python -m pytest -v src/emcee/tests --cov emcee
 
 after_success:
   - coveralls
