@@ -22,9 +22,9 @@ except ImportError:
 def does_hdf5_support_longdouble():
     if h5py is None:
         return False
-    with NamedTemporaryFile(prefix="emcee-temporary-hdf5",
-                            suffix=".hdf5",
-                            delete=False) as f:
+    with NamedTemporaryFile(
+        prefix="emcee-temporary-hdf5", suffix=".hdf5", delete=False
+    ) as f:
         f.close()
 
         with h5py.File(f.name, "w") as hf:
@@ -53,12 +53,23 @@ class HDFBackend(Backend):
             ``RuntimeError`` if the file is opened with write access.
 
     """
-    def __init__(self, filename, name="mcmc", read_only=False, dtype=None):
+
+    def __init__(
+        self,
+        filename,
+        name="mcmc",
+        read_only=False,
+        dtype=None,
+        compression=None,
+        compression_opts=None,
+    ):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
         self.filename = filename
         self.name = name
         self.read_only = read_only
+        self.compression = compression
+        self.compression_opts = compression_opts
         if dtype is None:
             self.dtype_set = False
             self.dtype = np.float64
@@ -109,18 +120,27 @@ class HDFBackend(Backend):
             g.attrs["ndim"] = ndim
             g.attrs["has_blobs"] = False
             g.attrs["iteration"] = 0
-            g.create_dataset("accepted", data=np.zeros(nwalkers))
+            g.create_dataset(
+                "accepted",
+                data=np.zeros(nwalkers),
+                compression=self.compression,
+                compression_opts=self.compression_opts,
+            )
             g.create_dataset(
                 "chain",
                 (0, nwalkers, ndim),
                 maxshape=(None, nwalkers, ndim),
                 dtype=self.dtype,
+                compression=self.compression,
+                compression_opts=self.compression_opts,
             )
             g.create_dataset(
                 "log_prob",
                 (0, nwalkers),
                 maxshape=(None, nwalkers),
                 dtype=self.dtype,
+                compression=self.compression,
+                compression_opts=self.compression_opts,
             )
 
     def has_blobs(self):
@@ -206,6 +226,8 @@ class HDFBackend(Backend):
                         (ntot, nwalkers),
                         maxshape=(None, nwalkers),
                         dtype=dt,
+                        compression=self.compression,
+                        compression_opts=self.compression_opts,
                     )
                 else:
                     g["blobs"].resize(ntot, axis=0)
@@ -239,18 +261,25 @@ class HDFBackend(Backend):
 
 
 class TempHDFBackend(object):
-
-    def __init__(self, dtype=None):
+    def __init__(self, dtype=None, compression=None, compression_opts=None):
         self.dtype = dtype
         self.filename = None
+        self.compression = compression
+        self.compression_opts = compression_opts
 
     def __enter__(self):
-        f = NamedTemporaryFile(prefix="emcee-temporary-hdf5",
-                               suffix=".hdf5",
-                               delete=False)
+        f = NamedTemporaryFile(
+            prefix="emcee-temporary-hdf5", suffix=".hdf5", delete=False
+        )
         f.close()
         self.filename = f.name
-        return HDFBackend(f.name, "test", dtype=self.dtype)
+        return HDFBackend(
+            f.name,
+            "test",
+            dtype=self.dtype,
+            compression=self.compression,
+            compression_opts=self.compression_opts,
+        )
 
     def __exit__(self, exception_type, exception_value, traceback):
         os.remove(self.filename)
