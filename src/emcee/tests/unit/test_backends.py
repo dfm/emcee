@@ -3,7 +3,6 @@
 import os
 from os.path import join
 from itertools import product
-from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
