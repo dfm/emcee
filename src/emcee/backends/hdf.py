@@ -185,7 +185,7 @@ class HDFBackend(Backend):
 
         Args:
             ngrow (int): The number of steps to grow the chain.
-            blobs: The current list of blobs. This is used to compute the
+            blobs: The current array of blobs. This is used to compute the
                 dtype for the blobs array.
 
         """
@@ -200,7 +200,7 @@ class HDFBackend(Backend):
                 has_blobs = g.attrs["has_blobs"]
                 if not has_blobs:
                     nwalkers = g.attrs["nwalkers"]
-                    dt = np.dtype((blobs[0].dtype, blobs[0].shape))
+                    dt = np.dtype((blobs.dtype, blobs.shape[1:]))
                     g.create_dataset(
                         "blobs",
                         (ntot, nwalkers),
@@ -209,6 +209,11 @@ class HDFBackend(Backend):
                     )
                 else:
                     g["blobs"].resize(ntot, axis=0)
+                    if g["blobs"].shape[1:] != blobs.shape[1:]:
+                        raise ValueError(
+                            "Existing blobs have shape {} but new blobs "
+                            "requested with shape {}"
+                            .format(g["blobs"].shape[1:], blobs.shape[1:]))
                 g.attrs["has_blobs"] = True
 
     def save_step(self, state, accepted):

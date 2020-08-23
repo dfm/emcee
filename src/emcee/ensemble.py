@@ -442,6 +442,9 @@ class EnsembleSampler(object):
                     dt = np.atleast_1d(blob[0]).dtype
                 except ValueError:
                     dt = np.dtype("object")
+                if dt.kind in "US":
+                    # Strings need to be object arrays or we risk truncation
+                    dt = np.dtype("object")
             blob = np.array(blob, dtype=dt)
 
             # Deal with single blobs properly
