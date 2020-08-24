@@ -209,11 +209,11 @@ class HDFBackend(Backend):
                     )
                 else:
                     g["blobs"].resize(ntot, axis=0)
-                    if g["blobs"].shape[1:] != blobs.shape[1:]:
+                    if g["blobs"].dtype.shape != blobs.shape[1:]:
                         raise ValueError(
                             "Existing blobs have shape {} but new blobs "
                             "requested with shape {}"
-                            .format(g["blobs"].shape[1:], blobs.shape[1:]))
+                            .format(g["blobs"].dtype.shape, blobs.shape[1:]))
                 g.attrs["has_blobs"] = True
 
     def save_step(self, state, accepted):
