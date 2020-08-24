@@ -22,8 +22,9 @@ class BlobLogProb(object):
 @pytest.mark.parametrize(
     "blob_spec",
     [
-        (True, False, (5, 3), lambda x: np.random.randn(5, 3)),
         (True, False, 5, lambda x: np.random.randn(5)),
+        (True, False, (5, 3), lambda x: np.random.randn(5, 3)),
+        (True, False, (5, 3), lambda x: np.random.randn(1, 5, 1, 3, 1)),
         (True, False, 0, lambda x: np.random.randn()),
         (False, True, 2, lambda x: (1.0, np.random.randn(3))),
         (False, False, 0, lambda x: "face"),
