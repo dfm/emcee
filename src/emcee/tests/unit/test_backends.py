@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+from os.path import join
 from itertools import product
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
@@ -263,3 +263,14 @@ def test_longdouble_preserved(backend):
 
             assert s.log_prob.dtype == np.longdouble
             assert np.all(s.log_prob == lp)
+
+
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
+def test_hdf5_compression():
+    with backends.TempHDFBackend(compression="gzip") as b:
+        run_sampler(b, blobs=True)
+        # re-open and read
+        b.get_chain()
+        b.get_blobs()
+        b.get_log_prob()
+        b.accepted
