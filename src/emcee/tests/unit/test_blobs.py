@@ -51,7 +51,7 @@ def test_blob_shape(backend, blob_spec):
 
         if ragged:
             with warnings.catch_warnings():
-                warnings.simplefilter("ignore", np.VisibleDeprecationWarning)
+                warnings.simplefilter("ignore", DeprecationWarning)
                 sampler.run_mcmc(coords, nsteps)
         else:
             sampler.run_mcmc(coords, nsteps)
