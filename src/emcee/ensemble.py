@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import numpy as np
 
 from .backends import Backend
@@ -439,8 +441,24 @@ class EnsembleSampler(object):
                 dt = self.blobs_dtype
             else:
                 try:
-                    dt = np.atleast_1d(blob[0]).dtype
+                    with warnings.catch_warnings(record=True):
+                        warnings.simplefilter("error",
+                                              np.VisibleDeprecationWarning)
+                        try:
+                            dt = np.atleast_1d(blob[0]).dtype
+                        except Warning:
+                            deprecation_warning(
+                                "You have provided blobs that are not all the "
+                                "same shape or size. This means they must be "
+                                "placed in an object array. Numpy has "
+                                "deprecated this automatic detection, so "
+                                "please specify "
+                                "blobs_dtype=np.dtype('object')")
+                            dt = np.dtype("object")
                 except ValueError:
+                    dt = np.dtype("object")
+                if dt.kind in "US":
+                    # Strings need to be object arrays or we risk truncation
                     dt = np.dtype("object")
             blob = np.array(blob, dtype=dt)
 
