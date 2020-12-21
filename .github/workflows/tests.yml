@@ -1,0 +1,70 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, actions ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.6", "3.7", "3.8", "3.9"]
+        extras: [true, false]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      if: ${{ matrix.extras }}
+      run: |
+        python -m pip install -U pip
+        python -m pip install -e ".[extras,tests]"
+    - name: Install dependencies without extras
+      if: ${{ !matrix.extras }}
+      run: |
+        python -m pip install -U pip
+        python -m pip install -e ".[tests]"
+    - name: Run tests
+      run: |
+        python -m pytest -v src/emcee/tests --cov emcee
+    - name: Get unique id
+      id: unique-id
+      env:
+        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+      run: |
+        export JOB_ID=`echo $STRATEGY_CONTEXT | md5sum`
+        echo "::set-output name=id::$JOB_ID"
+    - uses: actions/upload-artifact@v2
+      with:
+        name: cov-${{ steps.unique-id.outputs.id }}
+        path: .coverage
+        
+  coverage:
+    name: "Merge and upload coverage"
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+      - name: Merge and upload coverage
+        run: |
+          python -m pip install coveralls
+          find . -name \.coverage -exec coverage combine --append {} \;
+          coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
