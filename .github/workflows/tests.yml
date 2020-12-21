@@ -2,17 +2,29 @@ name: Tests
 
 on:
   push:
-    branches: [ main, actions ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    name: "py${{ matrix.python-version }} / ${{ matrix.os }} / extras: ${{ matrix.extras }}"
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"]
-        extras: [true, false]
+        extras: [true]
+        os: ["ubuntu-latest"]
+        include:
+          - python-version: "3.8"
+            extras: false
+            os: "ubuntu-latest"
+          - python-version: "3.8"
+            extras: true
+            os: "macos-latest"
+          - python-version: "3.8"
+            extras: true
+            os: "windows-latest"
 
     steps:
     - uses: actions/checkout@v2
@@ -43,6 +55,7 @@ jobs:
         export JOB_ID=`echo $STRATEGY_CONTEXT | md5sum`
         echo "::set-output name=id::$JOB_ID"
     - uses: actions/upload-artifact@v2
+      if: ${{ matrix.os != 'windows-latest' }}
       with:
         name: cov-${{ steps.unique-id.outputs.id }}
         path: .coverage
