@@ -48,6 +48,7 @@ jobs:
       run: |
         python -m pytest -v src/emcee/tests --cov emcee
     - name: Get unique id
+      if: ${{ matrix.os != 'windows-latest' }}
       id: unique-id
       env:
         STRATEGY_CONTEXT: ${{ toJson(strategy) }}
