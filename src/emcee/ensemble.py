@@ -247,7 +247,7 @@ class EnsembleSampler(object):
         :class:`State` of the ensemble.
 
         """
-        if iterations is None and not store is False:
+        if iterations is None and store:
             raise ValueError("'store' must be False when 'iterations' is None")
         # Interpret the input as a walker state and check the dimensions.
         state = State(initial_state, copy=True)
