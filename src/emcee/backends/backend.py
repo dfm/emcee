@@ -14,7 +14,7 @@ class Backend(object):
     def __init__(self, dtype=None):
         self.initialized = False
         if dtype is None:
-            dtype = np.float
+            dtype = np.float64
         self.dtype = dtype
 
     def reset(self, nwalkers, ndim):
