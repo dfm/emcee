@@ -10,7 +10,7 @@ from .model import Model
 from .moves import StretchMove
 from .pbar import get_progress_bar
 from .state import State
-from .utils import deprecated, deprecation_warning
+from .utils import deprecated, deprecation_warning, _check_random_state
 
 __all__ = ["EnsembleSampler", "walkers_independent"]
 
@@ -61,6 +61,15 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
+        seed (Union[int, np.random.RandomState, np.random.Generator, None]): If
+            `seed` is not specified the `np.RandomState` singleton is used.
+            If `seed` is an int, a new `np.random.RandomState` instance is used,
+            seeded with seed.
+            If `seed` is already a `np.random.RandomState` or a
+            `np.random.Generator` instance, then that `RandomState` or
+            `Generator` instance is used, omitting the stored state if
+            re-using a backend.
+            Specify `seed` for reproducable minimizations.
 
     """
 
@@ -76,6 +85,7 @@ class EnsembleSampler(object):
         backend=None,
         vectorize=False,
         blobs_dtype=None,
+        seed=None,
         # Deprecated...
         a=None,
         postargs=None,
@@ -124,6 +134,7 @@ class EnsembleSampler(object):
         self.backend = Backend() if backend is None else backend
 
         # Deal with re-used backends
+        state = None
         if not self.backend.initialized:
             self._previous_state = None
             self.reset()
@@ -150,8 +161,7 @@ class EnsembleSampler(object):
 
         # This is a random number generator that we can easily set the state
         # of without affecting the numpy-wide generator
-        self._random = np.random.mtrand.RandomState()
-        self._random.set_state(state)
+        self._random = _check_random_state(seed, state)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -167,7 +177,10 @@ class EnsembleSampler(object):
         so silently.
 
         """
-        return self._random.get_state()
+        try:
+            return self._random.get_state()
+        except AttributeError:
+            return self._random.bit_generator.state
 
     @random_state.setter  # NOQA
     def random_state(self, state):

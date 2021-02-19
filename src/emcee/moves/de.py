@@ -3,6 +3,7 @@
 import numpy as np
 
 from .red_blue import RedBlueMove
+from ..utils import rng_integers
 
 __all__ = ["DEMove"]
 
@@ -42,9 +43,9 @@ class DEMove(RedBlueMove):
         Nc = list(map(len, c))
         ndim = s.shape[1]
         q = np.empty((Ns, ndim), dtype=np.float64)
-        f = self.sigma * random.randn(Ns)
+        f = self.sigma * random.standard_normal(Ns)
         for i in range(Ns):
-            w = np.array([c[j][random.randint(Nc[j])] for j in range(2)])
+            w = np.array([c[j][rng_integers(random, Nc[j])] for j in range(2)])
             random.shuffle(w)
             g = np.diff(w, axis=0) * self.g0 + f[i]
             q[i] = s[i] + g

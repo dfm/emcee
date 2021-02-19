@@ -2,9 +2,11 @@
 
 import pickle
 from itertools import product, islice
+from copy import deepcopy
 
 import numpy as np
 import pytest
+import packaging
 
 from emcee import EnsembleSampler, backends, moves, walkers_independent
 
@@ -42,6 +44,7 @@ def test_shapes(backend, moves, nwalkers=32, ndim=3, nsteps=10, seed=1234):
 
         # Run the sampler.
         sampler.run_mcmc(coords, nsteps)
+
         chain = sampler.get_chain()
         assert len(chain) == nsteps, "wrong number of steps"
 
@@ -137,7 +140,10 @@ def run_sampler(
 ):
     np.random.seed(seed)
     coords = np.random.randn(nwalkers, ndim)
-    sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, backend=backend)
+    np.random.seed(None)
+    sampler = EnsembleSampler(
+        nwalkers, ndim, normal_log_prob, backend=backend, seed=seed
+    )
     sampler.run_mcmc(
         coords,
         nsteps,
@@ -333,3 +339,52 @@ def test_infinite_iterations(backend, nwalkers=32, ndim=3):
         coords = np.random.randn(nwalkers, ndim)
         for state in islice(EnsembleSampler(nwalkers, ndim, normal_log_prob, backend=be).sample(coords, iterations=None, store=False), 10):
             pass
+
+def test_sampler_seed():
+    nwalkers = 32
+    ndim = 3
+    nsteps = 25
+    np.random.seed(456)
+    coords = np.random.randn(nwalkers, ndim)
+    sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
+    sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=2)
+    sampler3 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=1234)
+    sampler4 = EnsembleSampler(
+        nwalkers, ndim, normal_log_prob, seed=deepcopy(sampler1._random)
+    )
+    for sampler in (sampler1, sampler2, sampler3, sampler4):
+        sampler.run_mcmc(coords, nsteps)
+    for k in ["get_chain", "get_log_prob"]:
+        attr1 = getattr(sampler1, k)()
+        attr2 = getattr(sampler2, k)()
+        attr3 = getattr(sampler3, k)()
+        attr4 = getattr(sampler4, k)()
+        assert not np.allclose(attr1, attr2), "inconsistent {0}".format(k)
+        np.testing.assert_allclose(attr1, attr3, err_msg="inconsistent {0}".format(k))
+        np.testing.assert_allclose(attr1, attr4, err_msg="inconsistent {0}".format(k))
+
+
+def test_sampler_bad_seed():
+    nwalkers = 32
+    ndim = 3
+    with pytest.raises(TypeError, match="seed must be"):
+        EnsembleSampler(nwalkers, ndim, normal_log_prob, seed="bad_seed")
+
+@pytest.mark.skipif(
+    packaging.version.parse(np.__version__) < packaging.version.parse("1.17.0"),
+    reason="requires numpy 1.17.0 or higher",
+)
+def test_sampler_generator():
+    nwalkers = 32
+    ndim = 3
+    nsteps = 5
+    np.random.seed(456)
+    coords = np.random.randn(nwalkers, ndim)
+    seed1 = np.random.default_rng(1)
+    sampler1 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed1)
+    sampler1.run_mcmc(coords, nsteps)
+    seed2 = np.random.default_rng(1)
+    sampler2 = EnsembleSampler(nwalkers, ndim, normal_log_prob, seed=seed2)
+    sampler2.run_mcmc(coords, nsteps)
+    np.testing.assert_allclose(sampler1.get_chain(), sampler2.get_chain())
+    np.testing.assert_allclose(sampler1.get_log_prob(), sampler2.get_log_prob())

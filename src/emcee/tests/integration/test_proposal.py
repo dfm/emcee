@@ -32,6 +32,7 @@ def _test_normal(
     nwalkers=32,
     nsteps=2000,
     seed=1234,
+    generator=False,
     check_acceptance=True,
     pool=None,
     blobs=False,
@@ -47,8 +48,12 @@ def _test_normal(
     else:
         lp = normal_log_prob
 
+    sampler_kwargs = {}
+    if generator:
+        sampler_kwargs["seed"] = np.random.default_rng(seed)
+
     sampler = emcee.EnsembleSampler(
-        nwalkers, ndim, lp, moves=proposal, pool=pool
+        nwalkers, ndim, lp, moves=proposal, pool=pool, **sampler_kwargs
     )
     if hasattr(proposal, "ntune") and proposal.ntune > 0:
         coords = sampler.run_mcmc(coords, proposal.ntune, tune=True)
@@ -74,15 +79,19 @@ def _test_normal(
         assert ks < 0.05, "The K-S test failed"
 
 
-def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234):
+def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234, generator=False):
     # Set up the random number generator.
     np.random.seed(seed)
 
     # Initialize the ensemble and proposal.
     coords = np.random.rand(nwalkers, 1)
 
+    sampler_kwargs = {}
+    if generator:
+        sampler_kwargs["seed"] = np.random.default_rng(seed)
+
     sampler = emcee.EnsembleSampler(
-        nwalkers, 1, normal_log_prob, moves=proposal
+        nwalkers, 1, normal_log_prob, moves=proposal, **sampler_kwargs
     )
     sampler.run_mcmc(coords, nsteps)
 
