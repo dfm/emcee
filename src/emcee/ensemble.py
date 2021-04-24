@@ -2,6 +2,8 @@
 
 import warnings
 
+from typing import Dict, List, Optional
+
 import numpy as np
 from itertools import count
 
@@ -76,6 +78,7 @@ class EnsembleSampler(object):
         backend=None,
         vectorize=False,
         blobs_dtype=None,
+        parameter_names: Optional[List[str]] = None,
         # Deprecated...
         a=None,
         postargs=None,
@@ -156,6 +159,28 @@ class EnsembleSampler(object):
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
         self.log_prob_fn = _FunctionWrapper(log_prob_fn, args, kwargs)
+
+        # Save the parameter names
+        self.params_are_named: bool = parameter_names is not None
+        self.parameter_names: Optional[List[str]] = parameter_names
+        if self.params_are_named:
+            # Don't support vectorizing yet
+            msg = "named parameters with vectorization unsupported for now"
+            assert not self.vectorize, msg
+            
+            # Check for all named
+            msg = "name all parameters or set `parameter_names` to `None`"
+            assert len(parameter_names) == ndim, msg
+
+            # Check for duplicate names
+            dupes = set()
+            uniq = []
+            for name in parameter_names:
+                if name not in dupes:
+                    uniq.append(name)
+                    dupes.add(name)
+            msg = f"duplicate paramters: {dupes}"
+            assert len(uniq) == len(parameter_names), msg
 
     @property
     def random_state(self):
@@ -416,6 +441,10 @@ class EnsembleSampler(object):
         if np.any(np.isnan(p)):
             raise ValueError("At least one parameter value was NaN")
 
+        # If the parmaeters are named, then switch to dictionaries
+        if self.params_are_named:
+            p = ndarray_to_list_of_dicts(p, self.parameter_names)
+
         # Run the log-probability calculations (optionally in parallel).
         if self.vectorize:
             results = self.log_prob_fn(p)
@@ -428,7 +457,7 @@ class EnsembleSampler(object):
             else:
                 map_func = map
             results = list(
-                map_func(self.log_prob_fn, (p[i] for i in range(len(p))))
+                map_func(self.log_prob_fn, p)
             )
 
         try:
@@ -557,8 +586,8 @@ class _FunctionWrapper(object):
 
     def __init__(self, f, args, kwargs):
         self.f = f
-        self.args = [] if args is None else args
-        self.kwargs = {} if kwargs is None else kwargs
+        self.args = args or []
+        self.kwargs = kwargs or {}
 
     def __call__(self, x):
         try:
@@ -605,3 +634,21 @@ def _scaled_cond(a):
         return np.inf
     c = b / bsum
     return np.linalg.cond(c.astype(float))
+
+def ndarray_to_list_of_dicts(
+        x: np.ndarray,
+        keys: List[str]
+) -> List[Dict[str, np.number]]:
+    """
+    A helper function to convert a ``np.ndarray`` into a list
+    of dictionaries of parameters. Used when parameters are named.
+
+    Args:
+      x (np.ndarray): parameter array of shape ``(N, n_dim)``, where
+        ``N`` is an integer
+      keys (List[str]): names of the parameters to use as dictionary keys
+
+    Returns:
+      list of dictionaries of parameters
+    """
+    return [{key: xi[i] for i, key in enumerate(keys)} for xi in x]
