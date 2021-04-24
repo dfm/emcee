@@ -127,3 +127,19 @@ class TestNamedParameters(TestCase):
             lnps, _ = sampler.compute_log_prob(coords)
             assert len(lnps) == N
             assert lnps.dtype == np.float64
+
+    def test_run_mcmc(self):
+        # Sort of an integration test
+        n_walkers = 4
+        sampler = EnsembleSampler(
+            nwalkers=n_walkers,
+            ndim=len(self.names),
+            log_prob_fn=self.lnpdf,
+            parameter_names=self.names,
+        )
+        guess = np.random.rand(n_walkers, len(self.names))
+        n_steps = 50
+        results = sampler.run_mcmc(guess, n_steps)
+        assert results.coords.shape == (n_walkers, len(self.names))
+        chain = sampler.chain
+        assert chain.shape == (n_walkers, n_steps, len(self.names))
