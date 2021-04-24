@@ -276,8 +276,9 @@ class EnsembleSampler(object):
             raise ValueError("'store' must be False when 'iterations' is None")
         # Interpret the input as a walker state and check the dimensions.
         state = State(initial_state, copy=True)
-        if np.shape(state.coords) != (self.nwalkers, self.ndim):
-            raise ValueError("incompatible input dimensions")
+        state_shape = np.shape(state.coords)
+        if state_shape != (self.nwalkers, self.ndim):
+            raise ValueError(f"incompatible input dimensions {state_shape}")
         if (not skip_initial_state_check) and (
             not walkers_independent(state.coords)
         ):
