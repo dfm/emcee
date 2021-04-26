@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import numpy as np
 import pytest
-from scipy.stats import norm
 
 from emcee.ensemble import EnsembleSampler, ndarray_to_list_of_dicts
 
@@ -41,7 +40,7 @@ class TestNamedParameters(TestCase):
         var = pars["var"]
         if var <= 0:
             return -np.inf
-        return norm.logpdf(self.x, loc=mean, scale=np.sqrt(var)).sum()
+        return -0.5 * ((mean - self.x)**2 / var + np.log(2 * np.pi * var)).sum()
 
     def lnpdf_mixture(self, pars) -> np.float64:
         mean1 = pars["mean1"]
@@ -50,14 +49,14 @@ class TestNamedParameters(TestCase):
         var2 = pars["var2"]
         if var1 <= 0 or var2 <= 0:
             return -np.inf
-        return (
-            norm.logpdf(self.x, loc=mean1, scale=np.sqrt(var1)).sum()
-            + norm.logpdf(self.x + 3, loc=mean2, scale=np.sqrt(var2)).sum()
-        )
+        return -0.5 * (
+            (mean1 - self.x)**2 / var1 + np.log(2 * np.pi * var1)
+            + (mean2 - self.x - 3)**2 / var2 + np.log(2 * np.pi * var2)
+        ).sum()
 
     def setUp(self):
         # Draw some data from a unit Gaussian
-        self.x = norm.rvs(size=100)
+        self.x = np.random.randn(100)
         self.names = ["mean", "var"]
 
     def test_named_parameters(self):
