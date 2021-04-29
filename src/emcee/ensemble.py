@@ -168,23 +168,28 @@ class EnsembleSampler(object):
         self.params_are_named: bool = parameter_names is not None
         self.parameter_names: Optional[List[str]] = parameter_names
         if self.params_are_named:
+            assert isinstance(parameter_names, (list, dict))
+
             # Don't support vectorizing yet
             msg = "named parameters with vectorization unsupported for now"
             assert not self.vectorize, msg
-            
-            # Check for all named
-            msg = "name all parameters or set `parameter_names` to `None`"
-            assert len(parameter_names) == ndim, msg
 
-            # Check for duplicate names
-            dupes = set()
-            uniq = []
-            for name in parameter_names:
-                if name not in dupes:
-                    uniq.append(name)
-                    dupes.add(name)
-            msg = f"duplicate paramters: {dupes}"
-            assert len(uniq) == len(parameter_names), msg
+            if isinstance(parameter_names, list):
+                # Check for all named
+                msg = "name all parameters or set `parameter_names` to `None`"
+                assert len(parameter_names) == ndim, msg
+
+                # Check for duplicate names
+                dupes = set()
+                uniq = []
+                for name in parameter_names:
+                    if name not in dupes:
+                        uniq.append(name)
+                        dupes.add(name)
+                msg = f"duplicate paramters: {dupes}"
+                assert len(uniq) == len(parameter_names), msg
+            else:
+                pass  # TODO
 
     @property
     def random_state(self):
