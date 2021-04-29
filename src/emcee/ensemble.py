@@ -2,7 +2,7 @@
 
 import warnings
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 from itertools import count
@@ -63,6 +63,10 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
+        parameter_names (Optional[Union[List[str], Dict[str, List[int]]]]):
+            names of individual parameters or groups of parameters. If
+            specified, the ``log_prob_fn`` will recieve a dictionary of
+            parameters, rather than a ``np.ndarray``.
 
     """
 
@@ -78,7 +82,7 @@ class EnsembleSampler(object):
         backend=None,
         vectorize=False,
         blobs_dtype=None,
-        parameter_names: Optional[List[str]] = None,
+        parameter_names: Optional[Union[Dict[str, int], List[str]]] = None,
         # Deprecated...
         a=None,
         postargs=None,
