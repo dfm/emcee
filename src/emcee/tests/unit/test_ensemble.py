@@ -16,11 +16,12 @@ class TestNP2ListOfDicts(TestCase):
         for n_keys in [1, 2, 10, 26]:
             keys = list(string.ascii_lowercase[:n_keys])
             key_set = set(keys)
+            key_dict = {key: i for i, key in enumerate(keys)}
             # Try different number of walker/procs
             for N in [1, 2, 3, 10, 100]:
                 x = np.random.rand(N, n_keys)
 
-                LOD = ndarray_to_list_of_dicts(x, keys)
+                LOD = ndarray_to_list_of_dicts(x, key_dict)
                 assert len(LOD) == N, "need 1 dict per row"
                 for i, dct in enumerate(LOD):
                     assert dct.keys() == key_set, "keys are missing"
@@ -40,7 +41,9 @@ class TestNamedParameters(TestCase):
         var = pars["var"]
         if var <= 0:
             return -np.inf
-        return -0.5 * ((mean - self.x)**2 / var + np.log(2 * np.pi * var)).sum()
+        return (
+            -0.5 * ((mean - self.x) ** 2 / var + np.log(2 * np.pi * var)).sum()
+        )
 
     def lnpdf_mixture(self, pars) -> np.float64:
         mean1 = pars["mean1"]
@@ -49,10 +52,32 @@ class TestNamedParameters(TestCase):
         var2 = pars["var2"]
         if var1 <= 0 or var2 <= 0:
             return -np.inf
-        return -0.5 * (
-            (mean1 - self.x)**2 / var1 + np.log(2 * np.pi * var1)
-            + (mean2 - self.x - 3)**2 / var2 + np.log(2 * np.pi * var2)
-        ).sum()
+        return (
+            -0.5
+            * (
+                (mean1 - self.x) ** 2 / var1
+                + np.log(2 * np.pi * var1)
+                + (mean2 - self.x - 3) ** 2 / var2
+                + np.log(2 * np.pi * var2)
+            ).sum()
+        )
+
+    def lnpdf_mixture_grouped(self, pars) -> np.float64:
+        mean1, mean2 = pars["means"]
+        var1, var2 = pars["vars"]
+        const = pars["constant"]
+        if var1 <= 0 or var2 <= 0:
+            return -np.inf
+        return (
+            -0.5
+            * (
+                (mean1 - self.x) ** 2 / var1
+                + np.log(2 * np.pi * var1)
+                + (mean2 - self.x - 3) ** 2 / var2
+                + np.log(2 * np.pi * var2)
+            ).sum()
+            + const
+        )
 
     def setUp(self):
         # Draw some data from a unit Gaussian
@@ -67,7 +92,7 @@ class TestNamedParameters(TestCase):
             parameter_names=self.names,
         )
         assert sampler.params_are_named
-        assert sampler.parameter_names == self.names
+        assert list(sampler.parameter_names.keys()) == self.names
 
     def test_asserts(self):
         # ndim name mismatch
@@ -123,6 +148,21 @@ class TestNamedParameters(TestCase):
                 parameter_names=names,
             )
             coords = np.random.rand(N, len(names))
+            lnps, _ = sampler.compute_log_prob(coords)
+            assert len(lnps) == N
+            assert lnps.dtype == np.float64
+
+    def test_compute_log_prob_mixture_grouped(self):
+        names = {"means": [0, 1], "vars": [2, 3], "constant": 4}
+        # Try different numbers of walkers
+        for N in [8, 10, 20]:
+            sampler = EnsembleSampler(
+                nwalkers=N,
+                ndim=5,
+                log_prob_fn=self.lnpdf_mixture_grouped,
+                parameter_names=names,
+            )
+            coords = np.random.rand(N, 5)
             lnps, _ = sampler.compute_log_prob(coords)
             assert len(lnps) == N
             assert lnps.dtype == np.float64
