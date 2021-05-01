@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-
+from itertools import count
 from typing import Dict, List, Optional, Union
 
 import numpy as np
-from itertools import count
 
 from .backends import Backend
 from .model import Model
