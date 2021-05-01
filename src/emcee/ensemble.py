@@ -166,7 +166,6 @@ class EnsembleSampler(object):
 
         # Save the parameter names
         self.params_are_named: bool = parameter_names is not None
-        self.parameter_names: Optional[List[str]] = parameter_names
         if self.params_are_named:
             assert isinstance(parameter_names, (list, dict))
 
@@ -174,22 +173,39 @@ class EnsembleSampler(object):
             msg = "named parameters with vectorization unsupported for now"
             assert not self.vectorize, msg
 
+            # Check for duplicate names
+            dupes = set()
+            uniq = []
+            for name in parameter_names:
+                if name not in dupes:
+                    uniq.append(name)
+                    dupes.add(name)
+            msg = f"duplicate paramters: {dupes}"
+            assert len(uniq) == len(parameter_names), msg
+
             if isinstance(parameter_names, list):
                 # Check for all named
                 msg = "name all parameters or set `parameter_names` to `None`"
                 assert len(parameter_names) == ndim, msg
+                # Convert a list to a dict
+                parameter_names: Dict[str, int] = {
+                    name: i for i, name in enumerate(parameter_names)
+                }
 
-                # Check for duplicate names
-                dupes = set()
-                uniq = []
-                for name in parameter_names:
-                    if name not in dupes:
-                        uniq.append(name)
-                        dupes.add(name)
-                msg = f"duplicate paramters: {dupes}"
-                assert len(uniq) == len(parameter_names), msg
-            else:
-                pass  # TODO
+            # Check not too many names
+            msg = "too many names"
+            assert len(parameter_names) <= ndim, msg
+
+            # Check all indices appear
+            values = [
+                v if isinstance(v, list) else [v]
+                for v in parameter_names.values()
+            ]
+            values = [item for sublist in values for item in sublist]
+            values = set(values)
+            msg = f"not all values appear -- set should be 0 to {ndim-1}"
+            assert values == set(np.arange(ndim)), msg
+            self.parameter_names = parameter_names
 
     @property
     def random_state(self):
@@ -466,9 +482,7 @@ class EnsembleSampler(object):
                 map_func = self.pool.map
             else:
                 map_func = map
-            results = list(
-                map_func(self.log_prob_fn, p)
-            )
+            results = list(map_func(self.log_prob_fn, p))
 
         try:
             log_prob = np.array([float(l[0]) for l in results])
@@ -483,8 +497,9 @@ class EnsembleSampler(object):
             else:
                 try:
                     with warnings.catch_warnings(record=True):
-                        warnings.simplefilter("error",
-                                              np.VisibleDeprecationWarning)
+                        warnings.simplefilter(
+                            "error", np.VisibleDeprecationWarning
+                        )
                         try:
                             dt = np.atleast_1d(blob[0]).dtype
                         except Warning:
@@ -494,7 +509,8 @@ class EnsembleSampler(object):
                                 "placed in an object array. Numpy has "
                                 "deprecated this automatic detection, so "
                                 "please specify "
-                                "blobs_dtype=np.dtype('object')")
+                                "blobs_dtype=np.dtype('object')"
+                            )
                             dt = np.dtype("object")
                 except ValueError:
                     dt = np.dtype("object")
@@ -645,10 +661,11 @@ def _scaled_cond(a):
     c = b / bsum
     return np.linalg.cond(c.astype(float))
 
+
 def ndarray_to_list_of_dicts(
-        x: np.ndarray,
-        keys: List[str]
-) -> List[Dict[str, np.number]]:
+    x: np.ndarray,
+    key_map: Dict[str, Union[int, List[int]]],
+) -> List[Dict[str, Union[np.number, np.ndarray]]]:
     """
     A helper function to convert a ``np.ndarray`` into a list
     of dictionaries of parameters. Used when parameters are named.
@@ -656,9 +673,9 @@ def ndarray_to_list_of_dicts(
     Args:
       x (np.ndarray): parameter array of shape ``(N, n_dim)``, where
         ``N`` is an integer
-      keys (List[str]): names of the parameters to use as dictionary keys
+      key_map (Dict[str, Union[int, List[int]]):
 
     Returns:
       list of dictionaries of parameters
     """
-    return [{key: xi[i] for i, key in enumerate(keys)} for xi in x]
+    return [{key: xi[val] for key, val in key_map.items()} for xi in x]
