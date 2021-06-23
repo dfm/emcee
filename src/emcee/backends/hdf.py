@@ -2,8 +2,6 @@
 
 from __future__ import division, print_function
 
-__all__ = ["HDFBackend", "TempHDFBackend", "does_hdf5_support_longdouble"]
-
 import os
 from tempfile import NamedTemporaryFile
 
@@ -11,6 +9,8 @@ import numpy as np
 
 from .. import __version__
 from .backend import Backend
+
+__all__ = ["HDFBackend", "TempHDFBackend", "does_hdf5_support_longdouble"]
 
 
 try:
@@ -234,8 +234,10 @@ class HDFBackend(Backend):
                     if g["blobs"].dtype.shape != blobs.shape[1:]:
                         raise ValueError(
                             "Existing blobs have shape {} but new blobs "
-                            "requested with shape {}"
-                            .format(g["blobs"].dtype.shape, blobs.shape[1:]))
+                            "requested with shape {}".format(
+                                g["blobs"].dtype.shape, blobs.shape[1:]
+                            )
+                        )
                 g.attrs["has_blobs"] = True
 
     def save_step(self, state, accepted):

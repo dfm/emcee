@@ -1,4 +1,3 @@
 - Easy to use gradient-free MCMC sampling of black box log probability functions
 - Few bells and whistles: no plotting, no modeling, no marginal likelihood calculation, etc.
 - Any sampling algorithm must have published proof of correctness
-

@@ -8,6 +8,7 @@ __all__ = ["function_1d", "integrated_time", "AutocorrError"]
 
 logger = logging.getLogger(__name__)
 
+
 def next_pow_two(n):
     """Returns the next power of two greater than or equal to `n`"""
     i = 1

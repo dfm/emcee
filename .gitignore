@@ -21,3 +21,4 @@ emcee_version.py
 
 .tox
 env
+.eggs

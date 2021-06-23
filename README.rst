@@ -53,7 +53,7 @@ The BibTeX entry for the paper is::
 License
 -------
 
-Copyright 2010-2019 Dan Foreman-Mackey and contributors.
+Copyright 2010-2021 Dan Foreman-Mackey and contributors.
 
 emcee is free software made available under the MIT License. For details see
 the LICENSE file.

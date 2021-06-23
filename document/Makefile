@@ -21,4 +21,3 @@ default: ${DOC_OUT}
 
 clean:
 	${RM_TMP}
-

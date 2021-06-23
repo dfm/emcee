@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pytest
+
+import emcee
+
 try:
     from scipy import stats
 except ImportError:
     stats = None
-import pytest
 
-import emcee
 
 __all__ = ["_test_normal", "_test_uniform"]
 

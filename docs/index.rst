@@ -99,7 +99,7 @@ If you have a question about the use of emcee, please post it to `the users list
 License & Attribution
 ---------------------
 
-Copyright 2010-2019 Dan Foreman-Mackey and `contributors <https://github.com/dfm/emcee/graphs/contributors>`_.
+Copyright 2010-2021 Dan Foreman-Mackey and `contributors <https://github.com/dfm/emcee/graphs/contributors>`_.
 
 emcee is free software made available under the MIT License. For details
 see the ``LICENSE``.

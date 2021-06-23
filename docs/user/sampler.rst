@@ -16,4 +16,3 @@ Note that several of the :class:`EnsembleSampler` methods return or consume
 
 .. autoclass:: emcee.State
    :inherited-members:
-

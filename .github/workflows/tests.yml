@@ -2,133 +2,116 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    tags:
+      - "*"
+    paths-ignore:
+      - "joss/**"
+      - "docs/**"
   pull_request:
-    branches: [ main ]
-  release:
-    types: [ published ]
-    
+
 jobs:
   tests:
-    name: "py${{ matrix.python-version }} / ${{ matrix.os }} / extras: ${{ matrix.extras }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"]
-        extras: [true]
         os: ["ubuntu-latest"]
         include:
           - python-version: "3.8"
-            extras: false
-            os: "ubuntu-latest"
-          - python-version: "3.8"
-            extras: true
             os: "macos-latest"
           - python-version: "3.8"
-            extras: true
             os: "windows-latest"
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      if: ${{ matrix.extras }}
-      run: |
-        python -m pip install -U pip
-        python -m pip install -e ".[extras,tests]"
-    - name: Install dependencies without extras
-      if: ${{ !matrix.extras }}
-      run: |
-        python -m pip install -U pip
-        python -m pip install -e ".[tests]"
-    - name: Run tests
-      run: |
-        python -m pytest -v src/emcee/tests --cov emcee
-    - name: Get unique id
-      if: ${{ matrix.os != 'windows-latest' }}
-      id: unique-id
-      env:
-        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-      run: |
-        export JOB_ID=`echo $STRATEGY_CONTEXT | md5sum`
-        echo "::set-output name=id::$JOB_ID"
-    - uses: actions/upload-artifact@v2
-      if: ${{ matrix.os != 'windows-latest' }}
-      with:
-        name: cov-${{ steps.unique-id.outputs.id }}
-        path: .coverage
-        
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -U coveralls coverage[toml] tox tox-gh-actions
+      - name: Run tests
+        run: python -m tox
+      - name: Combine and upload coverage
+        run: |
+          python -m coverage combine
+          python -m coverage xml -i
+          python -m coveralls --service=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }}-${{ matrix.os }}
+
   coverage:
-    name: "Merge and upload coverage"
     needs: tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
-      - name: Download all artifacts
-        uses: actions/download-artifact@v2
-      - name: Merge and upload coverage
+          python-version: "3.9"
+      - name: Finish coverage collection
         run: |
-          python -m pip install coveralls
-          find . -name \.coverage -exec coverage combine --append {} \;
-          coveralls
+          python -m pip install -U pip
+          python -m pip install -U coveralls
+          python -m coveralls --finish
         env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
-    name: Build source distribution
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          submodules: true
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install tox
+      - name: Lint the code
+        run: python -m tox -e lint
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: "3.8"
-
-      - name: Build
+          python-version: "3.9"
+      - name: Build sdist and wheel
         run: |
-          python -m pip install -U pip pep517 twine setuptools_scm
-          python -m pep517.build .
-      - name: Test the sdist
-        run: |
-          python -m venv venv-sdist
-          venv-sdist/bin/python -m pip install dist/emcee*.tar.gz
-          venv-sdist/bin/python -c "import emcee;print(emcee.__version__)"
-      - name: Test the wheel
-        run: |
-          python -m venv venv-wheel
-          venv-wheel/bin/python -m pip install dist/emcee*.whl
-          venv-wheel/bin/python -c "import emcee;print(emcee.__version__)"
+          python -m pip install -U pip
+          python -m pip install -U build
+          python -m build .
       - uses: actions/upload-artifact@v2
         with:
-          name: dist
           path: dist/*
 
   upload_pypi:
-    needs: [tests, build]
+    needs: [tests, lint, build]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: dist
+          name: artifact
           path: dist
-      - uses: pypa/gh-action-pypi-publish@master
+
+      - uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/

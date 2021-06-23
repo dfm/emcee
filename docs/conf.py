@@ -36,7 +36,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 project = "emcee"
-copyright = "2012-2019, Dan Foreman-Mackey & contributors"
+copyright = "2012-2021, Dan Foreman-Mackey & contributors"
 version = __version__
 release = __version__
 

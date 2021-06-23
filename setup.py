@@ -30,7 +30,7 @@ SETUP_REQUIRES = INSTALL_REQUIRES + [
 ]
 EXTRA_REQUIRE = {
     "extras": ["h5py", "scipy"],
-    "tests": ["pytest", "pytest-cov"],
+    "tests": ["pytest", "pytest-cov", "coverage[toml]"],
 }
 
 # END PROJECT SPECIFIC
