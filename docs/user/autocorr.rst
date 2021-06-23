@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _autocorr-user:
 
 Autocorrelation Analysis

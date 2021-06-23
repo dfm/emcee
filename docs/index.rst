@@ -12,9 +12,8 @@ of resources available for that (try `this one
 We also `published a paper <https://arxiv.org/abs/1202.3665>`_ explaining
 the emcee algorithm and implementation in detail.
 
-emcee has been used in :doc:`quite a few projects in the astrophysical literature
-<testimonials>` and it is being actively developed on `GitHub
-<https://github.com/dfm/emcee>`_.
+emcee has been used in quite a few projects in the astrophysical literature and
+it is being actively developed on `GitHub <https://github.com/dfm/emcee>`_.
 
 .. image:: https://img.shields.io/badge/GitHub-dfm%2Femcee-blue.svg?style=flat
     :target: https://github.com/dfm/emcee
@@ -90,7 +89,6 @@ If you have a question about the use of emcee, please post it to `the users list
 
    tutorials/quickstart
    tutorials/line
-   tutorials/parallel
    tutorials/autocorr
    tutorials/monitor
    tutorials/moves
@@ -107,8 +105,7 @@ see the ``LICENSE``.
 If you make use of emcee in your work, please cite our paper
 (`arXiv <https://arxiv.org/abs/1202.3665>`_,
 `ADS <https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F>`_,
-`BibTeX <https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F/exportcitation>`_)
-and consider adding your paper to the :ref:`testimonials` list.
+`BibTeX <https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F/exportcitation>`_).
 
 
 Changelog

@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _blobs:
 
 Blobs
