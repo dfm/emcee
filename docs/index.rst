@@ -89,6 +89,7 @@ If you have a question about the use of emcee, please post it to `the users list
 
    tutorials/quickstart
    tutorials/line
+   tutorials/parallel
    tutorials/autocorr
    tutorials/monitor
    tutorials/moves

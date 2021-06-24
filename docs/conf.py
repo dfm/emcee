@@ -49,7 +49,5 @@ html_theme_options = {
     "use_repository_button": True,
     "use_download_button": True,
 }
-# jupyter_execute_notebooks = "off"
-jupyter_execute_notebooks = "auto"
-execution_excludepatterns = ["docs/tutorials/autocorr.ipynb"]
+jupyter_execute_notebooks = "off"
 execution_timeout = -1
