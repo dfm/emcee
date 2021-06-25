@@ -15,4 +15,3 @@ dependencies:
   - pip:
     - celerite
     - autograd
-    - .
