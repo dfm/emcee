@@ -8,11 +8,11 @@ emcee
 .. image:: https://github.com/dfm/emcee/workflows/Tests/badge.svg
     :target: https://github.com/dfm/emcee/actions?query=workflow%3ATests
 .. image:: http://img.shields.io/badge/license-MIT-blue.svg?style=flat
-    :target: https://github.com/dfm/emcee/blob/master/LICENSE
+    :target: https://github.com/dfm/emcee/blob/main/LICENSE
 .. image:: http://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
     :target: https://arxiv.org/abs/1202.3665
-.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat&v=2
-    :target: https://coveralls.io/github/dfm/emcee?branch=master
+.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=main&style=flat&v=2
+    :target: https://coveralls.io/github/dfm/emcee?branch=main
 .. image:: https://readthedocs.org/projects/emcee/badge/?version=latest
     :target: http://emcee.readthedocs.io/en/latest/?badge=latest
 

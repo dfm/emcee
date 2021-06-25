@@ -20,11 +20,11 @@ it is being actively developed on `GitHub <https://github.com/dfm/emcee>`_.
 .. image:: https://github.com/dfm/emcee/workflows/Tests/badge.svg
     :target: https://github.com/dfm/emcee/actions?query=workflow%3ATests
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg?style=flat
-    :target: https://github.com/dfm/emcee/blob/master/LICENSE
+    :target: https://github.com/dfm/emcee/blob/main/LICENSE
 .. image:: https://img.shields.io/badge/arXiv-1202.3665-orange.svg?style=flat
     :target: https://arxiv.org/abs/1202.3665
-.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=master&style=flat
-    :target: https://coveralls.io/github/dfm/emcee?branch=master
+.. image:: https://coveralls.io/repos/github/dfm/emcee/badge.svg?branch=main&style=flat
+    :target: https://coveralls.io/github/dfm/emcee?branch=main
 
 
 Basic Usage
@@ -64,7 +64,7 @@ should have what you need.
 
 We welcome bug reports, patches, feature requests, and other comments via `the GitHub
 issue tracker <https://github.com/dfm/emcee/issues>`_, but you should check out the
-`contribution guidelines <https://github.com/dfm/emcee/blob/master/CONTRIBUTING.md>`_
+`contribution guidelines <https://github.com/dfm/emcee/blob/main/CONTRIBUTING.md>`_
 first.
 If you have a question about the use of emcee, please post it to `the users list
 <https://groups.google.com/forum/#!forum/emcee-users>`_ instead of the issue tracker.

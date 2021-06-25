@@ -26,7 +26,7 @@ if applicable.
 
 ### Do you intend to add a new feature or change an existing one?
 
-First, read the [VISION](https://github.com/dfm/emcee/blob/master/VISION.md)
+First, read the [VISION](https://github.com/dfm/emcee/blob/main/VISION.md)
 notes and make sure that your feature is consistent with those. In particular,
 modifications of the core algorithm or additions of new algorithms are
 unlikely to be approved. If your feature seems to be consistent, suggest it on
