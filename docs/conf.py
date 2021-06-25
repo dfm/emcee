@@ -33,7 +33,6 @@ html_copy_source = True
 html_show_sourcelink = True
 html_sourcelink_suffix = ""
 html_title = "emcee"
-html_logo = "_static/logo2.png"
 html_favicon = "_static/favicon.png"
 html_static_path = ["_static"]
 html_theme_options = {
