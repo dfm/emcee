@@ -1,5 +1,13 @@
 .. :changelog:
 
+3.1.0 (2021-06-25)
+++++++++++++++++++
+
+- Added preliminary support for named parameters `#386 <https://github.com/dfm/emcee/pull/386>`_
+- Improved handling of blob dtypes `#363 <https://github.com/dfm/emcee/pull/363>`_
+- Fixed various small bugs and documentation issues
+
+
 3.0.2 (2019-11-15)
 ++++++++++++++++++
 
