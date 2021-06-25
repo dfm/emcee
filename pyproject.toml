@@ -26,4 +26,35 @@ multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
-known_third_party = ["h5py", "matplotlib", "numpy", "pkg_resources", "pytest", "scipy", "setuptools"]
+known_third_party = ["h5py", "matplotlib", "numpy", "pkg_resources", "pytest", "setuptools"]
+
+[tool.coverage.run]
+parallel = true
+branch = true
+source = ["emcee"]
+omit = [
+    "emcee/interruptible_pool.py",
+    "emcee/mpi_pool.py",
+    "emcee/ptsampler.py",
+    "docs/*",
+    "tests/*",
+    "*__init__*"
+]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "raise ImportError",
+    "except ImportError",
+    "def __len__",
+    "def __repr__",
+    "logging.warning",
+    "deprecation_warning",
+    "deprecated",
+    "if tqdm is None"
+]

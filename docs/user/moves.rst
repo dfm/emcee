@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _moves-user:
 
 Moves

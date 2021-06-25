@@ -35,9 +35,7 @@ Attribution
 
 Please cite `Foreman-Mackey, Hogg, Lang & Goodman (2012)
 <https://arxiv.org/abs/1202.3665>`_ if you find this code useful in your
-research and add your paper to `the testimonials list
-<https://github.com/dfm/emcee/blob/master/docs/testimonials.rst>`_.
-The BibTeX entry for the paper is::
+research. The BibTeX entry for the paper is::
 
     @article{emcee,
        author = {{Foreman-Mackey}, D. and {Hogg}, D.~W. and {Lang}, D. and {Goodman}, J.},
@@ -53,7 +51,7 @@ The BibTeX entry for the paper is::
 License
 -------
 
-Copyright 2010-2019 Dan Foreman-Mackey and contributors.
+Copyright 2010-2021 Dan Foreman-Mackey and contributors.
 
 emcee is free software made available under the MIT License. For details see
 the LICENSE file.

@@ -1,6 +1,7 @@
-sphinx>=1.7.5
-pandoc
-jupyter
-numpy
-setuptools>=40.6.0
-setuptools_scm
+sphinx-book-theme @ git+https://github.com/dfm/sphinx-book-theme.git@fix-outdir
+myst-nb
+matplotlib
+scipy
+h5py
+celerite
+corner

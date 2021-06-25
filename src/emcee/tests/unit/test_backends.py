@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-from os.path import join
 from itertools import product
+from os.path import join
 
 import numpy as np
 import pytest
 
-from emcee import EnsembleSampler, backends, State
+from emcee import EnsembleSampler, State, backends
 from emcee.backends.hdf import does_hdf5_support_longdouble
 
 try:
@@ -235,8 +235,10 @@ def test_multi_hdf5():
 
 @pytest.mark.parametrize("backend", all_backends)
 def test_longdouble_preserved(backend):
-    if (issubclass(backend, backends.TempHDFBackend)
-            and not does_hdf5_support_longdouble()):
+    if (
+        issubclass(backend, backends.TempHDFBackend)
+        and not does_hdf5_support_longdouble()
+    ):
         pytest.xfail("HDF5 does not support long double on this platform")
     nwalkers = 10
     ndim = 2
@@ -248,12 +250,10 @@ def test_longdouble_preserved(backend):
             coords = np.zeros((nwalkers, ndim), dtype=np.longdouble)
             coords += i + 1
             coords += np.arange(nwalkers)[:, None]
-            coords[:, 1] += coords[:, 0]*2*np.finfo(np.longdouble).eps
+            coords[:, 1] += coords[:, 0] * 2 * np.finfo(np.longdouble).eps
             assert not np.any(coords[:, 1] == coords[:, 0])
-            lp = 1+np.arange(nwalkers)*np.finfo(np.longdouble).eps
-            state = State(coords,
-                          log_prob=lp,
-                          random_state=())
+            lp = 1 + np.arange(nwalkers) * np.finfo(np.longdouble).eps
+            state = State(coords, log_prob=lp, random_state=())
             b.save_step(state, np.ones((nwalkers,), dtype=bool))
             s = b.get_last_sample()
             # check s has adequate precision and equals state

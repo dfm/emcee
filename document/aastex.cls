@@ -5,17 +5,17 @@
 %% The original source files were:
 %%
 %% aasclass.dtx  (with options: `class')
-%% 
+%%
 %% This is a generated file;
 %% altering it directly is inadvisable;
 %% instead, modify the original source file.
-%% 
+%%
 %% Copyright notice.
-%% 
+%%
 %%    These files are distributed
 %%    WITHOUT ANY WARRANTY; without even the implied warranty of
 %%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-%% 
+%%
 %% \CharacterTable
 %%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
 %%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z

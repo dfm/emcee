@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _backends:
 
 Backends

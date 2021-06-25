@@ -662,8 +662,7 @@ def _scaled_cond(a):
 
 
 def ndarray_to_list_of_dicts(
-    x: np.ndarray,
-    key_map: Dict[str, Union[int, List[int]]],
+    x: np.ndarray, key_map: Dict[str, Union[int, List[int]]]
 ) -> List[Dict[str, Union[np.number, np.ndarray]]]:
     """
     A helper function to convert a ``np.ndarray`` into a list

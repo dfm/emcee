@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _upgrade:
 
 Upgrading From Pre-3.0 Versions

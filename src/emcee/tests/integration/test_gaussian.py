@@ -5,7 +5,6 @@ from itertools import product
 import numpy as np
 import pytest
 
-
 from emcee import moves
 
 from .test_proposal import _test_normal, _test_uniform
@@ -38,7 +37,7 @@ def test_normal_gaussian_nd(mode, factor, **kwargs):
     _test_normal(
         moves.GaussianMove(0.5 * np.ones(ndim), factor=factor, mode=mode),
         ndim=ndim,
-        **kwargs
+        **kwargs,
     )
     with pytest.raises(ValueError):
         _test_normal(
@@ -46,7 +45,7 @@ def test_normal_gaussian_nd(mode, factor, **kwargs):
                 0.5 * np.ones(ndim - 1), factor=factor, mode=mode
             ),
             ndim=ndim,
-            **kwargs
+            **kwargs,
         )
 
     # Full matrix.
@@ -56,13 +55,13 @@ def test_normal_gaussian_nd(mode, factor, **kwargs):
                 np.diag(0.5 * np.ones(ndim)), factor=factor, mode=mode
             ),
             ndim=ndim,
-            **kwargs
+            **kwargs,
         )
         with pytest.raises(ValueError):
             _test_normal(
                 moves.GaussianMove(np.diag(0.5 * np.ones(ndim - 1))),
                 ndim=ndim,
-                **kwargs
+                **kwargs,
             )
     else:
         with pytest.raises(ValueError):
@@ -71,7 +70,7 @@ def test_normal_gaussian_nd(mode, factor, **kwargs):
                     np.diag(0.5 * np.ones(ndim)), factor=factor, mode=mode
                 ),
                 ndim=ndim,
-                **kwargs
+                **kwargs,
             )
 
 

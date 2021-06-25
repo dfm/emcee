@@ -1,0 +1,18 @@
+name: emcee
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - h5py
+  - matplotlib
+  - corner
+  - tqdm
+  - mpi4py
+  - schwimmbad
+  - pip
+  - pip:
+    - celerite
+    - autograd
+    - ..

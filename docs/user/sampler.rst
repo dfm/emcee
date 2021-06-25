@@ -1,5 +1,3 @@
-.. module:: emcee
-
 .. _sampler:
 
 The Ensemble Sampler
@@ -16,4 +14,3 @@ Note that several of the :class:`EnsembleSampler` methods return or consume
 
 .. autoclass:: emcee.State
    :inherited-members:
-
