@@ -1,8 +1,0 @@
-jupyterlab>=3.0
-matplotlib
-celerite
-corner
-celerite
-autograd
-tqdm
-.[extras]
