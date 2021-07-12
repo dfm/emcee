@@ -51,6 +51,8 @@ class HDFBackend(Backend):
             be saved.
         read_only (bool; optional): If ``True``, the backend will throw a
             ``RuntimeError`` if the file is opened with write access.
+        swmr (bool; optional): Enable the Single Writer Multiple Reader 
+            mode for HDF5.
 
     """
 
@@ -62,6 +64,7 @@ class HDFBackend(Backend):
         dtype=None,
         compression=None,
         compression_opts=None,
+        swmr=False
     ):
         if h5py is None:
             raise ImportError("you must install 'h5py' to use the HDFBackend")
@@ -76,6 +79,7 @@ class HDFBackend(Backend):
         else:
             self.dtype_set = True
             self.dtype = dtype
+        self.swmr = swmr
 
     @property
     def initialized(self):
@@ -94,7 +98,13 @@ class HDFBackend(Backend):
                 "mode. Set `read_only = False` to make "
                 "changes."
             )
-        f = h5py.File(self.filename, mode)
+        libver=None
+        swmr=False
+        if self.swmr:
+            libver='latest'
+            if mode == 'r':
+                swmr=True
+        f = h5py.File(self.filename, mode, libver=libver, swmr=swmr)
         if not self.dtype_set and self.name in f:
             g = f[self.name]
             if "chain" in g:
@@ -114,6 +124,15 @@ class HDFBackend(Backend):
             if self.name in f:
                 del f[self.name]
 
+            if self.swmr:
+                # enable automatic chunking
+                chunks_acc = True # (100,)
+                chunks_chain = True # (1,1,ndim)
+                chunks_logprob = True # (1,1)
+            else:
+                chunks_acc = None
+                chunks_chain = None
+                chunks_logprob = None
             g = f.create_group(self.name)
             g.attrs["version"] = __version__
             g.attrs["nwalkers"] = nwalkers
@@ -125,6 +144,7 @@ class HDFBackend(Backend):
                 data=np.zeros(nwalkers),
                 compression=self.compression,
                 compression_opts=self.compression_opts,
+                chunks=chunks_acc
             )
             g.create_dataset(
                 "chain",
@@ -133,6 +153,7 @@ class HDFBackend(Backend):
                 dtype=self.dtype,
                 compression=self.compression,
                 compression_opts=self.compression_opts,
+                chunks=chunks_chain
             )
             g.create_dataset(
                 "log_prob",
@@ -141,7 +162,10 @@ class HDFBackend(Backend):
                 dtype=self.dtype,
                 compression=self.compression,
                 compression_opts=self.compression_opts,
+                chunks=chunks_logprob
             )
+            if self.swmr:
+                f.swmr_mode=True
 
     def has_blobs(self):
         with self.open() as f:
@@ -221,6 +245,9 @@ class HDFBackend(Backend):
                 if not has_blobs:
                     nwalkers = g.attrs["nwalkers"]
                     dt = np.dtype((blobs.dtype, blobs.shape[1:]))
+                    if f.swmr_mode:
+                        # swmr mode does not allow the creation of new datasets
+                        f.swmr_mode=False
                     g.create_dataset(
                         "blobs",
                         (ntot, nwalkers),
@@ -229,6 +256,8 @@ class HDFBackend(Backend):
                         compression=self.compression,
                         compression_opts=self.compression_opts,
                     )
+                    if self.swmr:
+                        f.swmr_mode=True
                 else:
                     g["blobs"].resize(ntot, axis=0)
                     if g["blobs"].dtype.shape != blobs.shape[1:]:
@@ -239,6 +268,7 @@ class HDFBackend(Backend):
                             )
                         )
                 g.attrs["has_blobs"] = True
+            f.flush() # Notify the reader process that new data has been written
 
     def save_step(self, state, accepted):
         """Save a step to the backend
@@ -265,6 +295,7 @@ class HDFBackend(Backend):
                 g.attrs["random_state_{0}".format(i)] = v
 
             g.attrs["iteration"] = iteration + 1
+            f.flush()
 
 
 class TempHDFBackend(object):
