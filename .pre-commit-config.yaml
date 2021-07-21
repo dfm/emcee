@@ -21,6 +21,6 @@ repos:
   - id: black
 
 - repo: https://github.com/dfm/black_nbconvert
-  rev: v0.2.0
+  rev: v0.3.0
   hooks:
   - id: black_nbconvert
