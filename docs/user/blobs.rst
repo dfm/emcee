@@ -69,10 +69,10 @@ To do this, we would update the above example as follows:
     def log_prob(params):
         lp = log_prior(params)
         if not np.isfinite(lp):
-            return -np.inf, -np.inf
+            return -np.inf, -np.inf, -np.inf
         ll = log_like(params)
         if not np.isfinite(ll):
-            return lp, -np.inf
+            return lp, -np.inf, -np.inf
         return lp + ll, lp, np.mean(params)
 
     coords = np.random.randn(32, 3)
