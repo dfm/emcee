@@ -289,7 +289,7 @@ class EnsembleSampler(object):
                 Jupyter notebooks.  If ``False``, no progress bar will be
                 shown.
             progress_kwargs (Optional[dict]): A ``dict`` of keyword arguments
-                to be passed to the tqdm call. 
+                to be passed to the tqdm call.
             skip_initial_state_check (Optional[bool]): If ``True``, a check
                 that the initial_state can fully explore the space will be
                 skipped. (default: ``False``)
