@@ -288,8 +288,8 @@ class EnsembleSampler(object):
                 ``'notebook'``, which shows a progress bar suitable for
                 Jupyter notebooks.  If ``False``, no progress bar will be
                 shown.
-            progress_desc (Optional[str]): A description for the progress bar, 
-                if shown. If ``None'', no description is present. (default: 
+            progress_desc (Optional[str]): A description for the progress bar,
+                if shown. If ``None'', no description is present. (default:
                 ``None'')
             skip_initial_state_check (Optional[bool]): If ``True``, a check
                 that the initial_state can fully explore the space will be
