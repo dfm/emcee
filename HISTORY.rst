@@ -1,5 +1,11 @@
 .. :changelog:
 
+3.1.1 (2021-08-23)
+++++++++++++++++++
+
+- Added support for a progress bar description `#401 <https://github.com/dfm/emcee/pull/401>`_
+
+
 3.1.0 (2021-06-25)
 ++++++++++++++++++
 
