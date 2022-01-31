@@ -23,7 +23,7 @@ dtypes = [None, [("log_prior", float), ("mean", int)]]
 
 
 def normal_log_prob(params):
-    return -0.5 * np.sum(params ** 2)
+    return -0.5 * np.sum(params**2)
 
 
 def normal_log_prob_blobs(params):

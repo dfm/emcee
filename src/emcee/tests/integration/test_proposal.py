@@ -15,11 +15,11 @@ __all__ = ["_test_normal", "_test_uniform"]
 
 
 def normal_log_prob_blobs(params):
-    return -0.5 * np.sum(params ** 2), params
+    return -0.5 * np.sum(params**2), params
 
 
 def normal_log_prob(params):
-    return -0.5 * np.sum(params ** 2)
+    return -0.5 * np.sum(params**2)
 
 
 def uniform_log_prob(params):

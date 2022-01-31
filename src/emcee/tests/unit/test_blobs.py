@@ -15,7 +15,7 @@ class BlobLogProb(object):
         self.blob_function = blob_function
 
     def __call__(self, params):
-        return -0.5 * np.sum(params ** 2), self.blob_function(params)
+        return -0.5 * np.sum(params**2), self.blob_function(params)
 
 
 @pytest.mark.parametrize("backend", backends.get_test_backends())

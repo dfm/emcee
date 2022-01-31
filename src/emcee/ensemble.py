@@ -642,7 +642,7 @@ def walkers_independent(coords):
     if np.any(C_colmax == 0):
         return False
     C /= C_colmax
-    C_colsum = np.sqrt(np.sum(C ** 2, axis=0))
+    C_colsum = np.sqrt(np.sum(C**2, axis=0))
     C /= C_colsum
     return np.linalg.cond(C.astype(float)) <= 1e8
 
@@ -655,11 +655,11 @@ def walkers_independent_cov(coords):
 
 
 def _scaled_cond(a):
-    asum = np.sqrt((a ** 2).sum(axis=0))[None, :]
+    asum = np.sqrt((a**2).sum(axis=0))[None, :]
     if np.any(asum == 0):
         return np.inf
     b = a / asum
-    bsum = np.sqrt((b ** 2).sum(axis=1))[:, None]
+    bsum = np.sqrt((b**2).sum(axis=1))[:, None]
     if np.any(bsum == 0):
         return np.inf
     c = b / bsum
