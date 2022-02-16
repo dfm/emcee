@@ -31,7 +31,7 @@ def test_overwrite(seed=1234):
     np.random.seed(seed)
 
     def ll(x):
-        return -0.5 * np.sum(x ** 2)
+        return -0.5 * np.sum(x**2)
 
     nwalkers = 64
     p0 = np.random.normal(size=(nwalkers, 1))

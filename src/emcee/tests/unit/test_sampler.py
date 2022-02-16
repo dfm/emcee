@@ -14,7 +14,7 @@ all_backends = backends.get_test_backends()
 
 
 def normal_log_prob(params):
-    return -0.5 * np.sum(params ** 2)
+    return -0.5 * np.sum(params**2)
 
 
 @pytest.mark.parametrize(
@@ -211,7 +211,7 @@ def test_restart(backend):
 
 def test_vectorize():
     def lp_vec(p):
-        return -0.5 * np.sum(p ** 2, axis=1)
+        return -0.5 * np.sum(p**2, axis=1)
 
     np.random.seed(42)
     nwalkers, ndim = 32, 3

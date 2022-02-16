@@ -7,7 +7,7 @@ from emcee.backends.hdf import TempHDFBackend, does_hdf5_support_longdouble
 
 def test_longdouble_doesnt_crash_bug_312():
     def log_prob(x, ivar):
-        return -0.5 * np.sum(ivar * x ** 2)
+        return -0.5 * np.sum(ivar * x**2)
 
     ndim, nwalkers = 5, 20
     ivar = 1.0 / np.random.rand(ndim).astype(np.longdouble)
