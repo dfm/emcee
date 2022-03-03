@@ -67,6 +67,9 @@ if __name__ == "__main__":
         maintainer=find_meta("author"),
         maintainer_email=find_meta("email"),
         url=find_meta("uri"),
+        project_urls={
+            "Source": "https://github.com/dfm/emcee",
+        },
         license=find_meta("license"),
         description=find_meta("description"),
         long_description=read("README.rst"),
