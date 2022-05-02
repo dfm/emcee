@@ -48,5 +48,5 @@ html_theme_options = {
     "use_repository_button": True,
     "use_download_button": True,
 }
-nb_execute_notebooks = "off"
+nb_execution_mode = "off"
 nb_execution_timeout = -1
