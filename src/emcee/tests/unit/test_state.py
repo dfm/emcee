@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from re import L
-import pytest
+
 import numpy as np
+import pytest
 
 from emcee import EnsembleSampler
 from emcee.state import State
