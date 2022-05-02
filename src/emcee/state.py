@@ -44,6 +44,11 @@ class State(object):
         self.blobs = dc(blobs)
         self.random_state = dc(random_state)
 
+    def __len__(self):
+        if self.blobs is None:
+            return 3
+        return 4
+
     def __repr__(self):
         return "State({0}, log_prob={1}, blobs={2}, random_state={3})".format(
             self.coords, self.log_prob, self.blobs, self.random_state
@@ -55,3 +60,16 @@ class State(object):
         return iter(
             (self.coords, self.log_prob, self.random_state, self.blobs)
         )
+
+    def __getitem__(self, index):
+        if index < 0:
+            return self[len(self) + index]
+        if index == 0:
+            return self.coords
+        elif index == 1:
+            return self.log_prob
+        elif index == 2:
+            return self.random_state
+        elif index == 3 and self.blobs is not None:
+            return self.blobs
+        raise IndexError("Invalid index '{0}'".format(index))
