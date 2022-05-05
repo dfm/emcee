@@ -23,7 +23,7 @@ CLASSIFIERS = [
     "Programming Language :: Python",
 ]
 INSTALL_REQUIRES = ["numpy"]
-SETUP_REQUIRES = INSTALL_REQUIRES + [
+SETUP_REQUIRES = [
     "setuptools>=40.6.0",
     "setuptools_scm",
     "wheel",
