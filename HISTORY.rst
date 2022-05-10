@@ -1,5 +1,12 @@
 .. :changelog:
 
+3.1.2 (2022-05-10)
+++++++++++++++++++
+
+- Removed ``numpy`` from ``setup_requires`` `#427 <https://github.com/dfm/emcee/pull/427>`_
+- Made the sampler state indexable `#425 <https://github.com/dfm/emcee/pull/425>`_
+
+
 3.1.1 (2021-08-23)
 ++++++++++++++++++
 
