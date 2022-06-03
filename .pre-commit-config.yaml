@@ -1,26 +1,31 @@
-
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.2.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: debug-statements
-
-- repo: https://github.com/PyCQA/isort
-  rev: "5.10.1"
-  hooks:
-  - id: isort
-    args: []
-    additional_dependencies: [toml]
-    exclude: docs/tutorials
-
-- repo: https://github.com/psf/black
-  rev: "22.3.0"
-  hooks:
-  - id: black
-
-- repo: https://github.com/dfm/black_nbconvert
-  rev: v0.4.0
-  hooks:
-  - id: black_nbconvert
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude_types: [json, binary]
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.10.1"
+    hooks:
+      - id: isort
+        additional_dependencies: [toml]
+        exclude: docs/tutorials
+  - repo: https://github.com/psf/black
+    rev: "22.3.0"
+    hooks:
+      - id: black-jupyter
+  - repo: https://github.com/kynan/nbstripout
+    rev: "0.5.0"
+    hooks:
+      - id: nbstripout
+        exclude: docs/benchmarks.ipynb
+  - repo: https://github.com/hadialqattan/pycln
+    rev: "v1.3.1"
+    hooks:
+      - id: pycln
+        additional_dependencies: ["click<8.1.0"]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v0.942"
+    hooks:
+      - id: mypy

@@ -4,28 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 79
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
 
 [tool.isort]
+skip_glob = []
 line_length = 79
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
-known_third_party = ["h5py", "matplotlib", "numpy", "pkg_resources", "pytest", "setuptools"]
 
 [tool.coverage.run]
 parallel = true
@@ -37,7 +23,8 @@ omit = [
     "emcee/ptsampler.py",
     "docs/*",
     "tests/*",
-    "*__init__*"
+    "*__init__*",
+    "*/emcee/emcee_version.py",
 ]
 
 [tool.coverage.paths]
@@ -55,5 +42,5 @@ exclude_lines = [
     "logging.warning",
     "deprecation_warning",
     "deprecated",
-    "if tqdm is None"
+    "if tqdm is None",
 ]

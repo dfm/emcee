@@ -1,1 +1,3 @@
-include LICENSE *.rst
+exclude .*
+prune .github
+prune docs
