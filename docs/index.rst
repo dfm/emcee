@@ -3,7 +3,7 @@ emcee
 
 **emcee** is an MIT licensed pure-Python implementation of Goodman & Weare's
 `Affine Invariant Markov chain Monte Carlo (MCMC) Ensemble sampler
-<https://msp.berkeley.edu/camcos/2010/5-1/p04.xhtml>`_ and these pages will
+<https://msp.org/camcos/2010/5-1/p04.xhtml>`_ and these pages will
 show you how to use it.
 
 This documentation won't teach you too much about MCMC but there are a lot
