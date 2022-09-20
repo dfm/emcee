@@ -38,6 +38,6 @@ class KDEMove(RedBlueMove):
     def get_proposal(self, s, c, random):
         c = np.concatenate(c, axis=0)
         kde = gaussian_kde(c.T, bw_method=self.bw_method)
-        q = kde.resample(len(s))
+        q = kde.resample(len(s), random)
         factor = kde.logpdf(s.T) - kde.logpdf(q)
         return q.T, factor
