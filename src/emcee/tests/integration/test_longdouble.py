@@ -9,6 +9,7 @@ def test_longdouble_doesnt_crash_bug_312():
     def log_prob(x, ivar):
         return -0.5 * np.sum(ivar * x**2)
 
+    np.random.seed(0)
     ndim, nwalkers = 5, 20
     ivar = 1.0 / np.random.rand(ndim).astype(np.longdouble)
     p0 = np.random.randn(nwalkers, ndim).astype(np.longdouble)
@@ -29,6 +30,7 @@ def test_longdouble_actually_needed(cls):
         assert x.dtype == np.longdouble
         return -0.5 * np.sum(((x - mjd) / sigma) ** 2)
 
+    np.random.seed(0)
     ndim, nwalkers = 1, 20
     steps = 1000
     p0 = sigma * np.random.randn(nwalkers, ndim).astype(np.longdouble) + mjd
