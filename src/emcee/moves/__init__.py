@@ -2,6 +2,7 @@
 
 from .de import DEMove
 from .de_snooker import DESnookerMove
+from .dime import DIMEMove
 from .gaussian import GaussianMove
 from .kde import KDEMove
 from .mh import MHMove
@@ -20,4 +21,5 @@ __all__ = [
     "KDEMove",
     "DEMove",
     "DESnookerMove",
+    "DIMEMove",
 ]
