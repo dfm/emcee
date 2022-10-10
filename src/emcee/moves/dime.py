@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+
 try:
     from scipy.special import logsumexp
     from scipy.stats import multivariate_t
