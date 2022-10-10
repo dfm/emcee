@@ -41,7 +41,12 @@ class DIMEMove(RedBlueMove):
     """
 
     def __init__(
-        self, sigma=1.0e-5, gamma=None, aimh_prob=0.1, df_proposal_dist=10, **kwargs
+        self,
+        sigma=1.0e-5,
+        gamma=None,
+        aimh_prob=0.1,
+        df_proposal_dist=10,
+        **kwargs
     ):
 
         self.sigma = sigma
@@ -90,8 +95,11 @@ class DIMEMove(RedBlueMove):
         factors = np.zeros(nchain, dtype=np.float64)
 
         # log weight of current ensemble
-        lweight = logsumexp(self.lprobs) + \
-            np.log(sum(self.accepted)) - np.log(nchain)
+        lweight = (
+            logsumexp(self.lprobs)
+            + np.log(sum(self.accepted))
+            - np.log(nchain)
+        )
 
         # calculate stats for current ensemble
         ncov = np.cov(x.T, ddof=1)
