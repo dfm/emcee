@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.special import logsumexp
-from scipy.stats import multivariate_t
+try:
+    from scipy.special import logsumexp
+    from scipy.stats import multivariate_t
+except ImportError:
+    multivariate_t = None
 
 from .red_blue import RedBlueMove
 
@@ -48,6 +51,10 @@ class DIMEMove(RedBlueMove):
         df_proposal_dist=10,
         **kwargs
     ):
+        if multivariate_t is None:
+            raise ImportError(
+                "you need scipy.stats.multivariate_t and scipy.special.logsumexp to use the DIMEMove"
+            )
 
         self.sigma = sigma
         self.g0 = gamma
