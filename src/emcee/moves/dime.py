@@ -31,7 +31,7 @@ def mvt_sample(df, mean, cov, size, random):
 class DIMEMove(RedBlueMove):
     r"""A proposal using adaptive differential-independence mixture ensemble MCMC.
 
-    This is the `Differential-Independence Mixture Ensemble proposal` as developed in `Ensemble MCMC Sampling for DSGE Models <https://gregorboehl.com/live/ademc_boehl.pdf>`_ (previousy ADEMC).
+    This is the `Differential-Independence Mixture Ensemble proposal` as developed in `Ensemble MCMC Sampling for DSGE Models <https://gregorboehl.com/live/dime_mcmc_boehl.pdf>`_.
 
     Args:
         sigma (Optional[float]): standard deviation of the Gaussian used to stretch the proposal vector.
