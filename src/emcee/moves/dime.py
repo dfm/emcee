@@ -146,6 +146,7 @@ class DIMEMove(RedBlueMove):
             random=random,
         )
         lpropdold, lpropdnew = multivariate_t.logpdf(
+            np.vstack((x[None, xchnge], xcand[None])),
             self.prop_mean,
             self.prop_cov * (self.dft - 2) / self.dft,
             df=self.dft,
