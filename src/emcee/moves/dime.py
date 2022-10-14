@@ -145,7 +145,7 @@ class DIMEMove(RedBlueMove):
             size=sum(xchnge),
             random=random,
         )
-        lpropd = multivariate_t.logpdf(
+        lpropdold, lpropdnew = multivariate_t.logpdf(
             np.vstack((x[None,xchnge],xcand[None])),
             self.prop_mean,
             self.prop_cov * (self.dft - 2) / self.dft,
@@ -154,6 +154,6 @@ class DIMEMove(RedBlueMove):
 
         # update proposals and factors
         q[xchnge, :] = np.reshape(xcand, (-1, npar))
-        factors[xchnge] = lpropd[0] - lpropd[1]
+        factors[xchnge] = lpropdold - lpropdnew
 
         return q, factors
