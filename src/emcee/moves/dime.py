@@ -82,8 +82,7 @@ class DIMEMove(RedBlueMove):
             self.cumlweight = -np.inf
 
     def propose(self, model, state):
-        """Wrap original propose to get the some info on the current state
-        """
+        """Wrap original propose to get the some info on the current state"""
 
         self.lprobs = state.log_prob
         state, accepted = super(DIMEMove, self).propose(model, state)
@@ -91,14 +90,16 @@ class DIMEMove(RedBlueMove):
         return state, accepted
 
     def update_proposal_dist(self, x):
-        """Update proposal distribution with ensemble `x`
-        """
+        """Update proposal distribution with ensemble `x`"""
 
         nchain, npar = x.shape
 
         # log weight of current ensemble
-        lweight = logsumexp(self.lprobs) + \
-            np.log(sum(self.accepted)) - np.log(nchain)
+        lweight = (
+            logsumexp(self.lprobs)
+            + np.log(sum(self.accepted))
+            - np.log(nchain)
+        )
 
         # calculate stats for current ensemble
         ncov = np.cov(x.T, ddof=1)
@@ -117,8 +118,7 @@ class DIMEMove(RedBlueMove):
         self.cumlweight = newcumlweight
 
     def get_proposal(self, x, dummy, random):
-        """Actual proposal function
-        """
+        """Actual proposal function"""
 
         nchain, npar = x.shape
 
@@ -146,7 +146,6 @@ class DIMEMove(RedBlueMove):
             random=random,
         )
         lpropdold, lpropdnew = multivariate_t.logpdf(
-            np.vstack((x[None,xchnge],xcand[None])),
             self.prop_mean,
             self.prop_cov * (self.dft - 2) / self.dft,
             df=self.dft,
