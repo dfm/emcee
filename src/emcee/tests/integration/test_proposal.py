@@ -98,5 +98,5 @@ def _test_uniform(proposal, nwalkers=32, nsteps=2000, seed=1234):
         # Check that the resulting chain "fails" the K-S test.
         samps = sampler.get_chain(flat=True)
         np.random.shuffle(samps)
-        ks, _ = stats.kstest(samps[::100], "uniform")
+        ks, _ = stats.kstest(samps[::100, 0], "uniform")
         assert ks > 0.1, "The K-S test failed"
