@@ -1,26 +1,20 @@
-
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: debug-statements
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: debug-statements
 
-- repo: https://github.com/PyCQA/isort
-  rev: "5.11.4"
-  hooks:
-  - id: isort
-    args: []
-    additional_dependencies: [toml]
-    exclude: docs/tutorials
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.11.4"
+    hooks:
+      - id: isort
+        args: []
+        additional_dependencies: [toml]
+        exclude: docs/tutorials
 
-- repo: https://github.com/psf/black
-  rev: "22.12.0"
-  hooks:
-  - id: black
-
-- repo: https://github.com/dfm/black_nbconvert
-  rev: v0.4.0
-  hooks:
-  - id: black_nbconvert
+  - repo: https://github.com/psf/black
+    rev: "22.12.0"
+    hooks:
+      - id: black-jupyter
