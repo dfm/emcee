@@ -60,7 +60,6 @@ class GaussianMove(MHMove):
 
 
 class _isotropic_proposal(object):
-
     allowed_modes = ["vector", "random", "sequential"]
 
     def __init__(self, scale, factor, mode):
@@ -111,7 +110,6 @@ class _diagonal_proposal(_isotropic_proposal):
 
 
 class _proposal(_isotropic_proposal):
-
     allowed_modes = ["vector"]
 
     def get_updated_vector(self, rng, x0):
