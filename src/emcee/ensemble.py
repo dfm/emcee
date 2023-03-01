@@ -17,7 +17,9 @@ __all__ = ["EnsembleSampler", "walkers_independent"]
 
 from collections.abc import Iterable, Sequence
 
-ParameterNamesT = Union[Sequence[str], Dict[str, Union[slice, int, Sequence[int]]]]
+ParameterNamesT = Union[
+    Sequence[str], Dict[str, Union[slice, int, Sequence[int]]]
+]
 
 
 class EnsembleSampler(object):
@@ -169,19 +171,20 @@ class EnsembleSampler(object):
                 parameter_names = dict(zip(parameter_names, range(ndim)))
 
             indices = np.arange(ndim)
-            indexed = np.hstack([
-                indices[slc].ravel()
-                for slc in parameter_names.values()
-            ])
+            indexed = np.hstack(
+                [indices[slc].ravel() for slc in parameter_names.values()]
+            )
 
             if len(indexed) != ndim:
                 raise ValueError(
                     "`parameter_names` does not specify indices for"
-                    f" {ndim} parameters")
+                    f" {ndim} parameters"
+                )
             if set(indexed) != set(indices):
                 raise ValueError(
                     "`parameter_names` does not specify indices"
-                    f" 0 through {ndim-1}")
+                    f" 0 through {ndim-1}"
+                )
 
             self.parameter_names = parameter_names
 
