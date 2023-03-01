@@ -170,7 +170,7 @@ class EnsembleSampler(object):
 
             # Don't support vectorizing yet
             msg = "named parameters with vectorization unsupported for now"
-            assert not self.vectorize, msg
+            # assert not self.vectorize, msg
 
             # Check for duplicate names
             dupes = set()
@@ -473,7 +473,10 @@ class EnsembleSampler(object):
 
         # If the parmaeters are named, then switch to dictionaries
         if self.params_are_named:
-            p = ndarray_to_list_of_dicts(p, self.parameter_names)
+            if self.vectorize:
+                p = ndarray_to_dict(p, self.parameter_names)
+            else:
+                p = ndarray_to_list_of_dicts(p, self.parameter_names)
 
         # Run the log-probability calculations (optionally in parallel).
         if self.vectorize:
@@ -664,6 +667,10 @@ def _scaled_cond(a):
         return np.inf
     c = b / bsum
     return np.linalg.cond(c.astype(float))
+
+
+def ndarray_to_dict(x, key_map):
+    return {key: x[..., val] for key, val in key_map.items()}
 
 
 def ndarray_to_list_of_dicts(
