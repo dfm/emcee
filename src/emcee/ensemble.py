@@ -15,11 +15,9 @@ from .utils import deprecated, deprecation_warning
 
 __all__ = ["EnsembleSampler", "walkers_independent"]
 
-try:
-    from collections.abc import Iterable
-except ImportError:
-    # for py2.7, will be an Exception in 3.8
-    from collections import Iterable
+from collections.abc import Iterable, Sequence
+
+ParameterNamesT = Union[Sequence[str], Dict[str, Union[slice, int, Sequence[int]]]]
 
 
 class EnsembleSampler(object):
@@ -62,7 +60,8 @@ class EnsembleSampler(object):
             to accept a list of position vectors instead of just one. Note
             that ``pool`` will be ignored if this is ``True``.
             (default: ``False``)
-        parameter_names (Optional[Union[List[str], Dict[str, List[int]]]]):
+        parameter_names (Union[Sequence[str],
+            Dict[str, Union[slice, int, Sequence[int]]]):
             names of individual parameters or groups of parameters. If
             specified, the ``log_prob_fn`` will recieve a dictionary of
             parameters, rather than a ``np.ndarray``.
@@ -81,7 +80,7 @@ class EnsembleSampler(object):
         backend=None,
         vectorize=False,
         blobs_dtype=None,
-        parameter_names: Optional[Union[Dict[str, int], List[str]]] = None,
+        parameter_names: Optional[ParameterNamesT] = None,
         # Deprecated...
         a=None,
         postargs=None,
@@ -166,44 +165,24 @@ class EnsembleSampler(object):
         # Save the parameter names
         self.params_are_named: bool = parameter_names is not None
         if self.params_are_named:
-            assert isinstance(parameter_names, (list, dict))
+            if isinstance(parameter_names, Sequence):
+                parameter_names = dict(zip(parameter_names, range(ndim)))
 
-            # Don't support vectorizing yet
-            msg = "named parameters with vectorization unsupported for now"
-            # assert not self.vectorize, msg
+            indices = np.arange(ndim)
+            indexed = np.hstack([
+                indices[slc].ravel()
+                for slc in parameter_names.values()
+            ])
 
-            # Check for duplicate names
-            dupes = set()
-            uniq = []
-            for name in parameter_names:
-                if name not in dupes:
-                    uniq.append(name)
-                    dupes.add(name)
-            msg = f"duplicate paramters: {dupes}"
-            assert len(uniq) == len(parameter_names), msg
+            if len(indexed) != ndim:
+                raise ValueError(
+                    "`parameter_names` does not specify indices for"
+                    f" {ndim} parameters")
+            if set(indexed) != set(indices):
+                raise ValueError(
+                    "`parameter_names` does not specify indices"
+                    f" 0 through {ndim-1}")
 
-            if isinstance(parameter_names, list):
-                # Check for all named
-                msg = "name all parameters or set `parameter_names` to `None`"
-                assert len(parameter_names) == ndim, msg
-                # Convert a list to a dict
-                parameter_names: Dict[str, int] = {
-                    name: i for i, name in enumerate(parameter_names)
-                }
-
-            # Check not too many names
-            msg = "too many names"
-            assert len(parameter_names) <= ndim, msg
-
-            # Check all indices appear
-            values = [
-                v if isinstance(v, list) else [v]
-                for v in parameter_names.values()
-            ]
-            values = [item for sublist in values for item in sublist]
-            values = set(values)
-            msg = f"not all values appear -- set should be 0 to {ndim-1}"
-            assert values == set(np.arange(ndim)), msg
             self.parameter_names = parameter_names
 
     @property
