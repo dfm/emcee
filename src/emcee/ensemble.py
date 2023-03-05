@@ -2,7 +2,7 @@
 
 import warnings
 from itertools import count
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Iterable, Sequence
 
 import numpy as np
 
@@ -14,8 +14,6 @@ from .state import State
 from .utils import deprecated, deprecation_warning
 
 __all__ = ["EnsembleSampler", "walkers_independent"]
-
-from collections.abc import Iterable, Sequence
 
 ParameterNamesT = Union[
     Sequence[str], Dict[str, Union[slice, int, Sequence[int]]]
