@@ -2,7 +2,7 @@
 
 import warnings
 from itertools import count
-from typing import Dict, List, Optional, Union, Iterable, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Union
 
 import numpy as np
 
