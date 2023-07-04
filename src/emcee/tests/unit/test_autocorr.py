@@ -46,10 +46,9 @@ def test_autocorr_multi_works():
     np.random.seed(42)
     xs = np.random.randn(16384, 2)
 
-    # This throws exception unconditionally in buggy impl's
-    acls_multi = integrated_time(xs)
+    acls_multi = integrated_time(xs[:, np.newaxis])
     acls_single = np.array(
         [integrated_time(xs[:, i]) for i in range(xs.shape[1])]
-    )
+    ).squeeze()
 
-    assert np.all(np.abs(acls_multi - acls_single) < 2)
+    assert np.allclose(acls_multi, acls_single)
