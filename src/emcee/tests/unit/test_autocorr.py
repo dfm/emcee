@@ -28,6 +28,13 @@ def test_nd(seed=1234, ndim=3, N=150000):
     assert np.all(np.abs(tau - 19.0) / 19.0 < 0.2)
 
 
+def test_nd_without_walkers(seed=1234, ndim=3, N=10000):
+    x = get_chain(seed=seed, ndim=ndim, N=N)
+    tau1 = integrated_time(x[:, np.newaxis])
+    tau2 = integrated_time(x, has_walkers=False)
+    assert np.allclose(tau1, tau2)
+
+
 def test_too_short(seed=1234, ndim=3, N=100):
     x = get_chain(seed=seed, ndim=ndim, N=N)
     with pytest.raises(AutocorrError):
