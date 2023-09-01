@@ -111,7 +111,7 @@ jobs:
           name: artifact
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@v1.8.8
+      - uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
