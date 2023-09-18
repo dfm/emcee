@@ -28,6 +28,13 @@ def test_nd(seed=1234, ndim=3, N=150000):
     assert np.all(np.abs(tau - 19.0) / 19.0 < 0.2)
 
 
+def test_nd_without_walkers(seed=1234, ndim=3, N=10000):
+    x = get_chain(seed=seed, ndim=ndim, N=N)
+    tau1 = integrated_time(x[:, np.newaxis])
+    tau2 = integrated_time(x, has_walkers=False)
+    assert np.allclose(tau1, tau2)
+
+
 def test_too_short(seed=1234, ndim=3, N=100):
     x = get_chain(seed=seed, ndim=ndim, N=N)
     with pytest.raises(AutocorrError):
@@ -39,10 +46,9 @@ def test_autocorr_multi_works():
     np.random.seed(42)
     xs = np.random.randn(16384, 2)
 
-    # This throws exception unconditionally in buggy impl's
-    acls_multi = integrated_time(xs)
+    acls_multi = integrated_time(xs[:, np.newaxis])
     acls_single = np.array(
         [integrated_time(xs[:, i]) for i in range(xs.shape[1])]
-    )
+    ).squeeze()
 
-    assert np.all(np.abs(acls_multi - acls_single) < 2)
+    assert np.allclose(acls_multi, acls_single)

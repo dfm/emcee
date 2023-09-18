@@ -46,7 +46,7 @@ def auto_window(taus, c):
     return len(taus) - 1
 
 
-def integrated_time(x, c=5, tol=50, quiet=False):
+def integrated_time(x, c=5, tol=50, quiet=False, has_walkers=True):
     """Estimate the integrated autocorrelation time of a time series.
 
     This estimate uses the iterative procedure described on page 16 of
@@ -54,9 +54,11 @@ def integrated_time(x, c=5, tol=50, quiet=False):
     determine a reasonable window size.
 
     Args:
-        x: The time series. If multidimensional, set the time axis using the
-            ``axis`` keyword argument and the function will be computed for
-            every other axis.
+        x (numpy.ndarray): The time series. If 2-dimensional, the array
+            dimesions are interpreted as ``(n_step, n_walker)`` unless
+            ``has_walkers==False``, in which case they are interpreted as
+            ``(n_step, n_param)``. If 3-dimensional, the dimensions are
+            interperted as ``(n_step, n_walker, n_param)``.
         c (Optional[float]): The step size for the window search. (default:
             ``5``)
         tol (Optional[float]): The minimum number of autocorrelation times
@@ -64,10 +66,13 @@ def integrated_time(x, c=5, tol=50, quiet=False):
         quiet (Optional[bool]): This argument controls the behavior when the
             chain is too short. If ``True``, give a warning instead of raising
             an :class:`AutocorrError`. (default: ``False``)
+        has_walkers (Optional[bool]): Whether the last axis should be
+            interpreted as walkers or parameters if ``x`` has 2 dimensions.
+            (default: ``True``)
 
     Returns:
         float or array: An estimate of the integrated autocorrelation time of
-            the time series ``x`` computed along the axis ``axis``.
+            the time series ``x``.
 
     Raises
         AutocorrError: If the autocorrelation time can't be reliably estimated
@@ -79,7 +84,10 @@ def integrated_time(x, c=5, tol=50, quiet=False):
     if len(x.shape) == 1:
         x = x[:, np.newaxis, np.newaxis]
     if len(x.shape) == 2:
-        x = x[:, :, np.newaxis]
+        if not has_walkers:
+            x = x[:, np.newaxis, :]
+        else:
+            x = x[:, :, np.newaxis]
     if len(x.shape) != 3:
         raise ValueError("invalid dimensions")
 
