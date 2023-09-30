@@ -70,6 +70,8 @@ def _get_nondiagonal_pairs(n: int) -> np.ndarray:
     rows, cols = np.tril_indices(n, -1)  # -1 to exclude diagonal
 
     # Combine rows-cols and cols-rows pairs
-    pairs = np.column_stack([np.concatenate([rows, cols]), np.concatenate([cols, rows])])
+    pairs = np.column_stack(
+        [np.concatenate([rows, cols]), np.concatenate([cols, rows])]
+    )
 
     return pairs
