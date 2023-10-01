@@ -50,7 +50,7 @@ class DEMove(RedBlueMove):
         pairs = pairs[indices]
 
         # Compute diff vectors
-        diffs = np.diff(s[pairs], axis=1).squeeze(axis=1)  # (ns, ndim)
+        diffs = np.diff(c[pairs], axis=1).squeeze(axis=1)  # (ns, ndim)
 
         # Sample a gamma value for each walker following Nelson et al. (2013)
         gamma = self.g0 * (1 + self.sigma * random.randn(ns, 1))  # (ns, 1)
