@@ -45,10 +45,10 @@ class EnsembleSampler(object):
             (default: :class:`StretchMove`)
         args (Optional): A list of extra positional arguments for
             ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_prob_fn(p, *args, **kwargs)``.
         kwargs (Optional): A dict of extra keyword arguments for
             ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_prob_fn(p, *args, **kwargs)``.
         pool (Optional): An object with a ``map`` method that follows the same
             calling sequence as the built-in ``map`` function. This is
             generally used to compute the log-probabilities for the ensemble
