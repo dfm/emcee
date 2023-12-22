@@ -179,7 +179,7 @@ class EnsembleSampler(object):
                 if name not in dupes:
                     uniq.append(name)
                     dupes.add(name)
-            msg = f"duplicate paramters: {dupes}"
+            msg = f"duplicate parameters: {dupes}"
             assert len(uniq) == len(parameter_names), msg
 
             if isinstance(parameter_names, list):
