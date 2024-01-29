@@ -1,6 +1,7 @@
 """
 Unit tests of some functionality in ensemble.py when the parameters are named
 """
+
 import string
 from unittest import TestCase
 
