@@ -489,10 +489,11 @@ class EnsembleSampler(object):
             results = list(map_func(self.log_prob_fn, p))
 
         try:
-            log_prob = np.array([float(l[0]) for l in results])
+            log_prob_elements = [l[0] for l in results]
+            log_prob = np.array([float(l.item() if hasattr(l, "item") else l) for l in log_prob_elements])
             blob = [l[1:] for l in results]
         except (IndexError, TypeError):
-            log_prob = np.array([float(l) for l in results])
+            log_prob = np.array([float(l.item() if hasattr(l, "item") else l) for l in results])
             blob = None
         else:
             # Get the blobs dtype
