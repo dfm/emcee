@@ -490,17 +490,17 @@ class EnsembleSampler(object):
 
         try:
             log_prob_elements = [l[0] for l in results]
-            log_prob = np.array(
-                [
-                    float(l.item() if hasattr(l, "item") else l)
-                    for l in log_prob_elements
-                ]
-            )
+            if any(np.ndim(l) != 0 for l in log_prob_elements):
+                raise ValueError(
+                    "log_prob (first element of log_prob_fn output with "
+                    "blobs) must be a scalar."
+                )
+            log_prob = np.array([float(l) for l in log_prob_elements])
             blob = [l[1:] for l in results]
         except (IndexError, TypeError):
-            log_prob = np.array(
-                [float(l.item() if hasattr(l, "item") else l) for l in results]
-            )
+            if any(np.ndim(l) != 0 for l in results):
+                raise ValueError("log_prob_fn must always return a scalar.")
+            log_prob = np.array([float(l) for l in results])
             blob = None
         else:
             # Get the blobs dtype
