@@ -68,7 +68,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install pip install "numpy>=2.0.0rc1"
+          python -m pip install pip install pytest "numpy>=2.0.0rc1"
       - name: Run tests
         run: pytest
 
