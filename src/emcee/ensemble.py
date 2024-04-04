@@ -502,7 +502,7 @@ class EnsembleSampler(object):
                 try:
                     with warnings.catch_warnings(record=True):
                         warnings.simplefilter(
-                            "error", np.VisibleDeprecationWarning
+                            "error", np.exceptions.VisibleDeprecationWarning
                         )
                         try:
                             dt = np.atleast_1d(blob[0]).dtype
