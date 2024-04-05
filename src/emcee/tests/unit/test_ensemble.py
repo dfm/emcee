@@ -4,6 +4,7 @@ Unit tests of some functionality in ensemble.py when the parameters are named
 
 import string
 from unittest import TestCase
+import warnings
 
 import numpy as np
 import pytest
@@ -181,5 +182,7 @@ class TestNamedParameters(TestCase):
         n_steps = 50
         results = sampler.run_mcmc(guess, n_steps)
         assert results.coords.shape == (n_walkers, len(self.names))
-        chain = sampler.get_chain()
-        assert chain.shape == (n_steps, n_walkers, len(self.names))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=DeprecationWarning)
+            chain = sampler.chain
+        assert chain.shape == (n_walkers, n_steps, len(self.names))
