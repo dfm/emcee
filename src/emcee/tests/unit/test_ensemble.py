@@ -208,7 +208,10 @@ class TestLnProbFn(TestCase):
     def test_deal_with_scalar_likes(self):
         rng = np.random.default_rng()
         fns = [
-            self.lnpdf, self.lnpdf_arr1, self.lnpdf_float64, self.lnpdf_arr0D
+            self.lnpdf,
+            self.lnpdf_arr1,
+            self.lnpdf_float64,
+            self.lnpdf_arr0D,
         ]
         for fn in fns:
             init = rng.random((50, 1))
