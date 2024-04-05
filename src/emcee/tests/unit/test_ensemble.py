@@ -3,8 +3,8 @@ Unit tests of some functionality in ensemble.py when the parameters are named
 """
 
 import string
-from unittest import TestCase
 import warnings
+from unittest import TestCase
 
 import numpy as np
 import pytest
@@ -183,6 +183,6 @@ class TestNamedParameters(TestCase):
         results = sampler.run_mcmc(guess, n_steps)
         assert results.coords.shape == (n_walkers, len(self.names))
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=DeprecationWarning)
+            warnings.simplefilter("ignore", category=DeprecationWarning)
             chain = sampler.chain
         assert chain.shape == (n_walkers, n_steps, len(self.names))
