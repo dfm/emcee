@@ -183,3 +183,37 @@ class TestNamedParameters(TestCase):
         assert results.coords.shape == (n_walkers, len(self.names))
         chain = sampler.chain
         assert chain.shape == (n_walkers, n_steps, len(self.names))
+
+
+class TestLnProbFn(TestCase):
+    # checks that the log_prob_fn can deal with a variety of 'scalar-likes'
+    def lnpdf(self, x):
+        v = np.log(np.sqrt(np.pi) * np.exp(-((x / 2.0) ** 2)))
+        v = float(v[0])
+        assert np.isscalar(v)
+        return v
+
+    def lnpdf_arr1(self, x):
+        v = self.lnpdf(x)
+        return np.array([v])
+
+    def lnpdf_float64(self, x):
+        v = self.lnpdf(x)
+        return np.float64(v)
+
+    def lnpdf_arr0D(self, x):
+        v = self.lnpdf(x)
+        return np.array(v)
+
+    def test_deal_with_scalar_likes(self):
+        rng = np.random.default_rng()
+        fns = [
+            self.lnpdf,
+            self.lnpdf_arr1,
+            self.lnpdf_float64,
+            self.lnpdf_arr0D,
+        ]
+        for fn in fns:
+            init = rng.random((50, 1))
+            sampler = EnsembleSampler(50, 1, fn)
+            _ = sampler.run_mcmc(initial_state=init, nsteps=20)
