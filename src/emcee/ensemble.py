@@ -489,10 +489,19 @@ class EnsembleSampler(object):
             results = list(map_func(self.log_prob_fn, p))
 
         try:
-            log_prob = np.array([float(l[0]) for l in results])
-            blob = [l[1:] for l in results]
+            # perhaps log_prob_fn returns blobs?
+
+            # deal with the blobs first
+            # if l does not have a len attribute (i.e. not a sequence, no blob)
+            # then a TypeError is raised. However, no error will be raised if
+            # l is a length-1 array, np.array([1.234]). In that case blob
+            # will become an empty list.
+            blob = [l[1:] for l in results if len(l) > 1]
+            if not len(blob):
+                raise IndexError
+            log_prob = np.array([_scalar(l[0]) for l in results])
         except (IndexError, TypeError):
-            log_prob = np.array([float(l) for l in results])
+            log_prob = np.array([_scalar(l) for l in results])
             blob = None
         else:
             # Get the blobs dtype
@@ -682,3 +691,16 @@ def ndarray_to_list_of_dicts(
       list of dictionaries of parameters
     """
     return [{key: xi[val] for key, val in key_map.items()} for xi in x]
+
+
+def _scalar(fx):
+    # Make sure a value is a true scalar
+    # 1.0, np.float64(1.0), np.array([1.0]), np.array(1.0)
+    if not np.isscalar(fx):
+        try:
+            fx = np.asarray(fx).item()
+        except (TypeError, ValueError) as e:
+            raise ValueError("log_prob_fn should return scalar") from e
+        return float(fx)
+    else:
+        return float(fx)
