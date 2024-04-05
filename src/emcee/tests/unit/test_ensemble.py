@@ -181,5 +181,5 @@ class TestNamedParameters(TestCase):
         n_steps = 50
         results = sampler.run_mcmc(guess, n_steps)
         assert results.coords.shape == (n_walkers, len(self.names))
-        chain = sampler.chain
-        assert chain.shape == (n_walkers, n_steps, len(self.names))
+        chain = sampler.get_chain()
+        assert chain.shape == (n_steps, n_walkers, len(self.names))
