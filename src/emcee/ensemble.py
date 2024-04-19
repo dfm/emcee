@@ -21,6 +21,13 @@ except ImportError:
     # for py2.7, will be an Exception in 3.8
     from collections import Iterable
 
+try:
+    # Try to import from numpy.exceptions (available in NumPy 1.25 and later)
+    from numpy.exceptions import VisibleDeprecationWarning
+except ImportError:
+    # Fallback to the top-level numpy import (for older versions)
+    from numpy import VisibleDeprecationWarning
+
 
 class EnsembleSampler(object):
     """An ensemble MCMC sampler
@@ -511,7 +518,7 @@ class EnsembleSampler(object):
                 try:
                     with warnings.catch_warnings(record=True):
                         warnings.simplefilter(
-                            "error", np.exceptions.VisibleDeprecationWarning
+                            "error", VisibleDeprecationWarning
                         )
                         try:
                             dt = np.atleast_1d(blob[0]).dtype
