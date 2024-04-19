@@ -60,7 +60,7 @@ jobs:
           - python-version: "3.9"
             numpy-version: "numpy<1.25"
             os: "ubuntu-latest"
-  
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
