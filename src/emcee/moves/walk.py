@@ -28,7 +28,7 @@ class WalkMove(RedBlueMove):
         c = np.concatenate(c, axis=0)
         Ns, Nc = len(s), len(c)
         ndim = s.shape[1]
-        q = np.empty((Ns, ndim), dtype=np.float64)
+        q = np.empty_like(s)
         s0 = Nc if self.s is None else self.s
         for i in range(Ns):
             inds = random.choice(Nc, s0, replace=False)

@@ -21,6 +21,13 @@ except ImportError:
     # for py2.7, will be an Exception in 3.8
     from collections import Iterable
 
+try:
+    # Try to import from numpy.exceptions (available in NumPy 1.25 and later)
+    from numpy.exceptions import VisibleDeprecationWarning
+except ImportError:
+    # Fallback to the top-level numpy import (for older versions)
+    from numpy import VisibleDeprecationWarning
+
 
 class EnsembleSampler(object):
     """An ensemble MCMC sampler
@@ -45,10 +52,10 @@ class EnsembleSampler(object):
             (default: :class:`StretchMove`)
         args (Optional): A list of extra positional arguments for
             ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_prob_fn(p, *args, **kwargs)``.
         kwargs (Optional): A dict of extra keyword arguments for
             ``log_prob_fn``. ``log_prob_fn`` will be called with the sequence
-            ``log_pprob_fn(p, *args, **kwargs)``.
+            ``log_prob_fn(p, *args, **kwargs)``.
         pool (Optional): An object with a ``map`` method that follows the same
             calling sequence as the built-in ``map`` function. This is
             generally used to compute the log-probabilities for the ensemble
@@ -179,7 +186,7 @@ class EnsembleSampler(object):
                 if name not in dupes:
                     uniq.append(name)
                     dupes.add(name)
-            msg = f"duplicate paramters: {dupes}"
+            msg = f"duplicate parameters: {dupes}"
             assert len(uniq) == len(parameter_names), msg
 
             if isinstance(parameter_names, list):
@@ -489,10 +496,19 @@ class EnsembleSampler(object):
             results = list(map_func(self.log_prob_fn, p))
 
         try:
-            log_prob = np.array([float(l[0]) for l in results])
-            blob = [l[1:] for l in results]
+            # perhaps log_prob_fn returns blobs?
+
+            # deal with the blobs first
+            # if l does not have a len attribute (i.e. not a sequence, no blob)
+            # then a TypeError is raised. However, no error will be raised if
+            # l is a length-1 array, np.array([1.234]). In that case blob
+            # will become an empty list.
+            blob = [l[1:] for l in results if len(l) > 1]
+            if not len(blob):
+                raise IndexError
+            log_prob = np.array([_scalar(l[0]) for l in results])
         except (IndexError, TypeError):
-            log_prob = np.array([float(l) for l in results])
+            log_prob = np.array([_scalar(l) for l in results])
             blob = None
         else:
             # Get the blobs dtype
@@ -502,7 +518,7 @@ class EnsembleSampler(object):
                 try:
                     with warnings.catch_warnings(record=True):
                         warnings.simplefilter(
-                            "error", np.VisibleDeprecationWarning
+                            "error", VisibleDeprecationWarning
                         )
                         try:
                             dt = np.atleast_1d(blob[0]).dtype
@@ -682,3 +698,16 @@ def ndarray_to_list_of_dicts(
       list of dictionaries of parameters
     """
     return [{key: xi[val] for key, val in key_map.items()} for xi in x]
+
+
+def _scalar(fx):
+    # Make sure a value is a true scalar
+    # 1.0, np.float64(1.0), np.array([1.0]), np.array(1.0)
+    if not np.isscalar(fx):
+        try:
+            fx = np.asarray(fx).item()
+        except (TypeError, ValueError) as e:
+            raise ValueError("log_prob_fn should return scalar") from e
+        return float(fx)
+    else:
+        return float(fx)
