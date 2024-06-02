@@ -52,7 +52,13 @@ class DIMEMove(RedBlueMove):
     """
 
     def __init__(
-        self, sigma=1.0e-5, gamma=None, aimh_prob=0.1, df_proposal_dist=10, rho=.999, **kwargs
+        self,
+        sigma=1.0e-5,
+        gamma=None,
+        aimh_prob=0.1,
+        df_proposal_dist=10,
+        rho=0.999,
+        **kwargs
     ):
         if multivariate_t is None:
             raise ImportError(
@@ -87,8 +93,7 @@ class DIMEMove(RedBlueMove):
             self.update_proposal_dist(coords)
 
     def propose(self, model, state):
-        """Wrap original propose to get the some info on the current state
-        """
+        """Wrap original propose to get the some info on the current state"""
 
         self.lprobs = state.log_prob
         state, accepted = super(DIMEMove, self).propose(model, state)
@@ -96,15 +101,17 @@ class DIMEMove(RedBlueMove):
         return state, accepted
 
     def update_proposal_dist(self, x):
-        """Update proposal distribution with ensemble `x`
-        """
+        """Update proposal distribution with ensemble `x`"""
 
         nchain, npar = x.shape
 
         # log weight of current ensemble
         if self.accepted.any():
-            lweight = logsumexp(self.lprobs) + \
-                np.log(sum(self.accepted)) - np.log(nchain)
+            lweight = (
+                logsumexp(self.lprobs)
+                + np.log(sum(self.accepted))
+                - np.log(nchain)
+            )
         else:
             lweight = -np.inf
 
@@ -125,8 +132,7 @@ class DIMEMove(RedBlueMove):
         self.cumlweight = newcumlweight + np.log(self.decay)
 
     def get_proposal(self, x, xref, random):
-        """Actual proposal function
-        """
+        """Actual proposal function"""
 
         xref = xref[0]
         nchain, npar = x.shape
