@@ -122,8 +122,7 @@ class DIMEMove(RedBlueMove):
             np.exp(self.cumlweight - newcumlweight) * self.prop_mean
             + np.exp(lweight - newcumlweight) * nmean
         )
-        # self.cumlweight = newcumlweight + np.log(self.decay)
-        self.cumlweight = newcumlweight
+        self.cumlweight = newcumlweight + np.log(self.decay)
 
     def get_proposal(self, x, xref, random):
         """Actual proposal function
