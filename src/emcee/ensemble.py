@@ -73,6 +73,8 @@ class EnsembleSampler(object):
             names of individual parameters or groups of parameters. If
             specified, the ``log_prob_fn`` will recieve a dictionary of
             parameters, rather than a ``np.ndarray``.
+        rng (Optional):
+            int, :class:`np.random.Generator`, used for reproducibility.
 
     """
 
@@ -89,7 +91,7 @@ class EnsembleSampler(object):
         vectorize=False,
         blobs_dtype=None,
         parameter_names: Optional[Union[Dict[str, int], List[str]]] = None,
-        rng = None,
+        rng=None,
         # Deprecated...
         a=None,
         postargs=None,
