@@ -137,7 +137,9 @@ def run_sampler(
 ):
     rng = np.random.default_rng(seed)
     coords = rng.standard_normal((nwalkers, ndim))
-    sampler = EnsembleSampler(nwalkers, ndim, normal_log_prob, rng=rng, backend=backend)
+    sampler = EnsembleSampler(
+        nwalkers, ndim, normal_log_prob, rng=rng, backend=backend
+    )
     sampler.run_mcmc(
         coords,
         nsteps,

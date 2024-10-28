@@ -222,6 +222,7 @@ class EnsembleSampler(object):
         so silently.
 
         """
+
         def rng_dict(rng):
             bg_state = rng.bit_generator.state
             ss = rng.bit_generator.seed_seq
@@ -229,9 +230,10 @@ class EnsembleSampler(object):
                 entropy=ss.entropy,
                 spawn_key=ss.spawn_key,
                 pool_size=ss.pool_size,
-                n_children_spawned=ss.n_children_spawned
+                n_children_spawned=ss.n_children_spawned,
             )
             return dict(bg_state=bg_state, seed_seq=ss_dict)
+
         return rng_dict(self._random)
         # return self._random.bit_generator.state
 
@@ -242,13 +244,15 @@ class EnsembleSampler(object):
         if it doesn't work. Don't say I didn't warn you...
 
         """
+
         def _rng_fromdict(d):
-            bg_state = d['bg_state']
-            ss = np.random.SeedSequence(**d['seed_seq'])
-            bg = getattr(np.random, bg_state['bit_generator'])(ss)
+            bg_state = d["bg_state"]
+            ss = np.random.SeedSequence(**d["seed_seq"])
+            bg = getattr(np.random, bg_state["bit_generator"])(ss)
             bg.state = bg_state
             rng = np.random.Generator(bg)
             return rng
+
         try:
             self._random = _rng_fromdict(state)
             # self._random.bit_generator = state

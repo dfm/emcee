@@ -2,9 +2,9 @@
 
 from __future__ import division, print_function
 
+import json
 import os
 from tempfile import NamedTemporaryFile
-import json
 
 import numpy as np
 
@@ -202,7 +202,7 @@ class HDFBackend(Backend):
     def random_state(self):
         with self.open() as f:
             try:
-                dct = json.loads(f[self.name].attrs['random_state'])
+                dct = json.loads(f[self.name].attrs["random_state"])
             except KeyError:
                 return None
         return dct
@@ -269,8 +269,7 @@ class HDFBackend(Backend):
             g["accepted"][:] += accepted
 
             g.attrs["random_state"] = json.dumps(
-                state.random_state,
-                cls=NumpyEncoder
+                state.random_state, cls=NumpyEncoder
             )
 
             g.attrs["iteration"] = iteration + 1

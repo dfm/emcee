@@ -124,7 +124,7 @@ def test_backend(backend, dtype, blobs):
         last2 = sampler2.get_last_sample()
         assert np.allclose(last1.coords, last2.coords)
         assert np.allclose(last1.log_prob, last2.log_prob)
-        assert last1.random_state['bg_state'] == last2.random_state['bg_state']
+        assert last1.random_state["bg_state"] == last2.random_state["bg_state"]
         if blobs:
             _custom_allclose(last1.blobs, last2.blobs)
         else:
@@ -137,7 +137,7 @@ def test_backend(backend, dtype, blobs):
 
 @pytest.mark.parametrize("backend,dtype", product(other_backends, dtypes))
 def test_reload(backend, dtype):
-    with (backend() as backend1):
+    with backend() as backend1:
         run_sampler(backend1, dtype=dtype)
 
         # Test the state
@@ -192,7 +192,7 @@ def test_restart(backend, dtype):
         last2 = sampler2.get_last_sample()
         assert np.allclose(last1.coords, last2.coords)
         assert np.allclose(last1.log_prob, last2.log_prob)
-        assert last1.random_state['bg_state'] == last2.random_state['bg_state']
+        assert last1.random_state["bg_state"] == last2.random_state["bg_state"]
         _custom_allclose(last1.blobs, last2.blobs)
 
         a = sampler1.acceptance_fraction

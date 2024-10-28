@@ -87,7 +87,9 @@ class _isotropic_proposal(object):
         return np.exp(rng.uniform(-self._log_factor, self._log_factor))
 
     def get_updated_vector(self, rng, x0):
-        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal((x0.shape))
+        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal(
+            (x0.shape)
+        )
 
     def __call__(self, x0, rng):
         nw, nd = x0.shape
@@ -106,7 +108,9 @@ class _isotropic_proposal(object):
 
 class _diagonal_proposal(_isotropic_proposal):
     def get_updated_vector(self, rng, x0):
-        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal((x0.shape))
+        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal(
+            (x0.shape)
+        )
 
 
 class _proposal(_isotropic_proposal):
