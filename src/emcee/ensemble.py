@@ -160,7 +160,7 @@ class EnsembleSampler(object):
             # Get the last random state
             state = self.backend.random_state
             if state is not None:
-                self._random.bit_generator.state = state
+                self.random_state = state
 
             # Grab the last step so that we can restart
             it = self.backend.iteration
@@ -225,7 +225,12 @@ class EnsembleSampler(object):
         def rng_dict(rng):
             bg_state = rng.bit_generator.state
             ss = rng.bit_generator.seed_seq
-            ss_dict = dict(entropy=ss.entropy, spawn_key=ss.spawn_key, pool_size=ss.pool_size, n_children_spawned=ss.n_children_spawned)
+            ss_dict = dict(
+                entropy=ss.entropy,
+                spawn_key=ss.spawn_key,
+                pool_size=ss.pool_size,
+                n_children_spawned=ss.n_children_spawned
+            )
             return dict(bg_state=bg_state, seed_seq=ss_dict)
         return rng_dict(self._random)
         # return self._random.bit_generator.state
