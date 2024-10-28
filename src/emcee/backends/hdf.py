@@ -4,6 +4,7 @@ from __future__ import division, print_function
 
 import os
 from tempfile import NamedTemporaryFile
+import json
 
 import numpy as np
 
@@ -17,6 +18,13 @@ try:
     import h5py
 except ImportError:
     h5py = None
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 
 def does_hdf5_support_longdouble():
@@ -193,12 +201,11 @@ class HDFBackend(Backend):
     @property
     def random_state(self):
         with self.open() as f:
-            elements = [
-                v
-                for k, v in sorted(f[self.name].attrs.items())
-                if k.startswith("random_state_")
-            ]
-        return elements if len(elements) else None
+            try:
+                dct = json.loads(f[self.name].attrs['random_state'])
+            except KeyError:
+                return None
+        return dct
 
     def grow(self, ngrow, blobs):
         """Expand the storage space by some number of samples
@@ -261,8 +268,10 @@ class HDFBackend(Backend):
                 g["blobs"][iteration, :] = state.blobs
             g["accepted"][:] += accepted
 
-            for i, v in enumerate(state.random_state):
-                g.attrs["random_state_{0}".format(i)] = v
+            g.attrs["random_state"] = json.dumps(
+                state.random_state,
+                cls=NumpyEncoder
+            )
 
             g.attrs["iteration"] = iteration + 1
 

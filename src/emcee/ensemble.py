@@ -89,6 +89,7 @@ class EnsembleSampler(object):
         vectorize=False,
         blobs_dtype=None,
         parameter_names: Optional[Union[Dict[str, int], List[str]]] = None,
+        rng = None,
         # Deprecated...
         a=None,
         postargs=None,
@@ -136,11 +137,14 @@ class EnsembleSampler(object):
         self.nwalkers = nwalkers
         self.backend = Backend() if backend is None else backend
 
+        # This is a random number generator that we can easily set the state
+        # of
+        self._random = np.random.default_rng(rng)
+
         # Deal with re-used backends
         if not self.backend.initialized:
             self._previous_state = None
             self.reset()
-            state = np.random.get_state()
         else:
             # Check the backend shape
             if self.backend.shape != (self.nwalkers, self.ndim):
@@ -153,18 +157,13 @@ class EnsembleSampler(object):
 
             # Get the last random state
             state = self.backend.random_state
-            if state is None:
-                state = np.random.get_state()
+            if state is not None:
+                self._random.bit_generator.state = state
 
             # Grab the last step so that we can restart
             it = self.backend.iteration
             if it > 0:
                 self._previous_state = self.get_last_sample()
-
-        # This is a random number generator that we can easily set the state
-        # of without affecting the numpy-wide generator
-        self._random = np.random.mtrand.RandomState()
-        self._random.set_state(state)
 
         # Do a little bit of _magic_ to make the likelihood call with
         # ``args`` and ``kwargs`` pickleable.
@@ -216,14 +215,18 @@ class EnsembleSampler(object):
     @property
     def random_state(self):
         """
-        The state of the internal random number generator. In practice, it's
-        the result of calling ``get_state()`` on a
-        ``numpy.random.mtrand.RandomState`` object. You can try to set this
+        The state of the internal random number generator. You can try to set this
         property but be warned that if you do this and it fails, it will do
         so silently.
 
         """
-        return self._random.get_state()
+        def rng_dict(rng):
+            bg_state = rng.bit_generator.state
+            ss = rng.bit_generator.seed_seq
+            ss_dict = dict(entropy=ss.entropy, spawn_key=ss.spawn_key, pool_size=ss.pool_size, n_children_spawned=ss.n_children_spawned)
+            return dict(bg_state=bg_state, seed_seq=ss_dict)
+        return rng_dict(self._random)
+        # return self._random.bit_generator.state
 
     @random_state.setter  # NOQA
     def random_state(self, state):
@@ -232,8 +235,16 @@ class EnsembleSampler(object):
         if it doesn't work. Don't say I didn't warn you...
 
         """
+        def _rng_fromdict(d):
+            bg_state = d['bg_state']
+            ss = np.random.SeedSequence(**d['seed_seq'])
+            bg = getattr(np.random, bg_state['bit_generator'])(ss)
+            bg.state = bg_state
+            rng = np.random.Generator(bg)
+            return rng
         try:
-            self._random.set_state(state)
+            self._random = _rng_fromdict(state)
+            # self._random.bit_generator = state
         except:
             pass
 
@@ -325,7 +336,7 @@ class EnsembleSampler(object):
         # Try to set the initial value of the random number generator. This
         # fails silently if it doesn't work but that's what we want because
         # we'll just interpret any garbage as letting the generator stay in
-        # it's current state.
+        # its current state.
         if rstate0 is not None:
             deprecation_warning(
                 "The 'rstate0' argument is deprecated, use a 'State' "
