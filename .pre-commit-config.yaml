@@ -7,7 +7,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/PyCQA/isort
-    rev: "5.13.2"
+    rev: "6.0.0"
     hooks:
       - id: isort
         args: []
@@ -15,6 +15,6 @@ repos:
         exclude: docs/tutorials
 
   - repo: https://github.com/psf/black
-    rev: "24.10.0"
+    rev: "25.1.0"
     hooks:
       - id: black-jupyter
