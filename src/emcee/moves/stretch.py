@@ -33,14 +33,15 @@ class StretchMove(RedBlueMove):
         # deterministic matching of c to s
         # they should be the same size +- 1.
         if Nc == Ns:
-            cc = c
+            rint = Ellipsis
         elif Nc == Ns + 1:  # s is one shorter
-            cc = c[:Ns]
+            rint = slice(0, Ns)
         elif Nc == Ns - 1:  # s is one longer, reuse one
+            rint = np.arange(Ns)
             # RedBlueMove's permutation means the first element is not special
-            cc = np.append(c, c[0])
+            rint[-1] = 0
         else:
             # old resampling behaviour; this should not occur
             rint = random.randint(Nc, size=(Ns,))
-            cc = c[rint]
-        return proposal = cc - (cc - s) * zz[:, None], factors
+        cc = c[rint]
+        return cc - (cc - s) * zz[:, None], factors
