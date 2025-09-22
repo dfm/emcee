@@ -15,6 +15,6 @@ repos:
         exclude: docs/tutorials
 
   - repo: https://github.com/psf/black
-    rev: "25.1.0"
+    rev: "25.9.0"
     hooks:
       - id: black-jupyter
