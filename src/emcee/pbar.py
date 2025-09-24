@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import importlib
 import logging
 
 __all__ = ["get_progress_bar"]
@@ -52,6 +53,7 @@ def get_progress_bar(display, total, **kwargs):
             if display is True:
                 return tqdm.tqdm(total=total, **kwargs)
             else:
-                return getattr(tqdm, "tqdm_" + display)(total=total, **kwargs)
+                tqdm_submodule = importlib.import_module(f"tqdm.{display}")
+                return tqdm_submodule.tqdm(total=total, **kwargs)
 
     return _NoOpPBar()
