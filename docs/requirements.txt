@@ -6,3 +6,4 @@ h5py
 celerite
 corner
 ipython
+setuptools
