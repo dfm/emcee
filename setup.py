@@ -29,7 +29,7 @@ SETUP_REQUIRES = [
     "wheel",
 ]
 EXTRA_REQUIRE = {
-    "extras": ["h5py", "scipy"],
+    "extras": ["h5py", "scipy", "tqdm", "ipywidgets"],
     "tests": ["pytest", "pytest-cov", "coverage[toml]"],
 }
 
