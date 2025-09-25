@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import tqdm
+    import tqdm.auto
 except ImportError:
     tqdm = None
 
@@ -37,7 +38,7 @@ def get_progress_bar(display, total, **kwargs):
 
     Args:
         display (bool or str): Should the bar actually show the progress? Or a
-                               string to indicate which tqdm bar to use.
+                               string to indicate which tqdm bar (subomdule) to use.
         total (int): The total size of the progress bar.
         kwargs (dict): Optional keyword arguments to be passed to the tqdm call.
 
@@ -51,7 +52,7 @@ def get_progress_bar(display, total, **kwargs):
             return _NoOpPBar()
         else:
             if display is True:
-                return tqdm.tqdm(total=total, **kwargs)
+                return tqdm.auto.tqdm(total=total, **kwargs)
             else:
                 tqdm_submodule = importlib.import_module(f"tqdm.{display}")
                 return tqdm_submodule.tqdm(total=total, **kwargs)
