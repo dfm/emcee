@@ -7,7 +7,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/PyCQA/isort
-    rev: "6.1.0"
+    rev: "7.0.0"
     hooks:
       - id: isort
         args: []
