@@ -99,7 +99,7 @@ def integrated_time(x, c=5, tol=50, quiet=False, has_walkers=True):
 
     # Loop over parameters
     for d in range(n_d):
-        mean_of_d = np.mean(x[:,:,d])
+        mean_of_d = np.mean(x[:, :, d])
         f = np.zeros(n_t)
         for k in range(n_w):
             f += function_1d(x[:, k, d], mean_of_d)
