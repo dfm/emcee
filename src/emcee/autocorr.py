@@ -17,11 +17,12 @@ def next_pow_two(n):
     return i
 
 
-def function_1d(x):
+def function_1d(x, mean_of_x=None):
     """Estimate the normalized autocorrelation function of a 1-D series
 
     Args:
         x: The series as a 1-D numpy array.
+        mean_of_x: estimated mean of x. Default is np.mean(x)
 
     Returns:
         array: The autocorrelation function of the time series.
@@ -31,9 +32,10 @@ def function_1d(x):
     if len(x.shape) != 1:
         raise ValueError("invalid dimensions for 1D autocorrelation function")
     n = next_pow_two(len(x))
-
+    if not mean_of_x:
+        mean_of_x = np.mean(x)
     # Compute the FFT and then (from that) the auto-correlation function
-    f = np.fft.fft(x - np.mean(x), n=2 * n)
+    f = np.fft.fft(x - mean_of_x, n=2 * n)
     acf = np.fft.ifft(f * np.conjugate(f))[: len(x)].real
     acf /= acf[0]
     return acf
@@ -97,9 +99,10 @@ def integrated_time(x, c=5, tol=50, quiet=False, has_walkers=True):
 
     # Loop over parameters
     for d in range(n_d):
+        mean_of_d = np.mean(x[:,:,d])
         f = np.zeros(n_t)
         for k in range(n_w):
-            f += function_1d(x[:, k, d])
+            f += function_1d(x[:, k, d], mean_of_d)
         f /= n_w
         taus = 2.0 * np.cumsum(f) - 1.0
         windows[d] = auto_window(taus, c)
