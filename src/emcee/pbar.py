@@ -8,7 +8,12 @@ logger = logging.getLogger(__name__)
 
 try:
     from rich.console import Console
-    from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
+    from rich.progress import (
+        BarColumn,
+        Progress,
+        TaskProgressColumn,
+        TextColumn,
+    )
 except ImportError:
     Progress = None
 
@@ -60,7 +65,9 @@ class _RichPBar(object):
             transient=self.transient,
         )
         self.progress.__enter__()
-        self.task_id = self.progress.add_task(self.description, total=self.total)
+        self.task_id = self.progress.add_task(
+            self.description, total=self.total
+        )
         return self
 
     def __exit__(self, *args, **kwargs):
