@@ -67,7 +67,9 @@ class _RichPBar(object):
             transient=self.transient,
         )
         self.progress.__enter__()
-        self.task_id = self.progress.add_task(self.description, total=self.total)
+        self.task_id = self.progress.add_task(
+            self.description, total=self.total
+        )
         return self
 
     def __exit__(self, *args, **kwargs):
