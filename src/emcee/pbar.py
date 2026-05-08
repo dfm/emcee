@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from datetime import timedelta
 
 __all__ = ["get_progress_bar"]
 
@@ -8,15 +9,51 @@ logger = logging.getLogger(__name__)
 
 try:
     from rich.console import Console
-    from rich.progress import (
-        BarColumn,
-        Progress,
-        TaskProgressColumn,
-        TextColumn,
-        TimeRemainingColumn,
-    )
+    from rich.progress import BarColumn, Progress, ProgressColumn, TextColumn
+    from rich.text import Text
+
+    _RICH_AVAILABLE = True
 except ImportError:
     Progress = None
+    _RICH_AVAILABLE = False
+
+
+def _format_timer(seconds):
+    if seconds is None:
+        return "--:--"
+
+    total_seconds = max(0, int(seconds))
+    td = timedelta(seconds=total_seconds)
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+
+    if hours > 0:
+        return f"{hours:d}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
+
+
+if _RICH_AVAILABLE:
+
+    class _ElapsedTimeColumn(ProgressColumn):
+        def render(self, task):
+            return Text(
+                f"elapsed {_format_timer(task.elapsed)}",
+                style="yellow",
+            )
+
+    class _RemainingTimeColumn(ProgressColumn):
+        def render(self, task):
+            if task.finished:
+                return Text("", style="blue")
+            return Text(
+                f"left {_format_timer(task.time_remaining)}",
+                style="blue",
+            )
+
+else:
+    _ElapsedTimeColumn = object
+    _RemainingTimeColumn = object
 
 
 class _NoOpPBar(object):
@@ -58,11 +95,13 @@ class _RichPBar(object):
             )
 
     def __enter__(self, *args, **kwargs):
+        assert Progress is not None
         self.progress = Progress(
             TextColumn("{task.description}"),
             BarColumn(),
-            TaskProgressColumn(),
-            TimeRemainingColumn(),
+            TextColumn("{task.completed:.0f}/{task.total:.0f}"),
+            _ElapsedTimeColumn(),
+            _RemainingTimeColumn(),
             console=self.console,
             transient=self.transient,
         )
@@ -73,9 +112,11 @@ class _RichPBar(object):
         return self
 
     def __exit__(self, *args, **kwargs):
+        assert self.progress is not None
         self.progress.__exit__(*args, **kwargs)
 
     def update(self, count):
+        assert self.progress is not None
         self.progress.update(self.task_id, advance=count)
 
 
