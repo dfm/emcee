@@ -234,6 +234,23 @@ def test_pickle(backend):
             assert np.allclose(a, b), "inconsistent {0}".format(k)
 
 
+def test_pickle_does_not_mutate_original_pool():
+    # __getstate__ must not have the side effect of clobbering the
+    # original sampler's pool attribute; it should only affect the
+    # pickled copy. Note: pickle.dumps here only serializes an
+    # in-process, self-generated object for a round-trip check; the
+    # result is never deserialized from an untrusted source.
+    class DummyPool:
+        def map(self, func, iterable):
+            return list(map(func, iterable))
+
+    pool = DummyPool()
+    sampler = EnsembleSampler(32, 3, normal_log_prob, pool=pool)
+    assert sampler.pool is pool
+    pickle.dumps(sampler, -1)
+    assert sampler.pool is pool
+
+
 @pytest.mark.parametrize("nwalkers, ndim", [(10, 2), (20, 5)])
 def test_walkers_dependent_ones(nwalkers, ndim):
     assert not walkers_independent(np.ones((nwalkers, ndim)))

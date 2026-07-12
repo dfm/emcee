@@ -251,7 +251,7 @@ class EnsembleSampler(object):
     def __getstate__(self):
         # In order to be generally picklable, we need to discard the pool
         # object before trying.
-        d = self.__dict__
+        d = self.__dict__.copy()
         d["pool"] = None
         return d
 
