@@ -114,5 +114,5 @@ class _proposal(_isotropic_proposal):
 
     def get_updated_vector(self, rng, x0):
         return x0 + self.get_factor(rng) * rng.multivariate_normal(
-            np.zeros(len(self.scale)), self.scale
+            np.zeros(len(self.scale)), self.scale, size=x0.shape[0]
         )
