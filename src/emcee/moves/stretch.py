@@ -30,4 +30,18 @@ class StretchMove(RedBlueMove):
         zz = ((self.a - 1.0) * random.rand(Ns) + 1) ** 2.0 / self.a
         factors = (ndim - 1.0) * np.log(zz)
         rint = random.randint(Nc, size=(Ns,))
-        return c[rint] - (c[rint] - s) * zz[:, None], factors
+        # deterministic matching of c to s
+        # they should be the same size +- 1.
+        if Nc == Ns:
+            rint = Ellipsis
+        elif Nc == Ns + 1:  # s is one shorter
+            rint = slice(0, Ns)
+        elif Nc == Ns - 1:  # s is one longer, reuse one
+            rint = np.arange(Ns)
+            # RedBlueMove's permutation means the first element is not special
+            rint[-1] = 0
+        else:
+            # old resampling behaviour; this should not occur
+            rint = random.randint(Nc, size=(Ns,))
+        cc = c[rint]
+        return cc - (cc - s) * zz[:, None], factors
