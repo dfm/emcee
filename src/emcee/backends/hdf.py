@@ -94,6 +94,16 @@ class HDFBackend(Backend):
                 "mode. Set `read_only = False` to make "
                 "changes."
             )
+        if mode != "r" and (
+            not os.path.exists(self.filename)
+            or os.path.getsize(self.filename) == 0
+        ):
+            # Each step rewrites partly filled chunks, and a rewritten compressed
+            # chunk moves to new space. Persist free-space tracking so that space
+            # is reused after the file is closed and reopened.
+            h5py.File(
+                self.filename, "w", fs_strategy="fsm", fs_persist=True
+            ).close()
         f = h5py.File(self.filename, mode)
         if not self.dtype_set and self.name in f:
             g = f[self.name]
@@ -262,9 +272,9 @@ class HDFBackend(Backend):
             g["accepted"][:] += accepted
 
             for i, v in enumerate(state.random_state):
-                g.attrs["random_state_{0}".format(i)] = v
+                g.attrs.modify("random_state_{0}".format(i), v)
 
-            g.attrs["iteration"] = iteration + 1
+            g.attrs.modify("iteration", iteration + 1)
 
 
 class TempHDFBackend(object):
