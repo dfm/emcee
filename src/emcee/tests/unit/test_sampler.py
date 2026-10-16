@@ -6,7 +6,7 @@ from itertools import islice, product
 import numpy as np
 import pytest
 
-from emcee import EnsembleSampler, backends, moves, walkers_independent
+from emcee import EnsembleSampler, State, backends, moves, walkers_independent
 
 __all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
 
@@ -361,3 +361,28 @@ def test_infinite_iterations(backend, nwalkers=32, ndim=3):
             10,
         ):
             pass
+
+
+@pytest.mark.parametrize("dtype", [np.int32, np.int64, np.uint64])
+@pytest.mark.parametrize("as_state", [False, True])
+@pytest.mark.parametrize("move", [None, moves.GaussianMove(0.5)])
+def test_integer_initial_coordinates(dtype, as_state, move):
+    coords = np.arange(8, dtype=dtype).reshape(-1, 1)
+    initial = State(coords) if as_state else coords
+    random_state = np.random.RandomState(42).get_state()
+    reference = EnsembleSampler(8, 1, normal_log_prob, moves=move)
+    reference.random_state = random_state
+    reference.run_mcmc(coords.astype(float), 20)
+    sampler = EnsembleSampler(8, 1, normal_log_prob, moves=move)
+    sampler.random_state = random_state
+    state = sampler.run_mcmc(initial, 20)
+    np.testing.assert_array_equal(sampler.get_chain(), reference.get_chain())
+    np.testing.assert_array_equal(
+        sampler.get_log_prob(), reference.get_log_prob()
+    )
+    np.testing.assert_allclose(
+        sampler.get_log_prob(),
+        -0.5 * np.sum(sampler.get_chain() ** 2, axis=-1),
+    )
+    assert np.issubdtype(state.coords.dtype, np.floating)
+    np.testing.assert_array_equal(coords, np.arange(8).reshape(-1, 1))
