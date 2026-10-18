@@ -93,6 +93,7 @@ If you have a question about the use of emcee, please post it to `the users list
    tutorials/autocorr
    tutorials/monitor
    tutorials/moves
+   tutorials/swmr
 
 
 License & Attribution
