@@ -8,7 +8,13 @@ import pytest
 
 from emcee import EnsembleSampler, backends, moves, walkers_independent
 
-__all__ = ["test_shapes", "test_errors", "test_thin", "test_vectorize"]
+__all__ = [
+    "test_shapes",
+    "test_errors",
+    "test_thin",
+    "test_vectorize",
+    "test_vectorize_blobs",
+]
 
 all_backends = backends.get_test_backends()
 
@@ -220,6 +226,52 @@ def test_vectorize():
     sampler.run_mcmc(coords, 10)
 
     assert sampler.get_chain().shape == (10, nwalkers, ndim)
+
+
+def test_vectorize_blobs():
+    # vectorize=True calls log_prob_fn once for the ensemble. A blob
+    # returned beside the log probability has one row per walker.
+    def lnprob(theta, y, yerr):
+        model = np.sum(theta, axis=1)
+        like = -0.5 * ((y - model) / yerr) ** 2
+        return like, model
+
+    rng = np.random.default_rng(1337)
+    initial = rng.random((32, 5))
+    y = 0.7
+    yerr = 0.03 * y
+    sampler = EnsembleSampler(
+        32,
+        5,
+        lnprob,
+        vectorize=True,
+        moves=moves.WalkMove(),
+        args=(y, yerr),
+    )
+
+    log_prob, blob = sampler.compute_log_prob(initial)
+    model = np.sum(initial, axis=1)
+    np.testing.assert_allclose(log_prob, -0.5 * ((y - model) / yerr) ** 2)
+    np.testing.assert_allclose(blob, model)
+
+    sampler.run_mcmc(initial, 10, progress=False)
+    assert sampler.get_chain().shape == (10, 32, 5)
+    assert sampler.get_blobs().shape == (10, 32)
+
+    def lnprob_columns(theta):
+        return -0.5 * np.sum(theta**2, axis=1), theta, np.sin(theta)
+
+    coords = rng.normal(size=(16, 3))
+    column_sampler = EnsembleSampler(16, 3, lnprob_columns, vectorize=True)
+    log_prob, blob = column_sampler.compute_log_prob(coords)
+    np.testing.assert_allclose(log_prob, -0.5 * np.sum(coords**2, axis=1))
+    assert blob.shape == (16, 2)
+    assert blob.dtype == object
+    np.testing.assert_allclose(
+        np.stack(blob[:, 0]),
+        coords,
+    )
+    np.testing.assert_allclose(np.stack(blob[:, 1]), np.sin(coords))
 
 
 @pytest.mark.parametrize("backend", all_backends)
