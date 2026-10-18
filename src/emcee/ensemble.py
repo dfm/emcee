@@ -485,6 +485,12 @@ class EnsembleSampler(object):
         # Run the log-probability calculations (optionally in parallel).
         if self.vectorize:
             results = self.log_prob_fn(p)
+            # One call covers the ensemble. A tuple is the log
+            # probability and then one blob array per value, each with a
+            # row per walker. The parser below still wants one return
+            # value per walker, which is what a non-vectorized call gives.
+            if isinstance(results, tuple) and len(results) > 1:
+                results = _split_vectorized_results(results, np.shape(p)[0])
         else:
             # If the `pool` property of the sampler has been set (i.e. we want
             # to use `multiprocessing`), use the `pool`'s map method.
@@ -698,6 +704,30 @@ def ndarray_to_list_of_dicts(
       list of dictionaries of parameters
     """
     return [{key: xi[val] for key, val in key_map.items()} for xi in x]
+
+
+def _split_vectorized_results(results, nwalkers):
+    """Turn one vectorized ``(log_prob, *blobs)`` into per-walker tuples."""
+    log_probs = np.asarray(results[0])
+    if np.shape(log_probs) != (nwalkers,):
+        raise ValueError(
+            "vectorized log_prob_fn must return one log probability "
+            "per walker"
+        )
+
+    blobs = []
+    for blob in results[1:]:
+        values = np.asarray(blob)
+        if values.shape[:1] != (nwalkers,):
+            raise ValueError(
+                "vectorized log_prob_fn must return one blob value "
+                "per walker"
+            )
+        blobs.append(values)
+
+    return [
+        (log_probs[i], *(blob[i] for blob in blobs)) for i in range(nwalkers)
+    ]
 
 
 def _scalar(fx):

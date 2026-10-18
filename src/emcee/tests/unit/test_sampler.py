@@ -14,6 +14,7 @@ __all__ = [
     "test_thin",
     "test_vectorize",
     "test_vectorize_blobs",
+    "test_vectorize_blobs_require_one_row_per_walker",
 ]
 
 all_backends = backends.get_test_backends()
@@ -265,13 +266,29 @@ def test_vectorize_blobs():
     column_sampler = EnsembleSampler(16, 3, lnprob_columns, vectorize=True)
     log_prob, blob = column_sampler.compute_log_prob(coords)
     np.testing.assert_allclose(log_prob, -0.5 * np.sum(coords**2, axis=1))
-    assert blob.shape == (16, 2)
-    assert blob.dtype == object
-    np.testing.assert_allclose(
-        np.stack(blob[:, 0]),
-        coords,
-    )
-    np.testing.assert_allclose(np.stack(blob[:, 1]), np.sin(coords))
+    # Two blobs of the same shape stack on a new axis, same as the
+    # per-walker parser.
+    assert blob.shape == (16, 2, 3)
+    np.testing.assert_allclose(blob[:, 0], coords)
+    np.testing.assert_allclose(blob[:, 1], np.sin(coords))
+
+
+def test_vectorize_blobs_require_one_row_per_walker():
+    coords = np.zeros((4, 2))
+
+    def short_blob(theta):
+        return -0.5 * np.sum(theta**2, axis=1), theta[:-1]
+
+    sampler = EnsembleSampler(4, 2, short_blob, vectorize=True)
+    with pytest.raises(ValueError, match="one blob value per walker"):
+        sampler.compute_log_prob(coords)
+
+    def short_log_prob(theta):
+        return -0.5 * np.sum(theta**2, axis=1)[:-1], theta
+
+    sampler = EnsembleSampler(4, 2, short_log_prob, vectorize=True)
+    with pytest.raises(ValueError, match="one log probability per walker"):
+        sampler.compute_log_prob(coords)
 
 
 @pytest.mark.parametrize("backend", all_backends)
