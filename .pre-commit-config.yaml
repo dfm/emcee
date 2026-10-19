@@ -7,7 +7,7 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/PyCQA/isort
-    rev: "9.0.1"
+    rev: "10.0.0b1"
     hooks:
       - id: isort
         args: []
@@ -15,6 +15,6 @@ repos:
         exclude: docs/tutorials
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: "26.5.1"
+    rev: "26.10.1"
     hooks:
       - id: black-jupyter
