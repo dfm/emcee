@@ -290,13 +290,10 @@ class EnsembleSampler(object):
                 a file or if you don't need to analyze the samples after the
                 fact (for burn-in for example) set ``store`` to ``False``.
             progress (Optional[bool or str]): If ``True``, a progress bar will
-                be shown as the sampler progresses. If a string, will select a
-                specific ``tqdm`` progress bar - most notable is
-                ``'notebook'``, which shows a progress bar suitable for
-                Jupyter notebooks.  If ``False``, no progress bar will be
+                be shown as the sampler progresses. If ``False``, no progress bar will be
                 shown.
             progress_kwargs (Optional[dict]): A ``dict`` of keyword arguments
-                to be passed to the tqdm call.
+                to be passed to the progress bar implementation.
             skip_initial_state_check (Optional[bool]): If ``True``, a check
                 that the initial_state can fully explore the space will be
                 skipped. (default: ``False``)
