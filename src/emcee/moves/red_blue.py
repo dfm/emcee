@@ -92,13 +92,10 @@ class RedBlueMove(Move):
             # Compute the lnprobs of the proposed position.
             new_log_probs, new_blobs = model.compute_log_prob_fn(q)
 
-            # Loop over the walkers and update them accordingly.
-            for i, (j, f, nlp) in enumerate(
-                zip(all_inds[S1], factors, new_log_probs)
-            ):
-                lnpdiff = f + nlp - state.log_prob[j]
-                if lnpdiff > np.log(model.random.rand()):
-                    accepted[j] = True
+            # Accept or reject all walkers in this subset at once. Drawing
+            # ``rand(n)`` gives the same numbers as ``n`` calls to ``rand()``.
+            lnpdiff = factors + new_log_probs - state.log_prob[S1]
+            accepted[S1] = lnpdiff > np.log(model.random.rand(len(lnpdiff)))
 
             new_state = State(q, log_prob=new_log_probs, blobs=new_blobs)
             state = self.update(state, new_state, accepted, S1)
