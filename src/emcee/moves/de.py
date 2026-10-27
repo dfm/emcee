@@ -53,7 +53,9 @@ class DEMove(RedBlueMove):
         diffs = np.diff(c[pairs], axis=1).squeeze(axis=1)  # (ns, ndim)
 
         # Sample a gamma value for each walker following Nelson et al. (2013)
-        gamma = self.g0 * (1 + self.sigma * random.randn(ns, 1))  # (ns, 1)
+        gamma = self.g0 * (
+            1 + self.sigma * random.standard_normal((ns, 1))
+        )  # (ns, 1)
 
         # In this way, sigma is the standard deviation of the distribution of gamma,
         # instead of the standard deviation of the distribution of the proposal as proposed by Ter Braak (2006).

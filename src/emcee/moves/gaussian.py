@@ -87,13 +87,15 @@ class _isotropic_proposal(object):
         return np.exp(rng.uniform(-self._log_factor, self._log_factor))
 
     def get_updated_vector(self, rng, x0):
-        return x0 + self.get_factor(rng) * self.scale * rng.randn(*(x0.shape))
+        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal(
+            (x0.shape)
+        )
 
     def __call__(self, x0, rng):
         nw, nd = x0.shape
         xnew = self.get_updated_vector(rng, x0)
         if self.mode == "random":
-            m = (range(nw), rng.randint(x0.shape[-1], size=nw))
+            m = (range(nw), rng.integers(x0.shape[-1], size=nw))
         elif self.mode == "sequential":
             m = (range(nw), self.index % nd + np.zeros(nw, dtype=int))
             self.index = (self.index + 1) % nd
@@ -106,7 +108,9 @@ class _isotropic_proposal(object):
 
 class _diagonal_proposal(_isotropic_proposal):
     def get_updated_vector(self, rng, x0):
-        return x0 + self.get_factor(rng) * self.scale * rng.randn(*(x0.shape))
+        return x0 + self.get_factor(rng) * self.scale * rng.standard_normal(
+            (x0.shape)
+        )
 
 
 class _proposal(_isotropic_proposal):
