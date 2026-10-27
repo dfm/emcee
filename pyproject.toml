@@ -55,5 +55,5 @@ exclude_lines = [
     "logging.warning",
     "deprecation_warning",
     "deprecated",
-    "if tqdm is None"
+    "if Progress is None"
 ]

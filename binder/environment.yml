@@ -8,7 +8,7 @@ dependencies:
   - h5py
   - matplotlib
   - corner
-  - tqdm
+  - rich
   - mpi4py
   - schwimmbad
   - pip
