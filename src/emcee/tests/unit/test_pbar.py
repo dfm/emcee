@@ -8,8 +8,18 @@ except ImportError:
     tqdm = None
 
 
-def test_display_false():
-    assert isinstance(get_progress_bar(False, 100), _NoOpPBar)
+def test_display_false(capsys, caplog):
+    pbar = get_progress_bar(False, 100)
+    assert isinstance(pbar, _NoOpPBar)
+
+    with pbar as entered:
+        assert entered is pbar
+        assert entered.update(1) is None
+        assert entered.set_description("sampling", False) is None
+        assert entered.set_description(desc="sampling", refresh=False) is None
+
+    assert capsys.readouterr() == ("", "")
+    assert not caplog.records
 
 
 @pytest.mark.skipif(tqdm is None, reason="tqdm not available")
