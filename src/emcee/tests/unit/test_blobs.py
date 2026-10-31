@@ -94,3 +94,56 @@ def test_blob_mismatch(backend):
         model.i += 1
         with pytest.raises(ValueError):
             sampler.run_mcmc(coords, 1)
+
+
+class PlaceholderBlobLogProb:
+    def __init__(self, placeholder):
+        self.placeholder = placeholder
+
+    def __call__(self, params):
+        if params[0] < 0:
+            # Blobs returned with a log probability of -inf are not tracked
+            return -np.inf, self.placeholder
+        return -0.5 * np.sum(params**2), params[0]
+
+
+def test_compute_log_prob_preserves_array_blobs_with_none_placeholder():
+    def log_prob(params):
+        if params[0] < 0:
+            return -np.inf, None
+        return -params[0] ** 2, np.array([params[0], 2 * params[0]])
+
+    coords = np.array([[-1.0], [0.75]])
+    sampler = EnsembleSampler(2, 1, log_prob)
+    log_probs, blobs = sampler.compute_log_prob(coords)
+    np.testing.assert_array_equal(log_probs, [-np.inf, -0.5625])
+    assert blobs.dtype == object
+    assert blobs[0] is None
+    np.testing.assert_array_equal(blobs[1], [0.75, 1.5])
+
+    # An explicitly requested dtype must still be enforced.
+    sampler = EnsembleSampler(2, 1, log_prob, blobs_dtype=float)
+    with pytest.raises(ValueError):
+        sampler.compute_log_prob(coords)
+
+
+@pytest.mark.parametrize("backend", backends.get_test_backends())
+@pytest.mark.parametrize("placeholder", [0, False, None])
+@pytest.mark.filterwarnings("ignore:invalid value:RuntimeWarning")
+def test_blob_dtype_ignores_placeholders(backend, placeholder):
+    with backend() as be:
+        np.random.seed(42)
+
+        model = PlaceholderBlobLogProb(placeholder)
+        coords = np.abs(np.random.randn(32, 3)) + 0.1
+        coords[0, 0] = -1.0
+        nwalkers, ndim = coords.shape
+
+        sampler = EnsembleSampler(nwalkers, ndim, model, backend=be)
+        sampler.run_mcmc(coords, 20)
+
+        blobs = sampler.get_blobs()
+        assert blobs.dtype == np.float64
+        tracked = np.isfinite(sampler.get_log_prob())
+        x = sampler.get_chain()[..., 0]
+        np.testing.assert_allclose(blobs[tracked], x[tracked])
