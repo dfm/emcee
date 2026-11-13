@@ -515,13 +515,19 @@ class EnsembleSampler(object):
             if self.blobs_dtype is not None:
                 dt = self.blobs_dtype
             else:
+                # Blobs returned alongside a log probability of -inf are
+                # never tracked, so they can be placeholders of any type.
+                # Infer the dtype from all of the tracked blobs.
+                tracked = [
+                    b for b, lp in zip(blob, log_prob) if lp != -np.inf
+                ] or blob
                 try:
                     with warnings.catch_warnings(record=True):
                         warnings.simplefilter(
                             "error", VisibleDeprecationWarning
                         )
                         try:
-                            dt = np.atleast_1d(blob[0]).dtype
+                            dt = np.array(tracked).dtype
                         except Warning:
                             deprecation_warning(
                                 "You have provided blobs that are not all the "
@@ -537,7 +543,14 @@ class EnsembleSampler(object):
                 if dt.kind in "US":
                     # Strings need to be object arrays or we risk truncation
                     dt = np.dtype("object")
-            blob = np.array(blob, dtype=dt)
+            try:
+                blob = np.array(blob, dtype=dt)
+            except (TypeError, ValueError):
+                if self.blobs_dtype is not None:
+                    raise
+                # Rejected walkers may return scalar placeholders alongside
+                # array-valued blobs. Preserve automatic object-array support.
+                blob = np.array(blob, dtype=object)
 
             # Deal with single blobs properly
             shape = blob.shape[1:]
