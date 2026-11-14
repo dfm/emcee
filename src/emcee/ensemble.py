@@ -310,6 +310,8 @@ class EnsembleSampler(object):
             raise ValueError("'store' must be False when 'iterations' is None")
         # Interpret the input as a walker state and check the dimensions.
         state = State(initial_state, copy=True)
+        if state.coords.dtype.kind in "biu":
+            state.coords = state.coords.astype(float)
         state_shape = np.shape(state.coords)
         if state_shape != (self.nwalkers, self.ndim):
             raise ValueError(f"incompatible input dimensions {state_shape}")
