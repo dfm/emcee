@@ -274,3 +274,70 @@ def test_hdf5_compression():
         b.get_blobs()
         b.get_log_prob()
         b.accepted
+
+
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
+@pytest.mark.parametrize("legacy_bytes", [False, True])
+@pytest.mark.parametrize("name", ["mcmc", "other"])
+def test_hdf5_random_state_identifier(tmp_path, legacy_bytes, name):
+    filename = str(tmp_path / "state.h5")
+    backend = backends.HDFBackend(filename, name=name)
+    backend.reset(4, 1)
+    assert backend.random_state is None
+    random = np.random.RandomState(1234)
+    random.normal()  # Include the cached Gaussian in the restored state.
+    expected = random.get_state()
+    with backend.open("a") as f:
+        for i, value in enumerate(expected):
+            if i == 0 and legacy_bytes:
+                value = np.bytes_(value)
+            f[name].attrs["random_state_{0}".format(i)] = value
+        assert isinstance(
+            f[name].attrs["random_state_0"], bytes if legacy_bytes else str
+        )
+
+    before = (tmp_path / "state.h5").read_bytes()
+    readonly = backends.HDFBackend(filename, name=name, read_only=True)
+    state = readonly.random_state
+    assert state[0] == expected[0]
+    for actual, value in zip(state[1:], expected[1:]):
+        np.testing.assert_array_equal(actual, value)
+    restored = np.random.RandomState()
+    restored.set_state(state)
+    np.testing.assert_array_equal(
+        restored.normal(size=5), random.normal(size=5)
+    )
+    sampler = EnsembleSampler(4, 1, normal_log_prob, backend=readonly)
+    assert sampler.random_state[0] == expected[0]
+    for actual, value in zip(sampler.random_state[1:], expected[1:]):
+        np.testing.assert_array_equal(actual, value)
+    assert (tmp_path / "state.h5").read_bytes() == before
+
+
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
+@pytest.mark.parametrize("blobs", [False, True])
+def test_hdf5_restart_with_bytes_random_state(blobs):
+    with backends.TempHDFBackend() as backend:
+        run_sampler(backend, nwalkers=8, ndim=2, nsteps=3, blobs=blobs)
+        with backend.open("a") as f:
+            attrs = f[backend.name].attrs
+            value = attrs["random_state_0"]
+            del attrs["random_state_0"]
+            attrs["random_state_0"] = np.bytes_(value)
+            assert isinstance(attrs["random_state_0"], bytes)
+
+        control = run_sampler(
+            backends.Backend(), nwalkers=8, ndim=2, nsteps=3, blobs=blobs
+        )
+        control.run_mcmc(None, 4)
+        reopened = backends.HDFBackend(backend.filename, name=backend.name)
+        log_prob = normal_log_prob_blobs if blobs else normal_log_prob
+        resumed = EnsembleSampler(8, 2, log_prob, backend=reopened)
+        resumed.run_mcmc(None, 4)
+        for key in ["chain", "log_prob"] + (["blobs"] if blobs else []):
+            np.testing.assert_array_equal(
+                control.get_value(key), resumed.get_value(key)
+            )
+        np.testing.assert_array_equal(
+            control.acceptance_fraction, resumed.acceptance_fraction
+        )

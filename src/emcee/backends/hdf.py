@@ -198,6 +198,9 @@ class HDFBackend(Backend):
                 for k, v in sorted(f[self.name].attrs.items())
                 if k.startswith("random_state_")
             ]
+        if elements and isinstance(elements[0], bytes):
+            # Older HDF files can store the RNG name as a byte string.
+            elements[0] = elements[0].decode("utf-8")
         return elements if len(elements) else None
 
     def grow(self, ngrow, blobs):
