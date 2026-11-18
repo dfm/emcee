@@ -147,7 +147,16 @@ class Backend(object):
 
         """
         x = self.get_chain(discard=discard, thin=thin)
-        return thin * autocorr.integrated_time(x, **kwargs)
+        try:
+            return thin * autocorr.integrated_time(x, **kwargs)
+        except autocorr.AutocorrError as e:
+            e.tau *= thin
+            if thin != 1:
+                e.args = (
+                    str(e) + "\nThe diagnostic above uses thinned steps. "
+                    "The tau attribute is in units of the original steps.",
+                )
+            raise
 
     @property
     def shape(self):
