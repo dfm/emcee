@@ -274,3 +274,17 @@ def test_hdf5_compression():
         b.get_blobs()
         b.get_log_prob()
         b.accepted
+
+
+@pytest.mark.skipif(h5py is None, reason="HDF5 not available")
+def test_hdf5_file_size():
+    nwalkers, ndim, nsteps = 32, 3, 500
+    data_size = nsteps * nwalkers * (ndim + 1) * 8
+    sizes = {}
+    for compression in (None, "gzip"):
+        with backends.TempHDFBackend(compression=compression) as b:
+            run_sampler(b, nwalkers, ndim, nsteps, blobs=False)
+            sizes[compression] = os.path.getsize(b.filename)
+    # Saving a step should not leave old copies of the state behind.
+    assert sizes[None] < 2 * data_size
+    assert sizes["gzip"] < sizes[None]
