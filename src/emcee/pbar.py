@@ -26,6 +26,9 @@ class _NoOpPBar(object):
     def __exit__(self, *args, **kwargs):
         pass
 
+    def set_description(self, desc=None, refresh=True):
+        pass
+
     def update(self, count):
         pass
 
