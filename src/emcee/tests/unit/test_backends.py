@@ -274,3 +274,52 @@ def test_hdf5_compression():
         b.get_blobs()
         b.get_log_prob()
         b.accepted
+
+
+@pytest.mark.parametrize("backend", all_backends)
+@pytest.mark.parametrize("dtype,blobs", product(dtypes, [True, False]))
+@pytest.mark.parametrize("thin_by", [1, 3])
+def test_resume_after_early_stop(backend, dtype, blobs, thin_by):
+    np.random.seed(1234)
+    coords = np.random.randn(16, 2)
+    random_state = np.random.get_state()
+    log_prob = normal_log_prob_blobs if blobs else normal_log_prob
+    reference = EnsembleSampler(16, 2, log_prob, blobs_dtype=dtype)
+    reference.random_state = random_state
+    reference.run_mcmc(coords, 48, thin_by=thin_by)
+
+    with backend() as be:
+        sampler = EnsembleSampler(
+            16, 2, log_prob, blobs_dtype=dtype, backend=be
+        )
+        sampler.random_state = random_state
+        generator = sampler.sample(coords, iterations=40, thin_by=thin_by)
+        for i, state in enumerate(generator):
+            if i == 4:
+                break
+        generator.close()
+        # Reuse some reserved storage, then grow past its original size.
+        sampler.run_mcmc(state, 3, thin_by=thin_by)
+        sampler.run_mcmc(None, 40, thin_by=thin_by)
+        np.testing.assert_array_equal(
+            sampler.get_chain(), reference.get_chain()
+        )
+        np.testing.assert_array_equal(
+            sampler.get_log_prob(), reference.get_log_prob()
+        )
+        np.testing.assert_array_equal(be.accepted, reference.backend.accepted)
+        if blobs:
+            np.testing.assert_array_equal(
+                sampler.get_blobs(), reference.get_blobs()
+            )
+
+
+def test_grow_blobs_in_reserved_storage():
+    backend = backends.Backend()
+    backend.reset(8, 2)
+    backend.grow(20, None)
+    blobs = np.arange(8)
+    backend.grow(5, blobs)
+    state = State(np.ones((8, 2)), log_prob=np.zeros(8), blobs=blobs)
+    backend.save_step(state, np.ones(8, dtype=bool))
+    np.testing.assert_array_equal(backend.get_blobs(), blobs[None, :])
